@@ -61,11 +61,24 @@ class Lkn_WC_Cielo_Payment {
      * Plugin includes.
      */
     public static function includes() {
+        Lkn_WC_Cielo_Payment::setup_constants();
 
         // Make the Lkn_WC_Gateway_Cielo_Credit class available.
         if (class_exists('WC_Payment_Gateway')) {
             require_once 'includes/class-lkn-wc-gateway-cielo-credit.php';
             require_once 'includes/class-lkn-wc-gateway-cielo-debit.php';
+        }
+    }
+
+    /**
+     * Setup plugin constants for ease of use
+     *
+     * @return void
+     */
+    private static function setup_constants() {
+        // Defines addon version number for easy reference.
+        if (!defined('LKN_WC_CIELO_VERSION')) {
+            define('LKN_WC_CIELO_VERSION', '1.0.0');
         }
     }
 

@@ -20,12 +20,21 @@ if (!defined('ABSPATH')) {
  */
 class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
     /**
+     * The version of this plugin.
+     *
+     * @since    1.0.0
+     * @access   private
+     * @var      string    $version    The current version of this plugin.
+     */
+    private $version = LKN_WC_CIELO_VERSION;
+
+    /**
      * Constructor for the gateway.
      */
     public function __construct() {
         $this->id                 = 'lkn_cielo_credit';
         $this->icon               = apply_filters('lkn_wc_cielo_gateway_icon', '');
-        $this->has_fields         = false;
+        $this->has_fields         = true;
         $this->supports           = [
             'products',
             'refunds',
@@ -47,11 +56,43 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'process_admin_options']);
 
         // Action hook to load custom JavaScript
-        // add_action( 'wp_enqueue_scripts', array( $this, 'payment_gateway_scripts' ) );
+        add_action('wp_enqueue_scripts', [$this, 'payment_gateway_scripts']);
+    }
+
+    /**
+     * Load gateway scripts/styles
+     *
+     * @return void
+     */
+    public function payment_gateway_scripts() {
+        // Don't load scripts outside payment page
+        if (
+            !is_product()
+            && !(is_cart() || is_checkout())
+            && !isset($_GET['pay_for_order']) // wpcs: csrf ok.
+            && !is_add_payment_method_page()
+            && !isset($_GET['change_payment_method']) // wpcs: csrf ok.
+            || (is_order_received_page())
+        ) {
+            return;
+        }
+
+        // If is not enabled bail.
+        if ($this->enabled !== 'yes') {
+            return;
+        }
+
+        wp_enqueue_script('lkn-cc-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-cc-script.js', [], $this->version, false);
+
+        wp_enqueue_script('lkn-mask-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-mask.js', [], $this->version, false);
+
+        wp_enqueue_style('lkn-cc-style', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-cc-style.css', [], $this->version, 'all');
     }
 
     /**
      * Initialise Gateway Settings Form Fields.
+     *
+     * @return void
      */
     public function init_form_fields() {
         $this->form_fields = [
@@ -88,7 +129,7 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
                 'desc_tip'    => true,
             ],
             'invoiceDesc' => [
-                'title'       => __('Description', 'lkn-wc-gateway-cielo'),
+                'title'       => __('Invoice Description', 'lkn-wc-gateway-cielo'),
                 'type'        => 'text',
                 'description' => __('Invoice description that the customer will see on your checkout.', 'lkn-wc-gateway-cielo'),
                 'desc_tip'    => true,
@@ -113,9 +154,15 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
         ];
     }
 
+    /**
+     * Render the payment fields
+     *
+     * @return void
+     */
     public function payment_fields() {
+        $env = $this->get_option('env');
         // TODO style the payment form
-        if ($this->description) {
+        if ($env === 'sandbox') {
             $this->description .= ' Test mode is enabled. You can use the dummy credit card numbers to test it.';
             echo wpautop(wp_kses_post($this->description));
         } ?>
@@ -130,7 +177,8 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
             </div>
             <div class="form-row form-row-first">
                 <label>Expiry Date <span class="required">*</span></label>
-                <input id="lkn_expdate" name="lkn_expdate" type="text" autocomplete="off" placeholder="MM / YY" maxlength="7" required>
+                <!--<input id="lkn_expdate" name="lkn_expdate" type="text" placeholder="MM/YY" class="masked" pattern="(1[0-2]|0[1-9])\/(1[5-9]|2\d)" data-valid-example="05/18" required>-->
+                <input id="cc" type="text" placeholder="MM/YY" class="masked" pattern="(1[0-2]|0[1-9])\/(1[5-9]|2\d)" data-valid-example="05/18"/>
             </div>
             <div class="form-row form-row-last">
                 <label>Card Code <span class="required">*</span></label>
@@ -219,43 +267,43 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
             }
             if (preg_match($bin[$c], $cardNumber) == 1) {
                 switch ($c) {
-            case 0:
-                return 'Elo';
+                    case 0:
+                        return 'Elo';
 
-                break;
-            case 1:
-                return 'Hipercard';
+                        break;
+                    case 1:
+                        return 'Hipercard';
 
-                break;
-            case 2:
-                return 'Diners';
+                        break;
+                    case 2:
+                        return 'Diners';
 
-                break;
-            case 3:
-                return 'Discover';
+                        break;
+                    case 3:
+                        return 'Discover';
 
-                break;
-            case 4:
-                return 'JCB';
+                        break;
+                    case 4:
+                        return 'JCB';
 
-                break;
-            case 5:
-                return 'Aura';
+                        break;
+                    case 5:
+                        return 'Aura';
 
-                break;
-            case 6:
-                return 'Amex';
+                        break;
+                    case 6:
+                        return 'Amex';
 
-                break;
-            case 7:
-                return 'Master';
+                        break;
+                    case 7:
+                        return 'Master';
 
-                break;
-            case 8:
-                return 'Visa';
+                        break;
+                    case 8:
+                        return 'Visa';
 
-                break;
-        }
+                        break;
+                }
             }
         }
 
@@ -318,27 +366,35 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
 
         error_log('response: ' . var_export($response, true), 3, __DIR__ . '/../err.log');
 
-        $responseDecoded = json_decode($response['body']);
+        if (is_wp_error($response)) {
+            error_log('Payment errors: ' . var_export($response->get_error_messages(), true), 3, __DIR__ . '/../err.log');
 
-        // error_log('response decoded: ' . var_export($responseDecoded->Payment, true) . 'url: ' . var_export($url, true) . 'message: ' . var_export($response['body'], true) . ' POST: ' . var_export($_POST, true) . ' SEND REQUEST: ' . var_export($args, true), 3, __DIR__ . '/../err.log');
-
-        if (isset($responseDecoded->Payment) && ($responseDecoded->Payment->Status == 1 || $responseDecoded->Payment->Status == 2)) {
-            $order->payment_complete($responseDecoded->Payment->PaymentId);
-
-            // Remove cart
-            WC()->cart->empty_cart();
-
-            $order->add_order_note('');
-
-            // Return thankyou redirect
-            return [
-                'result' 	=> 'success',
-                'redirect'	=> $this->get_return_url($order),
-            ];
-        } else {
             $message = __('Order payment failed. To make a successful payment using credit card, please review the gateway settings.', 'lkn-wc-gateway-cielo');
 
             throw new Exception($message);
+        } else {
+            $responseDecoded = json_decode($response['body']);
+
+            // error_log('response decoded: ' . var_export($responseDecoded->Payment, true) . 'url: ' . var_export($url, true) . 'message: ' . var_export($response['body'], true) . ' POST: ' . var_export($_POST, true) . ' SEND REQUEST: ' . var_export($args, true), 3, __DIR__ . '/../err.log');
+
+            if (isset($responseDecoded->Payment) && ($responseDecoded->Payment->Status == 1 || $responseDecoded->Payment->Status == 2)) {
+                $order->payment_complete($responseDecoded->Payment->PaymentId);
+
+                // Remove cart
+                WC()->cart->empty_cart();
+
+                $order->add_order_note('Payment completed successfully. Payment id: ' . $responseDecoded->Payment->PaymentId);
+
+                // Return thankyou redirect
+                return [
+                    'result' 	=> 'success',
+                    'redirect'	=> $this->get_return_url($order),
+                ];
+            } else {
+                $message = __('Order payment failed. Make sure your credit card is valid.', 'lkn-wc-gateway-cielo');
+
+                throw new Exception($message);
+            }
         }
     }
 
@@ -360,7 +416,7 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
 
         $order = wc_get_order($order_id);
         $transactionId = $order->get_transaction_id();
-        $order->add_order_note('');
+        $order->add_order_note('Order refunded, payment id: ' . $transactionId);
 
         $args['headers'] = [
             'Content-Length' => 0,
@@ -372,14 +428,23 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
         $args['method'] = 'PUT';
 
         $response = wp_remote_request($url . '1/sales/' . $transactionId . '/void?amount=' . $amount, $args);
-        $responseDecoded = json_decode($response['body']);
 
-        error_log('headers: ' . var_export($args, true) . 'response: ' . var_export($response, true), 3, __DIR__ . '/../err.log');
+        if (is_wp_error($response)) {
+            error_log('Refund errors: ' . var_export($response->get_error_messages(), true), 3, __DIR__ . '/../err.log');
 
-        if ($responseDecoded->Status == 10 || $responseDecoded->Status == 11) {
-            return true;
-        } else {
+            $order->add_order_note('Order refunded error, payment id: ' . $transactionId);
+
             return false;
+        } else {
+            $responseDecoded = json_decode($response['body']);
+
+            error_log('headers: ' . var_export($args, true) . 'response: ' . var_export($response, true), 3, __DIR__ . '/../err.log');
+
+            if ($responseDecoded->Status == 10 || $responseDecoded->Status == 11) {
+                return true;
+            } else {
+                return false;
+            }
         }
     }
 }
