@@ -90,6 +90,9 @@ var inputMask = {
             t.addEventListener('keyup', function (e) {
                 that.handleValueChange.call(that, e);
             }, false);
+            t.addEventListener('blur', function (e) {
+                that.handleValueChange.call(that, e);
+            }, false);
         } else if (t.attachEvent) { // For IE 8
             t.attachEvent('onkeyup', function (e) {
                 e.target = e.srcElement;

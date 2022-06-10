@@ -113,7 +113,7 @@ class Lkn_WC_Cielo_Payment {
     public static function lkn_wc_cielo_plugin_row_meta($plugin_meta, $plugin_file) {
         $new_meta_links['setting'] = sprintf(
             '<a href="%1$s">%2$s</a>',
-            admin_url('admin.php?page=wc-settings&tab=checkout&section=lkn_cielo_credit'),
+            admin_url('admin.php?page=wc-settings&tab=checkout'),
             __('Settings', 'give-pagseguro')
         );
 

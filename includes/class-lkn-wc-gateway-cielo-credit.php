@@ -87,6 +87,8 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
         wp_enqueue_script('lkn-mask-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-mask.js', [], $this->version, false);
 
         wp_enqueue_style('lkn-cc-style', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-cc-style.css', [], $this->version, 'all');
+
+        wp_enqueue_style('lkn-mask', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-mask.css', [], $this->version, 'all');
     }
 
     /**
@@ -161,7 +163,7 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
      */
     public function payment_fields() {
         $env = $this->get_option('env');
-        // TODO style the payment form
+
         if ($env === 'sandbox') {
             $this->description .= ' Test mode is enabled. You can use the dummy credit card numbers to test it.';
             echo wpautop(wp_kses_post($this->description));
@@ -173,16 +175,15 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
     
             <div class="form-row form-row-wide">
                 <label>Card Number <span class="required">*</span></label>
-                <input id="lkn_ccno" name="lkn_ccno" type="text" autocomplete="off" maxlength="24" required>
+                <input id="lkn_ccno" name="lkn_ccno" type="tel" inputmode="numeric" class="masked" pattern="[0-9\s]{13,19}" autocomplete="cc-number" maxlength="19" placeholder="XXXX XXXX XXXX XXXX" data-valid-example="4444 4444 4444 4444" required>
             </div>
             <div class="form-row form-row-first">
                 <label>Expiry Date <span class="required">*</span></label>
-                <!--<input id="lkn_expdate" name="lkn_expdate" type="text" placeholder="MM/YY" class="masked" pattern="(1[0-2]|0[1-9])\/(1[5-9]|2\d)" data-valid-example="05/18" required>-->
-                <input id="cc" type="text" placeholder="MM/YY" class="masked" pattern="(1[0-2]|0[1-9])\/(1[5-9]|2\d)" data-valid-example="05/18"/>
+                <input id="lkn_cc_expdate" name="lkn_cc_expdate" type="tel" placeholder="MM/YY" class="masked" pattern="(1[0-2]|0[1-9])\/(\d[\d])" autocomplete="cc-expdate" data-valid-example="05/28" required>
             </div>
             <div class="form-row form-row-last">
                 <label>Card Code <span class="required">*</span></label>
-                <input id="lkn_cvc" name="lkn_cvc" type="password" autocomplete="off" placeholder="CVC" maxlength="4" required>
+                <input id="lkn_cc_cvc" name="lkn_cc_cvc" type="tel" autocomplete="off" placeholder="CVV" maxlength="4" required>
             </div>
             <div class="clear"></div>
     
@@ -202,16 +203,16 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
      */
     public function validate_fields() {
         if (empty($_POST['lkn_ccno'])) {
-            wc_add_notice('Card number is required!', 'error');
+            wc_add_notice('Credit Card number is required!', 'error');
 
             return false;
         }
-        if (empty($_POST['lkn_expdate'])) {
+        if (empty($_POST['lkn_cc_expdate'])) {
             wc_add_notice('Expiration date is required!', 'error');
 
             return false;
-        } elseif (!empty($_POST['lkn_expdate'])) {
-            $expDateSplit = explode('/', sanitize_text_field($_POST['lkn_expdate']));
+        } elseif (!empty($_POST['lkn_cc_expdate'])) {
+            $expDateSplit = explode('/', sanitize_text_field($_POST['lkn_cc_expdate']));
             $expDate = new DateTime('20' . $expDateSplit[1] . '-' . $expDateSplit[0] . '-01');
             $today = new DateTime();
 
@@ -221,7 +222,7 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
                 return false;
             }
         }
-        if (empty($_POST['lkn_cvc'])) {
+        if (empty($_POST['lkn_cc_cvc'])) {
             wc_add_notice('CVV is required!', 'error');
 
             return false;
@@ -321,9 +322,9 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
 
         // Card parameters
         $cardNum = preg_replace('/\s/', '', sanitize_text_field($_POST['lkn_ccno']));
-        $cardExpSplit = explode('/', preg_replace('/\s/', '', sanitize_text_field($_POST['lkn_expdate'])));
+        $cardExpSplit = explode('/', preg_replace('/\s/', '', sanitize_text_field($_POST['lkn_cc_expdate'])));
         $cardExp = $cardExpSplit[0] . '/20' . $cardExpSplit[1];
-        $cardCvv = sanitize_text_field($_POST['lkn_cvc']);
+        $cardCvv = sanitize_text_field($_POST['lkn_cc_cvc']);
         $cardName = $order->get_billing_first_name() . ' ' . $order->get_billing_last_name();
 
         // POST parameters
@@ -440,7 +441,7 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
 
             error_log('headers: ' . var_export($args, true) . 'response: ' . var_export($response, true), 3, __DIR__ . '/../err.log');
 
-            if ($responseDecoded->Status == 10 || $responseDecoded->Status == 11) {
+            if ($responseDecoded->Status == 10 || $responseDecoded->Status == 11 || $responseDecoded->Status == 2 || $responseDecoded->Status == 1) {
                 return true;
             } else {
                 return false;

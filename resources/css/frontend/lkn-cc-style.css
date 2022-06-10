@@ -2,12 +2,12 @@
     line-height: 1.6em;
 }
 
-#lkn_expdate {
+#lkn_cc_expdate {
     line-height: 1.6em;
 }
 
-#lkn_cvc {
-    line-height: 1.6em;
+#lkn_cc_cvc {
+    line-height: 1.8em;
 }
 
 .form-row {
