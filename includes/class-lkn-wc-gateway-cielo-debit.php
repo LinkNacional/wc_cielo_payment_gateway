@@ -89,6 +89,8 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
         wp_enqueue_script('lkn-cielo-debit-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/BP.Mpi.3ds20.min.js', [], $this->version, false);
 
         wp_enqueue_style('lkn-dc-style', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-dc-style.css', [], $this->version, 'all');
+
+        wp_enqueue_style('lkn-mask', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-mask.css', [], $this->version, 'all');
     }
 
     /**
@@ -187,15 +189,15 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
     
             <div class="form-row form-row-wide">
                 <label>Card Number <span class="required">*</span></label>
-                <input id="lkn_ccno" name="lkn_ccno" type="text" autocomplete="off" maxlength="24" required>
+                <input id="lkn_dcno" name="lkn_dcno" type="text" autocomplete="off" maxlength="19" required>
             </div>
             <div class="form-row form-row-first">
                 <label>Expiry Date <span class="required">*</span></label>
-                <input id="lkn_expdate" name="lkn_expdate" type="text" autocomplete="off" placeholder="MM / YY" maxlength="7" required>
+                <input id="lkn_dc_expdate" name="lkn_dc_expdate" type="text" autocomplete="off" placeholder="MM/YY" class="masked" pattern="(1[0-2]|0[1-9])\/(\d[\d])" data-valid-example="05/28" required>
             </div>
             <div class="form-row form-row-last">
                 <label>Card Code <span class="required">*</span></label>
-                <input id="lkn_cvc" name="lkn_cvc" type="password" autocomplete="off" placeholder="CVC" maxlength="4" required>
+                <input id="lkn_dc_cvc" name="lkn_dc_cvc" type="tel" autocomplete="off" placeholder="CVV" maxlength="4" required>
             </div>
             <div class="clear"></div>
     
@@ -214,17 +216,17 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
      * @return boolean
      */
     public function validate_fields() {
-        if (empty($_POST['lkn_ccno'])) {
-            wc_add_notice('Card number is required!', 'error');
+        if (empty($_POST['lkn_dcno'])) {
+            wc_add_notice('Debit Card number is required!', 'error');
 
             return false;
         }
-        if (empty($_POST['lkn_expdate'])) {
+        if (empty($_POST['lkn_dc_expdate'])) {
             wc_add_notice('Expiration date is required!', 'error');
 
             return false;
-        } elseif (!empty($_POST['lkn_expdate'])) {
-            $expDateSplit = explode('/', sanitize_text_field($_POST['lkn_expdate']));
+        } elseif (!empty($_POST['lkn_dc_expdate'])) {
+            $expDateSplit = explode('/', sanitize_text_field($_POST['lkn_dc_expdate']));
             $expDate = new DateTime('20' . $expDateSplit[1] . '-' . $expDateSplit[0] . '-01');
             $today = new DateTime();
 
@@ -234,7 +236,7 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
                 return false;
             }
         }
-        if (empty($_POST['lkn_cvc'])) {
+        if (empty($_POST['lkn_dc_cvc'])) {
             wc_add_notice('CVV is required!', 'error');
 
             return false;
