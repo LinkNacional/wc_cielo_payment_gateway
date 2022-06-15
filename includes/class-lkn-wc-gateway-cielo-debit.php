@@ -144,6 +144,24 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
                 'description' => __('Cielo API 3.0 credentials.', 'lkn-wc-gateway-cielo'),
                 'desc_tip'    => true,
             ],
+            'establishment_code' => [
+                'title'       => __('Establishment Code', 'lkn-wc-gateway-cielo'),
+                'type'        => 'password',
+                'description' => __('Cielo API 3.0 credentials.', 'lkn-wc-gateway-cielo'),
+                'desc_tip'    => true,
+            ],
+            'merchant_name' => [
+                'title'       => __('Merchant Name', 'lkn-wc-gateway-cielo'),
+                'type'        => 'password',
+                'description' => __('Cielo API 3.0 credentials.', 'lkn-wc-gateway-cielo'),
+                'desc_tip'    => true,
+            ],
+            'mcc' => [
+                'title'       => __('Establishment Category Code', 'lkn-wc-gateway-cielo'),
+                'type'        => 'password',
+                'description' => __('Cielo API 3.0 credentials.', 'lkn-wc-gateway-cielo'),
+                'desc_tip'    => true,
+            ],
             'invoiceDesc' => [
                 'title'       => __('Invoice Description', 'lkn-wc-gateway-cielo'),
                 'type'        => 'text',
@@ -171,12 +189,52 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
     }
 
     /**
+     * Generate Cielo API 3.0 in auth token
+     *
+     * @return void
+     */
+    public function generate_auth_token() {
+        $env = $this->get_option('env');
+        $clientId = $this->get_option('client_id');
+        $clientSecret = $this->get_option('client_secret');
+        $url = ($env === 'sandbox') ? 'https://mpisandbox.braspag.com.br/v2/auth/token/' : 'https://mpi.braspag.com.br/v2/auth/token/';
+
+        $establishmentCode = $this->get_option('establishment_code');
+        $merchantName = $this->get_option('merchant_name');
+        $mcc = $this->get_option('mcc');
+
+        $authCode = base64_encode($clientId . ':' . $clientSecret);
+
+        $args['headers'] = [
+            'Content-Type' => 'application/json',
+            'Authorization' => 'Basic ' . $authCode,
+        ];
+
+        $args['body'] = json_encode([
+            'EstablishmentCode' => $establishmentCode,
+            'MerchantName' => $merchantName,
+            'MCC' => $mcc,
+        ]);
+
+
+        $response = wp_remote_post($url, $args);
+
+        if (isset($response->access_token)) {
+            return $response->access_token;
+        } else {
+            return false;
+        }
+    }
+
+    /**
      * Render the payment fields
      *
      * @return void
      */
     public function payment_fields() {
         $env = $this->get_option('env');
+        $accessToken = $this->generate_auth_token();
+        $url = get_page_link();
         // TODO style the payment form
         if ($env === 'sandbox') {
             $this->description .= ' Test mode is enabled. You can use the dummy debit card numbers to test it.';
@@ -184,7 +242,26 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
         } ?>
     
         <fieldset id="wc-<?php echo esc_attr($this->id); ?>-cc-form" class="wc-credit-card-form wc-payment-form" style="background:transparent;">
-    
+                
+            <input type="hidden" name="authEnabled" class="bpmpi_auth" value="true" />
+            <input type="hidden" name="authEnabledNotifyonly" class="bpmpi_auth_notifyonly" value="true" />
+            <input type="hidden" name="accessToken" class="bpmpi_accesstoken" value="<?php echo $accessToken; ?>" />
+            <input type="hidden" size="50" name="orderNumber" class="bpmpi_ordernumber" value="<?php echo uniqid(); ?>" />
+            <input type="hidden" name="currency" class="bpmpi_currency" value="BRL"/>
+            <input type="hidden" size="50" class="bpmpi_merchant_url" value="<?php echo $url; ?>" />
+            <input type="hidden" size="50" id="give_cielo_3ds_value" name="amount" class="bpmpi_totalamount" value="0" />
+            <input type="hidden" size="2" name="installments" class="bpmpi_installments" value="1" />
+            <input type="hidden" name="paymentMethod" class="bpmpi_paymentmethod" value="Debit" />
+            <input type="hidden" class="bpmpi_cardnumber" />
+            <input type="hidden" maxlength="2" name="card_expiry_month" class="bpmpi_cardexpirationmonth" />
+            <input type="hidden" maxlength="4" name="card_expiry_year" class="bpmpi_cardexpirationyear" />
+            <input type="hidden" size="50" class="bpmpi_order_productcode" value="PHY" />
+            <input type="hidden" id="cavv" name="cielo_3ds_cavv" value="" />
+            <input type="hidden" id="eci" name="cielo_3ds_eci" value="" />
+            <input type="hidden" id="ref_id" name="cielo_3ds_ref_id" value="" />
+            <input type="hidden" id="version" name="cielo_3ds_version" value="" />
+            <input type="hidden" id="xid" name="cielo_3ds_xid" value="" />
+
             <?php do_action('woocommerce_credit_card_form_start', $this->id); ?>
     
             <div class="form-row form-row-wide">
