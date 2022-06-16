@@ -193,7 +193,7 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
      *
      * @return void
      */
-    public function generate_auth_token() {
+    public function generate_debit_auth_token() {
         $env = $this->get_option('env');
         $clientId = $this->get_option('client_id');
         $clientSecret = $this->get_option('client_secret');
@@ -219,10 +219,22 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
 
         $response = wp_remote_post($url, $args);
 
-        if (isset($response->access_token)) {
-            return $response->access_token;
+        if (is_wp_error($response)) {
+            error_log('Payment errors: ' . var_export($response->get_error_messages(), true), 3, __DIR__ . '/../err.log');
+
+            $message = __('Auth token generation failed.', 'lkn-wc-gateway-cielo');
+
+            throw new Exception($message);
         } else {
-            return false;
+            $responseDecoded = json_decode($response['body']);
+
+            error_log('return access token: ' . var_export($responseDecoded, true), 3, __DIR__ . '/../err.log');
+
+            if (isset($responseDecoded->access_token)) {
+                return $responseDecoded->access_token;
+            } else {
+                return false;
+            }
         }
     }
 
@@ -232,9 +244,19 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
      * @return void
      */
     public function payment_fields() {
+        $total_cart = 0;
         $env = $this->get_option('env');
-        $accessToken = $this->generate_auth_token();
+        $accessToken = $this->generate_debit_auth_token();
         $url = get_page_link();
+
+        if (!isset($_GET['pay_for_order'])) {
+            $total_cart = number_format($this->get_order_total(), 2, '', '');
+        } else {
+            $order_id = wc_get_order_id_by_order_key($_GET['key']);
+            $order = wc_get_order($order_id);
+            $total_cart = number_format($order->get_total(), 2, '', '');
+        }
+
         // TODO style the payment form
         if ($env === 'sandbox') {
             $this->description .= ' Test mode is enabled. You can use the dummy debit card numbers to test it.';
@@ -249,12 +271,12 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
             <input type="hidden" size="50" name="orderNumber" class="bpmpi_ordernumber" value="<?php echo uniqid(); ?>" />
             <input type="hidden" name="currency" class="bpmpi_currency" value="BRL"/>
             <input type="hidden" size="50" class="bpmpi_merchant_url" value="<?php echo $url; ?>" />
-            <input type="hidden" size="50" id="give_cielo_3ds_value" name="amount" class="bpmpi_totalamount" value="0" />
+            <input type="hidden" size="50" id="lkn_cielo_3ds_value" name="amount" class="bpmpi_totalamount" value="<?php echo $total_cart; ?>" />
             <input type="hidden" size="2" name="installments" class="bpmpi_installments" value="1" />
             <input type="hidden" name="paymentMethod" class="bpmpi_paymentmethod" value="Debit" />
-            <input type="hidden" class="bpmpi_cardnumber" />
-            <input type="hidden" maxlength="2" name="card_expiry_month" class="bpmpi_cardexpirationmonth" />
-            <input type="hidden" maxlength="4" name="card_expiry_year" class="bpmpi_cardexpirationyear" />
+            <input type="hidden" id="lkn_bpmpi_cardnumber" class="bpmpi_cardnumber" />
+            <input type="hidden" id="lkn_bpmpi_expmonth" maxlength="2" name="card_expiry_month" class="bpmpi_cardexpirationmonth" />
+            <input type="hidden" id="lkn_bpmpi_expyear" maxlength="4" name="card_expiry_year" class="bpmpi_cardexpirationyear" />
             <input type="hidden" size="50" class="bpmpi_order_productcode" value="PHY" />
             <input type="hidden" id="cavv" name="cielo_3ds_cavv" value="" />
             <input type="hidden" id="eci" name="cielo_3ds_eci" value="" />
