@@ -1,0 +1,3 @@
+# Invoice Payment for WooCommerce tradução pt_BR
+msgid "Cielo API 3.0 Payments for Woocommerce"
+msgstr "Cielo API 3.0 pagamentos para Woocommerce"

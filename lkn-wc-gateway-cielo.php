@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: Cielo API 3.0 Pagamento para Woocommerce
+ * Plugin Name: Cielo API 3.0 Payments for Woocommerce
  * Plugin URI: https://linknacional.com
  * Description: Adds the Cielo API 3.0 Payments gateway to your WooCommerce website.
  * Version: 1.0.0
@@ -9,7 +9,7 @@
  * Author URI: https://linknacional.com
  *
  * Text Domain: lkn-wc-gateway-cielo
- * Domain Path: /i18n/languages/
+ * Domain Path: /languages/
  *
  * Requires at least: 4.2
  * Tested up to: 6.0

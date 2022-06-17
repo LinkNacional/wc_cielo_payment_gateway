@@ -1,0 +1,3 @@
+# Cielo API 3.0 Payments for Woocommerce en_US translation
+msgid "Cielo API 3.0 Payments for Woocommerce"
+msgstr ""
