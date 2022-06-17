@@ -52,6 +52,12 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
         $this->description  = $this->get_option('description');
         $this->instructions = $this->get_option('instructions', $this->description);
 
+        if (function_exists('wc_get_logger')) {
+            $this->log = wc_get_logger();
+        } else {
+            $this->log = new WC_Logger();
+        }
+
         // Actions.
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'process_admin_options']);
 
@@ -136,12 +142,6 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
                 'description' => __('Invoice description that the customer will see on your checkout.', 'lkn-wc-gateway-cielo'),
                 'desc_tip'    => true,
             ],
-            'capture' => [
-                'title'       => __('Capture', 'lkn-wc-gateway-cielo'),
-                'type'        => 'checkbox',
-                'label' => __('Enable automatic capture for payments', 'lkn-wc-gateway-cielo'),
-                'default' => 'yes',
-            ],
             'env' => [
                 'title'       => __('Environment', 'lkn-wc-gateway-cielo'),
                 'description' => __('Cielo API 3.0 environment.', 'lkn-wc-gateway-cielo'),
@@ -152,6 +152,12 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
                 ],
                 'default' => 'sandbox',
                 'desc_tip'    => true,
+            ],
+            'capture' => [
+                'title'       => __('Capture', 'lkn-wc-gateway-cielo'),
+                'type'        => 'checkbox',
+                'label' => __('Enable automatic capture for payments', 'lkn-wc-gateway-cielo'),
+                'default' => 'yes',
             ],
         ];
     }
@@ -331,7 +337,7 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
         $url = ($this->get_option('env') == 'production') ? 'https://api.cieloecommerce.cielo.com.br/' : 'https://apisandbox.cieloecommerce.cielo.com.br/';
         $merchantId = sanitize_text_field($this->get_option('merchant_id'));
         $merchantSecret = sanitize_text_field($this->get_option('merchant_key'));
-        $recurrencyId = uniqid('invoice_');
+        $merchantOrderId = uniqid('invoice_');
         $amount = number_format($order->get_total(), 2, '', '');
         $capture = ($this->get_option('capture') == 'yes') ? true : false;
         $description = sanitize_text_field($this->get_option('invoiceDesc'));
@@ -344,7 +350,7 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
         ];
 
         $args['body'] = json_encode([
-            'MerchantOrderId' => $recurrencyId,
+            'MerchantOrderId' => $merchantOrderId,
             'Payment' => [
                 'Type' => 'CreditCard',
                 'Amount' => $amount,
@@ -365,18 +371,14 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
 
         $response = wp_remote_post($url . '1/sales', $args);
 
-        error_log('response: ' . var_export($response, true), 3, __DIR__ . '/../err.log');
-
         if (is_wp_error($response)) {
-            error_log('Payment errors: ' . var_export($response->get_error_messages(), true), 3, __DIR__ . '/../err.log');
+            $this->log->log('error', var_export($response->get_error_messages(), true));
 
             $message = __('Order payment failed. To make a successful payment using credit card, please review the gateway settings.', 'lkn-wc-gateway-cielo');
 
             throw new Exception($message);
         } else {
             $responseDecoded = json_decode($response['body']);
-
-            // error_log('response decoded: ' . var_export($responseDecoded->Payment, true) . 'url: ' . var_export($url, true) . 'message: ' . var_export($response['body'], true) . ' POST: ' . var_export($_POST, true) . ' SEND REQUEST: ' . var_export($args, true), 3, __DIR__ . '/../err.log');
 
             if (isset($responseDecoded->Payment) && ($responseDecoded->Payment->Status == 1 || $responseDecoded->Payment->Status == 2)) {
                 $order->payment_complete($responseDecoded->Payment->PaymentId);
@@ -392,6 +394,8 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
                     'redirect'	=> $this->get_return_url($order),
                 ];
             } else {
+                $this->log->log('error', var_export($response, true));
+
                 $message = __('Order payment failed. Make sure your credit card is valid.', 'lkn-wc-gateway-cielo');
 
                 throw new Exception($message);
@@ -431,7 +435,7 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
         $response = wp_remote_request($url . '1/sales/' . $transactionId . '/void?amount=' . $amount, $args);
 
         if (is_wp_error($response)) {
-            error_log('Refund errors: ' . var_export($response->get_error_messages(), true), 3, __DIR__ . '/../err.log');
+            $this->log->log('error', var_export($response->get_error_messages(), true));
 
             $order->add_order_note('Order refunded error, payment id: ' . $transactionId);
 
@@ -439,11 +443,11 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
         } else {
             $responseDecoded = json_decode($response['body']);
 
-            error_log('headers: ' . var_export($args, true) . 'response: ' . var_export($response, true), 3, __DIR__ . '/../err.log');
-
             if ($responseDecoded->Status == 10 || $responseDecoded->Status == 11 || $responseDecoded->Status == 2 || $responseDecoded->Status == 1) {
                 return true;
             } else {
+                $this->log->log('error', var_export($response, true));
+
                 return false;
             }
         }
