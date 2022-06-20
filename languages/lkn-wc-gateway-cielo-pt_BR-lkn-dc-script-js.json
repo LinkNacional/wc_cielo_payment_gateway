@@ -1,0 +1,27 @@
+{
+    "domain": "lkn-wc-gateway-cielo",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "lkn-wc-gateway-cielo",
+                "plural_forms": "nplurals=2; plural=(n != 1);",
+                "lang": "pt_BR"
+            },
+            "Authentication failed check the card information and try again": [
+                "Falha na autenticação verifique as informações do cartão e tente novamente"
+            ],
+            "Card Ineligible for Authentication": [
+                "Cartão Inelegível para Autenticação"
+            ],
+            "Authentication disabled by the store": [
+                "Autenticação desabilitada pela loja"
+            ],
+            "Error in the authentication process check that all fields are filled in correctly": [
+                "Erro no processo de autenticação verifique se todos os campos estão preenchidos corretamente"
+            ],
+            "Provider not supported by Cielo 3DS authentication": [
+                "Bandeira não suportada pela autenticação 3DS da Cielo"
+            ]
+        }
+    }
+}

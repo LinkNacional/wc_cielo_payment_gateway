@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: Cielo API 3.0 Payments for Woocommerce
+ * Plugin Name: Cielo API 3.0 Payments for WooCommerce
  * Plugin URI: https://linknacional.com
  * Description: Adds the Cielo API 3.0 Payments gateway to your WooCommerce website.
  * Version: 1.0.0
@@ -34,6 +34,8 @@ class Lkn_WC_Cielo_Payment {
      * Plugin bootstrapping.
      */
     public static function init() {
+        // Load text domains
+        add_action('init', [__CLASS__, 'lkn_wc_gateway_cielo_load_textdomain']);
 
         // Cielo Payments gateway class.
         add_action('plugins_loaded', [__CLASS__, 'includes'], 0);
@@ -43,6 +45,15 @@ class Lkn_WC_Cielo_Payment {
 
         // Meta links
         add_filter('plugin_action_links_' . plugin_basename(__FILE__), [__CLASS__, 'lkn_wc_cielo_plugin_row_meta'], 10, 2);
+    }
+
+    /**
+     * Load the plugin text domain
+     *
+     * @return void
+     */
+    public static function lkn_wc_gateway_cielo_load_textdomain() {
+        load_plugin_textdomain('lkn-wc-gateway-cielo', false, dirname(plugin_basename(__FILE__)) . '/languages');
     }
 
     /**
@@ -79,6 +90,7 @@ class Lkn_WC_Cielo_Payment {
         // Defines addon version number for easy reference.
         if (!defined('LKN_WC_CIELO_VERSION')) {
             define('LKN_WC_CIELO_VERSION', '1.0.0');
+            define('LKN_WC_CIELO_TRANSLATION_PATH', plugin_dir_path(__FILE__) . 'languages/');
         }
     }
 
@@ -114,7 +126,7 @@ class Lkn_WC_Cielo_Payment {
         $new_meta_links['setting'] = sprintf(
             '<a href="%1$s">%2$s</a>',
             admin_url('admin.php?page=wc-settings&tab=checkout'),
-            __('Settings', 'give-pagseguro')
+            __('Settings', 'lkn-wc-gateway-cielo')
         );
 
         return array_merge($plugin_meta, $new_meta_links);

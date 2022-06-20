@@ -40,8 +40,8 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
             'refunds',
         ];
 
-        $this->method_title       = _x('Cielo - Cartão de débito', 'Dummy payment method', 'woocommerce-gateway-dummy');
-        $this->method_description = __('Allows debit card payment with Cielo API 3.0.', 'woocommerce-gateway-dummy');
+        $this->method_title       = __('Cielo - Debit card', 'lkn-wc-gateway-cielo');
+        $this->method_description = __('Allows debit card payment with Cielo API 3.0.', 'lkn-wc-gateway-cielo');
 
         // Load the settings.
         $this->init_form_fields();
@@ -88,7 +88,7 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
             return;
         }
 
-        wp_enqueue_script('lkn-dc-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-dc-script.js', [], $this->version, false);
+        wp_enqueue_script('lkn-dc-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-dc-script.js', ['wp-i18n'], $this->version, false);
 
         wp_enqueue_script('lkn-mask-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-mask.js', [], $this->version, false);
 
@@ -97,6 +97,8 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
         wp_enqueue_style('lkn-dc-style', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-dc-style.css', [], $this->version, 'all');
 
         wp_enqueue_style('lkn-mask', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-mask.css', [], $this->version, 'all');
+
+        wp_set_script_translations('lkn-dc-script-js', 'lkn-wc-gateway-cielo', LKN_WC_CIELO_TRANSLATION_PATH);
     }
 
     /**
@@ -109,21 +111,21 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
             'enabled' => [
                 'title'   => __('Enable/Disable', 'lkn-wc-gateway-cielo'),
                 'type'    => 'checkbox',
-                'label'   => __('Enable Credit Card Payments', 'lkn-wc-gateway-cielo'),
+                'label'   => __('Enable Debit Card Payments', 'lkn-wc-gateway-cielo'),
                 'default' => 'yes',
             ],
             'title' => [
                 'title'       => __('Title', 'lkn-wc-gateway-cielo'),
                 'type'        => 'text',
                 'description' => __('This controls the title which the user sees during checkout.', 'lkn-wc-gateway-cielo'),
-                'default'     => _x('Cartão de crédito', 'Cielo payment method', 'lkn-wc-gateway-cielo'),
+                'default'     => __('Debit card', 'lkn-wc-gateway-cielo'),
                 'desc_tip'    => true,
             ],
             'description' => [
                 'title'       => __('Description', 'lkn-wc-gateway-cielo'),
                 'type'        => 'textarea',
+                'default'     => __('Payment processed by Cielo API 3.0', 'lkn-wc-gateway-cielo'),
                 'description' => __('Payment method description that the customer will see on your checkout.', 'lkn-wc-gateway-cielo'),
-                'default'     => __('The goods are yours. No money needed.', 'lkn-wc-gateway-cielo'),
                 'desc_tip'    => true,
             ],
             'client_id' => [
@@ -171,6 +173,7 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
             'invoiceDesc' => [
                 'title'       => __('Invoice Description', 'lkn-wc-gateway-cielo'),
                 'type'        => 'text',
+                'default'     => __('order', 'lkn-wc-gateway-cielo'),
                 'description' => __('Invoice description that the customer will see on your checkout.', 'lkn-wc-gateway-cielo'),
                 'desc_tip'    => true,
             ],
@@ -189,12 +192,6 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
                 'title'       => __('Capture', 'lkn-wc-gateway-cielo'),
                 'type'        => 'checkbox',
                 'label' => __('Enable automatic capture for payments', 'lkn-wc-gateway-cielo'),
-                'default' => 'yes',
-            ],
-            'debug' => [
-                'title'       => __('Advanced depuration', 'lkn-wc-gateway-cielo'),
-                'type'        => 'checkbox',
-                'label' => __('Warning, this option will make your site vulnerable', 'lkn-wc-gateway-cielo'),
                 'default' => 'yes',
             ],
         ];
@@ -257,23 +254,18 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
      */
     public function payment_fields() {
         $total_cart = 0;
-        $env = ($this->get_option('env') == 'sandbox') ? 'SDB' : 'PRD';
         $accessToken = $this->generate_debit_auth_token();
         $url = get_page_link();
-        $debug = ($this->get_option('debug') == 'yes') ? 'true' : 'false';
 
         if (!isset($_GET['pay_for_order'])) {
             $total_cart = number_format($this->get_order_total(), 2, '', '');
         } else {
-            $order_id = wc_get_order_id_by_order_key($_GET['key']);
+            $order_id = wc_get_order_id_by_order_key(sanitize_text_field($_GET['key']));
             $order = wc_get_order($order_id);
             $total_cart = number_format($order->get_total(), 2, '', '');
         }
 
-        if ($env === 'sandbox') {
-            $this->description .= ' Test mode is enabled. You can use the dummy debit card numbers to test it.';
-            echo wpautop(wp_kses_post($this->description));
-        } ?>
+        echo wpautop(wp_kses_post($this->description)); ?>
     
         <fieldset id="wc-<?php echo esc_attr($this->id); ?>-cc-form" class="wc-credit-card-form wc-payment-form" style="background:transparent;">
                 
@@ -299,15 +291,15 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
             <?php do_action('woocommerce_credit_card_form_start', $this->id); ?>
     
             <div class="form-row form-row-wide">
-                <label>Card Number <span class="required">*</span></label>
+                <label><?php _e('Card Number', 'lkn-wc-gateway-cielo'); ?> <span class="required">*</span></label>
                 <input id="lkn_dcno" name="lkn_dcno" type="tel" inputmode="numeric" class="masked" pattern="[0-9\s]{13,19}" autocomplete="cc-number" maxlength="19" placeholder="XXXX XXXX XXXX XXXX" data-valid-example="4444 4444 4444 4444" required>
             </div>
             <div class="form-row form-row-first">
-                <label>Expiry Date <span class="required">*</span></label>
+                <label><?php _e('Expiry Date', 'lkn-wc-gateway-cielo'); ?> <span class="required">*</span></label>
                 <input id="lkn_dc_expdate" name="lkn_dc_expdate" type="tel" placeholder="MM/YY" class="masked" pattern="(1[0-2]|0[1-9])\/(\d[\d])" autocomplete="cc-expdate" data-valid-example="05/28" required>
             </div>
             <div class="form-row form-row-last">
-                <label>Card Code <span class="required">*</span></label>
+                <label><?php _e('Card Code', 'lkn-wc-gateway-cielo'); ?> <span class="required">*</span></label>
                 <input id="lkn_dc_cvc" name="lkn_dc_cvc" type="tel" autocomplete="off" placeholder="CVV" maxlength="4" required>
             </div>
             <div class="clear"></div>
@@ -328,12 +320,12 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
      */
     public function validate_fields() {
         if (empty($_POST['lkn_dcno'])) {
-            wc_add_notice('Debit Card number is required!', 'error');
+            wc_add_notice(__('Debit Card number is required!', 'lkn-wc-gateway-cielo'), 'error');
 
             return false;
         }
         if (empty($_POST['lkn_dc_expdate'])) {
-            wc_add_notice('Expiration date is required!', 'error');
+            wc_add_notice(__('Expiration date is required!', 'lkn-wc-gateway-cielo'), 'error');
 
             return false;
         } elseif (!empty($_POST['lkn_dc_expdate'])) {
@@ -342,13 +334,13 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
             $today = new DateTime();
 
             if ($today > $expDate) {
-                wc_add_notice('Expiration date is invalid!', 'error');
+                wc_add_notice(__('Expiration date is invalid!', 'lkn-wc-gateway-cielo'), 'error');
 
                 return false;
             }
         }
         if (empty($_POST['lkn_dc_cvc'])) {
-            wc_add_notice('CVV is required!', 'error');
+            wc_add_notice(__('CVV is required!', 'lkn-wc-gateway-cielo'), 'error');
 
             return false;
         }
@@ -548,7 +540,7 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
         if (is_wp_error($response)) {
             $this->log->log('error', var_export($response->get_error_messages(), true));
 
-            $message = __('Order payment failed. To make a successful payment using credit card, please review the gateway settings.', 'lkn-wc-gateway-cielo');
+            $message = __('Order payment failed. To make a successful payment using debit card, please review the gateway settings.', 'lkn-wc-gateway-cielo');
 
             throw new Exception($message);
         } else {
@@ -560,7 +552,7 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
                 // Remove cart
                 WC()->cart->empty_cart();
 
-                $order->add_order_note('Payment completed successfully. Payment id: ' . $responseDecoded->Payment->PaymentId);
+                $order->add_order_note(__('Payment completed successfully. Payment id:', 'lkn-wc-gateway-cielo') . ' ' . $responseDecoded->Payment->PaymentId);
 
                 // Return thankyou redirect
                 return [
@@ -595,7 +587,7 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
 
         $order = wc_get_order($order_id);
         $transactionId = $order->get_transaction_id();
-        $order->add_order_note('Order refunded, payment id: ' . $transactionId);
+        $order->add_order_note(__('Order refunded, payment id:', 'lkn-wc-gateway-cielo') . $transactionId);
 
         $args['headers'] = [
             'Content-Length' => 0,
@@ -611,7 +603,7 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
         if (is_wp_error($response)) {
             $this->log->log('error', var_export($response->get_error_messages(), true));
 
-            $order->add_order_note('Order refunded error, payment id: ' . $transactionId);
+            $order->add_order_note(__('Order refunded error, payment id:', 'lkn-wc-gateway-cielo') . ' ' . $transactionId);
 
             return false;
         } else {

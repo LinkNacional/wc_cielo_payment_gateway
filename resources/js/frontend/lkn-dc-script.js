@@ -1,8 +1,7 @@
-console.log('HELLO WORLD DEBIT');
+// Implements script internationalization
+const { __, _x, _n, sprintf } = wp.i18n;
 
 let lkn_proccess_button = function () {
-    console.log('chamar função de débito');
-
     let cardNumber = document.getElementById('lkn_dcno').value.replace(/\D/g, '');
     let expDate = document.getElementById('lkn_dc_expdate').value;
 
@@ -16,7 +15,6 @@ let lkn_proccess_button = function () {
 };
 
 let lkn_load_debit_functions = function () {
-    console.log('FUNÇÕES DE DÉBITO CARREGADAS!');
     let btnSubmit = document.getElementById('place_order');
 
     btnSubmit.setAttribute('type', 'button');
@@ -32,35 +30,24 @@ let lkn_verify_gateway = function () {
         btnSubmit.setAttribute('type', 'submit');
         btnSubmit.removeEventListener('click', lkn_proccess_button, true);
     }
-
-    console.log('debit paymethod ' + debitPaymethod.checked);
 };
-
-document.addEventListener('DOMContentLoaded', function () {
-    console.log('Janela totalmente carregada');
-
-    let debitPaymethod = document.getElementById('payment_method_lkn_cielo_debit');
-    let paymentBox = document.getElementById('payment');
-
-    debitPaymethod.removeEventListener('click', lkn_load_debit_functions, true);
-    debitPaymethod.addEventListener('click', lkn_load_debit_functions, true);
-
-    paymentBox.removeEventListener('click', lkn_verify_gateway, true);
-    paymentBox.addEventListener('click', lkn_verify_gateway, true);
-
-    console.log('debit paymethod value: ' + debitPaymethod.checked);
-}, false);
 
 function bpmpi_config() {
     return {
         onReady: function () {
-            // Evento indicando quando a inicialização do script terminou.
-            // document.getElementById('btnSendOrder').removeAttribute('disabled');
-            // document.getElementById('btnSendOrder').classList.remove('btnDisabled');
-            // document.getElementById('loading-btn-3ds').classList.remove('give-loading-animation');
+            // When script loading is finished run this
+            
+            let debitPaymethod = document.getElementById('payment_method_lkn_cielo_debit');
+            let paymentBox = document.getElementById('payment');
+        
+            debitPaymethod.removeEventListener('click', lkn_load_debit_functions, true);
+            debitPaymethod.addEventListener('click', lkn_load_debit_functions, true);
+        
+            paymentBox.removeEventListener('click', lkn_verify_gateway, true);
+            paymentBox.addEventListener('click', lkn_verify_gateway, true);
         },
         onSuccess: function (e) {
-            // Cartão elegível para autenticação, e portador autenticou com sucesso.
+            // Card is eligible for authentication, and the bearer successfully authenticated
             var cavv = e.Cavv;
             var xid = e.Xid;
             var eci = e.Eci;
@@ -77,46 +64,36 @@ function bpmpi_config() {
             formWC.submit();
         },
         onFailure: function (e) {
-            // Cartão elegível para autenticação, porém o portador finalizou com falha.
-            var xid = e.Xid;
-            var eci = e.Eci;
-            var version = e.Version;
-            var referenceId = e.ReferenceId;
+            // Card is not eligible for authentication, but the bearer failed payment
 
-            alert('Falha na autenticação verifique as informações e tente novamente');
+            alert(__('Authentication failed check the card information and try again','lkn-wc-gateway-cielo'));
         },
         onUnenrolled: function (e) {
-            // Cartão não elegível para autenticação (não autenticável).
-            var xid = e.Xid;
-            var eci = e.Eci;
-            var version = e.Version;
-            var referenceId = e.ReferenceId;
+            // Card is not eligible for authentication (unauthenticable)
 
-            alert('Cartão Inelegível para Autenticação');
+            alert(__('Card Ineligible for Authentication','lkn-wc-gateway-cielo'));
         },
         onDisabled: function () {
-            // Loja não requer autenticação do portador (classe "bpmpi_auth" false -> autenticação desabilitada).
-            alert('Autenticação desabilitada pela loja');
+            // Store don't require bearer authentication (class "bpmpi_auth" false -> disabled authentication).
+
+            alert(__('Authentication disabled by the store','lkn-wc-gateway-cielo'));
         },
         onError: function (e) {
-            // Erro no processo de autenticação.
-            var xid = e.Xid;
-            var eci = e.Eci;
-            var returnCode = e.ReturnCode;
-            var returnMessage = e.ReturnMessage;
-            var referenceId = e.ReferenceId;
+            // Error on proccess in authentication
 
-            alert('Erro no processo de autenticação verifique se todos os campos estão preenchidos corretamente');
+            alert(__('Error in the authentication process check that all fields are filled in correctly','lkn-wc-gateway-cielo'));
         },
         onUnsupportedBrand: function (e) {
-            // Bandeira não suportada para autenticação.
+            // Provider not supported for authentication
             var returnCode = e.ReturnCode;
             var returnMessage = e.ReturnMessage;
 
-            alert('Bandeira não suportada pela autenticação 3DS 2.0 da Cielo');
+            // console.error(returnCode + ' ' + returnMessage);
+
+            alert(__('Provider not supported by Cielo 3DS authentication','lkn-wc-gateway-cielo'));
         },
         // TODO get attributes dinamically or hardcode them
-        Environment: 'SDB',
-        Debug: true // false
+        Environment: 'SDB', // SDB or PRD
+        Debug: true // true or false
     };
 }
