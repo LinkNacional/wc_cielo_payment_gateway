@@ -154,3 +154,15 @@ msgstr ""
 
 msgid "order"
 msgstr ""
+
+msgid "Debug"
+msgstr ""
+
+msgid "Enable log capture for payments"
+msgstr ""
+
+msgid "License"
+msgstr ""
+
+msgid "License for Cielo API 3.0 plugin extensions."
+msgstr ""

@@ -154,3 +154,15 @@ msgstr "Pagamento processado pela Cielo API 3.0"
 
 msgid "order"
 msgstr "pedido"
+
+msgid "Enable log capture for payments"
+msgstr "Habilita a captura de logs para pagamentos"
+
+msgid "Debug"
+msgstr "Depuração"
+
+msgid "License"
+msgstr "Licença"
+
+msgid "License for Cielo API 3.0 plugin extensions."
+msgstr "Licença para extensões do plugin Cielo API 3.0."
