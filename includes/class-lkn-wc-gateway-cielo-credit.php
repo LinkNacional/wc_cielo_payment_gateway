@@ -40,6 +40,9 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
             'refunds',
         ];
 
+        // TODO add hook here to add/remove supports
+        // setting for cielo credit woocommerce_lkn_cielo_credit_settings
+
         $this->method_title       = __('Cielo - Credit card', 'lkn-wc-gateway-cielo');
         $this->method_description = __('Allows credit card payment with Cielo API 3.0.', 'lkn-wc-gateway-cielo');
 
@@ -157,6 +160,18 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
                 'type'        => 'checkbox',
                 'label' => __('Enable automatic capture for payments', 'lkn-wc-gateway-cielo'),
                 'default' => 'yes',
+            ],
+            'debug' => [
+                'title'       => __('Debug', 'lkn-wc-gateway-cielo'),
+                'type'        => 'checkbox',
+                'label' => __('Enable log capture for payments', 'lkn-wc-gateway-cielo'),
+                'default' => 'no',
+            ],
+            'license' => [
+                'title'       => __('License', 'lkn-wc-gateway-cielo'),
+                'type'        => 'password',
+                'description' => __('License for Cielo API 3.0 plugin extensions.', 'lkn-wc-gateway-cielo'),
+                'desc_tip'    => true,
             ],
         ];
     }
@@ -332,11 +347,20 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
         $merchantId = sanitize_text_field($this->get_option('merchant_id'));
         $merchantSecret = sanitize_text_field($this->get_option('merchant_key'));
         $merchantOrderId = uniqid('invoice_');
-        $amount = number_format($order->get_total(), 2, '', '');
+        $amount = $order->get_total();
         $capture = ($this->get_option('capture') == 'yes') ? true : false;
         $description = sanitize_text_field($this->get_option('invoiceDesc'));
         $description = preg_replace(['/(á|à|ã|â|ä)/', '/(Á|À|Ã|Â|Ä)/', '/(é|è|ê|ë)/', '/(É|È|Ê|Ë)/', '/(í|ì|î|ï)/', '/(Í|Ì|Î|Ï)/', '/(ó|ò|õ|ô|ö)/', '/(Ó|Ò|Õ|Ô|Ö)/', '/(ú|ù|û|ü)/', '/(Ú|Ù|Û|Ü)/', '/(ñ)/', '/(Ñ)/', '/(ç)/', '/(Ç)/'], explode(' ', 'a A e E i I o O u U n N c C'), $description);
         $provider = $this->get_card_provider($cardNum);
+        $debug = $this->get_option('debug');
+
+        // TODO Add hook here to change currency with pro
+        $currency = $order->get_currency();
+        if ($currency !== 'BRL') {
+            $amount = apply_filters('lkn_convert_amount', $amount, $currency);
+        } else {
+            $amount = number_format($amount, 2, '', '');
+        }
 
         $args['headers'] = [
             'Content-Type' => 'application/json',
@@ -367,7 +391,9 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
         $response = wp_remote_post($url . '1/sales', $args);
 
         if (is_wp_error($response)) {
-            $this->log->log('error', var_export($response->get_error_messages(), true));
+            if ($debug === 'yes') {
+                $this->log->log('error', var_export($response->get_error_messages(), true), ['source' => 'woocommerce-cielo-credit']);
+            }
 
             $message = __('Order payment failed. To make a successful payment using credit card, please review the gateway settings.', 'lkn-wc-gateway-cielo');
 
@@ -389,7 +415,9 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
                     'redirect'	=> $this->get_return_url($order),
                 ];
             } else {
-                $this->log->log('error', var_export($response, true));
+                if ($debug === 'yes') {
+                    $this->log->log('error', var_export($response, true), ['source' => 'woocommerce-cielo-credit']);
+                }
 
                 $message = __('Order payment failed. Make sure your credit card is valid.', 'lkn-wc-gateway-cielo');
 
@@ -413,10 +441,13 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
         $merchantId = sanitize_text_field($this->get_option('merchant_id'));
         $merchantSecret = sanitize_text_field($this->get_option('merchant_key'));
         $amount = number_format($amount, 2, '', '');
+        $debug = $this->get_option('debug');
 
         $order = wc_get_order($order_id);
         $transactionId = $order->get_transaction_id();
         $order->add_order_note(__('Order refunded, payment id:', 'lkn-wc-gateway-cielo') . ' ' . $transactionId);
+
+        // TODO Add hook here to proccess refund with pro
 
         $args['headers'] = [
             'Content-Length' => 0,
@@ -430,7 +461,9 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
         $response = wp_remote_request($url . '1/sales/' . $transactionId . '/void?amount=' . $amount, $args);
 
         if (is_wp_error($response)) {
-            $this->log->log('error', var_export($response->get_error_messages(), true));
+            if ($debug === 'yes') {
+                $this->log->log('error', var_export($response->get_error_messages(), true), ['source' => 'woocommerce-cielo-credit']);
+            }
 
             $order->add_order_note(__('Order refunded, payment id:', 'lkn-wc-gateway-cielo') . ' ' . $transactionId);
 
@@ -441,7 +474,9 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
             if ($responseDecoded->Status == 10 || $responseDecoded->Status == 11 || $responseDecoded->Status == 2 || $responseDecoded->Status == 1) {
                 return true;
             } else {
-                $this->log->log('error', var_export($response, true));
+                if ($debug === 'yes') {
+                    $this->log->log('error', var_export($response, true), ['source' => 'woocommerce-cielo-credit']);
+                }
 
                 return false;
             }

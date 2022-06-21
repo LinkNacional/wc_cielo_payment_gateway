@@ -40,6 +40,8 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
             'refunds',
         ];
 
+        // TODO add hook here to add/remove supports
+
         $this->method_title       = __('Cielo - Debit card', 'lkn-wc-gateway-cielo');
         $this->method_description = __('Allows debit card payment with Cielo API 3.0.', 'lkn-wc-gateway-cielo');
 
@@ -89,6 +91,7 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
         }
 
         wp_enqueue_script('lkn-dc-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-dc-script.js', ['wp-i18n'], $this->version, false);
+        wp_set_script_translations('lkn-dc-script', 'lkn-wc-gateway-cielo', LKN_WC_CIELO_TRANSLATION_PATH);
 
         wp_enqueue_script('lkn-mask-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-mask.js', [], $this->version, false);
 
@@ -97,8 +100,6 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
         wp_enqueue_style('lkn-dc-style', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-dc-style.css', [], $this->version, 'all');
 
         wp_enqueue_style('lkn-mask', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-mask.css', [], $this->version, 'all');
-
-        wp_set_script_translations('lkn-dc-script-js', 'lkn-wc-gateway-cielo', LKN_WC_CIELO_TRANSLATION_PATH);
     }
 
     /**
@@ -194,6 +195,18 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
                 'label' => __('Enable automatic capture for payments', 'lkn-wc-gateway-cielo'),
                 'default' => 'yes',
             ],
+            'debug' => [
+                'title'       => __('Debug', 'lkn-wc-gateway-cielo'),
+                'type'        => 'checkbox',
+                'label' => __('Enable log capture for payments', 'lkn-wc-gateway-cielo'),
+                'default' => 'no',
+            ],
+            'license' => [
+                'title'       => __('License', 'lkn-wc-gateway-cielo'),
+                'type'        => 'password',
+                'description' => __('License for Cielo API 3.0 plugin extensions.', 'lkn-wc-gateway-cielo'),
+                'desc_tip'    => true,
+            ],
         ];
     }
 
@@ -211,6 +224,7 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
         $establishmentCode = $this->get_option('establishment_code');
         $merchantName = $this->get_option('merchant_name');
         $mcc = $this->get_option('mcc');
+        $debug = $this->get_option('debug');
 
         $authCode = base64_encode($clientId . ':' . $clientSecret);
 
@@ -229,7 +243,9 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
         $response = wp_remote_post($url, $args);
 
         if (is_wp_error($response)) {
-            $this->log->log('error', var_export($response->get_error_messages(), true));
+            if ($debug === 'yes') {
+                $this->log->log('error', var_export($response->get_error_messages(), true), ['source' => 'woocommerce-cielo-debit']);
+            }
 
             $message = __('Auth token generation failed.', 'lkn-wc-gateway-cielo');
 
@@ -240,7 +256,9 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
             if (isset($responseDecoded->access_token)) {
                 return $responseDecoded->access_token;
             } else {
-                $this->log->log('error', var_export($response, true));
+                if ($debug === 'yes') {
+                    $this->log->log('error', var_export($response, true), ['source' => 'woocommerce-cielo-debit']);
+                }
 
                 return false;
             }
@@ -460,6 +478,12 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
         $capture = ($this->get_option('capture') == 'yes') ? true : false;
         $description = sanitize_text_field($this->get_option('invoiceDesc'));
         $provider = $this->get_card_provider($cardNum);
+        $debug = $this->get_option('debug');
+
+
+        // TODO Add hook here to change currency with pro
+        // $order->get_currency();
+        // do_action('change-currency', $amount);
 
         // Verify if authentication is data-only
         // @see {https://developercielo.github.io/manual/3ds}
@@ -538,7 +562,9 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
         $response = wp_remote_post($url . '1/sales', $args);
 
         if (is_wp_error($response)) {
-            $this->log->log('error', var_export($response->get_error_messages(), true));
+            if ($debug === 'yes') {
+                $this->log->log('error', var_export($response->get_error_messages(), true), ['source' => 'woocommerce-cielo-debit']);
+            }
 
             $message = __('Order payment failed. To make a successful payment using debit card, please review the gateway settings.', 'lkn-wc-gateway-cielo');
 
@@ -560,7 +586,9 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
                     'redirect'	=> $this->get_return_url($order),
                 ];
             } else {
-                $this->log->log('error', var_export($response, true));
+                if ($debug === 'yes') {
+                    $this->log->log('error', var_export($response, true), ['source' => 'woocommerce-cielo-debit']);
+                }
 
                 $message = __('Order payment failed. Make sure your debit card is valid.', 'lkn-wc-gateway-cielo');
 
@@ -584,10 +612,13 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
         $merchantId = sanitize_text_field($this->get_option('merchant_id'));
         $merchantSecret = sanitize_text_field($this->get_option('merchant_key'));
         $amount = number_format($amount, 2, '', '');
+        $debug = $this->get_option('debug');
 
         $order = wc_get_order($order_id);
         $transactionId = $order->get_transaction_id();
         $order->add_order_note(__('Order refunded, payment id:', 'lkn-wc-gateway-cielo') . $transactionId);
+
+        // TODO add hook here to refund
 
         $args['headers'] = [
             'Content-Length' => 0,
@@ -601,7 +632,9 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
         $response = wp_remote_request($url . '1/sales/' . $transactionId . '/void?amount=' . $amount, $args);
 
         if (is_wp_error($response)) {
-            $this->log->log('error', var_export($response->get_error_messages(), true));
+            if ($debug === 'yes') {
+                $this->log->log('error', var_export($response->get_error_messages(), true), ['source' => 'woocommerce-cielo-debit']);
+            }
 
             $order->add_order_note(__('Order refunded error, payment id:', 'lkn-wc-gateway-cielo') . ' ' . $transactionId);
 
@@ -612,7 +645,9 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
             if ($responseDecoded->Status == 10 || $responseDecoded->Status == 11) {
                 return true;
             } else {
-                $this->log->log('error', var_export($args, true));
+                if ($debug === 'yes') {
+                    $this->log->log('error', var_export($args, true), ['source' => 'woocommerce-cielo-debit']);
+                }
 
                 return false;
             }
