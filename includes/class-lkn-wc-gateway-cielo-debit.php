@@ -474,16 +474,22 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
         $merchantId = sanitize_text_field($this->get_option('merchant_id'));
         $merchantSecret = sanitize_text_field($this->get_option('merchant_key'));
         $merchantOrderId = uniqid('invoice_');
-        $amount = number_format($order->get_total(), 2, '', '');
+        $amount = $order->get_total();
         $capture = ($this->get_option('capture') == 'yes') ? true : false;
         $description = sanitize_text_field($this->get_option('invoiceDesc'));
         $provider = $this->get_card_provider($cardNum);
         $debug = $this->get_option('debug');
+        $currency = $order->get_currency();
 
+        if ($currency !== 'BRL') {
+            $amount = apply_filters('lkn_convert_amount', $amount, $currency);
 
-        // TODO Add hook here to change currency with pro
-        // $order->get_currency();
-        // do_action('change-currency', $amount);
+            $order->add_meta_data('amount_converted', $amount, true);
+
+            $amount = number_format($amount, 2, '', '');
+        } else {
+            $amount = number_format($amount, 2, '', '');
+        }
 
         // Verify if authentication is data-only
         // @see {https://developercielo.github.io/manual/3ds}
@@ -611,12 +617,31 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
         $url = ($this->get_option('env') == 'production') ? 'https://api.cieloecommerce.cielo.com.br/' : 'https://apisandbox.cieloecommerce.cielo.com.br/';
         $merchantId = sanitize_text_field($this->get_option('merchant_id'));
         $merchantSecret = sanitize_text_field($this->get_option('merchant_key'));
-        $amount = number_format($amount, 2, '', '');
         $debug = $this->get_option('debug');
 
         $order = wc_get_order($order_id);
         $transactionId = $order->get_transaction_id();
         $order->add_order_note(__('Order refunded, payment id:', 'lkn-wc-gateway-cielo') . $transactionId);
+        $currency = $order->get_currency();
+
+        // Verify if is native currency
+        if ($currency !== 'BRL') {
+            // Foreign currency found
+            $orderTotal = $order->get_total();
+            $amountConverted = $order->get_meta('amount_converted');
+
+            // It is a total refund
+            if ($amount == $orderTotal) {
+                $amount = number_format($amountConverted, 2, '', '');
+            } else { // Partial refund
+                $exRate = $amountConverted/$orderTotal;
+                $amount = $amount * $exRate;
+
+                $amount = number_format($amount, 2, '', '');
+            }
+        } else { // Currency is BRL
+            $amount = number_format($amount, 2, '', '');
+        }
 
         // TODO add hook here to refund
 
@@ -636,18 +661,22 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
                 $this->log->log('error', var_export($response->get_error_messages(), true), ['source' => 'woocommerce-cielo-debit']);
             }
 
-            $order->add_order_note(__('Order refunded error, payment id:', 'lkn-wc-gateway-cielo') . ' ' . $transactionId);
+            $order->add_order_note(__('Order refund failed, payment id:', 'lkn-wc-gateway-cielo') . ' ' . $transactionId);
 
             return false;
         } else {
             $responseDecoded = json_decode($response['body']);
 
             if ($responseDecoded->Status == 10 || $responseDecoded->Status == 11) {
+                $order->add_order_note(__('Order refunded, payment id:', 'lkn-wc-gateway-cielo') . ' ' . $transactionId);
+
                 return true;
             } else {
                 if ($debug === 'yes') {
                     $this->log->log('error', var_export($args, true), ['source' => 'woocommerce-cielo-debit']);
                 }
+
+                $order->add_order_note(__('Order refund failed, payment id:', 'lkn-wc-gateway-cielo') . ' ' . $transactionId);
 
                 return false;
             }
