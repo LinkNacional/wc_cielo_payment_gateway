@@ -166,3 +166,6 @@ msgstr ""
 
 msgid "License for Cielo API 3.0 plugin extensions."
 msgstr ""
+
+msgid "Order refund failed"
+msgstr ""

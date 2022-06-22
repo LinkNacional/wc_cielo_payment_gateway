@@ -166,3 +166,6 @@ msgstr "Licença"
 
 msgid "License for Cielo API 3.0 plugin extensions."
 msgstr "Licença para extensões do plugin Cielo API 3.0."
+
+msgid "Order refund failed"
+msgstr "Falha ao reembolsar pedido, id do pagamento:"
