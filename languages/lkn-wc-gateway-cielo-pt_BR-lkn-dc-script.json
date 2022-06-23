@@ -21,6 +21,9 @@
             ],
             "Provider not supported by Cielo 3DS authentication": [
                 "Bandeira não suportada pela autenticação 3DS da Cielo"
+            ],
+            "Get new functions with": [
+                "Obtenha novas funcionalidades com"
             ]
         }
     }
