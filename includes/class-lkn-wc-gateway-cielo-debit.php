@@ -37,10 +37,9 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
         $this->has_fields         = true;
         $this->supports           = [
             'products',
-            'refunds',
         ];
 
-        // TODO add hook here to add/remove supports
+        $this->supports = apply_filters('lkn_wc_cielo_debit_add_support', $this->supports);
 
         $this->method_title       = __('Cielo - Debit card', 'lkn-wc-gateway-cielo');
         $this->method_description = __('Allows debit card payment with Cielo API 3.0.', 'lkn-wc-gateway-cielo');
@@ -65,6 +64,25 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
 
         // Action hook to load custom JavaScript/CSS
         add_action('wp_enqueue_scripts', [$this, 'payment_gateway_scripts']);
+
+        // Action hook to load admin JavaScript
+        if (function_exists('get_plugins')) {
+            // Only load if pro plugin doesn't exist
+            $activeProPlugin = is_plugin_active('wc-cielo-api-pro/lkn-wc-gateway-cielo-pro.php');
+
+            if ($activeProPlugin == false) {
+                add_action('admin_enqueue_scripts', [$this, 'admin_load_script']);
+            }
+        }
+    }
+
+    /**
+     * Load admin JavaScript for the admin page
+     *
+     * @return void
+     */
+    public function admin_load_script() {
+        wp_enqueue_script('lkn-wc-gateway-admin', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-wc-gateway-admin.js', ['wp-i18n'], $this->version, 'all');
     }
 
     /**
@@ -90,8 +108,15 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
             return;
         }
 
-        wp_enqueue_script('lkn-dc-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-dc-script.js', ['wp-i18n'], $this->version, false);
-        wp_set_script_translations('lkn-dc-script', 'lkn-wc-gateway-cielo', LKN_WC_CIELO_TRANSLATION_PATH);
+        $env = $this->get_option('env');
+
+        if ($env === 'production') {
+            wp_enqueue_script('lkn-dc-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-dc-script-prd.js', ['wp-i18n'], $this->version, false);
+            wp_set_script_translations('lkn-dc-script', 'lkn-wc-gateway-cielo', LKN_WC_CIELO_TRANSLATION_PATH);
+        } else {
+            wp_enqueue_script('lkn-dc-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-dc-script-sdb.js', ['wp-i18n'], $this->version, false);
+            wp_set_script_translations('lkn-dc-script', 'lkn-wc-gateway-cielo', LKN_WC_CIELO_TRANSLATION_PATH);
+        }
 
         wp_enqueue_script('lkn-mask-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-mask.js', [], $this->version, false);
 
@@ -189,25 +214,30 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
                 'default' => 'sandbox',
                 'desc_tip'    => true,
             ],
-            'capture' => [
-                'title'       => __('Capture', 'lkn-wc-gateway-cielo'),
-                'type'        => 'checkbox',
-                'label' => __('Enable automatic capture for payments', 'lkn-wc-gateway-cielo'),
-                'default' => 'yes',
-            ],
             'debug' => [
                 'title'       => __('Debug', 'lkn-wc-gateway-cielo'),
                 'type'        => 'checkbox',
                 'label' => __('Enable log capture for payments', 'lkn-wc-gateway-cielo'),
                 'default' => 'no',
             ],
-            'license' => [
+        ];
+
+        $activeProPlugin = is_plugin_active('wc-cielo-api-pro/lkn-wc-gateway-cielo-pro.php');
+
+        if ($activeProPlugin == true) {
+            $this->form_fields['capture'] = [
+                'title'       => __('Capture', 'lkn-wc-gateway-cielo'),
+                'type'        => 'checkbox',
+                'label' => __('Enable automatic capture for payments', 'lkn-wc-gateway-cielo'),
+                'default' => 'yes',
+            ];
+            $this->form_fields['license'] = [
                 'title'       => __('License', 'lkn-wc-gateway-cielo'),
                 'type'        => 'password',
-                'description' => __('License for Cielo API 3.0 plugin extensions.', 'lkn-wc-gateway-cielo'),
+                'description' => __('License for Cielo API Pro plugin extensions.', 'lkn-wc-gateway-cielo'),
                 'desc_tip'    => true,
-            ],
-        ];
+            ];
+        }
     }
 
     /**
@@ -475,7 +505,7 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
         $merchantSecret = sanitize_text_field($this->get_option('merchant_key'));
         $merchantOrderId = uniqid('invoice_');
         $amount = $order->get_total();
-        $capture = ($this->get_option('capture') == 'yes') ? true : false;
+        $capture = ($this->get_option('capture', 'yes') == 'yes') ? true : false;
         $description = sanitize_text_field($this->get_option('invoiceDesc'));
         $provider = $this->get_card_provider($cardNum);
         $debug = $this->get_option('debug');
@@ -618,43 +648,10 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
         $merchantId = sanitize_text_field($this->get_option('merchant_id'));
         $merchantSecret = sanitize_text_field($this->get_option('merchant_key'));
         $debug = $this->get_option('debug');
-
         $order = wc_get_order($order_id);
         $transactionId = $order->get_transaction_id();
-        $order->add_order_note(__('Order refunded, payment id:', 'lkn-wc-gateway-cielo') . $transactionId);
-        $currency = $order->get_currency();
 
-        // Verify if is native currency
-        if ($currency !== 'BRL') {
-            // Foreign currency found
-            $orderTotal = $order->get_total();
-            $amountConverted = $order->get_meta('amount_converted');
-
-            // It is a total refund
-            if ($amount == $orderTotal) {
-                $amount = number_format($amountConverted, 2, '', '');
-            } else { // Partial refund
-                $exRate = $amountConverted/$orderTotal;
-                $amount = $amount * $exRate;
-
-                $amount = number_format($amount, 2, '', '');
-            }
-        } else { // Currency is BRL
-            $amount = number_format($amount, 2, '', '');
-        }
-
-        // TODO add hook here to refund
-
-        $args['headers'] = [
-            'Content-Length' => 0,
-            'Content-Type' => 'application/json',
-            'MerchantId' => $merchantId,
-            'MerchantKey' => $merchantSecret,
-        ];
-
-        $args['method'] = 'PUT';
-
-        $response = wp_remote_request($url . '1/sales/' . $transactionId . '/void?amount=' . $amount, $args);
+        $response = apply_filters('lkn_wc_cielo_debit_refund', $url, $merchantId, $merchantSecret, $order_id, $amount);
 
         if (is_wp_error($response)) {
             if ($debug === 'yes') {
@@ -673,7 +670,7 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
                 return true;
             } else {
                 if ($debug === 'yes') {
-                    $this->log->log('error', var_export($args, true), ['source' => 'woocommerce-cielo-debit']);
+                    $this->log->log('error', var_export($response, true), ['source' => 'woocommerce-cielo-debit']);
                 }
 
                 $order->add_order_note(__('Order refund failed, payment id:', 'lkn-wc-gateway-cielo') . ' ' . $transactionId);

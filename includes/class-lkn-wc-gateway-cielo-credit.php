@@ -39,7 +39,7 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
             'products',
         ];
 
-        $this->supports = apply_filters('lkn_wc_cielo_add_support', $this->supports);
+        $this->supports = apply_filters('lkn_wc_cielo_credit_add_support', $this->supports);
 
         $this->method_title       = __('Cielo - Credit card', 'lkn-wc-gateway-cielo');
         $this->method_description = __('Allows credit card payment with Cielo API 3.0.', 'lkn-wc-gateway-cielo');
@@ -67,8 +67,8 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
 
         // Action hook to load admin JavaScript
         if (function_exists('get_plugins')) {
-            $all_plugins  = get_plugins();
-            $activeProPlugin = !empty($all_plugins['wc-cielo-api-pro/lkn-wc-gateway-cielo-pro.php']);
+            // Only load if pro plugin doesn't exist
+            $activeProPlugin = is_plugin_active('wc-cielo-api-pro/lkn-wc-gateway-cielo-pro.php');
 
             if ($activeProPlugin == false) {
                 add_action('admin_enqueue_scripts', [$this, 'admin_load_script']);
@@ -82,7 +82,7 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
      * @return void
      */
     public function admin_load_script() {
-        wp_enqueue_script('lkn-credit-admin', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-credit-admin.js', [], $this->version, 'all');
+        wp_enqueue_script('lkn-wc-gateway-admin', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-wc-gateway-admin.js', ['wp-i18n'], $this->version, 'all');
     }
 
     /**
@@ -178,19 +178,24 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
                 'label' => __('Enable log capture for payments', 'lkn-wc-gateway-cielo'),
                 'default' => 'no',
             ],
-            'capture' => [
+        ];
+
+        $activeProPlugin = is_plugin_active('wc-cielo-api-pro/lkn-wc-gateway-cielo-pro.php');
+
+        if ($activeProPlugin == true) {
+            $this->form_fields['capture'] = [
                 'title'       => __('Capture', 'lkn-wc-gateway-cielo'),
                 'type'        => 'checkbox',
                 'label' => __('Enable automatic capture for payments', 'lkn-wc-gateway-cielo'),
                 'default' => 'yes',
-            ],
-            'license' => [
+            ];
+            $this->form_fields['license'] = [
                 'title'       => __('License', 'lkn-wc-gateway-cielo'),
                 'type'        => 'password',
-                'description' => __('License for Cielo API 3.0 plugin extensions.', 'lkn-wc-gateway-cielo'),
+                'description' => __('License for Cielo API Pro plugin extensions.', 'lkn-wc-gateway-cielo'),
                 'desc_tip'    => true,
-            ],
-        ];
+            ];
+        }
     }
 
     /**
@@ -365,7 +370,7 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
         $merchantSecret = sanitize_text_field($this->get_option('merchant_key'));
         $merchantOrderId = uniqid('invoice_');
         $amount = $order->get_total();
-        $capture = ($this->get_option('capture') == 'yes') ? true : false;
+        $capture = ($this->get_option('capture', 'yes') == 'yes') ? true : false;
         $description = sanitize_text_field($this->get_option('invoiceDesc'));
         $description = preg_replace(['/(á|à|ã|â|ä)/', '/(Á|À|Ã|Â|Ä)/', '/(é|è|ê|ë)/', '/(É|È|Ê|Ë)/', '/(í|ì|î|ï)/', '/(Í|Ì|Î|Ï)/', '/(ó|ò|õ|ô|ö)/', '/(Ó|Ò|Õ|Ô|Ö)/', '/(ú|ù|û|ü)/', '/(Ú|Ù|Û|Ü)/', '/(ñ)/', '/(Ñ)/', '/(ç)/', '/(Ç)/'], explode(' ', 'a A e E i I o O u U n N c C'), $description);
         $provider = $this->get_card_provider($cardNum);
@@ -464,7 +469,7 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
         $order = wc_get_order($order_id);
         $transactionId = $order->get_transaction_id();
 
-        $response = apply_filters('lkn_wc_cielo_refund', $url, $merchantId, $merchantSecret, $order_id, $amount);
+        $response = apply_filters('lkn_wc_cielo_credit_refund', $url, $merchantId, $merchantSecret, $order_id, $amount);
 
         if (is_wp_error($response)) {
             if ($debug === 'yes') {
