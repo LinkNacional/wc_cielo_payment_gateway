@@ -371,7 +371,17 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
             wc_add_notice(__('Debit Card number is required!', 'lkn-wc-gateway-cielo'), 'error');
 
             return false;
+        } elseif (!empty($_POST['lkn_dcno'])) {
+            $cardNum = $_POST['lkn_dcno'];
+            $isValid = !preg_match('/[^0-9\s]/', $cardNum);
+
+            if ($isValid !== true || strlen($cardNum) < 12) {
+                wc_add_notice(__('Debit Card number is invalid!', 'lkn-wc-gateway-cielo'), 'error');
+
+                return false;
+            }
         }
+
         if (empty($_POST['lkn_dc_expdate'])) {
             wc_add_notice(__('Expiration date is required!', 'lkn-wc-gateway-cielo'), 'error');
 
@@ -387,10 +397,20 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
                 return false;
             }
         }
+
         if (empty($_POST['lkn_dc_cvc'])) {
             wc_add_notice(__('CVV is required!', 'lkn-wc-gateway-cielo'), 'error');
 
             return false;
+        } elseif (!empty($_POST['lkn_dc_cvc'])) {
+            $cvv = $_POST['lkn_dc_cvc'];
+            $isValid = !preg_match('/\D/', $cvv);
+
+            if ($isValid !== true || strlen($cvv) < 3) {
+                wc_add_notice(__('CVV is invalid!', 'lkn-wc-gateway-cielo'), 'error');
+
+                return false;
+            }
         }
 
         return true;
