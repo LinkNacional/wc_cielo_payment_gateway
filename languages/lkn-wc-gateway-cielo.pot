@@ -1,0 +1,195 @@
+# Cielo API 3.0 Payments for WooCommerce en_US translation
+msgid "Cielo API 3.0 Payments for WooCommerce"
+msgstr ""
+
+msgid "Adds the Cielo API 3.0 Payments gateway to your WooCommerce website."
+msgstr ""
+
+msgid "Cielo - Credit card"
+msgstr ""
+
+msgid "Allows credit card payment with Cielo API 3.0."
+msgstr ""
+
+msgid "Enable/Disable"
+msgstr ""
+
+msgid "Enable Credit Card Payments"
+msgstr ""
+
+msgid "Title"
+msgstr ""
+
+msgid "This controls the title which the user sees during checkout."
+msgstr ""
+
+msgid "Credit card"
+msgstr ""
+
+msgid "Description"
+msgstr ""
+
+msgid "Payment method description that the customer will see on your checkout."
+msgstr ""
+
+msgid "Merchant Id"
+msgstr ""
+
+msgid "Cielo API 3.0 credentials."
+msgstr ""
+
+msgid "Merchant Key"
+msgstr ""
+
+msgid "Invoice Description"
+msgstr ""
+
+msgid "Invoice description that the customer will see on your checkout."
+msgstr ""
+
+msgid "Environment"
+msgstr ""
+
+msgid "Cielo API 3.0 environment."
+msgstr ""
+
+msgid "Production"
+msgstr ""
+
+msgid "Sandbox"
+msgstr ""
+
+msgid "Capture"
+msgstr ""
+
+msgid "Enable automatic capture for payments"
+msgstr ""
+
+msgid "Card Number"
+msgstr ""
+
+msgid "Expiry Date"
+msgstr ""
+
+msgid "Card Code"
+msgstr ""
+
+msgid "Credit Card number is required!"
+msgstr ""
+
+msgid "Expiration date is required!"
+msgstr ""
+
+msgid "CVV is required!"
+msgstr ""
+
+msgid "Order payment failed. To make a successful payment using credit card, please review the gateway settings."
+msgstr ""
+
+msgid "Order payment failed. Make sure your credit card is valid."
+msgstr ""
+
+msgid "Payment completed successfully. Payment id:"
+msgstr ""
+
+msgid "Order refunded, payment id:"
+msgstr ""
+
+msgid "Cielo - Debit card"
+msgstr ""
+
+msgid "Allows debit card payment with Cielo API 3.0."
+msgstr ""
+
+msgid "Client Id"
+msgstr ""
+
+msgid "Client Secret"
+msgstr ""
+
+msgid "Enable Debit Card Payments"
+msgstr ""
+
+msgid "Debit card"
+msgstr ""
+
+msgid "Establishment Code"
+msgstr ""
+
+msgid "Establishment code for Cielo 3DS E-Commerce 3.0."
+msgstr ""
+
+msgid "Merchant Name"
+msgstr ""
+
+msgid "Establishment name registered on Cielo 3DS E-Commerce 3.0."
+msgstr ""
+
+msgid "Establishment Category Code"
+msgstr ""
+
+msgid "Establishment category code for Cielo 3DS E-Commerce 3.0."
+msgstr ""
+
+msgid "Auth token generation failed."
+msgstr ""
+
+msgid "Debit Card number is required!"
+msgstr ""
+
+msgid "Expiration date is invalid!"
+msgstr ""
+
+msgid "Order payment failed. To make a successful payment using debit card, please review the gateway settings."
+msgstr ""
+
+msgid "Order payment failed. Make sure your debit card is valid."
+msgstr ""
+
+msgid "Settings"
+msgstr ""
+
+msgid "Payment processed by Cielo API 3.0"
+msgstr ""
+
+msgid "order"
+msgstr ""
+
+msgid "Debug"
+msgstr ""
+
+msgid "Enable log capture for payments"
+msgstr ""
+
+msgid "License"
+msgstr ""
+
+msgid "License for Cielo API 3.0 plugin extensions."
+msgstr ""
+
+msgid "Order refund failed"
+msgstr ""
+
+msgid "Activation Error:"
+msgstr ""
+
+msgid "You must have"
+msgstr ""
+
+msgid "version"
+msgstr ""
+
+msgid "for the Cielo API 3.0 Payments for WooCommerce add-on to activate"
+msgstr ""
+
+msgid "plugin installed and activated for the Cielo API 3.0 Payments for WooCommerce add-on to activate"
+msgstr ""
+
+msgid "Credit Card number is invalid!"
+msgstr ""
+
+msgid "Debit Card number is invalid!"
+msgstr ""
+
+msgid "CVV is invalid!"
+msgstr ""

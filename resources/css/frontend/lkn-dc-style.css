@@ -1,0 +1,16 @@
+#lkn_dcno {
+    line-height: 1.6em;
+}
+
+#lkn_dc_expdate {
+    line-height: 1.6em;
+}
+
+#lkn_dc_cvc {
+    line-height: 1.8em;
+}
+
+.form-row {
+    display: flex;
+    flex-direction: column;
+}

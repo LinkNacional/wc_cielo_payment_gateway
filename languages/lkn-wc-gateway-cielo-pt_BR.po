@@ -1,0 +1,195 @@
+# Invoice Payment for WooCommerce tradução pt_BR
+msgid "Cielo API 3.0 Payments for WooCommerce"
+msgstr "Cielo API 3.0 pagamentos para WooCommerce"
+
+msgid "Adds the Cielo API 3.0 Payments gateway to your WooCommerce website."
+msgstr "Adiciona o método de pagamento Cielo API 3.0 para seu site WooCommerce."
+
+msgid "Cielo - Credit card"
+msgstr "Cielo - Cartão de crédito"
+
+msgid "Allows credit card payment with Cielo API 3.0."
+msgstr "Permite pagamentos com cartão de crédito através da Cielo API 3.0"
+
+msgid "Enable/Disable"
+msgstr "Habilitar/Desabilitar"
+
+msgid "Enable Credit Card Payments"
+msgstr "Habilita pagamentos via cartão de crédito"
+
+msgid "Title"
+msgstr "Título"
+
+msgid "This controls the title which the user sees during checkout."
+msgstr "Isso controla o título que o usuário vê durante o pagamento."
+
+msgid "Credit card"
+msgstr "Cartão de crédito"
+
+msgid "Description"
+msgstr "Descrição"
+
+msgid "Payment method description that the customer will see on your checkout."
+msgstr "Descrição do método de pagamento que o cliente irá ver durante o pagamento."
+
+msgid "Merchant Id"
+msgstr "Merchant Id"
+
+msgid "Cielo API 3.0 credentials."
+msgstr "Credenciais Cielo API 3.0."
+
+msgid "Merchant Key"
+msgstr "Merchant Key"
+
+msgid "Invoice Description"
+msgstr "Descrição da fatura"
+
+msgid "Invoice description that the customer will see on your checkout."
+msgstr "Descrição da fatura que o cliente irá ver durante o pagamento."
+
+msgid "Environment"
+msgstr "Ambiente"
+
+msgid "Cielo API 3.0 environment."
+msgstr "Ambiente da Cielo API 3.0."
+
+msgid "Production"
+msgstr "Produção"
+
+msgid "Sandbox"
+msgstr "Teste"
+
+msgid "Capture"
+msgstr "Captura"
+
+msgid "Enable automatic capture for payments"
+msgstr "Habilita a captura automática para pagamentos"
+
+msgid "Card Number"
+msgstr "Número do cartão"
+
+msgid "Expiry Date"
+msgstr "Data de expiração"
+
+msgid "Card Code"
+msgstr "Código de segurança"
+
+msgid "Credit Card number is required!"
+msgstr "Número de cartão de crédito é obrigatório!"
+
+msgid "Expiration date is required!"
+msgstr "Data de expiração é obrigatória!"
+
+msgid "CVV is required!"
+msgstr "CVV é obrigatório!"
+
+msgid "Order payment failed. To make a successful payment using credit card, please review the gateway settings."
+msgstr "Pagamento do pedido falhou. Para realizar um pagamento usando o cartão de crédito, por favor verifique as configurações do método de pagamento."
+
+msgid "Order payment failed. Make sure your credit card is valid."
+msgstr "Pagamento de pedido falhou. Certifique-se que seu cartão de crédito é válido."
+
+msgid "Payment completed successfully. Payment id:"
+msgstr "Pagamento de pedido realizado com sucesso. Id de pagamento:"
+
+msgid "Order refunded, payment id:"
+msgstr "Pedido reembolsado, id do pagamento:"
+
+msgid "Cielo - Debit card"
+msgstr "Cielo - Cartão de débito"
+
+msgid "Allows debit card payment with Cielo API 3.0."
+msgstr "Permite pagamentos de cartão de débito com a Cielo API 3.0."
+
+msgid "Client Id"
+msgstr "Client Id"
+
+msgid "Client Secret"
+msgstr "Client Secret"
+
+msgid "Enable Debit Card Payments"
+msgstr "Habilita pagamentos via cartão de débito"
+
+msgid "Debit card"
+msgstr "Cartão de débito"
+
+msgid "Establishment Code"
+msgstr "Código de estabelecimento"
+
+msgid "Establishment code for Cielo 3DS E-Commerce 3.0."
+msgstr "Código de estabelecimento para Cielo 3DS E-Commerce 3.0."
+
+msgid "Merchant Name"
+msgstr "Nome do mercador"
+
+msgid "Establishment name registered on Cielo 3DS E-Commerce 3.0."
+msgstr "O nome do estabelecimento registrado no Cielo 3DS E-Commerce 3.0."
+
+msgid "Establishment Category Code"
+msgstr "Código de categoria do estabelecimento"
+
+msgid "Establishment category code for Cielo 3DS E-Commerce 3.0."
+msgstr "Código de categoria do estabelecimento para Cielo 3DS E-Commerce 3.0."
+
+msgid "Auth token generation failed."
+msgstr "Geração de token de atutenticação falhou."
+
+msgid "Debit Card number is required!"
+msgstr "Número de cartão de débito é obrigatório!"
+
+msgid "Expiration date is invalid!"
+msgstr "Data de expiração é inválida!"
+
+msgid "Order payment failed. To make a successful payment using debit card, please review the gateway settings."
+msgstr "Pagamento de pedido falhou. Para realizar um pagamento utilizando cartão de débito, por favor revise as configurações do método de pagamento."
+
+msgid "Order payment failed. Make sure your debit card is valid."
+msgstr "Pagamento de pedido falhou. Certifique-se que seu cartão de débito é válido."
+
+msgid "Settings"
+msgstr "Configurações"
+
+msgid "Payment processed by Cielo API 3.0"
+msgstr "Pagamento processado pela Cielo API 3.0"
+
+msgid "order"
+msgstr "pedido"
+
+msgid "Enable log capture for payments"
+msgstr "Habilita a captura de logs para pagamentos"
+
+msgid "Debug"
+msgstr "Depuração"
+
+msgid "License"
+msgstr "Licença"
+
+msgid "License for Cielo API 3.0 plugin extensions."
+msgstr "Licença para extensões do plugin Cielo API 3.0."
+
+msgid "Order refund failed"
+msgstr "Falha ao reembolsar pedido, id do pagamento:"
+
+msgid "Activation Error:"
+msgstr "Erro de ativação:"
+
+msgid "You must have"
+msgstr "Você precisa ter"
+
+msgid "version"
+msgstr "versão"
+
+msgid "for the Cielo API 3.0 Payments for WooCommerce add-on to activate"
+msgstr "para o plugin Cielo API 3.0 pagamentos para WooCommerce ativar"
+
+msgid "plugin installed and activated for the Cielo API 3.0 Payments for WooCommerce add-on to activate"
+msgstr "plugin instalado e ativo para o plugin Cielo API 3.0 pagamentos para WooCommerce ativar"
+
+msgid "Credit Card number is invalid!"
+msgstr "Número de cartão de crédito inválido!"
+
+msgid "Debit Card number is invalid!"
+msgstr "Número de cartão de débito inválido!"
+
+msgid "CVV is invalid!"
+msgstr "CVV inválido!"
