@@ -169,3 +169,27 @@ msgstr ""
 
 msgid "Order refund failed"
 msgstr ""
+
+msgid "Activation Error:"
+msgstr ""
+
+msgid "You must have"
+msgstr ""
+
+msgid "version"
+msgstr ""
+
+msgid "for the Cielo API 3.0 Payments for WooCommerce add-on to activate"
+msgstr ""
+
+msgid "plugin installed and activated for the Cielo API 3.0 Payments for WooCommerce add-on to activate"
+msgstr ""
+
+msgid "Credit Card number is invalid!"
+msgstr ""
+
+msgid "Debit Card number is invalid!"
+msgstr ""
+
+msgid "CVV is invalid!"
+msgstr ""

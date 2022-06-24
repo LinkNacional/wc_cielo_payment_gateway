@@ -84,10 +84,10 @@ msgid "CVV is required!"
 msgstr "CVV é obrigatório!"
 
 msgid "Order payment failed. To make a successful payment using credit card, please review the gateway settings."
-msgstr "Pagamento do pedido falhou. Para realizar um pagamento usando o cartão de crédito, por favor revisa as configurações do método de pagamento."
+msgstr "Pagamento do pedido falhou. Para realizar um pagamento usando o cartão de crédito, por favor verifique as configurações do método de pagamento."
 
 msgid "Order payment failed. Make sure your credit card is valid."
-msgstr "Pagamento de pedido falhou. Certifique-se que seu cartão de crédito válido."
+msgstr "Pagamento de pedido falhou. Certifique-se que seu cartão de crédito é válido."
 
 msgid "Payment completed successfully. Payment id:"
 msgstr "Pagamento de pedido realizado com sucesso. Id de pagamento:"
@@ -169,3 +169,27 @@ msgstr "Licença para extensões do plugin Cielo API 3.0."
 
 msgid "Order refund failed"
 msgstr "Falha ao reembolsar pedido, id do pagamento:"
+
+msgid "Activation Error:"
+msgstr "Erro de ativação:"
+
+msgid "You must have"
+msgstr "Você precisa ter"
+
+msgid "version"
+msgstr "versão"
+
+msgid "for the Cielo API 3.0 Payments for WooCommerce add-on to activate"
+msgstr "para o plugin Cielo API 3.0 pagamentos para WooCommerce ativar"
+
+msgid "plugin installed and activated for the Cielo API 3.0 Payments for WooCommerce add-on to activate"
+msgstr "plugin instalado e ativo para o plugin Cielo API 3.0 pagamentos para WooCommerce ativar"
+
+msgid "Credit Card number is invalid!"
+msgstr "Número de cartão de crédito inválido!"
+
+msgid "Debit Card number is invalid!"
+msgstr "Número de cartão de débito inválido!"
+
+msgid "CVV is invalid!"
+msgstr "CVV inválido!"
