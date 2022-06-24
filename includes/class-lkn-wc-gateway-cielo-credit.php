@@ -68,7 +68,7 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
         // Action hook to load admin JavaScript
         if (function_exists('get_plugins')) {
             // Only load if pro plugin doesn't exist
-            $activeProPlugin = is_plugin_active('wc-cielo-api-pro/lkn-wc-gateway-cielo-pro.php');
+            $activeProPlugin = is_plugin_active('lkn-cielo-api-pro/lkn-cielo-api-pro.php');
 
             if ($activeProPlugin == false) {
                 add_action('admin_enqueue_scripts', [$this, 'admin_load_script']);
@@ -180,7 +180,7 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
             ],
         ];
 
-        $activeProPlugin = is_plugin_active('wc-cielo-api-pro/lkn-wc-gateway-cielo-pro.php');
+        $activeProPlugin = is_plugin_active('lkn-cielo-api-pro/lkn-cielo-api-pro.php');
 
         if ($activeProPlugin == true) {
             $this->form_fields['capture'] = [
