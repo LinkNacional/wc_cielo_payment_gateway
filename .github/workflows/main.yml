@@ -18,7 +18,7 @@ jobs:
 
     # Add plugin files to a root directory
     - name: Make plugin root directory
-      run: "mkdir $PLUGIN_NAME && mv -t ./$PLUGIN_NAME ./languages ./resources ./includes *.php && ls -lah"
+      run: "mkdir $PLUGIN_NAME && mv -t ./$PLUGIN_NAME ./languages ./resources ./includes *.txt *.php && ls -lah"
 
     # Compact plugin as .zip
     - name: Archive Release
@@ -44,6 +44,5 @@ jobs:
         artifacts: "${{ env.PLUGIN_NAME }}.zip"
         token: ${{ secrets.GITHUB_TOKEN }}
         commit: "main"
-        draft: "true"
         tag: ${{ steps.tag_version.outputs.new_tag }}
         name: Release ${{ steps.tag_version.outputs.new_tag }}
