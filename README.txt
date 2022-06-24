@@ -1,5 +1,5 @@
 === Cielo API 3.0 Payments for WooCommerce ===
-Contributors: @linknacional
+Contributors: linknacional
 Donate link: https://www.linknacional.com.br/wordpress/plugins/
 Tags: woocommerce, invoice, payment, paymethod, card, credit
 Requires at least: 5.7
