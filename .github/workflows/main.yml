@@ -6,7 +6,7 @@ on:
     branches: [ main ]
 
 env:
-  PLUGIN_NAME: cielo-payment-for-woocommerce
+  PLUGIN_NAME: lkn-wc-gateway-cielo
 
 jobs:
   release-build:
