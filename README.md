@@ -1,6 +1,6 @@
-# Cielo API 3.0 Payments for WooCommerce
+# Payment Gateway for Cielo API on WooCommerce
 
-Cielo API 3.0 Payments for WooCommerce, credit and debit card.
+Payment Gateway for Cielo API on WooCommerce, credit and debit card.
 
 ## Installation method
 
@@ -8,7 +8,7 @@ Cielo API 3.0 Payments for WooCommerce, credit and debit card.
 
 2) In installed plugins look for the option 'add new';
 
-3) Click on the 'send plugin' option in the page title and upload the cielo-payment-gateway-for-woocommerce.zip plugin;
+3) Click on the 'send plugin' option in the page title and upload the lkn-wc-gateway-cielo.zip plugin;
 
 4) Click on the 'install now' button and then activate the installed plugin;
 

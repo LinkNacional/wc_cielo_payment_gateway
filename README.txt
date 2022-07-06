@@ -1,4 +1,4 @@
-=== Cielo API 3.0 Payments for WooCommerce ===
+=== Payment Gateway for Cielo API on WooCommerce ===
 Contributors: linknacional
 Donate link: https://www.linknacional.com.br/wordpress/plugins/
 Tags: woocommerce, invoice, payment, paymethod, card, credit
@@ -9,13 +9,13 @@ Requires PHP: 7.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Cielo API 3.0 payment gateway for WooCommerce.
+Payment Gateway for Cielo API on WooCommerce.
 
 == Description ==
 
 **Dependencies**
 
-Cielo API 3.0 Payments for WooCommerce plugin is dependent on WooCommerce plugin, please make sure WooCommerce is installed and properly configured before starting Cielo API 3.0 Payments for WooCommerce installation.
+Payment Gateway for Cielo API on WooCommerce plugin is dependent on WooCommerce plugin, please make sure WooCommerce is installed and properly configured before starting Payment Gateway for Cielo API on WooCommerce installation.
 
 **User instructions**
 
@@ -37,7 +37,7 @@ Cielo API 3.0 Payments for WooCommerce plugin is dependent on WooCommerce plugin
 
 2. In installed plugins look for the option 'add new';
 
-3. Click on the 'send plugin' option in the page title and upload the cielo-payment-gateway-for-woocommerce.zip plugin;
+3. Click on the 'send plugin' option in the page title and upload the lkn-wc-gateway-cielo.zip plugin;
 
 4. Click on the 'install now' button and then activate the installed plugin;
 
