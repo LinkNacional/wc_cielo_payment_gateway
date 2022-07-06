@@ -319,11 +319,11 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
                 
             <input type="hidden" name="lkn_auth_enabled" class="bpmpi_auth" value="true" />
             <input type="hidden" name="lkn_auth_enabled_notifyonly" class="bpmpi_auth_notifyonly" value="true" />
-            <input type="hidden" name="lkn_access_token" class="bpmpi_accesstoken" value="<?php echo $accessToken; ?>" />
-            <input type="hidden" size="50" name="lkn_order_number" class="bpmpi_ordernumber" value="<?php echo uniqid(); ?>" />
+            <input type="hidden" name="lkn_access_token" class="bpmpi_accesstoken" value="<?php esc_attr_e($accessToken); ?>" />
+            <input type="hidden" size="50" name="lkn_order_number" class="bpmpi_ordernumber" value="<?php esc_attr_e(uniqid()); ?>" />
             <input type="hidden" name="lkn_currency" class="bpmpi_currency" value="BRL"/>
-            <input type="hidden" size="50" class="bpmpi_merchant_url" value="<?php echo $url; ?>" />
-            <input type="hidden" size="50" id="lkn_cielo_3ds_value" name="lkn_amount" class="bpmpi_totalamount" value="<?php echo $total_cart; ?>" />
+            <input type="hidden" size="50" class="bpmpi_merchant_url" value="<?php esc_attr_e($url); ?>" />
+            <input type="hidden" size="50" id="lkn_cielo_3ds_value" name="lkn_amount" class="bpmpi_totalamount" value="<?php esc_attr_e($total_cart); ?>" />
             <input type="hidden" size="2" name="lkn_installments" class="bpmpi_installments" value="1" />
             <input type="hidden" name="lkn_payment_method" class="bpmpi_paymentmethod" value="Debit" />
             <input type="hidden" id="lkn_bpmpi_cardnumber" class="bpmpi_cardnumber" />
@@ -372,7 +372,7 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
 
             return false;
         } elseif (!empty($_POST['lkn_dcno'])) {
-            $cardNum = $_POST['lkn_dcno'];
+            $cardNum = sanitize_text_field($_POST['lkn_dcno']);
             $isValid = !preg_match('/[^0-9\s]/', $cardNum);
 
             if ($isValid !== true || strlen($cardNum) < 12) {
@@ -403,7 +403,7 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
 
             return false;
         } elseif (!empty($_POST['lkn_dc_cvc'])) {
-            $cvv = $_POST['lkn_dc_cvc'];
+            $cvv = sanitize_text_field($_POST['lkn_dc_cvc']);
             $isValid = !preg_match('/\D/', $cvv);
 
             if ($isValid !== true || strlen($cvv) < 3) {

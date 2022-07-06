@@ -206,7 +206,7 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
     public function payment_fields() {
         echo wpautop(wp_kses_post($this->description)); ?>
     
-        <fieldset id="wc-<?php echo esc_attr($this->id); ?>-cc-form" class="wc-credit-card-form wc-payment-form" style="background:transparent;">
+        <fieldset id="wc-<?php esc_attr_e($this->id); ?>-cc-form" class="wc-credit-card-form wc-payment-form" style="background:transparent;">
     
             <?php do_action('woocommerce_credit_card_form_start', $this->id); ?>
     
@@ -244,7 +244,7 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
 
             return false;
         } elseif (!empty($_POST['lkn_ccno'])) {
-            $cardNum = $_POST['lkn_ccno'];
+            $cardNum = sanitize_text_field($_POST['lkn_ccno']);
             $isValid = !preg_match('/[^0-9\s]/', $cardNum);
 
             if ($isValid !== true || strlen($cardNum) < 12) {
@@ -275,7 +275,7 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
 
             return false;
         } elseif (!empty($_POST['lkn_cc_cvc'])) {
-            $cvv = $_POST['lkn_cc_cvc'];
+            $cvv = sanitize_text_field($_POST['lkn_cc_cvc']);
             $isValid = !preg_match('/\D/', $cvv);
 
             if ($isValid !== true || strlen($cvv) < 3) {
