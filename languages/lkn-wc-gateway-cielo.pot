@@ -193,3 +193,12 @@ msgstr ""
 
 msgid "CVV is invalid!"
 msgstr ""
+
+msgid "Installments"
+msgstr ""
+
+msgid "Installment payments"
+msgstr ""
+
+msgid "Enables installment payments for amounts greater than 10,00 R$"
+msgstr ""
