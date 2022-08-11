@@ -138,7 +138,7 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
                 'title'   => __('Enable/Disable', 'lkn-wc-gateway-cielo'),
                 'type'    => 'checkbox',
                 'label'   => __('Enable Debit Card Payments', 'lkn-wc-gateway-cielo'),
-                'default' => 'yes',
+                'default' => 'no',
             ],
             'title' => [
                 'title'       => __('Title', 'lkn-wc-gateway-cielo'),

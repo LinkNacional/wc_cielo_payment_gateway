@@ -110,6 +110,8 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
 
         wp_enqueue_script('lkn-mask-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-mask.js', [], $this->version, false);
 
+        wp_enqueue_script('lkn-installment-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-cc-installment.js', [], $this->version, false);
+
         wp_enqueue_style('lkn-cc-style', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-cc-style.css', [], $this->version, 'all');
 
         wp_enqueue_style('lkn-mask', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-mask.css', [], $this->version, 'all');
@@ -126,7 +128,7 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
                 'title'   => __('Enable/Disable', 'lkn-wc-gateway-cielo'),
                 'type'    => 'checkbox',
                 'label'   => __('Enable Credit Card Payments', 'lkn-wc-gateway-cielo'),
-                'default' => 'yes',
+                'default' => 'no',
             ],
             'title' => [
                 'title'       => __('Title', 'lkn-wc-gateway-cielo'),
@@ -178,6 +180,12 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
                 'label' => __('Enable log capture for payments', 'lkn-wc-gateway-cielo'),
                 'default' => 'no',
             ],
+            'installment_payment' => [
+                'title'       => __('Installment payments', 'lkn-wc-gateway-cielo'),
+                'type'        => 'checkbox',
+                'label' => __('Enables installment payments for amounts greater than 10,00 R$', 'lkn-wc-gateway-cielo'),
+                'default' => 'no',
+            ],
         ];
 
         $activeProPlugin = is_plugin_active('lkn-cielo-api-pro/lkn-cielo-api-pro.php');
@@ -204,6 +212,19 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
      * @return void
      */
     public function payment_fields() {
+        $activeInstallment = $this->get_option('installment_payment');
+        $total_cart = 0;
+
+        if ($activeInstallment === 'yes') {
+            if (!isset($_GET['pay_for_order'])) {
+                $total_cart = number_format($this->get_order_total(), 2, '.', '');
+            } else {
+                $order_id = wc_get_order_id_by_order_key(sanitize_text_field($_GET['key']));
+                $order = wc_get_order($order_id);
+                $total_cart = number_format($order->get_total(), 2, '.', '');
+            }
+        }
+
         echo wpautop(wp_kses_post($this->description)); ?>
     
         <fieldset id="wc-<?php esc_attr_e($this->id); ?>-cc-form" class="wc-credit-card-form wc-payment-form" style="background:transparent;">
@@ -222,6 +243,19 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
                 <label><?php _e('Card Code', 'lkn-wc-gateway-cielo'); ?> <span class="required">*</span></label>
                 <input id="lkn_cc_cvc" name="lkn_cc_cvc" type="tel" autocomplete="off" placeholder="CVV" maxlength="4" required>
             </div>
+            <?php
+            if ($activeInstallment === 'yes') {
+                ?>
+                <input id="lkn_cc_installment_total" type="hidden" value="<?php esc_attr_e($total_cart); ?>">
+
+                <div class="form-row form-row-wide">
+                    <label><?php _e('Installments', 'lkn-wc-gateway-cielo'); ?> </label>
+                    <select id="lkn_cc_installments" name="lkn_cc_installments">
+                        <option value="1" selected="1">1 x R$0,00 sem juros</option>
+                    </select>
+                </div>
+                <?php
+            } ?>
             <div class="clear"></div>
     
             <?php do_action('woocommerce_credit_card_form_end', $this->id); ?>
@@ -383,6 +417,7 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
         $cardExp = $cardExpSplit[0] . '/20' . $cardExpSplit[1];
         $cardCvv = sanitize_text_field($_POST['lkn_cc_cvc']);
         $cardName = $order->get_billing_first_name() . ' ' . $order->get_billing_last_name();
+        $installments = 1;
 
         // POST parameters
         $url = ($this->get_option('env') == 'production') ? 'https://api.cieloecommerce.cielo.com.br/' : 'https://apisandbox.cieloecommerce.cielo.com.br/';
@@ -396,7 +431,9 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
         $provider = $this->get_card_provider($cardNum);
         $debug = $this->get_option('debug');
         $currency = $order->get_currency();
+        $activeInstallment = $this->get_option('installment_payment');
 
+        // Convert the amount to equivalent in BRL
         if ($currency !== 'BRL') {
             $amount = apply_filters('lkn_wc_cielo_convert_amount', $amount, $currency);
 
@@ -405,6 +442,11 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
             $amount = number_format($amount, 2, '', '');
         } else {
             $amount = number_format($amount, 2, '', '');
+        }
+
+        // If installments option is active verify $_POST attribute
+        if ($activeInstallment === 'yes') {
+            $installments = (int) sanitize_text_field($_POST['lkn_cc_installments']);
         }
 
         $args['headers'] = [
@@ -418,7 +460,7 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
             'Payment' => [
                 'Type' => 'CreditCard',
                 'Amount' => $amount,
-                'Installments' => 1,
+                'Installments' => $installments,
                 'Capture' => (bool)$capture,
                 'SoftDescriptor' => $description,
                 'CreditCard' => [
