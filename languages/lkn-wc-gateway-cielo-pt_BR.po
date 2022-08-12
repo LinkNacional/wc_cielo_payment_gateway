@@ -202,3 +202,9 @@ msgstr "Pagamentos parcelados"
 
 msgid "Enables installment payments for amounts greater than 10,00 R$"
 msgstr "Habilita pagamentos parcelados para valores maiores que 10,00 R$"
+
+msgid "Credit card is expired!"
+msgstr "Cartão de crédito está vencido!"
+
+msgid "Debit card is expired!"
+msgstr "Cartão de débito está vencido!"

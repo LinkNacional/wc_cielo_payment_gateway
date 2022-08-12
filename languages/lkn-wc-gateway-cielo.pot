@@ -202,3 +202,9 @@ msgstr ""
 
 msgid "Enables installment payments for amounts greater than 10,00 R$"
 msgstr ""
+
+msgid "Credit card is expired!"
+msgstr ""
+
+msgid "Debit card is expired!"
+msgstr ""

@@ -232,11 +232,11 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
     
             <div class="form-row form-row-wide">
                 <label><?php _e('Card Number', 'lkn-wc-gateway-cielo'); ?> <span class="required">*</span></label>
-                <input id="lkn_ccno" name="lkn_ccno" type="tel" inputmode="numeric" class="masked" pattern="[0-9\s]{13,19}" autocomplete="cc-number" maxlength="19" placeholder="XXXX XXXX XXXX XXXX" data-valid-example="4444 4444 4444 4444" required>
+                <input id="lkn_ccno" name="lkn_ccno" type="tel" inputmode="numeric" class="masked" pattern="[0-9\s]{13,19}" autocomplete="cc-number" maxlength="24" placeholder="XXXX XXXX XXXX XXXX" data-valid-example="4444 4444 4444 4444" required>
             </div>
             <div class="form-row form-row-first">
                 <label><?php _e('Expiry Date', 'lkn-wc-gateway-cielo'); ?> <span class="required">*</span></label>
-                <input id="lkn_cc_expdate" name="lkn_cc_expdate" type="tel" placeholder="MM/YY" class="masked" pattern="(1[0-2]|0[1-9])\/(\d[\d])" autocomplete="cc-expdate" data-valid-example="05/28" required>
+                <input id="lkn_cc_expdate" name="lkn_cc_expdate" type="tel" placeholder="MM/YY" class="masked" pattern="(1[0-2]|0[1-9])\/(\d[\d])" maxlength="5" autocomplete="cc-expdate" data-valid-example="05/28" required>
             </div>
             <div class="form-row form-row-last">
                 <label><?php _e('Card Code', 'lkn-wc-gateway-cielo'); ?> <span class="required">*</span></label>
@@ -294,10 +294,17 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
             return false;
         } elseif (!empty($_POST['lkn_cc_expdate'])) {
             $expDateSplit = explode('/', sanitize_text_field($_POST['lkn_cc_expdate']));
-            $expDate = new DateTime('20' . $expDateSplit[1] . '-' . $expDateSplit[0] . '-01');
-            $today = new DateTime();
 
-            if ($today > $expDate) {
+            try {
+                $expDate = new DateTime('20' . $expDateSplit[1] . '-' . $expDateSplit[0] . '-01');
+                $today = new DateTime();
+
+                if ($today > $expDate) {
+                    wc_add_notice(__('Credit card is expired!', 'lkn-wc-gateway-cielo'), 'error');
+
+                    return false;
+                }
+            } catch (Exception $e) {
                 wc_add_notice(__('Expiration date is invalid!', 'lkn-wc-gateway-cielo'), 'error');
 
                 return false;
