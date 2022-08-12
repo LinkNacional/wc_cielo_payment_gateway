@@ -301,13 +301,11 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
      * @return void
      */
     public function payment_fields() {
-        $total_cart = 0;
+        $total_cart = number_format($this->get_order_total(), 2, '', '');
         $accessToken = $this->generate_debit_auth_token();
         $url = get_page_link();
 
-        if (!isset($_GET['pay_for_order'])) {
-            $total_cart = number_format($this->get_order_total(), 2, '', '');
-        } else {
+        if (isset($_GET['pay_for_order'])) {
             $order_id = wc_get_order_id_by_order_key(sanitize_text_field($_GET['key']));
             $order = wc_get_order($order_id);
             $total_cart = number_format($order->get_total(), 2, '', '');

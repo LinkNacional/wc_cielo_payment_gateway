@@ -213,12 +213,11 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
      */
     public function payment_fields() {
         $activeInstallment = $this->get_option('installment_payment');
-        $total_cart = 0;
+        $total_cart = number_format($this->get_order_total(), 2, '.', '');
+        $noLoginCheckout = isset($_GET['pay_for_order']) ? sanitize_text_field($_GET['pay_for_order']) : 'false';
 
         if ($activeInstallment === 'yes') {
-            if (!isset($_GET['pay_for_order'])) {
-                $total_cart = number_format($this->get_order_total(), 2, '.', '');
-            } else {
+            if (isset($_GET['pay_for_order'])) {
                 $order_id = wc_get_order_id_by_order_key(sanitize_text_field($_GET['key']));
                 $order = wc_get_order($order_id);
                 $total_cart = number_format($order->get_total(), 2, '.', '');
@@ -247,6 +246,7 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
             if ($activeInstallment === 'yes') {
                 ?>
                 <input id="lkn_cc_installment_total" type="hidden" value="<?php esc_attr_e($total_cart); ?>">
+                <input id="lkn_cc_no_login_checkout" type="hidden" value="<?php esc_attr_e($noLoginCheckout); ?>">
 
                 <div class="form-row form-row-wide">
                     <label><?php _e('Installments', 'lkn-wc-gateway-cielo'); ?> </label>
