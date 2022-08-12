@@ -49,7 +49,9 @@ Nota: As credenciais para ambientes de produção e teste são diferentes, ao al
 
 ### 1.1.0
 * Implementação de parcelamento;
-* Atualização de documentação.
+* Atualização de documentação;
+* Correção de bug de validação de data de expiração;
+* Correção de bug de inicialização de 3DS.
 
 ### 1.0.0
 * Lançamento de plugin.

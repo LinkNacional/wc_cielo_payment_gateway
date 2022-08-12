@@ -74,7 +74,9 @@ Payment Gateway for Cielo API on WooCommerce plugin is dependent on WooCommerce 
 
 = 1.1.0 =
 * Installments implementation;
-* Documentation update.
+* Documentation update;
+* Fixed validation error for expiration date input;
+* Fixed 3DS initialization.
 
 = 1.0.0 =
 * Plugin launch.
