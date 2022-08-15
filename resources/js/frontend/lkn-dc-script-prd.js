@@ -2,16 +2,20 @@
 const { __, _x, _n, sprintf } = wp.i18n;
 
 let lkn_proccess_button = function () {
-    let cardNumber = document.getElementById('lkn_dcno').value.replace(/\D/g, '');
-    let expDate = document.getElementById('lkn_dc_expdate').value;
+    try {
+        let cardNumber = document.getElementById('lkn_dcno').value.replace(/\D/g, '');
+        let expDate = document.getElementById('lkn_dc_expdate').value;
 
-    expDate = expDate.split('/');
+        expDate = expDate.split('/');
 
-    document.getElementById('lkn_bpmpi_cardnumber').value = cardNumber;
-    document.getElementById('lkn_bpmpi_expmonth').value = expDate[0].replace(/\D/g, '');
-    document.getElementById('lkn_bpmpi_expyear').value = expDate[1].replace(/\D/g, '');
+        document.getElementById('lkn_bpmpi_cardnumber').value = cardNumber;
+        document.getElementById('lkn_bpmpi_expmonth').value = expDate[0].replace(/\D/g, '');
+        document.getElementById('lkn_bpmpi_expyear').value = expDate[1].replace(/\D/g, '');
 
-    bpmpi_authenticate();
+        bpmpi_authenticate();
+    } catch (error) {
+        alert(__('Authentication failed check the card information and try again', 'lkn-wc-gateway-cielo'));
+    }
 };
 
 let lkn_load_debit_functions = function () {
@@ -33,6 +37,8 @@ let lkn_verify_gateway = function () {
 };
 
 document.addEventListener('DOMContentLoaded', function () {
+    lkn_load_debit_functions();
+
     let debitPaymethod = document.getElementById('payment_method_lkn_cielo_debit');
     let paymentBox = document.getElementById('payment');
 
@@ -41,6 +47,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
     paymentBox.removeEventListener('click', lkn_verify_gateway, true);
     paymentBox.addEventListener('click', lkn_verify_gateway, true);
+
+    jQuery('body').on('updated_checkout', function () {
+        lkn_load_debit_functions();
+
+        let debitPaymethod = document.getElementById('payment_method_lkn_cielo_debit');
+        let paymentBox = document.getElementById('payment');
+
+        debitPaymethod.removeEventListener('click', lkn_load_debit_functions, true);
+        debitPaymethod.addEventListener('click', lkn_load_debit_functions, true);
+
+        paymentBox.removeEventListener('click', lkn_verify_gateway, true);
+        paymentBox.addEventListener('click', lkn_verify_gateway, true);
+    });
 });
 
 function bpmpi_config() {

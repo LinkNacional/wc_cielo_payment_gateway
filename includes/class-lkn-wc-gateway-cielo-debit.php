@@ -138,7 +138,7 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
                 'title'   => __('Enable/Disable', 'lkn-wc-gateway-cielo'),
                 'type'    => 'checkbox',
                 'label'   => __('Enable Debit Card Payments', 'lkn-wc-gateway-cielo'),
-                'default' => 'yes',
+                'default' => 'no',
             ],
             'title' => [
                 'title'       => __('Title', 'lkn-wc-gateway-cielo'),
@@ -301,13 +301,11 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
      * @return void
      */
     public function payment_fields() {
-        $total_cart = 0;
+        $total_cart = number_format($this->get_order_total(), 2, '', '');
         $accessToken = $this->generate_debit_auth_token();
         $url = get_page_link();
 
-        if (!isset($_GET['pay_for_order'])) {
-            $total_cart = number_format($this->get_order_total(), 2, '', '');
-        } else {
+        if (isset($_GET['pay_for_order'])) {
             $order_id = wc_get_order_id_by_order_key(sanitize_text_field($_GET['key']));
             $order = wc_get_order($order_id);
             $total_cart = number_format($order->get_total(), 2, '', '');
@@ -344,7 +342,7 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
             </div>
             <div class="form-row form-row-first">
                 <label><?php _e('Expiry Date', 'lkn-wc-gateway-cielo'); ?> <span class="required">*</span></label>
-                <input id="lkn_dc_expdate" name="lkn_dc_expdate" type="tel" placeholder="MM/YY" class="masked" pattern="(1[0-2]|0[1-9])\/(\d[\d])" autocomplete="cc-expdate" data-valid-example="05/28" required>
+                <input id="lkn_dc_expdate" name="lkn_dc_expdate" type="tel" placeholder="MM/YY" class="masked" pattern="(1[0-2]|0[1-9])\/(\d[\d])" autocomplete="cc-expdate" data-valid-example="05/28" maxlength="5" required>
             </div>
             <div class="form-row form-row-last">
                 <label><?php _e('Card Code', 'lkn-wc-gateway-cielo'); ?> <span class="required">*</span></label>
@@ -388,10 +386,17 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
             return false;
         } elseif (!empty($_POST['lkn_dc_expdate'])) {
             $expDateSplit = explode('/', sanitize_text_field($_POST['lkn_dc_expdate']));
-            $expDate = new DateTime('20' . $expDateSplit[1] . '-' . $expDateSplit[0] . '-01');
-            $today = new DateTime();
 
-            if ($today > $expDate) {
+            try {
+                $expDate = new DateTime('20' . $expDateSplit[1] . '-' . $expDateSplit[0] . '-01');
+                $today = new DateTime();
+
+                if ($today > $expDate) {
+                    wc_add_notice(__('Debit card is expired!', 'lkn-wc-gateway-cielo'), 'error');
+
+                    return false;
+                }
+            } catch (Exception $e) {
                 wc_add_notice(__('Expiration date is invalid!', 'lkn-wc-gateway-cielo'), 'error');
 
                 return false;

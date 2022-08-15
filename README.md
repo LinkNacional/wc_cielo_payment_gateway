@@ -1,37 +1,57 @@
-# Payment Gateway for Cielo API on WooCommerce
+# Forma de pagamento Cielo API 3.0 para WooCommerce
 
-Payment Gateway for Cielo API on WooCommerce, credit and debit card.
+Forma de pagamento Cielo API 3.0 para WooCommerce, cartão de crédito e débito.
 
-## Installation method
+## Perguntas frequentes
 
-1) Look in the sidebar for the WordPress plugins area;
+- O plugin é gratuito?
+Sim, [clique aqui](https://wordpress.org/plugins/lkn-wc-gateway-cielo/) para ir para página de download oficial.
 
-2) In installed plugins look for the option 'add new';
+- Do que preciso para usar este plugin?
+* Precisa ter instalado o plugin WooCommerce;
+* É necessário ter credenciais Cielo API 3.0 para utilizar o plugin.
 
-3) Click on the 'send plugin' option in the page title and upload the lkn-wc-gateway-cielo.zip plugin;
+## Método de instalação
 
-4) Click on the 'install now' button and then activate the installed plugin;
+1) Procure na barra lateral a área de plugins do WordPress;
 
-5) Now go to WooCommerce settings menu;
+2) Nos plugins instalados procure a opção 'adicionar novo';
 
-6) Select the 'Payments' option and search for 'Cielo credit card / Cielo debit card';
+3) Clique na opção 'enviar plugin' no título da página e faça o upload do plugin lkn-wc-gateway-cielo.zip;
 
-7) Enter all necessary credentials for each payment gateway;
+4) Clique no botão 'instalar agora' e então ative o plugin instalado;
 
-8) Click on save.
+5) Agora vá para o menu de configurações do WooCommerce;
 
-## Test environment settings
+6) Selecione a opção 'Pagamentos' e procure por 'Cartão de crédito Cielo / Cartão de débito Cielo';
 
-1) First access WooCommerce settings;
+7) Insira todas as credenciais necessárias para cada gateway de pagamento;
 
-2) Search for and click on 'Payments';
+8) Clique em salvar.
 
-3) Within this option, look for the plugin title 'Cielo credit card / Cielo debit card' and click on it;
+## Configurações de ambiente de testes
 
-4) Enter all the credentials required by the plugin;
+1) Primeiro acesse as configurações do WooCommerce;
 
-5) To configure the test environment in 'Environment', choose the 'Test' option and enable 'Debugging';
+2) Pesquise e clique em 'Pagamentos';
 
-6) Save the settings.
+3) Dentro desta opção, procure o título do plugin 'Cartão de crédito Cielo / Cartão de débito Cielo' e clique nele;
 
-Note: The credentials for production and test environments are different, when switching between environments remember to change the API credentials.
+4) Insira todas as credenciais exigidas pelo plugin;
+
+5) Para configurar o ambiente de teste em 'Ambiente', escolha a opção 'Teste' e habilite 'Depuração';
+
+6) Salve as configurações.
+
+Nota: As credenciais para ambientes de produção e teste são diferentes, ao alternar entre ambientes lembre-se de alterar as credenciais da API.
+
+## Changelog
+
+### 1.1.0
+* Implementação de parcelamento;
+* Atualização de documentação;
+* Correção de bug de validação de data de expiração;
+* Correção de bug de inicialização de 3DS.
+
+### 1.0.0
+* Lançamento de plugin.
