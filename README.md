@@ -47,6 +47,12 @@ Nota: As credenciais para ambientes de produção e teste são diferentes, ao al
 
 ## Changelog
 
+### 1.2.0
+* Implementado filtro de BIN;
+* Corrigido bugs de inputs na página de finalizar pagamento;
+* Carregamento de scripts otimizado;
+* Corrigido bug de pagamento de cartão de débito na página de finalizar pagamento.
+
 ### 1.1.0
 * Implementação de parcelamento;
 * Atualização de documentação;
