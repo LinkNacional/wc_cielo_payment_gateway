@@ -93,8 +93,7 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
     public function payment_gateway_scripts() {
         // Don't load scripts outside payment page
         if (
-            !is_product()
-            && !(is_cart() || is_checkout())
+            !(is_checkout())
             && !isset($_GET['pay_for_order']) // wpcs: csrf ok.
             && !is_add_payment_method_page()
             && !isset($_GET['change_payment_method']) // wpcs: csrf ok.
