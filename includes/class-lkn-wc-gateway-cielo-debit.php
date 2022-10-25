@@ -389,7 +389,7 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
             $expDateSplit = explode('/', sanitize_text_field($_POST['lkn_dc_expdate']));
 
             try {
-                $expDate = new DateTime('20' . $expDateSplit[1] . '-' . $expDateSplit[0] . '-01');
+                $expDate = new DateTime('20' . trim($expDateSplit[1]) . '-' . trim($expDateSplit[0]) . '-01');
                 $today = new DateTime();
 
                 if ($today > $expDate) {

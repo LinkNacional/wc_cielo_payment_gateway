@@ -102,7 +102,7 @@ window.addEventListener('DOMContentLoaded', function () {
             });
 
             var formattedExpDateCc = new Formatter(document.getElementById('lkn_cc_expdate'), {
-                'pattern': '{{99}} / {{9999}}'
+                'pattern': '{{99}} / {{99}}'
             });
 
             var formattedCvvCc = new Formatter(document.getElementById('lkn_cc_cvc'), {
