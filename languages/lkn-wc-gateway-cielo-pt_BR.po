@@ -208,3 +208,9 @@ msgstr "Cartão de crédito está vencido!"
 
 msgid "Debit card is expired!"
 msgstr "Cartão de débito está vencido!"
+
+msgid "Online card validation"
+msgstr "Validação de cartão online"
+
+msgid "Enable online bin validation through Cielo API 3.0 (Needs to activate Cielo BIN functionality)."
+msgstr "Habilita validação online BIN via Cielo API 3.0 (Necessita habilitar funcionalidade BIN da Cielo)."

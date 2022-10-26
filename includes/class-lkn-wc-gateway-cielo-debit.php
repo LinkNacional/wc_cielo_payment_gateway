@@ -237,6 +237,12 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
                 'description' => __('License for Cielo API Pro plugin extensions.', 'lkn-wc-gateway-cielo'),
                 'desc_tip'    => true,
             ];
+            $this->form_fields['brand_validation'] = [
+                'title'       => __('Online card validation', 'lkn-wc-gateway-cielo'),
+                'type'        => 'checkbox',
+                'description' => __('Enable online bin validation through Cielo API 3.0 (Needs to activate Cielo BIN functionality).', 'lkn-wc-gateway-cielo'),
+                'default'    => 'no',
+            ];
         }
     }
 

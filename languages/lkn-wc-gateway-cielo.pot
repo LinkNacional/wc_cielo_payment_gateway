@@ -208,3 +208,9 @@ msgstr ""
 
 msgid "Debit card is expired!"
 msgstr ""
+
+msgid "Online card validation"
+msgstr ""
+
+msgid "Enable online bin validation through Cielo API 3.0 (Needs to activate Cielo BIN functionality)."
+msgstr ""
