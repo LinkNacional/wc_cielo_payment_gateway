@@ -1,12 +1,13 @@
 //  Declaritive initalization
 window.addEventListener('DOMContentLoaded', function () {
-    let noLoginCheckout = document.getElementById('lkn_cc_no_login_checkout').value;
+    // Verify if is checkout page or cart page
+    let noLoginCheckout = document.getElementById('lkn_cc_no_login_checkout');
 
-    if (noLoginCheckout === 'true') {
+    if (noLoginCheckout && noLoginCheckout.value === 'true') {
         let lknInstallmentSelect = document.getElementById('lkn_cc_installments');
         let lknTotal = document.getElementById('lkn_cc_installment_total');
 
-        // Remove installment options
+        // Remove installment options and repopulate installments
         if (lknInstallmentSelect) {
             let amount = lknTotal.value;
             for (let c = 1; c < lknInstallmentSelect.childNodes.length; c + 2) {
@@ -30,7 +31,7 @@ window.addEventListener('DOMContentLoaded', function () {
             let lknInstallmentSelect = document.getElementById('lkn_cc_installments');
             let lknTotal = document.getElementById('lkn_cc_installment_total');
 
-            // Remove installment options
+            // Remove installment options and repopulate installments
             if (lknInstallmentSelect) {
                 let amount = lknTotal.value;
                 for (let c = 1; c < lknInstallmentSelect.childNodes.length; c + 2) {

@@ -81,8 +81,17 @@ function bpmpi_config() {
             document.getElementById('lkn_version').value = version;
             document.getElementById('lkn_xid').value = xid;
 
-            var formWC = document.getElementById('order_review');
-            formWC.submit();
+            var formCheckoutWC = document.getElementById('order_review');
+            var formCartWC = document.getElementsByName('checkout')[0];
+
+            if (formCartWC) {
+                var btnSubmit = document.getElementById('place_order');
+                btnSubmit.removeEventListener('click', lkn_proccess_button, true);
+                btnSubmit.setAttribute('type', 'submit');
+                btnSubmit.click();
+            } else {
+                formCheckoutWC.submit();
+            }
         },
         onFailure: function (e) {
             // Card is not eligible for authentication, but the bearer failed payment
