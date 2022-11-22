@@ -6,18 +6,42 @@ window.addEventListener('DOMContentLoaded', function () {
     if (noLoginCheckout && noLoginCheckout.value === 'true') {
         let lknInstallmentSelect = document.getElementById('lkn_cc_installments');
         let lknTotal = document.getElementById('lkn_cc_installment_total');
+        let lknInstallmentLimit = document.getElementById('lkn_cc_installment_limit');
+        let lknInstallmentInterest = document.getElementById('lkn_cc_installment_interest');
+
+        if (lknInstallmentLimit) {
+            lknInstallmentLimit = lknInstallmentLimit.value;
+        }
+
+        if (lknInstallmentInterest) {
+            lknInstallmentInterest = JSON.parse(lknInstallmentInterest.value);
+        }
 
         // Remove installment options and repopulate installments
         if (lknInstallmentSelect) {
-            let amount = lknTotal.value;
+            let amount = parseFloat(lknTotal.value);
             for (let c = 1; c < lknInstallmentSelect.childNodes.length; c + 2) {
                 let childNode = lknInstallmentSelect.childNodes[c];
                 lknInstallmentSelect.removeChild(childNode);
             }
-            for (let i = 1; i < 13; i++) {
-                let installment = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(amount / i);
+
+            for (let i = 1; i <= lknInstallmentLimit; i++) {
+                let installment = amount / i;
+                let formatedInstallment = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(installment);
                 let option = document.createElement('option');
-                let text = document.createTextNode(i + 'x ' + installment + ' sem juros');
+                let text = document.createTextNode(i + 'x ' + formatedInstallment + ' sem juros');
+
+                for (let t = 0; t < lknInstallmentInterest.length; t++) {
+                    const installmentObj = lknInstallmentInterest[t];
+                    // Verify if it is the right installment
+                    if (installmentObj.id === i) {
+                        let interest = (amount + (amount * (installmentObj.interest / 100))) / i; // installment + (installment * (installmentObj.interest / 100));
+                        let formatedInterest = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(interest);
+
+                        text = document.createTextNode(i + 'x ' + formatedInterest);
+                    }
+                }
+
                 option.value = i;
                 option.appendChild(text);
                 lknInstallmentSelect.appendChild(option);
@@ -30,18 +54,42 @@ window.addEventListener('DOMContentLoaded', function () {
         jQuery('body').on('updated_checkout', function () {
             let lknInstallmentSelect = document.getElementById('lkn_cc_installments');
             let lknTotal = document.getElementById('lkn_cc_installment_total');
+            let lknInstallmentLimit = document.getElementById('lkn_cc_installment_limit');
+            let lknInstallmentInterest = document.getElementById('lkn_cc_installment_interest');
+
+            if (lknInstallmentLimit) {
+                lknInstallmentLimit = lknInstallmentLimit.value;
+            }
+
+            if (lknInstallmentInterest) {
+                lknInstallmentInterest = JSON.parse(lknInstallmentInterest.value);
+            }
 
             // Remove installment options and repopulate installments
             if (lknInstallmentSelect) {
-                let amount = lknTotal.value;
+                let amount = parseFloat(lknTotal.value);
                 for (let c = 1; c < lknInstallmentSelect.childNodes.length; c + 2) {
                     let childNode = lknInstallmentSelect.childNodes[c];
                     lknInstallmentSelect.removeChild(childNode);
                 }
-                for (let i = 1; i < 13; i++) {
-                    let installment = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(amount / i);
+
+                for (let i = 1; i <= lknInstallmentLimit; i++) {
+                    let installment = amount / i;
+                    let formatedInstallment = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(installment);
                     let option = document.createElement('option');
-                    let text = document.createTextNode(i + 'x ' + installment + ' sem juros');
+                    let text = document.createTextNode(i + 'x ' + formatedInstallment + ' sem juros');
+
+                    for (let t = 0; t < lknInstallmentInterest.length; t++) {
+                        const installmentObj = lknInstallmentInterest[t];
+                        // Verify if it is the right installment
+                        if (installmentObj.id === i) {
+                            let interest = (amount + (amount * (installmentObj.interest / 100))) / i; // installment + (installment * (installmentObj.interest / 100));
+                            let formatedInterest = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(interest);
+
+                            text = document.createTextNode(i + 'x ' + formatedInterest);
+                        }
+                    }
+
                     option.value = i;
                     option.appendChild(text);
                     lknInstallmentSelect.appendChild(option);
