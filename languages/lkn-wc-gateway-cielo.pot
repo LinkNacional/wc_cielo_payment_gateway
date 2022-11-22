@@ -214,3 +214,18 @@ msgstr ""
 
 msgid "Enable online bin validation through Cielo API 3.0 (Needs to activate Cielo BIN functionality)."
 msgstr ""
+
+msgid "This option sets the interest on installment as percentage. Accepts only numbers."
+msgstr ""
+
+msgid "Define a maximum installment quantity."
+msgstr ""
+
+msgid "Enable payment with interest on installments. Save to continue configuration."
+msgstr ""
+
+msgid "Installment interest"
+msgstr ""
+
+msgid "Define installment limit"
+msgstr ""

@@ -214,3 +214,18 @@ msgstr "Validação de cartão online"
 
 msgid "Enable online bin validation through Cielo API 3.0 (Needs to activate Cielo BIN functionality)."
 msgstr "Habilita validação online BIN via Cielo API 3.0 (Necessita habilitar funcionalidade BIN da Cielo)."
+
+msgid "This option sets the interest on installment as percentage. Accepts only numbers."
+msgstr "Esta opção define os juros da parcela em percentual. Aceita apenas números."
+
+msgid "Define a maximum installment quantity."
+msgstr "Define uma quantidade máxima de parcelas."
+
+msgid "Enable payment with interest on installments. Save to continue configuration."
+msgstr "Possibilita o pagamento com juros nas parcelas. Salve para continuar a configuração."
+
+msgid "Installment interest"
+msgstr "Juros do parcelamento"
+
+msgid "Define installment limit"
+msgstr "Define um limite de parcelas"
