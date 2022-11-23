@@ -319,6 +319,7 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
                 </div>
                 <?php
             } ?>
+            <div id="lkn-cc-notice"></div>
             <div class="clear"></div>
     
             <?php do_action('woocommerce_credit_card_form_end', $this->id); ?>
