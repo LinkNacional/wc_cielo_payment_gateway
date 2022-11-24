@@ -1,844 +1,604 @@
-/*!
- * v0.1.8
- * Copyright (c) 2014 First Opinion
- * formatter.js is open sourced under the MIT license.
+/**
+ * jquery.mask.js
+ * @version: v1.14.16
+ * @author: Igor Escobar
  *
- * thanks to digitalBush/jquery.maskedinput for some of the trickier
- * keycode handling
+ * Created by Igor Escobar on 2012-03-10. Please report any bug at github.com/igorescobar/jQuery-Mask-Plugin
+ *
+ * Copyright (c) 2012 Igor Escobar http://igorescobar.com
+ *
+ * The MIT License (http://www.opensource.org/licenses/mit-license.php)
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-//
-// Uses Node, AMD or browser globals to create a module. This example creates
-// a global even when AMD is used. This is useful if you have some scripts
-// that are loaded by an AMD loader, but they still want access to globals.
-// If you do not need to export a global for the AMD case,
-// see returnExports.js.
-//
-// If you want something that will work in other stricter CommonJS environments,
-// or if you need to create a circular dependency, see commonJsStrictGlobal.js
-//
-// Defines a module "returnExportsGlobal" that depends another module called
-// "b". Note that the name of the module is implied by the file name. It is
-// best if the file name and the exported global have matching names.
-//
-// If the 'b' module also uses this type of boilerplate, then
-// in the browser, it will create a global .b that is used below.
-//
-(function (root, factory) {
+/* jshint laxbreak: true */
+/* jshint maxcomplexity:17 */
+/* global define */
+
+// UMD (Universal Module Definition) patterns for JavaScript modules that work everywhere.
+// https://github.com/umdjs/umd/blob/master/templates/jqueryPlugin.js
+(function (factory, jQuery, Zepto) {
+
     if (typeof define === 'function' && define.amd) {
-        // AMD. Register as an anonymous module.
-        define([], function () {
-            return (root.returnExportsGlobal = factory());
-        });
-    } else if (typeof exports === 'object') {
-        // Node. Does not work with strict CommonJS, but
-        // only CommonJS-like enviroments that support module.exports,
-        // like Node.
-        module.exports = factory();
+        define(['jquery'], factory);
+    } else if (typeof exports === 'object' && typeof Meteor === 'undefined') {
+        module.exports = factory(require('jquery'));
     } else {
-        root['Formatter'] = factory();
+        factory(jQuery || Zepto);
     }
-}(this, function () {
 
+}(function ($) {
+    'use strict';
 
-    /*
-     * pattern.js
-     *
-     * Utilities to parse str pattern and return info
-     *
-     */
-    var pattern = function () {
-        // Define module
-        var pattern = {};
-        // Match information
-        var DELIM_SIZE = 4;
-        // Our regex used to parse
-        var regexp = new RegExp('{{([^}]+)}}', 'g');
-        //
-        // Helper method to parse pattern str
-        //
-        var getMatches = function (pattern) {
-            // Populate array of matches
-            var matches = [], match;
-            while (match = regexp.exec(pattern)) {
-                matches.push(match);
-            }
-            return matches;
-        };
-        //
-        // Create an object holding all formatted characters
-        // with corresponding positions
-        //
-        pattern.parse = function (pattern) {
-            // Our obj to populate
-            var info = {
-                inpts: {},
-                chars: {}
-            };
-            // Pattern information
-            var matches = getMatches(pattern), pLength = pattern.length;
-            // Counters
-            var mCount = 0, iCount = 0, i = 0;
-            // Add inpts, move to end of match, and process
-            var processMatch = function (val) {
-                var valLength = val.length;
-                for (var j = 0; j < valLength; j++) {
-                    info.inpts[iCount] = val.charAt(j);
-                    iCount++;
+    var Mask = function (el, mask, options) {
+
+        var p = {
+            invalid: [],
+            getCaret: function () {
+                try {
+                    var sel,
+                        pos = 0,
+                        ctrl = el.get(0),
+                        dSel = document.selection,
+                        cSelStart = ctrl.selectionStart;
+
+                    // IE Support
+                    if (dSel && navigator.appVersion.indexOf('MSIE 10') === -1) {
+                        sel = dSel.createRange();
+                        sel.moveStart('character', -p.val().length);
+                        pos = sel.text.length;
+                    }
+                    // Firefox support
+                    else if (cSelStart || cSelStart === '0') {
+                        pos = cSelStart;
+                    }
+
+                    return pos;
+                } catch (e) { }
+            },
+            setCaret: function (pos) {
+                try {
+                    if (el.is(':focus')) {
+                        var range, ctrl = el.get(0);
+
+                        // Firefox, WebKit, etc..
+                        if (ctrl.setSelectionRange) {
+                            ctrl.setSelectionRange(pos, pos);
+                        } else { // IE
+                            range = ctrl.createTextRange();
+                            range.collapse(true);
+                            range.moveEnd('character', pos);
+                            range.moveStart('character', pos);
+                            range.select();
+                        }
+                    }
+                } catch (e) { }
+            },
+            events: function () {
+                el
+                    .on('keydown.mask', function (e) {
+                        el.data('mask-keycode', e.keyCode || e.which);
+                        el.data('mask-previus-value', el.val());
+                        el.data('mask-previus-caret-pos', p.getCaret());
+                        p.maskDigitPosMapOld = p.maskDigitPosMap;
+                    })
+                    .on($.jMaskGlobals.useInput ? 'input.mask' : 'keyup.mask', p.behaviour)
+                    .on('paste.mask drop.mask', function () {
+                        setTimeout(function () {
+                            el.keydown().keyup();
+                        }, 100);
+                    })
+                    .on('change.mask', function () {
+                        el.data('changed', true);
+                    })
+                    .on('blur.mask', function () {
+                        if (oldValue !== p.val() && !el.data('changed')) {
+                            el.trigger('change');
+                        }
+                        el.data('changed', false);
+                    })
+                    // it's very important that this callback remains in this position
+                    // otherwhise oldValue it's going to work buggy
+                    .on('blur.mask', function () {
+                        oldValue = p.val();
+                    })
+                    // select all text on focus
+                    .on('focus.mask', function (e) {
+                        if (options.selectOnFocus === true) {
+                            $(e.target).select();
+                        }
+                    })
+                    // clear the value if it not complete the mask
+                    .on('focusout.mask', function () {
+                        if (options.clearIfNotMatch && !regexMask.test(p.val())) {
+                            p.val('');
+                        }
+                    });
+            },
+            getRegexMask: function () {
+                var maskChunks = [], translation, pattern, optional, recursive, oRecursive, r;
+
+                for (var i = 0; i < mask.length; i++) {
+                    translation = jMask.translation[mask.charAt(i)];
+
+                    if (translation) {
+
+                        pattern = translation.pattern.toString().replace(/.{1}$|^.{1}/g, '');
+                        optional = translation.optional;
+                        recursive = translation.recursive;
+
+                        if (recursive) {
+                            maskChunks.push(mask.charAt(i));
+                            oRecursive = { digit: mask.charAt(i), pattern: pattern };
+                        } else {
+                            maskChunks.push(!optional && !recursive ? pattern : (pattern + '?'));
+                        }
+
+                    } else {
+                        maskChunks.push(mask.charAt(i).replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'));
+                    }
                 }
-                mCount++;
-                i += val.length + DELIM_SIZE - 1;
-            };
-            // Process match or add chars
-            for (i; i < pLength; i++) {
-                if (mCount < matches.length && i === matches[mCount].index) {
-                    processMatch(matches[mCount][1]);
+
+                r = maskChunks.join('');
+
+                if (oRecursive) {
+                    r = r.replace(new RegExp('(' + oRecursive.digit + '(.*' + oRecursive.digit + ')?)'), '($1)?')
+                        .replace(new RegExp(oRecursive.digit, 'g'), oRecursive.pattern);
+                }
+
+                return new RegExp(r);
+            },
+            destroyEvents: function () {
+                el.off(['input', 'keydown', 'keyup', 'paste', 'drop', 'blur', 'focusout', ''].join('.mask '));
+            },
+            val: function (v) {
+                var isInput = el.is('input'),
+                    method = isInput ? 'val' : 'text',
+                    r;
+
+                if (arguments.length > 0) {
+                    if (el[method]() !== v) {
+                        el[method](v);
+                    }
+                    r = el;
                 } else {
-                    info.chars[i - mCount * DELIM_SIZE] = pattern.charAt(i);
+                    r = el[method]();
                 }
+
+                return r;
+            },
+            calculateCaretPosition: function (oldVal) {
+                var newVal = p.getMasked(),
+                    caretPosNew = p.getCaret();
+                if (oldVal !== newVal) {
+                    var caretPosOld = el.data('mask-previus-caret-pos') || 0,
+                        newValL = newVal.length,
+                        oldValL = oldVal.length,
+                        maskDigitsBeforeCaret = 0,
+                        maskDigitsAfterCaret = 0,
+                        maskDigitsBeforeCaretAll = 0,
+                        maskDigitsBeforeCaretAllOld = 0,
+                        i = 0;
+
+                    for (i = caretPosNew; i < newValL; i++) {
+                        if (!p.maskDigitPosMap[i]) {
+                            break;
+                        }
+                        maskDigitsAfterCaret++;
+                    }
+
+                    for (i = caretPosNew - 1; i >= 0; i--) {
+                        if (!p.maskDigitPosMap[i]) {
+                            break;
+                        }
+                        maskDigitsBeforeCaret++;
+                    }
+
+                    for (i = caretPosNew - 1; i >= 0; i--) {
+                        if (p.maskDigitPosMap[i]) {
+                            maskDigitsBeforeCaretAll++;
+                        }
+                    }
+
+                    for (i = caretPosOld - 1; i >= 0; i--) {
+                        if (p.maskDigitPosMapOld[i]) {
+                            maskDigitsBeforeCaretAllOld++;
+                        }
+                    }
+
+                    // if the cursor is at the end keep it there
+                    if (caretPosNew > oldValL) {
+                        caretPosNew = newValL * 10;
+                    } else if (caretPosOld >= caretPosNew && caretPosOld !== oldValL) {
+                        if (!p.maskDigitPosMapOld[caretPosNew]) {
+                            var caretPos = caretPosNew;
+                            caretPosNew -= maskDigitsBeforeCaretAllOld - maskDigitsBeforeCaretAll;
+                            caretPosNew -= maskDigitsBeforeCaret;
+                            if (p.maskDigitPosMap[caretPosNew]) {
+                                caretPosNew = caretPos;
+                            }
+                        }
+                    }
+                    else if (caretPosNew > caretPosOld) {
+                        caretPosNew += maskDigitsBeforeCaretAll - maskDigitsBeforeCaretAllOld;
+                        caretPosNew += maskDigitsAfterCaret;
+                    }
+                }
+                return caretPosNew;
+            },
+            behaviour: function (e) {
+                e = e || window.event;
+                p.invalid = [];
+
+                var keyCode = el.data('mask-keycode');
+
+                if ($.inArray(keyCode, jMask.byPassKeys) === -1) {
+                    var newVal = p.getMasked(),
+                        caretPos = p.getCaret(),
+                        oldVal = el.data('mask-previus-value') || '';
+
+                    // this is a compensation to devices/browsers that don't compensate
+                    // caret positioning the right way
+                    setTimeout(function () {
+                        p.setCaret(p.calculateCaretPosition(oldVal));
+                    }, $.jMaskGlobals.keyStrokeCompensation);
+
+                    p.val(newVal);
+                    p.setCaret(caretPos);
+                    return p.callbacks(e);
+                }
+            },
+            getMasked: function (skipMaskChars, val) {
+                var buf = [],
+                    value = val === undefined ? p.val() : val + '',
+                    m = 0, maskLen = mask.length,
+                    v = 0, valLen = value.length,
+                    offset = 1, addMethod = 'push',
+                    resetPos = -1,
+                    maskDigitCount = 0,
+                    maskDigitPosArr = [],
+                    lastMaskChar,
+                    check;
+
+                if (options.reverse) {
+                    addMethod = 'unshift';
+                    offset = -1;
+                    lastMaskChar = 0;
+                    m = maskLen - 1;
+                    v = valLen - 1;
+                    check = function () {
+                        return m > -1 && v > -1;
+                    };
+                } else {
+                    lastMaskChar = maskLen - 1;
+                    check = function () {
+                        return m < maskLen && v < valLen;
+                    };
+                }
+
+                var lastUntranslatedMaskChar;
+                while (check()) {
+                    var maskDigit = mask.charAt(m),
+                        valDigit = value.charAt(v),
+                        translation = jMask.translation[maskDigit];
+
+                    if (translation) {
+                        if (valDigit.match(translation.pattern)) {
+                            buf[addMethod](valDigit);
+                            if (translation.recursive) {
+                                if (resetPos === -1) {
+                                    resetPos = m;
+                                } else if (m === lastMaskChar && m !== resetPos) {
+                                    m = resetPos - offset;
+                                }
+
+                                if (lastMaskChar === resetPos) {
+                                    m -= offset;
+                                }
+                            }
+                            m += offset;
+                        } else if (valDigit === lastUntranslatedMaskChar) {
+                            // matched the last untranslated (raw) mask character that we encountered
+                            // likely an insert offset the mask character from the last entry; fall
+                            // through and only increment v
+                            maskDigitCount--;
+                            lastUntranslatedMaskChar = undefined;
+                        } else if (translation.optional) {
+                            m += offset;
+                            v -= offset;
+                        } else if (translation.fallback) {
+                            buf[addMethod](translation.fallback);
+                            m += offset;
+                            v -= offset;
+                        } else {
+                            p.invalid.push({ p: v, v: valDigit, e: translation.pattern });
+                        }
+                        v += offset;
+                    } else {
+                        if (!skipMaskChars) {
+                            buf[addMethod](maskDigit);
+                        }
+
+                        if (valDigit === maskDigit) {
+                            maskDigitPosArr.push(v);
+                            v += offset;
+                        } else {
+                            lastUntranslatedMaskChar = maskDigit;
+                            maskDigitPosArr.push(v + maskDigitCount);
+                            maskDigitCount++;
+                        }
+
+                        m += offset;
+                    }
+                }
+
+                var lastMaskCharDigit = mask.charAt(lastMaskChar);
+                if (maskLen === valLen + 1 && !jMask.translation[lastMaskCharDigit]) {
+                    buf.push(lastMaskCharDigit);
+                }
+
+                var newVal = buf.join('');
+                p.mapMaskdigitPositions(newVal, maskDigitPosArr, valLen);
+                return newVal;
+            },
+            mapMaskdigitPositions: function (newVal, maskDigitPosArr, valLen) {
+                var maskDiff = options.reverse ? newVal.length - valLen : 0;
+                p.maskDigitPosMap = {};
+                for (var i = 0; i < maskDigitPosArr.length; i++) {
+                    p.maskDigitPosMap[maskDigitPosArr[i] + maskDiff] = 1;
+                }
+            },
+            callbacks: function (e) {
+                var val = p.val(),
+                    changed = val !== oldValue,
+                    defaultArgs = [val, e, el, options],
+                    callback = function (name, criteria, args) {
+                        if (typeof options[name] === 'function' && criteria) {
+                            options[name].apply(this, args);
+                        }
+                    };
+
+                callback('onChange', changed === true, defaultArgs);
+                callback('onKeyPress', changed === true, defaultArgs);
+                callback('onComplete', val.length === mask.length, defaultArgs);
+                callback('onInvalid', p.invalid.length > 0, [val, e, el, p.invalid, options]);
             }
-            // Set mLength and return
-            info.mLength = i - mCount * DELIM_SIZE;
-            return info;
         };
-        // Expose
-        return pattern;
-    }();
-    /*
-     * utils.js
-     *
-     * Independent helper methods (cross browser, etc..)
-     *
-     */
-    var utils = function () {
-        // Define module
-        var utils = {};
-        // Useragent info for keycode handling
-        var uAgent = typeof navigator !== 'undefined' ? navigator.userAgent : null;
-        //
-        // Shallow copy properties from n objects to destObj
-        //
-        utils.extend = function (destObj) {
-            for (var i = 1; i < arguments.length; i++) {
-                for (var key in arguments[i]) {
-                    destObj[key] = arguments[i][key];
-                }
+
+        el = $(el);
+        var jMask = this, oldValue = p.val(), regexMask;
+
+        mask = typeof mask === 'function' ? mask(p.val(), undefined, el, options) : mask;
+
+        // public methods
+        jMask.mask = mask;
+        jMask.options = options;
+        jMask.remove = function () {
+            var caret = p.getCaret();
+            if (jMask.options.placeholder) {
+                el.removeAttr('placeholder');
             }
-            return destObj;
-        };
-        //
-        // Add a given character to a string at a defined pos
-        //
-        utils.addChars = function (str, chars, pos) {
-            return str.substr(0, pos) + chars + str.substr(pos, str.length);
-        };
-        //
-        // Remove a span of characters
-        //
-        utils.removeChars = function (str, start, end) {
-            return str.substr(0, start) + str.substr(end, str.length);
-        };
-        //
-        // Return true/false is num false between bounds
-        //
-        utils.isBetween = function (num, bounds) {
-            bounds.sort(function (a, b) {
-                return a - b;
-            });
-            return num > bounds[0] && num < bounds[1];
-        };
-        //
-        // Helper method for cross browser event listeners
-        //
-        utils.addListener = function (el, evt, handler) {
-            return typeof el.addEventListener !== 'undefined' ? el.addEventListener(evt, handler, false) : el.attachEvent('on' + evt, handler);
-        };
-        //
-        // Helper method for cross browser implementation of preventDefault
-        //
-        utils.preventDefault = function (evt) {
-            return evt.preventDefault ? evt.preventDefault() : evt.returnValue = false;
-        };
-        //
-        // Helper method for cross browser implementation for grabbing
-        // clipboard data
-        //
-        utils.getClip = function (evt) {
-            if (evt.clipboardData) {
-                return evt.clipboardData.getData('Text');
+            if (el.data('mask-maxlength')) {
+                el.removeAttr('maxlength');
             }
-            if (window.clipboardData) {
-                return window.clipboardData.getData('Text');
-            }
+            p.destroyEvents();
+            p.val(jMask.getCleanVal());
+            p.setCaret(caret);
+            return el;
         };
-        //
-        // Loop over object and checking for matching properties
-        //
-        utils.getMatchingKey = function (which, keyCode, keys) {
-            // Loop over and return if matched.
-            for (var k in keys) {
-                var key = keys[k];
-                if (which === key.which && keyCode === key.keyCode) {
-                    return k;
+
+        // get value without mask
+        jMask.getCleanVal = function () {
+            return p.getMasked(true);
+        };
+
+        // get masked value without the value being in the input or element
+        jMask.getMaskedVal = function (val) {
+            return p.getMasked(false, val);
+        };
+
+        jMask.init = function (onlyMask) {
+            onlyMask = onlyMask || false;
+            options = options || {};
+
+            jMask.clearIfNotMatch = $.jMaskGlobals.clearIfNotMatch;
+            jMask.byPassKeys = $.jMaskGlobals.byPassKeys;
+            jMask.translation = $.extend({}, $.jMaskGlobals.translation, options.translation);
+
+            jMask = $.extend(true, {}, jMask, options);
+
+            regexMask = p.getRegexMask();
+
+            if (onlyMask) {
+                p.events();
+                p.val(p.getMasked());
+            } else {
+                if (options.placeholder) {
+                    el.attr('placeholder', options.placeholder);
                 }
-            }
-        };
-        //
-        // Returns true/false if k is a del keyDown
-        //
-        utils.isDelKeyDown = function (which, keyCode) {
-            var keys = {
-                'backspace': {
-                    'which': 8,
-                    'keyCode': 8
-                },
-                'delete': {
-                    'which': 46,
-                    'keyCode': 46
+
+                // this is necessary, otherwise if the user submit the form
+                // and then press the "back" button, the autocomplete will erase
+                // the data. Works fine on IE9+, FF, Opera, Safari.
+                if (el.data('mask')) {
+                    el.attr('autocomplete', 'off');
                 }
-            };
-            return utils.getMatchingKey(which, keyCode, keys);
-        };
-        //
-        // Returns true/false if k is a del keyPress
-        //
-        utils.isDelKeyPress = function (which, keyCode) {
-            var keys = {
-                'backspace': {
-                    'which': 8,
-                    'keyCode': 8,
-                    'shiftKey': false
-                },
-                'delete': {
-                    'which': 0,
-                    'keyCode': 46
-                }
-            };
-            return utils.getMatchingKey(which, keyCode, keys);
-        };
-        // //
-        // // Determine if keydown relates to specialKey
-        // //
-        // utils.isSpecialKeyDown = function (which, keyCode) {
-        //   var keys = {
-        //     'tab': { 'which': 9, 'keyCode': 9 },
-        //     'enter': { 'which': 13, 'keyCode': 13 },
-        //     'end': { 'which': 35, 'keyCode': 35 },
-        //     'home': { 'which': 36, 'keyCode': 36 },
-        //     'leftarrow': { 'which': 37, 'keyCode': 37 },
-        //     'uparrow': { 'which': 38, 'keyCode': 38 },
-        //     'rightarrow': { 'which': 39, 'keyCode': 39 },
-        //     'downarrow': { 'which': 40, 'keyCode': 40 },
-        //     'F5': { 'which': 116, 'keyCode': 116 }
-        //   };
-        //   return utils.getMatchingKey(which, keyCode, keys);
-        // };
-        //
-        // Determine if keypress relates to specialKey
-        //
-        utils.isSpecialKeyPress = function (which, keyCode) {
-            var keys = {
-                'tab': {
-                    'which': 0,
-                    'keyCode': 9
-                },
-                'enter': {
-                    'which': 13,
-                    'keyCode': 13
-                },
-                'end': {
-                    'which': 0,
-                    'keyCode': 35
-                },
-                'home': {
-                    'which': 0,
-                    'keyCode': 36
-                },
-                'leftarrow': {
-                    'which': 0,
-                    'keyCode': 37
-                },
-                'uparrow': {
-                    'which': 0,
-                    'keyCode': 38
-                },
-                'rightarrow': {
-                    'which': 0,
-                    'keyCode': 39
-                },
-                'downarrow': {
-                    'which': 0,
-                    'keyCode': 40
-                },
-                'F5': {
-                    'which': 116,
-                    'keyCode': 116
-                }
-            };
-            return utils.getMatchingKey(which, keyCode, keys);
-        };
-        //
-        // Returns true/false if modifier key is held down
-        //
-        utils.isModifier = function (evt) {
-            return evt.ctrlKey || evt.altKey || evt.metaKey;
-        };
-        //
-        // Iterates over each property of object or array.
-        //
-        utils.forEach = function (collection, callback, thisArg) {
-            if (collection.hasOwnProperty('length')) {
-                for (var index = 0, len = collection.length; index < len; index++) {
-                    if (callback.call(thisArg, collection[index], index, collection) === false) {
+
+                // detect if is necessary let the user type freely.
+                // for is a lot faster than forEach.
+                for (var i = 0, maxlength = true; i < mask.length; i++) {
+                    var translation = jMask.translation[mask.charAt(i)];
+                    if (translation && translation.recursive) {
+                        maxlength = false;
                         break;
                     }
                 }
-            } else {
-                for (var key in collection) {
-                    if (collection.hasOwnProperty(key)) {
-                        if (callback.call(thisArg, collection[key], key, collection) === false) {
-                            break;
-                        }
-                    }
-                }
-            }
-        };
-        // Expose
-        return utils;
-    }();
-    /*
-    * pattern-matcher.js
-    *
-    * Parses a pattern specification and determines appropriate pattern for an
-    * input string
-    *
-    */
-    var patternMatcher = function (pattern, utils) {
-        //
-        // Parse a matcher string into a RegExp. Accepts valid regular
-        // expressions and the catchall '*'.
-        // @private
-        //
-        var parseMatcher = function (matcher) {
-            if (matcher === '*') {
-                return /.*/;
-            }
-            return new RegExp(matcher);
-        };
-        //
-        // Parse a pattern spec and return a function that returns a pattern
-        // based on user input. The first matching pattern will be chosen.
-        // Pattern spec format:
-        // Array [
-        //  Object: { Matcher(RegExp String) : Pattern(Pattern String) },
-        //  ...
-        // ]
-        function patternMatcher(patternSpec) {
-            var matchers = [], patterns = [];
-            // Iterate over each pattern in order.
-            utils.forEach(patternSpec, function (patternMatcher) {
-                // Process single property object to obtain pattern and matcher.
-                utils.forEach(patternMatcher, function (patternStr, matcherStr) {
-                    var parsedPattern = pattern.parse(patternStr), regExpMatcher = parseMatcher(matcherStr);
-                    matchers.push(regExpMatcher);
-                    patterns.push(parsedPattern);
-                    // Stop after one iteration.
-                    return false;
-                });
-            });
-            var getPattern = function (input) {
-                var matchedIndex;
-                utils.forEach(matchers, function (matcher, index) {
-                    if (matcher.test(input)) {
-                        matchedIndex = index;
-                        return false;
-                    }
-                });
-                return matchedIndex === undefined ? null : patterns[matchedIndex];
-            };
-            return {
-                getPattern: getPattern,
-                patterns: patterns,
-                matchers: matchers
-            };
-        }
-        // Expose
-        return patternMatcher;
-    }(pattern, utils);
-    /*
-     * inpt-sel.js
-     *
-     * Cross browser implementation to get and set input selections
-     *
-     */
-    var inptSel = function () {
-        // Define module
-        var inptSel = {};
-        //
-        // Get begin and end positions of selected input. Return 0's
-        // if there is no selectiion data
-        //
-        inptSel.get = function (el) {
-            // If normal browser return with result
-            if (typeof el.selectionStart === 'number') {
-                return {
-                    begin: el.selectionStart,
-                    end: el.selectionEnd
-                };
-            }
-            // Uh-Oh. We must be IE. Fun with TextRange!!
-            var range = document.selection.createRange();
-            // Determine if there is a selection
-            if (range && range.parentElement() === el) {
-                var inputRange = el.createTextRange(), endRange = el.createTextRange(), length = el.value.length;
-                // Create a working TextRange for the input selection
-                inputRange.moveToBookmark(range.getBookmark());
-                // Move endRange begin pos to end pos (hence endRange)
-                endRange.collapse(false);
-                // If we are at the very end of the input, begin and end
-                // must both be the length of the el.value
-                if (inputRange.compareEndPoints('StartToEnd', endRange) > -1) {
-                    return {
-                        begin: length,
-                        end: length
-                    };
-                }
-                // Note: moveStart usually returns the units moved, which 
-                // one may think is -length, however, it will stop when it
-                // gets to the begin of the range, thus giving us the
-                // negative value of the pos.
-                return {
-                    begin: -inputRange.moveStart('character', -length),
-                    end: -inputRange.moveEnd('character', -length)
-                };
-            }
-            //Return 0's on no selection data
-            return {
-                begin: 0,
-                end: 0
-            };
-        };
-        //
-        // Set the caret position at a specified location
-        //
-        inptSel.set = function (el, pos) {
-            // Normalize pos
-            if (typeof pos !== 'object') {
-                pos = {
-                    begin: pos,
-                    end: pos
-                };
-            }
-            // If normal browser
-            if (el.setSelectionRange) {
-                el.focus();
-                el.setSelectionRange(pos.begin, pos.end);
-            } else if (el.createTextRange) {
-                var range = el.createTextRange();
-                range.collapse(true);
-                range.moveEnd('character', pos.end);
-                range.moveStart('character', pos.begin);
-                range.select();
-            }
-        };
-        // Expose
-        return inptSel;
-    }();
-    /*
-     * formatter.js
-     *
-     * Class used to format input based on passed pattern
-     *
-     */
-    var formatter = function (patternMatcher, inptSel, utils) {
-        // Defaults
-        var defaults = {
-            persistent: false,
-            repeat: false,
-            placeholder: ' '
-        };
-        // Regexs for input validation
-        var inptRegs = {
-            '9': /[0-9]/,
-            'a': /[A-Za-z]/,
-            'A': /[A-Z]/,
-            '?': /[A-Z0-9]/,
-            '*': /[A-Za-z0-9]/
-        };
-        //
-        // Class Constructor - Called with new Formatter(el, opts)
-        // Responsible for setting up required instance variables, and
-        // attaching the event listener to the element.
-        //
-        function Formatter(el, opts) {
-            // Cache this
-            var self = this;
-            // Make sure we have an element. Make accesible to instance
-            self.el = el;
-            if (!self.el) {
-                throw new TypeError('Must provide an existing element');
-            }
-            // Merge opts with defaults
-            self.opts = utils.extend({}, defaults, opts);
-            // 1 pattern is special case
-            if (typeof self.opts.pattern !== 'undefined') {
-                self.opts.patterns = self._specFromSinglePattern(self.opts.pattern);
-                delete self.opts.pattern;
-            }
-            // Make sure we have valid opts
-            if (typeof self.opts.patterns === 'undefined') {
-                throw new TypeError('Must provide a pattern or array of patterns');
-            }
-            self.patternMatcher = patternMatcher(self.opts.patterns);
-            // Upate pattern with initial value
-            self._updatePattern();
-            // Init values
-            self.hldrs = {};
-            self.focus = 0;
-            // Add Listeners
-            utils.addListener(self.el, 'keydown', function (evt) {
-                self._keyDown(evt);
-            });
-            utils.addListener(self.el, 'keypress', function (evt) {
-                self._keyPress(evt);
-            });
-            utils.addListener(self.el, 'paste', function (evt) {
-                self._paste(evt);
-            });
-            // Persistence
-            if (self.opts.persistent) {
-                // Format on start
-                self._processKey('', false);
-                self.el.blur();
-                // Add Listeners
-                utils.addListener(self.el, 'focus', function (evt) {
-                    self._focus(evt);
-                });
-                utils.addListener(self.el, 'click', function (evt) {
-                    self._focus(evt);
-                });
-                utils.addListener(self.el, 'touchstart', function (evt) {
-                    self._focus(evt);
-                });
-            }
-        }
-        //
-        // @public
-        // Add new char
-        //
-        Formatter.addInptType = function (chr, reg) {
-            inptRegs[chr] = reg;
-        };
-        //
-        // @public
-        // Apply the given pattern to the current input without moving caret.
-        //
-        Formatter.prototype.resetPattern = function (str) {
-            // Update opts to hold new pattern
-            this.opts.patterns = str ? this._specFromSinglePattern(str) : this.opts.patterns;
-            // Get current state
-            this.sel = inptSel.get(this.el);
-            this.val = this.el.value;
-            // Init values
-            this.delta = 0;
-            // Remove all formatted chars from val
-            this._removeChars();
-            this.patternMatcher = patternMatcher(this.opts.patterns);
-            // Update pattern
-            var newPattern = this.patternMatcher.getPattern(this.val);
-            this.mLength = newPattern.mLength;
-            this.chars = newPattern.chars;
-            this.inpts = newPattern.inpts;
-            // Format on start
-            this._processKey('', false, true);
-        };
-        //
-        // @private
-        // Determine correct format pattern based on input val
-        //
-        Formatter.prototype._updatePattern = function () {
-            // Determine appropriate pattern
-            var newPattern = this.patternMatcher.getPattern(this.val);
-            // Only update the pattern if there is an appropriate pattern for the value.
-            // Otherwise, leave the current pattern (and likely delete the latest character.)
-            if (newPattern) {
-                // Get info about the given pattern
-                this.mLength = newPattern.mLength;
-                this.chars = newPattern.chars;
-                this.inpts = newPattern.inpts;
-            }
-        };
-        //
-        // @private
-        // Handler called on all keyDown strokes. All keys trigger
-        // this handler. Only process delete keys.
-        //
-        Formatter.prototype._keyDown = function (evt) {
-            // The first thing we need is the character code
-            var k = evt.which || evt.keyCode;
-            // If delete key
-            if (k && utils.isDelKeyDown(evt.which, evt.keyCode)) {
-                // Process the keyCode and prevent default
-                this._processKey(null, k);
-                return utils.preventDefault(evt);
-            }
-        };
-        //
-        // @private
-        // Handler called on all keyPress strokes. Only processes
-        // character keys (as long as no modifier key is in use).
-        //
-        Formatter.prototype._keyPress = function (evt) {
-            // The first thing we need is the character code
-            var k, isSpecial;
-            // Mozilla will trigger on special keys and assign the the value 0
-            // We want to use that 0 rather than the keyCode it assigns.
-            k = evt.which || evt.keyCode;
-            isSpecial = utils.isSpecialKeyPress(evt.which, evt.keyCode);
-            // Process the keyCode and prevent default
-            if (!utils.isDelKeyPress(evt.which, evt.keyCode) && !isSpecial && !utils.isModifier(evt)) {
-                this._processKey(String.fromCharCode(k), false);
-                return utils.preventDefault(evt);
-            }
-        };
-        //
-        // @private
-        // Handler called on paste event.
-        //
-        Formatter.prototype._paste = function (evt) {
-            // Process the clipboard paste and prevent default
-            this._processKey(utils.getClip(evt), false);
-            return utils.preventDefault(evt);
-        };
-        //
-        // @private
-        // Handle called on focus event.
-        //
-        Formatter.prototype._focus = function () {
-            // Wrapped in timeout so that we can grab input selection
-            var self = this;
-            setTimeout(function () {
-                // Grab selection
-                var selection = inptSel.get(self.el);
-                // Char check
-                var isAfterStart = selection.end > self.focus, isFirstChar = selection.end === 0;
-                // If clicked in front of start, refocus to start
-                if (isAfterStart || isFirstChar) {
-                    inptSel.set(self.el, self.focus);
-                }
-            }, 0);
-        };
-        //
-        // @private
-        // Using the provided key information, alter el value.
-        //
-        Formatter.prototype._processKey = function (chars, delKey, ignoreCaret) {
-            // Get current state
-            this.sel = inptSel.get(this.el);
-            this.val = this.el.value;
-            // Init values
-            this.delta = 0;
-            // If chars were highlighted, we need to remove them
-            if (this.sel.begin !== this.sel.end) {
-                this.delta = -1 * Math.abs(this.sel.begin - this.sel.end);
-                this.val = utils.removeChars(this.val, this.sel.begin, this.sel.end);
-            } else if (delKey && delKey === 46) {
-                this._delete();
-            } else if (delKey && this.sel.begin - 1 >= 0) {
-                // Always have a delta of at least -1 for the character being deleted.
-                this.val = utils.removeChars(this.val, this.sel.end - 1, this.sel.end);
-                this.delta -= 1;
-            } else if (delKey) {
-                return true;
-            }
-            // If the key is not a del key, it should convert to a str
-            if (!delKey) {
-                // Add char at position and increment delta
-                this.val = utils.addChars(this.val, chars, this.sel.begin);
-                this.delta += chars.length;
-            }
-            // Format el.value (also handles updating caret position)
-            this._formatValue(ignoreCaret);
-        };
-        //
-        // @private
-        // Deletes the character in front of it
-        //
-        Formatter.prototype._delete = function () {
-            // Adjust focus to make sure its not on a formatted char
-            while (this.chars[this.sel.begin]) {
-                this._nextPos();
-            }
-            // As long as we are not at the end
-            if (this.sel.begin < this.val.length) {
-                // We will simulate a delete by moving the caret to the next char
-                // and then deleting
-                this._nextPos();
-                this.val = utils.removeChars(this.val, this.sel.end - 1, this.sel.end);
-                this.delta = -1;
-            }
-        };
-        //
-        // @private
-        // Quick helper method to move the caret to the next pos
-        //
-        Formatter.prototype._nextPos = function () {
-            this.sel.end++;
-            this.sel.begin++;
-        };
-        //
-        // @private
-        // Alter element value to display characters matching the provided
-        // instance pattern. Also responsible for updating
-        //
-        Formatter.prototype._formatValue = function (ignoreCaret) {
-            // Set caret pos
-            this.newPos = this.sel.end + this.delta;
-            // Remove all formatted chars from val
-            this._removeChars();
-            // Switch to first matching pattern based on val
-            this._updatePattern();
-            // Validate inputs
-            this._validateInpts();
-            // Add formatted characters
-            this._addChars();
-            // Set value and adhere to maxLength
-            this.el.value = this.val.substr(0, this.mLength);
-            // Set new caret position
-            if (typeof ignoreCaret === 'undefined' || ignoreCaret === false) {
-                inptSel.set(this.el, this.newPos);
-            }
-        };
-        //
-        // @private
-        // Remove all formatted before and after a specified pos
-        //
-        Formatter.prototype._removeChars = function () {
-            // Delta shouldn't include placeholders
-            if (this.sel.end > this.focus) {
-                this.delta += this.sel.end - this.focus;
-            }
-            // Account for shifts during removal
-            var shift = 0;
-            // Loop through all possible char positions
-            for (var i = 0; i <= this.mLength; i++) {
-                // Get transformed position
-                var curChar = this.chars[i], curHldr = this.hldrs[i], pos = i + shift, val;
-                // If after selection we need to account for delta
-                pos = i >= this.sel.begin ? pos + this.delta : pos;
-                val = this.val.charAt(pos);
-                // Remove char and account for shift
-                if (curChar && curChar === val || curHldr && curHldr === val) {
-                    this.val = utils.removeChars(this.val, pos, pos + 1);
-                    shift--;
-                }
-            }
-            // All hldrs should be removed now
-            this.hldrs = {};
-            // Set focus to last character
-            this.focus = this.val.length;
-        };
-        //
-        // @private
-        // Make sure all inpts are valid, else remove and update delta
-        //
-        Formatter.prototype._validateInpts = function () {
-            // Loop over each char and validate
-            for (var i = 0; i < this.val.length; i++) {
-                // Get char inpt type
-                var inptType = this.inpts[i];
-                // When only allowing capitals, ensure this char is capitalized!
-                if (inptType === '?' || inptType === 'A') {
-                    var up = this.val.charAt(i).toUpperCase();
-                    this.val = utils.addChars(utils.removeChars(this.val, i, i + 1), up, i);
-                }
-                // Checks
-                var isBadType = !inptRegs[inptType], isInvalid = !isBadType && !inptRegs[inptType].test(this.val.charAt(i)), inBounds = this.inpts[i];
-                // Remove if incorrect and inbounds
-                if ((isBadType || isInvalid) && inBounds) {
-                    this.val = utils.removeChars(this.val, i, i + 1);
-                    this.focusStart--;
-                    this.newPos--;
-                    this.delta--;
-                    i--;
-                }
-            }
-        };
-        //
-        // @private
-        // Loop over val and add formatted chars as necessary
-        //
-        Formatter.prototype._addChars = function () {
-            if (this.opts.persistent) {
-                // Loop over all possible characters
-                for (var i = 0; i <= this.mLength; i++) {
-                    if (!this.val.charAt(i)) {
-                        // Add placeholder at pos
-                        this.val = utils.addChars(this.val, this.opts.placeholder, i);
-                        this.hldrs[i] = this.opts.placeholder;
-                    }
-                    this._addChar(i);
-                }
-                // Adjust focus to make sure its not on a formatted char
-                while (this.chars[this.focus]) {
-                    this.focus++;
-                }
-            } else {
-                // Avoid caching val.length, as they may change in _addChar.
-                for (var j = 0; j <= this.val.length; j++) {
-                    // When moving backwards there are some race conditions where we
-                    // dont want to add the character
-                    if (this.delta <= 0 && j === this.focus) {
-                        return true;
-                    }
-                    // Place character in current position of the formatted string.
-                    this._addChar(j);
-                }
-            }
-        };
-        //
-        // @private
-        // Add formattted char at position
-        //
-        Formatter.prototype._addChar = function (i) {
-            // If char exists at position
-            var chr = this.chars[i];
-            if (!chr) {
-                return true;
-            }
-            // If chars are added in between the old pos and new pos
-            // we need to increment pos and delta
-            if (utils.isBetween(i, [
-                this.sel.begin - 1,
-                this.newPos + 1
-            ])) {
-                this.newPos++;
-                this.delta++;
-            }
-            // If character added before focus, incr
-            if (i <= this.focus) {
-                this.focus++;
-            }
-            // Updateholder
-            if (this.hldrs[i]) {
-                delete this.hldrs[i];
-                this.hldrs[i + 1] = this.opts.placeholder;
-            }
-            // Update value
-            this.val = utils.addChars(this.val, chr, i);
-        };
-        //
-        // @private
-        // Create a patternSpec for passing into patternMatcher that
-        // has exactly one catch all pattern.
-        //
-        Formatter.prototype._specFromSinglePattern = function (patternStr) {
-            return [{ '*': patternStr }];
-        };
-        // Expose
-        return Formatter;
-    }(patternMatcher, inptSel, utils);
 
-    return formatter;
+                if (maxlength) {
+                    el.attr('maxlength', mask.length).data('mask-maxlength', true);
+                }
 
-}));
+                p.destroyEvents();
+                p.events();
+
+                var caret = p.getCaret();
+                p.val(p.getMasked());
+                p.setCaret(caret);
+            }
+        };
+
+        jMask.init(!el.is('input'));
+    };
+
+    $.maskWatchers = {};
+    var HTMLAttributes = function () {
+        var input = $(this),
+            options = {},
+            prefix = 'data-mask-',
+            mask = input.attr('data-mask');
+
+        if (input.attr(prefix + 'reverse')) {
+            options.reverse = true;
+        }
+
+        if (input.attr(prefix + 'clearifnotmatch')) {
+            options.clearIfNotMatch = true;
+        }
+
+        if (input.attr(prefix + 'selectonfocus') === 'true') {
+            options.selectOnFocus = true;
+        }
+
+        if (notSameMaskObject(input, mask, options)) {
+            return input.data('mask', new Mask(this, mask, options));
+        }
+    },
+        notSameMaskObject = function (field, mask, options) {
+            options = options || {};
+            var maskObject = $(field).data('mask'),
+                stringify = JSON.stringify,
+                value = $(field).val() || $(field).text();
+            try {
+                if (typeof mask === 'function') {
+                    mask = mask(value);
+                }
+                return typeof maskObject !== 'object' || stringify(maskObject.options) !== stringify(options) || maskObject.mask !== mask;
+            } catch (e) { }
+        },
+        eventSupported = function (eventName) {
+            var el = document.createElement('div'), isSupported;
+
+            eventName = 'on' + eventName;
+            isSupported = (eventName in el);
+
+            if (!isSupported) {
+                el.setAttribute(eventName, 'return;');
+                isSupported = typeof el[eventName] === 'function';
+            }
+            el = null;
+
+            return isSupported;
+        };
+
+    $.fn.mask = function (mask, options) {
+        options = options || {};
+        var selector = this.selector,
+            globals = $.jMaskGlobals,
+            interval = globals.watchInterval,
+            watchInputs = options.watchInputs || globals.watchInputs,
+            maskFunction = function () {
+                if (notSameMaskObject(this, mask, options)) {
+                    return $(this).data('mask', new Mask(this, mask, options));
+                }
+            };
+
+        $(this).each(maskFunction);
+
+        if (selector && selector !== '' && watchInputs) {
+            clearInterval($.maskWatchers[selector]);
+            $.maskWatchers[selector] = setInterval(function () {
+                $(document).find(selector).each(maskFunction);
+            }, interval);
+        }
+        return this;
+    };
+
+    $.fn.masked = function (val) {
+        return this.data('mask').getMaskedVal(val);
+    };
+
+    $.fn.unmask = function () {
+        clearInterval($.maskWatchers[this.selector]);
+        delete $.maskWatchers[this.selector];
+        return this.each(function () {
+            var dataMask = $(this).data('mask');
+            if (dataMask) {
+                dataMask.remove().removeData('mask');
+            }
+        });
+    };
+
+    $.fn.cleanVal = function () {
+        return this.data('mask').getCleanVal();
+    };
+
+    $.applyDataMask = function (selector) {
+        selector = selector || $.jMaskGlobals.maskElements;
+        var $selector = (selector instanceof $) ? selector : $(selector);
+        $selector.filter($.jMaskGlobals.dataMaskAttr).each(HTMLAttributes);
+    };
+
+    var globals = {
+        maskElements: 'input,td,span,div',
+        dataMaskAttr: '*[data-mask]',
+        dataMask: true,
+        watchInterval: 300,
+        watchInputs: true,
+        keyStrokeCompensation: 10,
+        // old versions of chrome dont work great with input event
+        useInput: !/Chrome\/[2-4][0-9]|SamsungBrowser/.test(window.navigator.userAgent) && eventSupported('input'),
+        watchDataMask: false,
+        byPassKeys: [9, 16, 17, 18, 36, 37, 38, 39, 40, 91],
+        translation: {
+            '0': { pattern: /\d/ },
+            '9': { pattern: /\d/, optional: true },
+            '#': { pattern: /\d/, recursive: true },
+            'A': { pattern: /[a-zA-Z0-9]/ },
+            'S': { pattern: /[a-zA-Z]/ }
+        }
+    };
+
+    $.jMaskGlobals = $.jMaskGlobals || {};
+    globals = $.jMaskGlobals = $.extend(true, {}, globals, $.jMaskGlobals);
+
+    // looking for inputs with data-mask attribute
+    if (globals.dataMask) {
+        $.applyDataMask();
+    }
+
+    setInterval(function () {
+        if ($.jMaskGlobals.watchDataMask) {
+            $.applyDataMask();
+        }
+    }, globals.watchInterval);
+}, window.jQuery, window.Zepto));

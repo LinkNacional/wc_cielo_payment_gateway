@@ -107,7 +107,7 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
             return;
         }
 
-        wp_enqueue_script('lkn-mask-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/formatter.js', [], $this->version, false);
+        wp_enqueue_script('lkn-mask-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/formatter.js', ['jquery'], $this->version, false);
         wp_enqueue_script('lkn-mask-script-load', plugin_dir_url(__FILE__) . '../resources/js/frontend/define-mask.js', ['lkn-mask-script', 'jquery'], $this->version, false);
 
         wp_enqueue_script('lkn-installment-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-cc-installment.js', [], $this->version, false);
@@ -293,15 +293,15 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
     
             <div class="form-row form-row-wide">
                 <label><?php _e('Card Number', 'lkn-wc-gateway-cielo'); ?> <span class="required">*</span></label>
-                <input id="lkn_ccno" name="lkn_ccno" type="tel" inputmode="numeric" class="masked" pattern="[0-9\s]{13,19}" autocomplete="cc-number" maxlength="24" placeholder="XXXX XXXX XXXX XXXX" data-valid-example="4444 4444 4444 4444" required>
+                <input id="lkn_ccno" name="lkn_ccno" type="tel" inputmode="numeric" class="lkn-card-num" maxlength="24" placeholder="XXXX XXXX XXXX XXXX" required>
             </div>
             <div class="form-row form-row-first">
                 <label><?php _e('Expiry Date', 'lkn-wc-gateway-cielo'); ?> <span class="required">*</span></label>
-                <input id="lkn_cc_expdate" name="lkn_cc_expdate" type="tel" placeholder="MM/YY" class="masked" pattern="(1[0-2]|0[1-9])\/(\d[\d])" maxlength="5" autocomplete="cc-expdate" data-valid-example="05/28" required>
+                <input id="lkn_cc_expdate" name="lkn_cc_expdate" type="tel" inputmode="numeric" placeholder="MM/YY" class="lkn-card-exp" maxlength="7" required>
             </div>
             <div class="form-row form-row-last">
                 <label><?php _e('Card Code', 'lkn-wc-gateway-cielo'); ?> <span class="required">*</span></label>
-                <input id="lkn_cc_cvc" name="lkn_cc_cvc" type="tel" autocomplete="off" placeholder="CVV" maxlength="4" required>
+                <input id="lkn_cc_cvc" name="lkn_cc_cvc" type="tel" inputmode="numeric" placeholder="CVV" class="lkn-cvv" maxlength="8" required>
             </div>
             <?php
             if ($activeInstallment === 'yes') {
