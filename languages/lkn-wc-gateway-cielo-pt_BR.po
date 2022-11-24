@@ -229,3 +229,12 @@ msgstr "Juros do parcelamento"
 
 msgid "Define installment limit"
 msgstr "Define um limite de parcelas"
+
+msgid "Interest installment"
+msgstr "Juros da parcela"
+
+msgid "Installments quantity"
+msgstr "Quantidade de parcelas"
+
+msgid "Order payment failed. Installment quantity invalid."
+msgstr "Pagamento de pedido falhou. Quantidade de parcelas inválida."

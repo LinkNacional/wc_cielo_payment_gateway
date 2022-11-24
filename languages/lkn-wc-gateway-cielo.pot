@@ -229,3 +229,12 @@ msgstr ""
 
 msgid "Define installment limit"
 msgstr ""
+
+msgid "Interest installment"
+msgstr ""
+
+msgid "Installments quantity"
+msgstr ""
+
+msgid "Order payment failed. Installment quantity invalid."
+msgstr ""
