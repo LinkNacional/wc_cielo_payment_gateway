@@ -247,7 +247,7 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
 
                 for ($c = 1; $c <= $installmentsLimit; $c++) {
                     $this->form_fields[$c . 'x'] = [
-                        'title'       => __($c . 'x', 'lkn-wc-gateway-cielo'),
+                        'title'       => __('Interest installment', 'lkn-wc-gateway-cielo') . ' ' . $c . 'x',
                         'type'        => 'text',
                         'description' => __('This option sets the interest on installment as percentage. Accepts only numbers.', 'lkn-wc-gateway-cielo'),
                         'default'     => '0',
@@ -519,6 +519,22 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
         // If installments option is active verify $_POST attribute
         if ($activeInstallment === 'yes') {
             $installments = (int) sanitize_text_field($_POST['lkn_cc_installments']);
+
+            if ($installments > 12) {
+                if (
+                    $provider !== 'Elo' &&
+                    $provider !== 'Visa' &&
+                    $provider !== 'Master' &&
+                    $provider !== 'Amex' &&
+                    $provider !== 'Hipercard'
+                ) {
+                    $message = __('Order payment failed. Installment quantity invalid.', 'lkn-wc-gateway-cielo');
+
+                    throw new Exception($message);
+                }
+            }
+
+            $order->add_order_note(__('Installments quantity', 'lkn-wc-gateway-cielo') . ' ' . $installments);
 
             if ($this->get_option('installment_interest') === 'yes') {
                 $interest = $this->get_option($installments . 'x', 0);
