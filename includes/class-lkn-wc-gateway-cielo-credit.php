@@ -218,7 +218,7 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
             $this->form_fields['installment_limit'] = [
                 'title'       => __('Define installment limit', 'lkn-wc-gateway-cielo'),
                 'type'        => 'select',
-                'description' => __('Define a maximum installment quantity.', 'lkn-wc-gateway-cielo'),
+                'description' => __('Define a maximum installment quantity. Only certain brands accepts over 12x installments.', 'lkn-wc-gateway-cielo'),
                 'options'    => [
                     '1' => __('1x'),
                     '2' => __('2x'),
@@ -249,7 +249,7 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
                     $this->form_fields[$c . 'x'] = [
                         'title'       => __('Interest installment', 'lkn-wc-gateway-cielo') . ' ' . $c . 'x',
                         'type'        => 'text',
-                        'description' => __('This option sets the interest on installment as percentage. Accepts only numbers.', 'lkn-wc-gateway-cielo'),
+                        'description' => __('This option sets the interest on installment as percentage. Accepts only numbers. Ex.: For 10% interest type 10, blank or zero for no interest tax.', 'lkn-wc-gateway-cielo'),
                         'default'     => '0',
                         'desc_tip'    => true,
                     ];
