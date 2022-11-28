@@ -107,7 +107,7 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
             return;
         }
 
-        wp_enqueue_script('lkn-mask-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/formatter.js', [], $this->version, false);
+        wp_enqueue_script('lkn-mask-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/formatter.js', ['jquery'], $this->version, false);
         wp_enqueue_script('lkn-mask-script-load', plugin_dir_url(__FILE__) . '../resources/js/frontend/define-mask.js', ['lkn-mask-script', 'jquery'], $this->version, false);
 
         wp_enqueue_script('lkn-installment-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-cc-installment.js', [], $this->version, false);
@@ -203,6 +203,58 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
                 'description' => __('License for Cielo API Pro plugin extensions.', 'lkn-wc-gateway-cielo'),
                 'desc_tip'    => true,
             ];
+            $this->form_fields['brand_validation'] = [
+                'title'       => __('Online card validation', 'lkn-wc-gateway-cielo'),
+                'type'        => 'checkbox',
+                'description' => __('Enable online bin validation through Cielo API 3.0 (Needs to activate Cielo BIN functionality).', 'lkn-wc-gateway-cielo'),
+                'default'    => 'no',
+            ];
+            $this->form_fields['installment_interest'] = [
+                'title'       => __('Installment interest', 'lkn-wc-gateway-cielo'),
+                'type'        => 'checkbox',
+                'description' => __('Enable payment with interest on installments. Save to continue configuration.', 'lkn-wc-gateway-cielo'),
+                'default'    => 'no',
+            ];
+            $this->form_fields['installment_limit'] = [
+                'title'       => __('Define installment limit', 'lkn-wc-gateway-cielo'),
+                'type'        => 'select',
+                'description' => __('Define a maximum installment quantity. Only certain brands accepts over 12x installments.', 'lkn-wc-gateway-cielo'),
+                'options'    => [
+                    '1' => __('1x'),
+                    '2' => __('2x'),
+                    '3' => __('3x'),
+                    '4' => __('4x'),
+                    '5' => __('5x'),
+                    '6' => __('6x'),
+                    '7' => __('7x'),
+                    '8' => __('8x'),
+                    '9' => __('9x'),
+                    '10' => __('10x'),
+                    '11' => __('11x'),
+                    '12' => __('12x'),
+                    '13' => __('13x'),
+                    '14' => __('14x'),
+                    '15' => __('15x'),
+                    '16' => __('16x'),
+                    '17' => __('17x'),
+                    '18' => __('18x')
+                ],
+                'default' => '12'
+            ];
+
+            if ($this->get_option('installment_interest') === 'yes') {
+                $installmentsLimit = $this->get_option('installment_limit');
+
+                for ($c = 1; $c <= $installmentsLimit; $c++) {
+                    $this->form_fields[$c . 'x'] = [
+                        'title'       => __('Interest installment', 'lkn-wc-gateway-cielo') . ' ' . $c . 'x',
+                        'type'        => 'text',
+                        'description' => __('This option sets the interest on installment as percentage. Accepts only numbers. Ex.: For 10% interest type 10, blank or zero for no interest tax.', 'lkn-wc-gateway-cielo'),
+                        'default'     => '0',
+                        'desc_tip'    => true,
+                    ];
+                }
+            }
         }
     }
 
@@ -215,6 +267,15 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
         $activeInstallment = $this->get_option('installment_payment');
         $total_cart = number_format($this->get_order_total(), 2, '.', '');
         $noLoginCheckout = isset($_GET['pay_for_order']) ? sanitize_text_field($_GET['pay_for_order']) : 'false';
+        $installmentLimit = $this->get_option('installment_limit', 12);
+        $installments = [];
+
+        for ($c = 1; $c <= $installmentLimit; $c++) {
+            $interest = preg_replace('/\D/', '', $this->get_option($c . 'x', 0));
+            if ($interest > 0) {
+                $installments[] = ['id' => $c, 'interest' => $interest];
+            }
+        }
 
         if ($activeInstallment === 'yes') {
             if (isset($_GET['pay_for_order'])) {
@@ -232,21 +293,23 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
     
             <div class="form-row form-row-wide">
                 <label><?php _e('Card Number', 'lkn-wc-gateway-cielo'); ?> <span class="required">*</span></label>
-                <input id="lkn_ccno" name="lkn_ccno" type="tel" inputmode="numeric" class="masked" pattern="[0-9\s]{13,19}" autocomplete="cc-number" maxlength="24" placeholder="XXXX XXXX XXXX XXXX" data-valid-example="4444 4444 4444 4444" required>
+                <input id="lkn_ccno" name="lkn_ccno" type="tel" inputmode="numeric" class="lkn-card-num" maxlength="24" placeholder="XXXX XXXX XXXX XXXX" required>
             </div>
             <div class="form-row form-row-first">
                 <label><?php _e('Expiry Date', 'lkn-wc-gateway-cielo'); ?> <span class="required">*</span></label>
-                <input id="lkn_cc_expdate" name="lkn_cc_expdate" type="tel" placeholder="MM/YY" class="masked" pattern="(1[0-2]|0[1-9])\/(\d[\d])" maxlength="5" autocomplete="cc-expdate" data-valid-example="05/28" required>
+                <input id="lkn_cc_expdate" name="lkn_cc_expdate" type="tel" inputmode="numeric" placeholder="MM/YY" class="lkn-card-exp" maxlength="7" required>
             </div>
             <div class="form-row form-row-last">
                 <label><?php _e('Card Code', 'lkn-wc-gateway-cielo'); ?> <span class="required">*</span></label>
-                <input id="lkn_cc_cvc" name="lkn_cc_cvc" type="tel" autocomplete="off" placeholder="CVV" maxlength="4" required>
+                <input id="lkn_cc_cvc" name="lkn_cc_cvc" type="tel" inputmode="numeric" placeholder="CVV" class="lkn-cvv" maxlength="8" required>
             </div>
             <?php
             if ($activeInstallment === 'yes') {
                 ?>
                 <input id="lkn_cc_installment_total" type="hidden" value="<?php esc_attr_e($total_cart); ?>">
                 <input id="lkn_cc_no_login_checkout" type="hidden" value="<?php esc_attr_e($noLoginCheckout); ?>">
+                <input id="lkn_cc_installment_limit" type="hidden" value="<?php esc_attr_e($installmentLimit); ?>">
+                <input id="lkn_cc_installment_interest" type="hidden" value="<?php esc_attr_e(json_encode($installments)); ?>">
 
                 <div class="form-row form-row-wide">
                     <label><?php _e('Installments', 'lkn-wc-gateway-cielo'); ?> </label>
@@ -256,6 +319,7 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
                 </div>
                 <?php
             } ?>
+            <div id="lkn-cc-notice"></div>
             <div class="clear"></div>
     
             <?php do_action('woocommerce_credit_card_form_end', $this->id); ?>
@@ -450,16 +514,35 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
             $amount = apply_filters('lkn_wc_cielo_convert_amount', $amount, $currency);
 
             $order->add_meta_data('amount_converted', $amount, true);
-
-            $amount = number_format($amount, 2, '', '');
-        } else {
-            $amount = number_format($amount, 2, '', '');
         }
 
         // If installments option is active verify $_POST attribute
         if ($activeInstallment === 'yes') {
             $installments = (int) sanitize_text_field($_POST['lkn_cc_installments']);
+
+            if ($installments > 12) {
+                if (
+                    $provider !== 'Elo' &&
+                    $provider !== 'Visa' &&
+                    $provider !== 'Master' &&
+                    $provider !== 'Amex' &&
+                    $provider !== 'Hipercard'
+                ) {
+                    $message = __('Order payment failed. Installment quantity invalid.', 'lkn-wc-gateway-cielo');
+
+                    throw new Exception($message);
+                }
+            }
+
+            $order->add_order_note(__('Installments quantity', 'lkn-wc-gateway-cielo') . ' ' . $installments);
+
+            if ($this->get_option('installment_interest') === 'yes') {
+                $interest = $this->get_option($installments . 'x', 0);
+                $amount = apply_filters('lkn_wc_cielo_calculate_interest', $amount, $interest);
+            }
         }
+
+        $amountFormated = number_format($amount, 2, '', '');
 
         $args['headers'] = [
             'Content-Type' => 'application/json',
@@ -471,7 +554,7 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
             'MerchantOrderId' => $merchantOrderId,
             'Payment' => [
                 'Type' => 'CreditCard',
-                'Amount' => $amount,
+                'Amount' => (int) $amountFormated,
                 'Installments' => $installments,
                 'Capture' => (bool)$capture,
                 'SoftDescriptor' => $description,

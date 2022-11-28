@@ -117,7 +117,7 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
             wp_set_script_translations('lkn-dc-script', 'lkn-wc-gateway-cielo', LKN_WC_CIELO_TRANSLATION_PATH);
         }
 
-        wp_enqueue_script('lkn-mask-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/formatter.js', [], $this->version, false);
+        wp_enqueue_script('lkn-mask-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/formatter.js', ['jquery'], $this->version, false);
         wp_enqueue_script('lkn-mask-script-load', plugin_dir_url(__FILE__) . '../resources/js/frontend/define-mask.js', ['lkn-mask-script', 'jquery'], $this->version, false);
 
         wp_enqueue_script('lkn-cielo-debit-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/BP.Mpi.3ds20.min.js', [], $this->version, false);
@@ -237,6 +237,12 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
                 'description' => __('License for Cielo API Pro plugin extensions.', 'lkn-wc-gateway-cielo'),
                 'desc_tip'    => true,
             ];
+            $this->form_fields['brand_validation'] = [
+                'title'       => __('Online card validation', 'lkn-wc-gateway-cielo'),
+                'type'        => 'checkbox',
+                'description' => __('Enable online bin validation through Cielo API 3.0 (Needs to activate Cielo BIN functionality).', 'lkn-wc-gateway-cielo'),
+                'default'    => 'no',
+            ];
         }
     }
 
@@ -338,15 +344,15 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
     
             <div class="form-row form-row-wide">
                 <label><?php _e('Card Number', 'lkn-wc-gateway-cielo'); ?> <span class="required">*</span></label>
-                <input id="lkn_dcno" name="lkn_dcno" type="tel" inputmode="numeric" class="masked" pattern="[0-9\s]{13,19}" autocomplete="cc-number" maxlength="19" placeholder="XXXX XXXX XXXX XXXX" data-valid-example="4444 4444 4444 4444" required>
+                <input id="lkn_dcno" name="lkn_dcno" type="tel" inputmode="numeric" class="lkn-card-num" maxlength="24" placeholder="XXXX XXXX XXXX XXXX" required>
             </div>
             <div class="form-row form-row-first">
                 <label><?php _e('Expiry Date', 'lkn-wc-gateway-cielo'); ?> <span class="required">*</span></label>
-                <input id="lkn_dc_expdate" name="lkn_dc_expdate" type="tel" placeholder="MM/YY" class="masked" pattern="(1[0-2]|0[1-9])\/(\d[\d])" autocomplete="cc-expdate" data-valid-example="05/28" maxlength="5" required>
+                <input id="lkn_dc_expdate" name="lkn_dc_expdate" type="tel" inputmode="numeric" placeholder="MM/YY" class="lkn-card-exp" maxlength="7" required>
             </div>
             <div class="form-row form-row-last">
                 <label><?php _e('Card Code', 'lkn-wc-gateway-cielo'); ?> <span class="required">*</span></label>
-                <input id="lkn_dc_cvc" name="lkn_dc_cvc" type="tel" autocomplete="off" placeholder="CVV" maxlength="4" required>
+                <input id="lkn_dc_cvc" name="lkn_dc_cvc" type="tel" inputmode="numeric" autocomplete="off" placeholder="CVV" class="lkn-cvv" maxlength="4" required>
             </div>
             <div class="clear"></div>
     

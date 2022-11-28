@@ -47,6 +47,11 @@ Nota: As credenciais para ambientes de produção e teste são diferentes, ao al
 
 ## Changelog
 
+### 1.3.0
+* Mudança de biblioteca de máscara de campos;
+* Implementado preparação para reconhecimento de juros;
+* Implementada área de avisos no front-end.
+
 ### 1.2.0
 * Implementado filtro de BIN;
 * Corrigido bugs de inputs na página de finalizar pagamento;

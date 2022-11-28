@@ -208,3 +208,33 @@ msgstr "Cartão de crédito está vencido!"
 
 msgid "Debit card is expired!"
 msgstr "Cartão de débito está vencido!"
+
+msgid "Online card validation"
+msgstr "Validação de cartão online"
+
+msgid "Enable online bin validation through Cielo API 3.0 (Needs to activate Cielo BIN functionality)."
+msgstr "Habilita validação online BIN via Cielo API 3.0 (Necessita habilitar funcionalidade BIN da Cielo)."
+
+msgid "This option sets the interest on installment as percentage. Accepts only numbers. Ex.: For 10% interest type 10, blank or zero for no interest tax."
+msgstr "Esta opção define os juros da parcela em percentual. Aceita apenas números. Ex.: Para 10% de juros digite 10, deixe em branco ou digite zero para parcela sem taxa de juros."
+
+msgid "Define a maximum installment quantity.  Only certain brands accepts over 12x installments."
+msgstr "Define uma quantidade máxima de parcelas. Apenas certas bandeiras aceitam parcelamentos maiores que 12x."
+
+msgid "Enable payment with interest on installments. Save to continue configuration."
+msgstr "Possibilita o pagamento com juros nas parcelas. Salve para continuar a configuração."
+
+msgid "Installment interest"
+msgstr "Juros do parcelamento"
+
+msgid "Define installment limit"
+msgstr "Define um limite de parcelas"
+
+msgid "Interest installment"
+msgstr "Juros da parcela"
+
+msgid "Installments quantity"
+msgstr "Quantidade de parcelas"
+
+msgid "Order payment failed. Installment quantity invalid."
+msgstr "Pagamento de pedido falhou. Quantidade de parcelas inválida."
