@@ -110,7 +110,7 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
         wp_enqueue_script('lkn-mask-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/formatter.js', ['jquery'], $this->version, false);
         wp_enqueue_script('lkn-mask-script-load', plugin_dir_url(__FILE__) . '../resources/js/frontend/define-mask.js', ['lkn-mask-script', 'jquery'], $this->version, false);
 
-        wp_enqueue_script('lkn-installment-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-cc-installment.js', [], $this->version, false);
+        wp_enqueue_script('lkn-installment-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-cc-installment.js', ['jquery'], $this->version, false);
 
         wp_enqueue_style('lkn-cc-style', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-cc-style.css', [], $this->version, 'all');
 
