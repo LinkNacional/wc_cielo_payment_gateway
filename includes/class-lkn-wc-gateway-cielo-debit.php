@@ -370,60 +370,117 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
      * @return boolean
      */
     public function validate_fields() {
-        if (empty($_POST['lkn_dcno'])) {
-            wc_add_notice(__('Debit Card number is required!', 'lkn-wc-gateway-cielo'), 'error');
+        $dcnum = sanitize_text_field($_POST['lkn_dcno']);
+        $expDate = sanitize_text_field($_POST['lkn_dc_expdate']);
+        $cvv = sanitize_text_field($_POST['lkn_dc_cvc']);
+
+        $validdcNumber = $this->validate_card_number($dcnum);
+        $validExpDate = $this->validate_exp_date($expDate);
+        $validCvv = $this->validate_cvv($cvv);
+
+        if ($validdcNumber === true && $validExpDate === true && $validCvv === true) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Validate card number
+     *
+     * @param  string $dcnum
+     *
+     * @return boolean
+     */
+    private function validate_card_number($dcnum) {
+        if (empty($dcnum)) {
+            $this->add_notice_once(__('Debit Card number is required!', 'lkn-wc-gateway-cielo'), 'error');
 
             return false;
-        } elseif (!empty($_POST['lkn_dcno'])) {
-            $cardNum = sanitize_text_field($_POST['lkn_dcno']);
-            $isValid = !preg_match('/[^0-9\s]/', $cardNum);
+        } elseif (!empty($dcnum)) {
+            $isValid = !preg_match('/[^0-9\s]/', $dcnum);
 
-            if ($isValid !== true || strlen($cardNum) < 12) {
-                wc_add_notice(__('Debit Card number is invalid!', 'lkn-wc-gateway-cielo'), 'error');
+            if ($isValid !== true || strlen($dcnum) < 12) {
+                $this->add_notice_once(__('Debit Card number is invalid!', 'lkn-wc-gateway-cielo'), 'error');
 
                 return false;
+            } else {
+                return true;
             }
         }
+    }
 
-        if (empty($_POST['lkn_dc_expdate'])) {
-            wc_add_notice(__('Expiration date is required!', 'lkn-wc-gateway-cielo'), 'error');
+    /**
+     * Validate card expiration date
+     *
+     * @param  string $expDate
+     *
+     * @return boolean
+     */
+    private function validate_exp_date($expDate) {
+        if (empty($expDate)) {
+            $this->add_notice_once(__('Expiration date is required!', 'lkn-wc-gateway-cielo'), 'error');
 
             return false;
-        } elseif (!empty($_POST['lkn_dc_expdate'])) {
-            $expDateSplit = explode('/', sanitize_text_field($_POST['lkn_dc_expdate']));
+        } elseif (!empty($expDate)) {
+            $expDateSplit = explode('/', $expDate);
 
             try {
                 $expDate = new DateTime('20' . trim($expDateSplit[1]) . '-' . trim($expDateSplit[0]) . '-01');
                 $today = new DateTime();
 
                 if ($today > $expDate) {
-                    wc_add_notice(__('Debit card is expired!', 'lkn-wc-gateway-cielo'), 'error');
+                    $this->add_notice_once(__('Debit card is expired!', 'lkn-wc-gateway-cielo'), 'error');
 
                     return false;
+                } else {
+                    return true;
                 }
             } catch (Exception $e) {
-                wc_add_notice(__('Expiration date is invalid!', 'lkn-wc-gateway-cielo'), 'error');
+                $this->add_notice_once(__('Expiration date is invalid!', 'lkn-wc-gateway-cielo'), 'error');
 
                 return false;
             }
         }
+    }
 
-        if (empty($_POST['lkn_dc_cvc'])) {
-            wc_add_notice(__('CVV is required!', 'lkn-wc-gateway-cielo'), 'error');
+    /**
+     * Validate card cvv
+     *
+     * @param  string $cvv
+     *
+     * @return boolean
+     */
+    private function validate_cvv($cvv) {
+        if (empty($cvv)) {
+            $this->add_notice_once(__('CVV is required!', 'lkn-wc-gateway-cielo'), 'error');
 
             return false;
-        } elseif (!empty($_POST['lkn_dc_cvc'])) {
-            $cvv = sanitize_text_field($_POST['lkn_dc_cvc']);
+        } elseif (!empty($cvv)) {
             $isValid = !preg_match('/\D/', $cvv);
 
             if ($isValid !== true || strlen($cvv) < 3) {
-                wc_add_notice(__('CVV is invalid!', 'lkn-wc-gateway-cielo'), 'error');
+                $this->add_notice_once(__('CVV is invalid!', 'lkn-wc-gateway-cielo'), 'error');
 
                 return false;
+            } else {
+                return true;
             }
         }
+    }
 
-        return true;
+    /**
+     * Verify if WooCommerce notice exists before adding
+     *
+     * @param  string $message
+     * @param  string $type
+     *
+     * @return void
+     */
+    private function add_notice_once($message, $type) {
+        if (!wc_has_notice($message, $type)) {
+            wc_add_notice($message, $type);
+        }
     }
 
     /**
