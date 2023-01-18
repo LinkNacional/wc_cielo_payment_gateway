@@ -100,7 +100,7 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
      * @return void
      */
     public function admin_load_script() {
-        wp_enqueue_script('lkn-wc-gateway-admin', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-wc-gateway-admin.js', ['wp-i18n'], $this->version, 'all');
+        wp_enqueue_script('lkn-wc-gateway-admin', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-wc-gateway-admin.js', ['wp-i18n'], $this->version, 'all');
     }
 
     /**
