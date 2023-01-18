@@ -29,6 +29,24 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
     private $version = LKN_WC_CIELO_VERSION;
 
     /**
+     * Define instructions to configure and use this plugin
+     *
+     * @since   1.3.2
+     * @access  public
+     * @var     string
+     */
+    public $instructions = '';
+
+    /**
+     * Log instance to store debug messages and codes
+     *
+     * @since   1.3.2
+     * @access  private
+     * @var     WC_Logger
+     */
+    private $log;
+
+    /**
      * Constructor for the gateway.
      */
     public function __construct() {
@@ -221,27 +239,10 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
             ],
         ];
 
-        $activeProPlugin = is_plugin_active('lkn-cielo-api-pro/lkn-cielo-api-pro.php');
+        $customConfigs = apply_filters('lkn_wc_cielo_get_custom_configs', [], $this->id);
 
-        if ($activeProPlugin == true) {
-            $this->form_fields['capture'] = [
-                'title'       => __('Capture', 'lkn-wc-gateway-cielo'),
-                'type'        => 'checkbox',
-                'label' => __('Enable automatic capture for payments', 'lkn-wc-gateway-cielo'),
-                'default' => 'yes',
-            ];
-            $this->form_fields['license'] = [
-                'title'       => __('License', 'lkn-wc-gateway-cielo'),
-                'type'        => 'password',
-                'description' => __('License for Cielo API Pro plugin extensions.', 'lkn-wc-gateway-cielo'),
-                'desc_tip'    => true,
-            ];
-            $this->form_fields['brand_validation'] = [
-                'title'       => __('Online card validation', 'lkn-wc-gateway-cielo'),
-                'type'        => 'checkbox',
-                'description' => __('Enable online bin validation through Cielo API 3.0 (Needs to activate Cielo BIN functionality).', 'lkn-wc-gateway-cielo'),
-                'default'    => 'no',
-            ];
+        if (!empty($customConfigs)) {
+            $this->form_fields = array_merge($this->form_fields, $customConfigs);
         }
     }
 

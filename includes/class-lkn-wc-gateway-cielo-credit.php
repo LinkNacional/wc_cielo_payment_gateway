@@ -29,6 +29,24 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
     private $version = LKN_WC_CIELO_VERSION;
 
     /**
+     * Define instructions to configure and use this plugin
+     *
+     * @since   1.3.2
+     * @access  public
+     * @var     string
+     */
+    public $instructions = '';
+
+    /**
+     * Log instance to store debug messages and codes
+     *
+     * @since   1.3.2
+     * @access  private
+     * @var     WC_Logger
+     */
+    private $log;
+
+    /**
      * Constructor for the gateway.
      */
     public function __construct() {
@@ -188,73 +206,11 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
             ],
         ];
 
-        $activeProPlugin = is_plugin_active('lkn-cielo-api-pro/lkn-cielo-api-pro.php');
 
-        if ($activeProPlugin == true) {
-            $this->form_fields['capture'] = [
-                'title'       => __('Capture', 'lkn-wc-gateway-cielo'),
-                'type'        => 'checkbox',
-                'label' => __('Enable automatic capture for payments', 'lkn-wc-gateway-cielo'),
-                'default' => 'yes',
-            ];
-            $this->form_fields['license'] = [
-                'title'       => __('License', 'lkn-wc-gateway-cielo'),
-                'type'        => 'password',
-                'description' => __('License for Cielo API Pro plugin extensions.', 'lkn-wc-gateway-cielo'),
-                'desc_tip'    => true,
-            ];
-            $this->form_fields['brand_validation'] = [
-                'title'       => __('Online card validation', 'lkn-wc-gateway-cielo'),
-                'type'        => 'checkbox',
-                'description' => __('Enable online bin validation through Cielo API 3.0 (Needs to activate Cielo BIN functionality).', 'lkn-wc-gateway-cielo'),
-                'default'    => 'no',
-            ];
-            $this->form_fields['installment_interest'] = [
-                'title'       => __('Installment interest', 'lkn-wc-gateway-cielo'),
-                'type'        => 'checkbox',
-                'description' => __('Enable payment with interest on installments. Save to continue configuration.', 'lkn-wc-gateway-cielo'),
-                'default'    => 'no',
-            ];
-            $this->form_fields['installment_limit'] = [
-                'title'       => __('Define installment limit', 'lkn-wc-gateway-cielo'),
-                'type'        => 'select',
-                'description' => __('Define a maximum installment quantity. Only certain brands accepts over 12x installments.', 'lkn-wc-gateway-cielo'),
-                'options'    => [
-                    '1' => __('1x'),
-                    '2' => __('2x'),
-                    '3' => __('3x'),
-                    '4' => __('4x'),
-                    '5' => __('5x'),
-                    '6' => __('6x'),
-                    '7' => __('7x'),
-                    '8' => __('8x'),
-                    '9' => __('9x'),
-                    '10' => __('10x'),
-                    '11' => __('11x'),
-                    '12' => __('12x'),
-                    '13' => __('13x'),
-                    '14' => __('14x'),
-                    '15' => __('15x'),
-                    '16' => __('16x'),
-                    '17' => __('17x'),
-                    '18' => __('18x')
-                ],
-                'default' => '12'
-            ];
+        $customConfigs = apply_filters('lkn_wc_cielo_get_custom_configs', [], $this->id);
 
-            if ($this->get_option('installment_interest') === 'yes') {
-                $installmentsLimit = $this->get_option('installment_limit');
-
-                for ($c = 1; $c <= $installmentsLimit; $c++) {
-                    $this->form_fields[$c . 'x'] = [
-                        'title'       => __('Interest installment', 'lkn-wc-gateway-cielo') . ' ' . $c . 'x',
-                        'type'        => 'text',
-                        'description' => __('This option sets the interest on installment as percentage. Accepts only numbers. Ex.: For 10% interest type 10, blank or zero for no interest tax.', 'lkn-wc-gateway-cielo'),
-                        'default'     => '0',
-                        'desc_tip'    => true,
-                    ];
-                }
-            }
+        if (!empty($customConfigs)) {
+            $this->form_fields = array_merge($this->form_fields, $customConfigs);
         }
     }
 
