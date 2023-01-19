@@ -398,7 +398,7 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
             $this->add_notice_once(__('Debit Card number is required!', 'lkn-wc-gateway-cielo'), 'error');
 
             return false;
-        } elseif (!empty($dcnum)) {
+        } else {
             $isValid = !preg_match('/[^0-9\s]/', $dcnum);
 
             if ($isValid !== true || strlen($dcnum) < 12) {
@@ -423,7 +423,7 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
             $this->add_notice_once(__('Expiration date is required!', 'lkn-wc-gateway-cielo'), 'error');
 
             return false;
-        } elseif (!empty($expDate)) {
+        } else {
             $expDateSplit = explode('/', $expDate);
 
             try {
@@ -457,7 +457,7 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
             $this->add_notice_once(__('CVV is required!', 'lkn-wc-gateway-cielo'), 'error');
 
             return false;
-        } elseif (!empty($cvv)) {
+        } else {
             $isValid = !preg_match('/\D/', $cvv);
 
             if ($isValid !== true || strlen($cvv) < 3) {
