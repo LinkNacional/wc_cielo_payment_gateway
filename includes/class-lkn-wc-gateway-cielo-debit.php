@@ -128,10 +128,10 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
         $env = $this->get_option('env');
 
         if ($env === 'production') {
-            wp_enqueue_script('lkn-dc-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-dc-script-prd.js', ['wp-i18n'], $this->version, false);
+            wp_enqueue_script('lkn-dc-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-dc-script-prd.js', ['wp-i18n', 'jquery'], $this->version, false);
             wp_set_script_translations('lkn-dc-script', 'lkn-wc-gateway-cielo', LKN_WC_CIELO_TRANSLATION_PATH);
         } else {
-            wp_enqueue_script('lkn-dc-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-dc-script-sdb.js', ['wp-i18n'], $this->version, false);
+            wp_enqueue_script('lkn-dc-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-dc-script-sdb.js', ['wp-i18n', 'jquery'], $this->version, false);
             wp_set_script_translations('lkn-dc-script', 'lkn-wc-gateway-cielo', LKN_WC_CIELO_TRANSLATION_PATH);
         }
 
