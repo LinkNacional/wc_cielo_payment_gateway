@@ -101,6 +101,12 @@ msgstr ""
 msgid "Allows debit card payment with Cielo API 3.0."
 msgstr ""
 
+msgid "Learn more how to configure."
+msgstr ""
+
+msgid "Cielo 3DS 2.0 registration required (ask for eCommerce support)."
+msgstr ""
+
 msgid "Client Id"
 msgstr ""
 

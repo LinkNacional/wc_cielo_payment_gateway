@@ -99,7 +99,13 @@ msgid "Cielo - Debit card"
 msgstr "Cielo - Cartão de débito"
 
 msgid "Allows debit card payment with Cielo API 3.0."
-msgstr "Permite pagamentos de cartão de débito com a Cielo API 3.0."
+msgstr "Permite pagamentos com cartão de débito através da Cielo API 3.0."
+
+msgid "Learn more how to configure."
+msgstr "Saiba mais sobre como configurar."
+
+msgid "Cielo 3DS 2.0 registration required (ask for eCommerce support)."
+msgstr "Necessário cadastro de Cielo 3DS 2.0 (solicitar para o suporte ecommerce)"
 
 msgid "Client Id"
 msgstr "Client Id"
