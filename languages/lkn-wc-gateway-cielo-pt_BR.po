@@ -244,3 +244,6 @@ msgstr "Quantidade de parcelas"
 
 msgid "Order payment failed. Installment quantity invalid."
 msgstr "Pagamento de pedido falhou. Quantidade de parcelas inválida."
+
+msgid "Invalid Cielo API 3.0 credentials."
+msgstr "Credenciais da Cielo API 3.0 inválidas."

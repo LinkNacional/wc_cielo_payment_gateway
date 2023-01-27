@@ -244,3 +244,6 @@ msgstr ""
 
 msgid "Order payment failed. Installment quantity invalid."
 msgstr ""
+
+msgid "Invalid Cielo API 3.0 credentials."
+msgstr ""
