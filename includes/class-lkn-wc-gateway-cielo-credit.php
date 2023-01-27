@@ -293,7 +293,6 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
      * @return boolean
      */
     public function validate_fields() {
-        // TODO disable validation
         $validateInputs = $this->get_option('input_validation', 'no');
         if ($validateInputs === 'no') {
             $ccnum = sanitize_text_field($_POST['lkn_ccno']);
