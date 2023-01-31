@@ -293,8 +293,8 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
      * @return boolean
      */
     public function validate_fields() {
-        $validateInputs = $this->get_option('input_validation', 'no');
-        if ($validateInputs === 'no') {
+        $validateCompatMode = $this->get_option('input_validation_compatibility', 'no');
+        if ($validateCompatMode === 'no') {
             $ccnum = sanitize_text_field($_POST['lkn_ccno']);
             $expDate = sanitize_text_field($_POST['lkn_cc_expdate']);
             $cvv = sanitize_text_field($_POST['lkn_cc_cvc']);
@@ -438,6 +438,8 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
     private function get_card_provider($cardNumber) {
         $brand = '';
         $brand = apply_filters('lkn_wc_cielo_get_card_brand', $brand, $cardNumber);
+
+        $this->log->log('error', 'GET BRAND CIELO CARD: ' . var_export($brand, true), ['source' => 'woocommerce-cielo-credit']);
 
         if (empty($brand)) {
             // Stores regex for Card Bin Tests

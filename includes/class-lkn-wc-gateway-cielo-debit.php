@@ -371,8 +371,8 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
      * @return boolean
      */
     public function validate_fields() {
-        $validateInputs = $this->get_option('input_validation', 'no');
-        if ($validateInputs === 'no') {
+        $validateCompatMode = $this->get_option('input_validation_compatibility', 'no');
+        if ($validateCompatMode === 'no') {
             $dcnum = sanitize_text_field($_POST['lkn_dcno']);
             $expDate = sanitize_text_field($_POST['lkn_dc_expdate']);
             $cvv = sanitize_text_field($_POST['lkn_dc_cvc']);
