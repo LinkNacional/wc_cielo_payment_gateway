@@ -1,3 +1,8 @@
+# 1.4.0
+* Implementação de modo de compatibilidade de validação;
+* Ajustes nas descrições de configurações;
+* Atualizar links de notices.
+
 # 1.3.2
 * Correção de mensagens de validação duplicadas;
 * Ajustes de carregamento de configurações;
