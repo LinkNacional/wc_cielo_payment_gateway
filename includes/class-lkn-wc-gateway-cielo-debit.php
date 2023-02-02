@@ -137,7 +137,7 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
 
         wp_enqueue_script('lkn-mask-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/formatter.js', ['jquery'], $this->version, false);
 
-        wp_enqueue_script('lkn-cielo-debit-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/BP.Mpi.3ds20.min.js', [], $this->version, false);
+        wp_enqueue_script('lkn-cielo-debit-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/BP.Mpi.3ds20.min.js', ['jquery'], $this->version, false);
 
         wp_enqueue_style('lkn-dc-style', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-dc-style.css', [], $this->version, 'all');
 
@@ -641,10 +641,14 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
             $message = __('Invalid Cielo API 3.0 credentials.', 'lkn-wc-gateway-cielo');
 
             throw new Exception($message);
+        } elseif (empty($eci)) {
+            $message = __('Invalid Cielo 3DS 2.0 authentication.', 'lkn-wc-gateway-cielo');
+
+            throw new Exception($message);
         }
 
         if ($currency !== 'BRL') {
-            $amount = apply_filters('lkn_convert_amount', $amount, $currency);
+            $amount = apply_filters('lkn_wc_cielo_convert_amount', $amount, $currency);
 
             $order->add_meta_data('amount_converted', $amount, true);
 
@@ -690,6 +694,16 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
                 ],
             ]);
         } else {
+            if (empty($cavv)) {
+                $message = __('Invalid Cielo 3DS 2.0 authentication.', 'lkn-wc-gateway-cielo');
+
+                throw new Exception($message);
+            } elseif (empty($xid)) {
+                $message = __('Invalid Cielo 3DS 2.0 authentication.', 'lkn-wc-gateway-cielo');
+
+                throw new Exception($message);
+            }
+
             $args['headers'] = [
                 'Content-Type' => 'application/json',
                 'MerchantId' => $merchantId,
