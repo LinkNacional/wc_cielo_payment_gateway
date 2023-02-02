@@ -16,8 +16,8 @@
             "Authentication disabled by the store": [
                 "Autenticação desabilitada pela loja"
             ],
-            "Error in the authentication process check that all fields are filled in correctly": [
-                "Erro no processo de autenticação verifique se todos os campos estão preenchidos corretamente"
+            "Error in the 3DS 2.0 authentication process check that your credentials are filled in correctly": [
+                "Erro no processo de autenticação 3DS 2.0 verifique se suas credenciais estão corretas"
             ],
             "Provider not supported by Cielo 3DS authentication": [
                 "Bandeira não suportada pela autenticação 3DS da Cielo"

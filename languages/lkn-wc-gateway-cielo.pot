@@ -247,3 +247,6 @@ msgstr ""
 
 msgid "Invalid Cielo API 3.0 credentials."
 msgstr ""
+
+msgid "Invalid Cielo 3DS 2.0 authentication."
+msgstr ""
