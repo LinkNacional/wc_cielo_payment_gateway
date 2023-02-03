@@ -75,7 +75,9 @@ Payment Gateway for Cielo API on WooCommerce plugin is dependent on WooCommerce 
 # 1.4.0
 * Validation compatibility mode implementation;
 * Tweaks to settings descriptions;
-* Update notice links.
+* Update notice links;
+* Storage of the number of installments in the order metadata;
+* Added amount of installments in the thank you page and in the new order email.
 
 = 1.3.2 =
 * Fixed duplicate validation messages;
