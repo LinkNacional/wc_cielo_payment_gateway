@@ -638,7 +638,7 @@ class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
                 $this->log->log('error', var_export($response->get_error_messages(), true), ['source' => 'woocommerce-cielo-credit']);
             }
 
-            $message = __('Order payment failed. To make a successful payment using credit card, please review the gateway settings.', 'lkn-wc-gateway-cielo');
+            $message = __('Order payment failed. Please review the gateway settings.', 'lkn-wc-gateway-cielo');
 
             throw new Exception($message);
         } else {

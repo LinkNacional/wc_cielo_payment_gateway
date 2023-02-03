@@ -83,7 +83,7 @@ msgstr ""
 msgid "CVV is required!"
 msgstr ""
 
-msgid "Order payment failed. To make a successful payment using credit card, please review the gateway settings."
+msgid "Order payment failed. Please review the gateway settings."
 msgstr ""
 
 msgid "Order payment failed. Make sure your credit card is valid."
@@ -249,4 +249,7 @@ msgid "Invalid Cielo API 3.0 credentials."
 msgstr ""
 
 msgid "Invalid Cielo 3DS 2.0 authentication."
+msgstr ""
+
+msgid "Installment"
 msgstr ""
