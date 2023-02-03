@@ -71,11 +71,7 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
         $this->description  = $this->get_option('description');
         $this->instructions = $this->get_option('instructions', $this->description);
 
-        if (function_exists('wc_get_logger')) {
-            $this->log = wc_get_logger();
-        } else {
-            $this->log = new WC_Logger();
-        }
+        $this->log = new WC_Logger();
 
         // Actions.
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'process_admin_options']);
