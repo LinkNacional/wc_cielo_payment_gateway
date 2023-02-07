@@ -83,8 +83,8 @@ msgstr "Data de expiração é obrigatória!"
 msgid "CVV is required!"
 msgstr "CVV é obrigatório!"
 
-msgid "Order payment failed. To make a successful payment using credit card, please review the gateway settings."
-msgstr "Pagamento do pedido falhou. Para realizar um pagamento usando o cartão de crédito, por favor verifique as configurações do método de pagamento."
+msgid "Order payment failed. Please review the gateway settings."
+msgstr "Pagamento do pedido falhou. Por favor verifique as configurações do método de pagamento."
 
 msgid "Order payment failed. Make sure your credit card is valid."
 msgstr "Pagamento de pedido falhou. Certifique-se que seu cartão de crédito é válido."
@@ -99,7 +99,13 @@ msgid "Cielo - Debit card"
 msgstr "Cielo - Cartão de débito"
 
 msgid "Allows debit card payment with Cielo API 3.0."
-msgstr "Permite pagamentos de cartão de débito com a Cielo API 3.0."
+msgstr "Permite pagamentos com cartão de débito através da Cielo API 3.0."
+
+msgid "Learn more how to configure."
+msgstr "Saiba mais sobre como configurar."
+
+msgid "Cielo 3DS 2.0 registration required (ask for eCommerce support)."
+msgstr "Necessário cadastro de Cielo 3DS 2.0 (solicitar para o suporte ecommerce)"
 
 msgid "Client Id"
 msgstr "Client Id"
@@ -132,7 +138,7 @@ msgid "Establishment category code for Cielo 3DS E-Commerce 3.0."
 msgstr "Código de categoria do estabelecimento para Cielo 3DS E-Commerce 3.0."
 
 msgid "Auth token generation failed."
-msgstr "Geração de token de atutenticação falhou."
+msgstr "Geração de token de autenticação falhou."
 
 msgid "Debit Card number is required!"
 msgstr "Número de cartão de débito é obrigatório!"
@@ -238,3 +244,12 @@ msgstr "Quantidade de parcelas"
 
 msgid "Order payment failed. Installment quantity invalid."
 msgstr "Pagamento de pedido falhou. Quantidade de parcelas inválida."
+
+msgid "Invalid Cielo API 3.0 credentials."
+msgstr "Credenciais da Cielo API 3.0 inválidas."
+
+msgid "Invalid Cielo 3DS 2.0 authentication."
+msgstr "Autenticação Cielo 3DS 2.0 inválida."
+
+msgid "Installment"
+msgstr "Parcelamento"

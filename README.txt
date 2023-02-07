@@ -1,10 +1,10 @@
 === Payment Gateway for Cielo API on WooCommerce ===
 Contributors: linknacional
-Donate link: https://www.linknacional.com.br/wordpress/plugins/
+Donate link: https://www.linknacional.com.br/wordpress/woocommerce/cielo/
 Tags: woocommerce, invoice, payment, paymethod, card, credit, debit
 Requires at least: 5.7
-Tested up to: 6.0
-Stable tag: 1.3.2
+Tested up to: 6.1
+Stable tag: 1.4.0
 Requires PHP: 7.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -71,6 +71,13 @@ Payment Gateway for Cielo API on WooCommerce plugin is dependent on WooCommerce 
 4. Debit card front page with payment fields.
 
 == Changelog ==
+
+# 1.4.0
+* Validation compatibility mode implementation;
+* Tweaks to settings descriptions;
+* Update notice links;
+* Storage of the number of installments in the order metadata;
+* Added amount of installments in the thank you page and in the new order email.
 
 = 1.3.2 =
 * Fixed duplicate validation messages;

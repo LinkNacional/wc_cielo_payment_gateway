@@ -1,9 +1,9 @@
 <?php
 /**
  * Plugin Name: Payment Gateway for Cielo API on WooCommerce
- * Plugin URI: https://www.linknacional.com.br/wordpress/plugins/
+ * Plugin URI: https://www.linknacional.com.br/wordpress/woocommerce/cielo/
  * Description: Adds the Cielo API 3.0 Payments gateway to your WooCommerce website.
- * Version: 1.3.2
+ * Version: 1.4.0
  *
  * Author: Link Nacional
  * Author URI: https://linknacional.com.br
@@ -40,11 +40,17 @@ class Lkn_WC_Cielo_Payment {
         // Cielo Payments gateway class.
         add_action('plugins_loaded', [__CLASS__, 'includes'], 0);
 
+        // New order email with installments.
+        add_filter('woocommerce_email_order_meta_fields', [__CLASS__, 'email_order_meta_fields'], 10, 3);
+
         // Make the Cielo Payments gateway available to WC.
         add_filter('woocommerce_payment_gateways', [__CLASS__, 'add_gateway']);
 
         // Meta links
         add_filter('plugin_action_links_' . plugin_basename(__FILE__), [__CLASS__, 'lkn_wc_cielo_plugin_row_meta'], 10, 2);
+
+        // Thank you page with installments.
+        add_action('woocommerce_order_details_after_order_table', [__CLASS__, 'order_details_after_order_table'], 10, 1);
     }
 
     /**
@@ -195,7 +201,7 @@ class Lkn_WC_Cielo_Payment {
     private static function setup_constants() {
         // Defines addon version number for easy reference.
         if (!defined('LKN_WC_CIELO_VERSION')) {
-            define('LKN_WC_CIELO_VERSION', '1.3.2');
+            define('LKN_WC_CIELO_VERSION', '1.4.0');
         }
         if (!defined('LKN_WC_CIELO_TRANSLATION_PATH')) {
             define('LKN_WC_CIELO_TRANSLATION_PATH', plugin_dir_path(__FILE__) . 'languages/');
@@ -247,6 +253,42 @@ class Lkn_WC_Cielo_Payment {
         );
 
         return array_merge($plugin_meta, $new_meta_links);
+    }
+
+    /**
+     * Show the Installments info in Thank you page
+     *
+     * @param  WC_Order $order
+     *
+     * @return void
+     */
+    public static function order_details_after_order_table($order) {
+        $installment = $order->get_meta('installments');
+
+        if ($installment && $installment > 1) {
+            echo '<div id="lkn-wc-installment-notice"><p><strong>' . esc_html__('Installment', 'lkn-wc-gateway-cielo') . ':</strong> ' . esc_html($installment) . 'x</p></div>';
+        }
+    }
+
+    /**
+     * Show the Installments info in the new order notification email
+     *
+     * @param  array $fields
+     * @param  boolean $sent_to_admin
+     * @param  WC_Order $order
+     *
+     * @return void
+     */
+    public static function email_order_meta_fields($fields, $sent_to_admin, $order) {
+        $installment = $order->get_meta('installments');
+        if ($installment && $installment > 1) {
+            $fields['installment'] = [
+                'label' => __('Installment', 'lkn-wc-gateway-cielo'),
+                'value' => $installment,
+            ];
+        }
+
+        return $fields;
     }
 }
 

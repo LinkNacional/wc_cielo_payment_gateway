@@ -1,3 +1,10 @@
+# 1.4.0
+* Implementação de modo de compatibilidade de validação;
+* Ajustes nas descrições de configurações;
+* Atualizar links de notices;
+* Armazenamento de quantidade de parcelas nos metadados do pedido;
+* Adicionado quantidade de parcelas na tela de obrigado e no e-mail de novo pedido.
+
 # 1.3.2
 * Correção de mensagens de validação duplicadas;
 * Ajustes de carregamento de configurações;

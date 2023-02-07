@@ -60,7 +60,7 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
         $this->supports = apply_filters('lkn_wc_cielo_debit_add_support', $this->supports);
 
         $this->method_title       = __('Cielo - Debit card', 'lkn-wc-gateway-cielo');
-        $this->method_description = __('Allows debit card payment with Cielo API 3.0.', 'lkn-wc-gateway-cielo');
+        $this->method_description = __('Allows debit card payment with Cielo API 3.0.', 'lkn-wc-gateway-cielo') . '<a href="https://www.linknacional.com.br/wordpress/woocommerce/cielo/#cartao-debito-cielo-configurar" target="_blank">' . __('Learn more how to configure.', 'lkn-wc-gateway-cielo') . '</a>';
 
         // Load the settings.
         $this->init_form_fields();
@@ -71,11 +71,7 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
         $this->description  = $this->get_option('description');
         $this->instructions = $this->get_option('instructions', $this->description);
 
-        if (function_exists('wc_get_logger')) {
-            $this->log = wc_get_logger();
-        } else {
-            $this->log = new WC_Logger();
-        }
+        $this->log = new WC_Logger();
 
         // Actions.
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'process_admin_options']);
@@ -137,7 +133,7 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
 
         wp_enqueue_script('lkn-mask-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/formatter.js', ['jquery'], $this->version, false);
 
-        wp_enqueue_script('lkn-cielo-debit-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/BP.Mpi.3ds20.min.js', [], $this->version, false);
+        wp_enqueue_script('lkn-cielo-debit-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/BP.Mpi.3ds20.min.js', ['jquery'], $this->version, false);
 
         wp_enqueue_style('lkn-dc-style', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-dc-style.css', [], $this->version, 'all');
 
@@ -174,13 +170,13 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
             'client_id' => [
                 'title'       => __('Client Id', 'lkn-wc-gateway-cielo'),
                 'type'        => 'password',
-                'description' => __('Cielo API 3.0 credentials.', 'lkn-wc-gateway-cielo'),
+                'description' => __('Cielo 3DS 2.0 registration required (ask for eCommerce support).', 'lkn-wc-gateway-cielo'),
                 'desc_tip'    => true,
             ],
             'client_secret' => [
                 'title'       => __('Client Secret', 'lkn-wc-gateway-cielo'),
                 'type'        => 'password',
-                'description' => __('Cielo API 3.0 credentials.', 'lkn-wc-gateway-cielo'),
+                'description' => __('Cielo 3DS 2.0 registration required (ask for eCommerce support).', 'lkn-wc-gateway-cielo'),
                 'desc_tip'    => true,
             ],
             'merchant_id' => [
@@ -371,18 +367,23 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
      * @return boolean
      */
     public function validate_fields() {
-        $dcnum = sanitize_text_field($_POST['lkn_dcno']);
-        $expDate = sanitize_text_field($_POST['lkn_dc_expdate']);
-        $cvv = sanitize_text_field($_POST['lkn_dc_cvc']);
+        $validateCompatMode = $this->get_option('input_validation_compatibility', 'no');
+        if ($validateCompatMode === 'no') {
+            $dcnum = sanitize_text_field($_POST['lkn_dcno']);
+            $expDate = sanitize_text_field($_POST['lkn_dc_expdate']);
+            $cvv = sanitize_text_field($_POST['lkn_dc_cvc']);
 
-        $validdcNumber = $this->validate_card_number($dcnum);
-        $validExpDate = $this->validate_exp_date($expDate);
-        $validCvv = $this->validate_cvv($cvv);
+            $validdcNumber = $this->validate_card_number($dcnum, true);
+            $validExpDate = $this->validate_exp_date($expDate, true);
+            $validCvv = $this->validate_cvv($cvv, true);
 
-        if ($validdcNumber === true && $validExpDate === true && $validCvv === true) {
-            return true;
+            if ($validdcNumber === true && $validExpDate === true && $validCvv === true) {
+                return true;
+            } else {
+                return false;
+            }
         } else {
-            return false;
+            return true;
         }
     }
 
@@ -390,19 +391,24 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
      * Validate card number
      *
      * @param  string $dcnum
+     * @param  boolean $renderNotice
      *
      * @return boolean
      */
-    private function validate_card_number($dcnum) {
+    private function validate_card_number($dcnum, $renderNotice) {
         if (empty($dcnum)) {
-            $this->add_notice_once(__('Debit Card number is required!', 'lkn-wc-gateway-cielo'), 'error');
+            if ($renderNotice) {
+                $this->add_notice_once(__('Debit Card number is required!', 'lkn-wc-gateway-cielo'), 'error');
+            }
 
             return false;
         } else {
             $isValid = !preg_match('/[^0-9\s]/', $dcnum);
 
             if ($isValid !== true || strlen($dcnum) < 12) {
-                $this->add_notice_once(__('Debit Card number is invalid!', 'lkn-wc-gateway-cielo'), 'error');
+                if ($renderNotice) {
+                    $this->add_notice_once(__('Debit Card number is invalid!', 'lkn-wc-gateway-cielo'), 'error');
+                }
 
                 return false;
             } else {
@@ -415,12 +421,15 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
      * Validate card expiration date
      *
      * @param  string $expDate
+     * @param  boolean $renderNotice
      *
      * @return boolean
      */
-    private function validate_exp_date($expDate) {
+    private function validate_exp_date($expDate, $renderNotice) {
         if (empty($expDate)) {
-            $this->add_notice_once(__('Expiration date is required!', 'lkn-wc-gateway-cielo'), 'error');
+            if ($renderNotice) {
+                $this->add_notice_once(__('Expiration date is required!', 'lkn-wc-gateway-cielo'), 'error');
+            }
 
             return false;
         } else {
@@ -431,7 +440,9 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
                 $today = new DateTime();
 
                 if ($today > $expDate) {
-                    $this->add_notice_once(__('Debit card is expired!', 'lkn-wc-gateway-cielo'), 'error');
+                    if ($renderNotice) {
+                        $this->add_notice_once(__('Debit card is expired!', 'lkn-wc-gateway-cielo'), 'error');
+                    }
 
                     return false;
                 } else {
@@ -449,10 +460,11 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
      * Validate card cvv
      *
      * @param  string $cvv
+     * @param  boolean $renderNotice
      *
      * @return boolean
      */
-    private function validate_cvv($cvv) {
+    private function validate_cvv($cvv, $renderNotice) {
         if (empty($cvv)) {
             $this->add_notice_once(__('CVV is required!', 'lkn-wc-gateway-cielo'), 'error');
 
@@ -582,6 +594,7 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
         $cardNum = preg_replace('/\s/', '', sanitize_text_field($_POST['lkn_dcno']));
         $cardExpSplit = explode('/', preg_replace('/\s/', '', sanitize_text_field($_POST['lkn_dc_expdate'])));
         $cardExp = $cardExpSplit[0] . '/20' . $cardExpSplit[1];
+        $cardExpShort = $cardExpSplit[0] . '/' . $cardExpSplit[1];
         $cardCvv = sanitize_text_field($_POST['lkn_dc_cvc']);
         $cardName = $order->get_billing_first_name() . ' ' . $order->get_billing_last_name();
 
@@ -604,8 +617,34 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
         $debug = $this->get_option('debug');
         $currency = $order->get_currency();
 
+        if ($this->validate_card_number($cardNum, false) === false) {
+            $message = __('Debit Card number is invalid!', 'lkn-wc-gateway-cielo');
+
+            throw new Exception($message);
+        } elseif ($this->validate_exp_date($cardExpShort, false) === false) {
+            $message = __('Expiration date is invalid!', 'lkn-wc-gateway-cielo');
+
+            throw new Exception($message);
+        } elseif ($this->validate_cvv($cardCvv, false) === false) {
+            $message = __('CVV is invalid!', 'lkn-wc-gateway-cielo');
+
+            throw new Exception($message);
+        } elseif (empty($merchantId)) {
+            $message = __('Invalid Cielo API 3.0 credentials.', 'lkn-wc-gateway-cielo');
+
+            throw new Exception($message);
+        } elseif (empty($merchantSecret)) {
+            $message = __('Invalid Cielo API 3.0 credentials.', 'lkn-wc-gateway-cielo');
+
+            throw new Exception($message);
+        } elseif (empty($eci)) {
+            $message = __('Invalid Cielo 3DS 2.0 authentication.', 'lkn-wc-gateway-cielo');
+
+            throw new Exception($message);
+        }
+
         if ($currency !== 'BRL') {
-            $amount = apply_filters('lkn_convert_amount', $amount, $currency);
+            $amount = apply_filters('lkn_wc_cielo_convert_amount', $amount, $currency);
 
             $order->add_meta_data('amount_converted', $amount, true);
 
@@ -651,6 +690,16 @@ class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
                 ],
             ]);
         } else {
+            if (empty($cavv)) {
+                $message = __('Invalid Cielo 3DS 2.0 authentication.', 'lkn-wc-gateway-cielo');
+
+                throw new Exception($message);
+            } elseif (empty($xid)) {
+                $message = __('Invalid Cielo 3DS 2.0 authentication.', 'lkn-wc-gateway-cielo');
+
+                throw new Exception($message);
+            }
+
             $args['headers'] = [
                 'Content-Type' => 'application/json',
                 'MerchantId' => $merchantId,
