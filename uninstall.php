@@ -1,14 +1,15 @@
 <?php
 
 /**
- * Uninstall Lkn_WC_Cielo_Payment
+ * Uninstall Lkn_WC_Cielo_Payment.
  *
  * @license     https://opensource.org/licenses/gpl-license GNU Public License
+ *
  * @since       1.0
  */
 
 // Exit if accessed directly.
-if (!defined('WP_UNINSTALL_PLUGIN')) {
+if ( ! defined('WP_UNINSTALL_PLUGIN')) {
     exit;
 }
 

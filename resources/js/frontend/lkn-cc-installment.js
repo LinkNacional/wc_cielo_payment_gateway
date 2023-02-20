@@ -48,7 +48,7 @@
                 option.value = i;
                 option.appendChild(text);
                 lknInstallmentSelect.appendChild(option);
-                if ((amount / (i + 1)) < 5) {
+                if ((amount / (i + 1)) < lkn_wc_cielo_credit.installment_min) {
                     break;
                 }
             }
