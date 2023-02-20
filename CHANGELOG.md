@@ -1,3 +1,9 @@
+# 1.5.0
+* Adição de regras de lintagem;
+* Adição de carregamento de atributos globais ao script de parcelamento;
+* Atualização de repositório para suportar devcontainers.
+
+
 # 1.4.0
 * Implementação de modo de compatibilidade de validação;
 * Ajustes nas descrições de configurações;
