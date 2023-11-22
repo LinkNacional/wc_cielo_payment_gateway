@@ -18,7 +18,7 @@ const { __ } = wp.i18n;
   const lknVerifyGateway = function () {
     const debitPaymethod = document.getElementById('payment_method_lkn_cielo_debit')
 
-    if (debitPaymethod.checked === false) {
+    if (debitPaymethod && debitPaymethod.checked === false) {
       const btnSubmit = document.getElementById('place_order')
       btnSubmit.setAttribute('type', 'submit')
       btnSubmit.removeEventListener('click', lknProccessButton, true)
@@ -31,11 +31,15 @@ const { __ } = wp.i18n;
     const debitPaymethod = document.getElementById('payment_method_lkn_cielo_debit')
     const paymentBox = document.getElementById('payment')
 
-    debitPaymethod.removeEventListener('click', lknLoadDebitFunctions, true)
-    debitPaymethod.addEventListener('click', lknLoadDebitFunctions, true)
+    if (debitPaymethod) {
+      debitPaymethod.removeEventListener('click', lknLoadDebitFunctions, true)
+      debitPaymethod.addEventListener('click', lknLoadDebitFunctions, true)
+    }
 
-    paymentBox.removeEventListener('click', lknVerifyGateway, true)
-    paymentBox.addEventListener('click', lknVerifyGateway, true)
+    if (paymentBox) {
+      paymentBox.removeEventListener('click', lknVerifyGateway, true)
+      paymentBox.addEventListener('click', lknVerifyGateway, true)
+    }
 
     $('body').on('updated_checkout', function () {
       lknLoadDebitFunctions()
@@ -43,11 +47,15 @@ const { __ } = wp.i18n;
       const debitPaymethod = document.getElementById('payment_method_lkn_cielo_debit')
       const paymentBox = document.getElementById('payment')
 
-      debitPaymethod.removeEventListener('click', lknLoadDebitFunctions, true)
-      debitPaymethod.addEventListener('click', lknLoadDebitFunctions, true)
+      if (debitPaymethod) {
+        debitPaymethod.removeEventListener('click', lknLoadDebitFunctions, true)
+        debitPaymethod.addEventListener('click', lknLoadDebitFunctions, true)
+      }
 
-      paymentBox.removeEventListener('click', lknVerifyGateway, true)
-      paymentBox.addEventListener('click', lknVerifyGateway, true)
+      if (paymentBox) {
+        paymentBox.removeEventListener('click', lknVerifyGateway, true)
+        paymentBox.addEventListener('click', lknVerifyGateway, true)
+      }
     })
   })
 })(jQuery)
@@ -86,7 +94,10 @@ function bpmpi_config () {
     onFailure: function (e) {
       // Card is not eligible for authentication, but the bearer failed payment
 
-      alert(__('Authentication failed check the card information and try again', 'lkn-wc-gateway-cielo'))
+      const lknDebitCCForm = document.getElementById('wc-lkn_cielo_debit-cc-form')
+      if (lknDebitCCForm) {
+        alert(__('Authentication failed check the card information and try again', 'lkn-wc-gateway-cielo'))
+      }
     },
     onUnenrolled: function (e) {
       // Card is not eligible for authentication (unauthenticable)
@@ -101,7 +112,10 @@ function bpmpi_config () {
     onError: function (e) {
       // Error on proccess in authentication
 
-      alert(__('Error in the 3DS 2.0 authentication process check that your credentials are filled in correctly', 'lkn-wc-gateway-cielo'))
+      const lknDebitCCForm = document.getElementById('wc-lkn_cielo_debit-cc-form')
+      if (lknDebitCCForm) {
+        alert(__('Error in the 3DS 2.0 authentication process check that your credentials are filled in correctly', 'lkn-wc-gateway-cielo'))
+      }
     },
     onUnsupportedBrand: function (e) {
       // Provider not supported for authentication

@@ -18,7 +18,7 @@ const { __ } = wp.i18n;
   const lknVerifyGateway = function () {
     const debitPaymethod = document.getElementById('payment_method_lkn_cielo_debit')
 
-    if (debitPaymethod.checked === false) {
+    if (debitPaymethod && debitPaymethod.checked === false) {
       const btnSubmit = document.getElementById('place_order')
       btnSubmit.setAttribute('type', 'submit')
       btnSubmit.removeEventListener('click', lknProccessButton, true)
@@ -31,11 +31,15 @@ const { __ } = wp.i18n;
     const debitPaymethod = document.getElementById('payment_method_lkn_cielo_debit')
     const paymentBox = document.getElementById('payment')
 
-    debitPaymethod.removeEventListener('click', lknLoadDebitFunctions, true)
-    debitPaymethod.addEventListener('click', lknLoadDebitFunctions, true)
+    if (debitPaymethod) {
+      debitPaymethod.removeEventListener('click', lknLoadDebitFunctions, true)
+      debitPaymethod.addEventListener('click', lknLoadDebitFunctions, true)
+    }
 
-    paymentBox.removeEventListener('click', lknVerifyGateway, true)
-    paymentBox.addEventListener('click', lknVerifyGateway, true)
+    if (paymentBox) {
+      paymentBox.removeEventListener('click', lknVerifyGateway, true)
+      paymentBox.addEventListener('click', lknVerifyGateway, true)
+    }
 
     $('body').on('updated_checkout', function () {
       lknLoadDebitFunctions()
@@ -43,11 +47,15 @@ const { __ } = wp.i18n;
       const debitPaymethod = document.getElementById('payment_method_lkn_cielo_debit')
       const paymentBox = document.getElementById('payment')
 
-      debitPaymethod.removeEventListener('click', lknLoadDebitFunctions, true)
-      debitPaymethod.addEventListener('click', lknLoadDebitFunctions, true)
+      if (debitPaymethod) {
+        debitPaymethod.removeEventListener('click', lknLoadDebitFunctions, true)
+        debitPaymethod.addEventListener('click', lknLoadDebitFunctions, true)
+      }
 
-      paymentBox.removeEventListener('click', lknVerifyGateway, true)
-      paymentBox.addEventListener('click', lknVerifyGateway, true)
+      if (paymentBox) {
+        paymentBox.removeEventListener('click', lknVerifyGateway, true)
+        paymentBox.addEventListener('click', lknVerifyGateway, true)
+      }
     })
   })
 })(jQuery)
