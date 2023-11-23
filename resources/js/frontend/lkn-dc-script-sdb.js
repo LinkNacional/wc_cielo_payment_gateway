@@ -26,10 +26,13 @@ const { __ } = wp.i18n;
   }
 
   $(window).load(function () {
-    lknLoadDebitFunctions()
-
     const debitPaymethod = document.getElementById('payment_method_lkn_cielo_debit')
+    const debitForm = document.getElementById('wc-lkn_cielo_debit-cc-form')
     const paymentBox = document.getElementById('payment')
+
+    if (debitPaymethod || debitForm) {
+      lknLoadDebitFunctions()
+    }
 
     if (debitPaymethod) {
       debitPaymethod.removeEventListener('click', lknLoadDebitFunctions, true)
@@ -42,10 +45,13 @@ const { __ } = wp.i18n;
     }
 
     $('body').on('updated_checkout', function () {
-      lknLoadDebitFunctions()
-
       const debitPaymethod = document.getElementById('payment_method_lkn_cielo_debit')
+      const debitForm = document.getElementById('wc-lkn_cielo_debit-cc-form')
       const paymentBox = document.getElementById('payment')
+
+      if (debitPaymethod || debitForm) {
+        lknLoadDebitFunctions()
+      }
 
       if (debitPaymethod) {
         debitPaymethod.removeEventListener('click', lknLoadDebitFunctions, true)

@@ -26,10 +26,13 @@ const { __ } = wp.i18n;
   }
 
   $(window).load(function () {
-    lknLoadDebitFunctions()
-
     const debitPaymethod = document.getElementById('payment_method_lkn_cielo_debit')
+    const debitForm = document.getElementById('wc-lkn_cielo_debit-cc-form')
     const paymentBox = document.getElementById('payment')
+
+    if (debitPaymethod || debitForm) {
+      lknLoadDebitFunctions()
+    }
 
     if (debitPaymethod) {
       debitPaymethod.removeEventListener('click', lknLoadDebitFunctions, true)
@@ -42,10 +45,13 @@ const { __ } = wp.i18n;
     }
 
     $('body').on('updated_checkout', function () {
-      lknLoadDebitFunctions()
-
+      const debitForm = document.getElementById('wc-lkn_cielo_debit-cc-form')
       const debitPaymethod = document.getElementById('payment_method_lkn_cielo_debit')
       const paymentBox = document.getElementById('payment')
+
+      if (debitPaymethod || debitForm) {
+        lknLoadDebitFunctions()
+      }
 
       if (debitPaymethod) {
         debitPaymethod.removeEventListener('click', lknLoadDebitFunctions, true)
@@ -94,7 +100,10 @@ function bpmpi_config () {
     onFailure: function (e) {
       // Card is not eligible for authentication, but the bearer failed payment
 
-      alert(__('Authentication failed check the card information and try again', 'lkn-wc-gateway-cielo'))
+      const lknDebitCCForm = document.getElementById('wc-lkn_cielo_debit-cc-form')
+      if (lknDebitCCForm) {
+        alert(__('Authentication failed check the card information and try again', 'lkn-wc-gateway-cielo'))
+      }
     },
     onUnenrolled: function (e) {
       // Card is not eligible for authentication (unauthenticable)
@@ -109,7 +118,10 @@ function bpmpi_config () {
     onError: function (e) {
       // Error on proccess in authentication
 
-      alert(__('Error in the 3DS 2.0 authentication process check that your credentials are filled in correctly', 'lkn-wc-gateway-cielo'))
+      const lknDebitCCForm = document.getElementById('wc-lkn_cielo_debit-cc-form')
+      if (lknDebitCCForm) {
+        alert(__('Error in the 3DS 2.0 authentication process check that your credentials are filled in correctly', 'lkn-wc-gateway-cielo'))
+      }
     },
     onUnsupportedBrand: function (e) {
       // Provider not supported for authentication
