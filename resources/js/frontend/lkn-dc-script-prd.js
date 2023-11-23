@@ -25,7 +25,7 @@ const { __ } = wp.i18n;
     }
   }
 
-  $(window).load(function () {
+  $(window).on('load', () => {
     const debitPaymethod = document.getElementById('payment_method_lkn_cielo_debit')
     const debitForm = document.getElementById('wc-lkn_cielo_debit-cc-form')
     const paymentBox = document.getElementById('payment')

@@ -2,7 +2,7 @@
 (function ($) {
   'use strict'
 
-  $(window).load(function () {
+  $(window).on('load', () => {
     lknWCCieloLoadMask()
     $('body').on('updated_checkout', lknWCCieloLoadMask)
   })
