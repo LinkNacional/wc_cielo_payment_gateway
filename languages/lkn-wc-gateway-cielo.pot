@@ -253,3 +253,6 @@ msgstr ""
 
 msgid "Installment"
 msgstr ""
+
+msgid "Proof of sale (NSU)"
+msgstr ""

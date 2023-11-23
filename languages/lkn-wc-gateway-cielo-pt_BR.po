@@ -253,3 +253,6 @@ msgstr "Autenticação Cielo 3DS 2.0 inválida."
 
 msgid "Installment"
 msgstr "Parcelamento"
+
+msgid "Proof of sale (NSU)"
+msgstr "Comprovante de venda (NSU)"

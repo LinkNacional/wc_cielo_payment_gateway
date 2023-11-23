@@ -502,6 +502,9 @@ final class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
             WC()->cart->empty_cart();
 
             $order->add_order_note(__('Payment completed successfully. Payment id:', 'lkn-wc-gateway-cielo') . ' ' . $responseDecoded->Payment->PaymentId);
+            $order->add_order_note(__('Proof of sale (NSU)', 'lkn-wc-gateway-cielo') . ' ' . $responseDecoded->Payment->ProofOfSale);
+            $order->update_meta_data('lkn_pos', $responseDecoded->Payment->ProofOfSale);
+            $order->save();
 
             // Return thankyou redirect
             return array(
