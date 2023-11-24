@@ -217,10 +217,10 @@ final class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
                 'description' => __('Cielo API 3.0 environment.', 'lkn-wc-gateway-cielo'),
                 'type' => 'select',
                 'options' => array(
-                    'production' => __('Produção', 'lkn-wc-gateway-cielo'),
-                    'sandbox' => __('Sandbox', 'lkn-wc-gateway-cielo'),
+                    'production' => __('Production', 'lkn-wc-gateway-cielo'),
+                    'sandbox' => __('Development', 'lkn-wc-gateway-cielo'),
                 ),
-                'default' => 'sandbox',
+                'default' => 'production',
                 'desc_tip' => true,
             ),
             'debug' => array(

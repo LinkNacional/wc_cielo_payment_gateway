@@ -182,9 +182,9 @@ final class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
                 'type' => 'select',
                 'options' => array(
                     'production' => __('Production', 'lkn-wc-gateway-cielo'),
-                    'sandbox' => __('Sandbox', 'lkn-wc-gateway-cielo'),
+                    'sandbox' => __('Development', 'lkn-wc-gateway-cielo'),
                 ),
-                'default' => 'sandbox',
+                'default' => 'production',
                 'desc_tip' => true,
             ),
             'debug' => array(
