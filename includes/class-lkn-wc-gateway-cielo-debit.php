@@ -226,7 +226,12 @@ final class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
             'debug' => array(
                 'title' => __('Debug', 'lkn-wc-gateway-cielo'),
                 'type' => 'checkbox',
-                'label' => __('Enable log capture for payments', 'lkn-wc-gateway-cielo'),
+                'label' => sprintf(
+                    '%1$s. <a href="%2$s">%3$s</a>',
+                    __('Enable log capture for payments', 'lkn-wc-gateway-cielo'),
+                    admin_url('admin.php?page=wc-status&tab=logs'),
+                    __('View logs', 'lkn-wc-gateway-cielo')
+                ),
                 'default' => 'no',
             ),
         );
