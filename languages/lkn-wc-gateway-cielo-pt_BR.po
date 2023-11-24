@@ -256,3 +256,6 @@ msgstr "Parcelamento"
 
 msgid "Proof of sale (NSU)"
 msgstr "Comprovante de venda (NSU)"
+
+msgid "Return code"
+msgstr "Código de retorno"

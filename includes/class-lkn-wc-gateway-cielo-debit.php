@@ -688,9 +688,28 @@ final class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
             // Remove cart
             WC()->cart->empty_cart();
 
-            $order->add_order_note(__('Payment completed successfully. Payment id:', 'lkn-wc-gateway-cielo') . ' ' . $responseDecoded->Payment->PaymentId);
-            $order->add_order_note(__('Proof of sale (NSU)', 'lkn-wc-gateway-cielo') . ' ' . $responseDecoded->Payment->ProofOfSale);
-            $order->update_meta_data('lkn_pos', $responseDecoded->Payment->ProofOfSale);
+            $order->update_meta_data('lkn_nsu', $responseDecoded->Payment->ProofOfSale);
+            $order->add_order_note(
+                __('Payment completed successfully. Payment id:', 'lkn-wc-gateway-cielo') .
+                ' ' .
+                $responseDecoded->Payment->PaymentId .
+                PHP_EOL .
+                __('Proof of sale (NSU)', 'lkn-wc-gateway-cielo') .
+                ' - ' .
+                $responseDecoded->Payment->ProofOfSale .
+                PHP_EOL .
+                'TID ' .
+                $responseDecoded->Payment->Tid .
+                ' - ' .
+                $provider .
+                ' (****' .
+                substr($cardNum, -4) .
+                ')' .
+                PHP_EOL .
+                __('Return code', 'lkn-wc-gateway-cielo') .
+                ' - ' .
+                $responseDecoded->Payment->ReturnCode
+            );
             $order->save();
 
             // Return thankyou redirect

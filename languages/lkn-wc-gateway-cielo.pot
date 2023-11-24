@@ -256,3 +256,6 @@ msgstr ""
 
 msgid "Proof of sale (NSU)"
 msgstr ""
+
+msgid "Return code"
+msgstr ""
