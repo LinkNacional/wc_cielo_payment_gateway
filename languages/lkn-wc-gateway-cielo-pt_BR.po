@@ -259,3 +259,9 @@ msgstr "Comprovante de venda (NSU)"
 
 msgid "Return code"
 msgstr "Código de retorno"
+
+msgid "Development"
+msgstr "Desenvolvimento"
+
+msgid "View logs"
+msgstr "Ver logs"

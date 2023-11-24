@@ -259,3 +259,9 @@ msgstr ""
 
 msgid "Return code"
 msgstr ""
+
+msgid "Development"
+msgstr ""
+
+msgid "View logs"
+msgstr ""
