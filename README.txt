@@ -72,6 +72,14 @@ Payment Gateway for Cielo API on WooCommerce plugin is dependent on WooCommerce 
 
 == Changelog ==
 
+= 1.6.0 =
+**27/11/2023**
+* 3DS script loading bug fix;
+* Added display of additional card information in order details;
+* Correction of mask bug in debit card fields;
+* Removal of deprecated functions from JQuery;
+* Added 'view logs' button in plugin settings.
+
 = 1.5.0 =
 * Implemented loading of global attributes to installment script.
 
