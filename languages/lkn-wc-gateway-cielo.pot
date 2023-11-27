@@ -253,3 +253,15 @@ msgstr ""
 
 msgid "Installment"
 msgstr ""
+
+msgid "Proof of sale (NSU)"
+msgstr ""
+
+msgid "Return code"
+msgstr ""
+
+msgid "Development"
+msgstr ""
+
+msgid "View logs"
+msgstr ""

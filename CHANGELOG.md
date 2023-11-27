@@ -1,8 +1,14 @@
+# 1.6.0 - 27/11/2023
+* Correção de bug de carregamento de script do 3DS;
+* Adição de exibição de informações adicionais do cartão nos detalhes do pedido;
+* Correção de bug de máscaras dos campos de cartão de débito;
+* Remoção de funções depreciadas do JQuery;
+* Adição de botão de 'ver logs' nas configurações do plugin.
+
 # 1.5.0
 * Adição de regras de lintagem;
 * Adição de carregamento de atributos globais ao script de parcelamento;
 * Atualização de repositório para suportar devcontainers.
-
 
 # 1.4.0
 * Implementação de modo de compatibilidade de validação;

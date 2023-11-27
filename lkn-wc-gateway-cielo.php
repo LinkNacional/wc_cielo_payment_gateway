@@ -4,18 +4,15 @@
  * Plugin URI: https://www.linknacional.com.br/wordpress/woocommerce/cielo/
  * Description: Adds the Cielo API 3.0 Payments gateway to your WooCommerce website.
  *
- * Version: 1.5.0
+ * Version: 1.6.0
  *
  * Author: Link Nacional
  * Author URI: https://linknacional.com.br
  *
  * Text Domain: lkn-wc-gateway-cielo
  * Domain Path: /languages/
- *
- * Requires at least: 5.7
- * Tested up to: 6.0
- *
- * Copyright: © 2022 Link Nacional.
+ * 
+ * Copyright: © 2023 Link Nacional.
  * License: GNU General Public License v3.0
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
  */
@@ -30,13 +27,13 @@ if ( ! defined('ABSPATH')) {
  *
  * @class Lkn_WC_Cielo_Payment
  */
-class Lkn_WC_Cielo_Payment {
+final class Lkn_WC_Cielo_Payment {
     /**
      * Show plugin dependency notice.
      *
      * @since
      */
-    public static function __lkn_wc_gateway_cielo_dependency_notice() {
+    public static function __lkn_wc_gateway_cielo_dependency_notice(): void {
         // Admin notice.
         $message = sprintf(
             '<strong>%1$s</strong> %2$s <a href="%3$s" target="_blank">%4$s</a>  %5$s %6$s+ %7$s.',
@@ -57,7 +54,7 @@ class Lkn_WC_Cielo_Payment {
      *
      * @since
      */
-    public static function __lkn_wc_gateway_cielo_inactive_notice() {
+    public static function __lkn_wc_gateway_cielo_inactive_notice(): void {
         // Admin notice.
         $message = sprintf(
             '<div class="notice notice-error"><p><strong>%1$s</strong> %2$s <a href="%3$s" target="_blank">%4$s</a> %5$s.</p></div>',
@@ -74,7 +71,7 @@ class Lkn_WC_Cielo_Payment {
     /**
      * Plugin bootstrapping.
      */
-    public static function init() {
+    public static function init(): void {
         // Load text domains
         add_action('init', array(__CLASS__, 'lkn_wc_gateway_cielo_load_textdomain'));
 
@@ -161,7 +158,7 @@ class Lkn_WC_Cielo_Payment {
     /**
      * Load the plugin text domain.
      */
-    public static function lkn_wc_gateway_cielo_load_textdomain() {
+    public static function lkn_wc_gateway_cielo_load_textdomain(): void {
         load_plugin_textdomain('lkn-wc-gateway-cielo', false, dirname(plugin_basename(__FILE__)) . '/languages');
     }
 
@@ -181,7 +178,7 @@ class Lkn_WC_Cielo_Payment {
     /**
      * Plugin includes.
      */
-    public static function includes() {
+    public static function includes(): void {
         Lkn_WC_Cielo_Payment::setup_constants();
         Lkn_WC_Cielo_Payment::check_environment();
 
@@ -236,7 +233,7 @@ class Lkn_WC_Cielo_Payment {
      *
      * @param WC_Order $order
      */
-    public static function order_details_after_order_table($order) {
+    public static function order_details_after_order_table($order): void {
         $installment = $order->get_meta('installments');
 
         if ($installment && $installment > 1) {
@@ -266,10 +263,10 @@ class Lkn_WC_Cielo_Payment {
     /**
      * Setup plugin constants for ease of use.
      */
-    private static function setup_constants() {
+    private static function setup_constants(): void {
         // Defines addon version number for easy reference.
         if ( ! defined('LKN_WC_CIELO_VERSION')) {
-            define('LKN_WC_CIELO_VERSION', '1.5.0');
+            define('LKN_WC_CIELO_VERSION', '1.6.0');
         }
         if ( ! defined('LKN_WC_CIELO_TRANSLATION_PATH')) {
             define('LKN_WC_CIELO_TRANSLATION_PATH', plugin_dir_path(__FILE__) . 'languages/');
