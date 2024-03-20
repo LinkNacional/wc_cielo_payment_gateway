@@ -8,6 +8,9 @@ msgstr ""
 msgid "Cielo - Credit card"
 msgstr ""
 
+msgid "To use the 3DS functionality it is necessary to register for 3DS 2.0 (request to eCommerce Support)."
+msgstr ""
+
 msgid "Allows credit card payment with Cielo API 3.0."
 msgstr ""
 
@@ -44,7 +47,7 @@ msgstr ""
 msgid "Invoice Description"
 msgstr ""
 
-msgid "Invoice description that the customer will see on your checkout."
+msgid "Invoice description that the customer will see on your checkout (special characters are not accepted)."
 msgstr ""
 
 msgid "Environment"

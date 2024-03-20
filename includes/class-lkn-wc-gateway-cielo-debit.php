@@ -61,8 +61,8 @@ final class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
         $this->supports = apply_filters('lkn_wc_cielo_debit_add_support', $this->supports);
 
         $this->method_title = __('Cielo - Debit card', 'lkn-wc-gateway-cielo');
-        $this->method_description = __('Allows debit card payment with Cielo API 3.0.', 'lkn-wc-gateway-cielo') . '<a href="https://www.linknacional.com.br/wordpress/woocommerce/cielo/#cartao-debito-cielo-configurar" target="_blank">' . __('Learn more how to configure.', 'lkn-wc-gateway-cielo') . '</a>';
-
+        $this->method_description = __('Allows debit card payment with Cielo API 3.0.', 'lkn-wc-gateway-cielo') . '<a href="https://www.linknacional.com.br/wordpress/woocommerce/cielo/#cartao-debito-cielo-configurar" target="_blank">' . __('Learn more how to configure.', 'lkn-wc-gateway-cielo') . '</a>' . '<br><br>' . '<p>' . __('To use the 3DS functionality it is necessary to register for 3DS 2.0 (request to eCommerce Support).', 'lkn-wc-gateway-cielo') . '<a href="https://www.cielo.com.br/atendimento/" target="_blank">' . __('Learn more how to configure.', 'lkn-wc-gateway-cielo') . '</a>' . '<p>';
+        
         // Load the settings.
         $this->init_form_fields();
         $this->init_settings();
@@ -209,8 +209,13 @@ final class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
                 'title' => __('Invoice Description', 'lkn-wc-gateway-cielo'),
                 'type' => 'text',
                 'default' => __('order', 'lkn-wc-gateway-cielo'),
-                'description' => __('Invoice description that the customer will see on your checkout.', 'lkn-wc-gateway-cielo'),
+                'description' => __('Invoice description that the customer will see on your checkout (special characters are not accepted).', 'lkn-wc-gateway-cielo'),
                 'desc_tip' => true,
+                'custom_attributes' => array(
+                    'maxlength' => 50, // Tamanho máximo permitido
+                    'pattern'=> '[a-zA-Z]+( [a-zA-Z]+)*', // não pode conter espaços, traços, caracteres especiais ou números, apenas letras
+                    'required' => 'required'
+                )
             ),
             'env' => array(
                 'title' => __('Environment', 'lkn-wc-gateway-cielo'),
@@ -459,8 +464,8 @@ final class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
             required
         >
     </div>
-    <div class="form-row form-row-last">
-        <label><?php _e('Card Code', 'lkn-wc-gateway-cielo'); ?>
+    <div class="form-row form-row-secund">
+        <label><?php _e('CVV', 'lkn-wc-gateway-cielo'); ?>
             <span class="required">*</span></label>
         <input
             id="lkn_dc_cvc"
@@ -544,6 +549,8 @@ final class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
         $amount = $order->get_total();
         $capture = ($this->get_option('capture', 'yes') == 'yes') ? true : false;
         $description = sanitize_text_field($this->get_option('invoiceDesc'));
+        $description = preg_replace('/[^a-zA-Z\s]+/', '', $description);
+        $description = preg_replace('/\s+/', ' ', $description);
         $provider = $this->get_card_provider($cardNum);
         $debug = $this->get_option('debug');
         $currency = $order->get_currency();
