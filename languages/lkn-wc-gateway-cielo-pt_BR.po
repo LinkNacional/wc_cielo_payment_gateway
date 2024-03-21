@@ -8,6 +8,9 @@ msgstr "Adiciona o método de pagamento Cielo API 3.0 para seu site WooCommerce.
 msgid "Cielo - Credit card"
 msgstr "Cielo - Cartão de crédito"
 
+msgid "Please contact Cielo for further assistance."
+msgstr "Por favor, entre em contato com a Cielo para mais assistência."
+
 msgid "To use the 3DS functionality it is necessary to register for 3DS 2.0 (request to eCommerce Support)."
 msgstr "Para utilizar a funcionalidade 3DS é necessário ter o cadastro de 3DS 2.0 (solicitar para o Suporte eCommerce)."
 

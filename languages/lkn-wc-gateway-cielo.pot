@@ -8,6 +8,9 @@ msgstr ""
 msgid "Cielo - Credit card"
 msgstr ""
 
+msgid "Please contact Cielo for further assistance."
+msgstr ""
+
 msgid "To use the 3DS functionality it is necessary to register for 3DS 2.0 (request to eCommerce Support)."
 msgstr ""
 

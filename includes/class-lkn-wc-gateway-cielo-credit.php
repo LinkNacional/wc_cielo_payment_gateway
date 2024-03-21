@@ -548,6 +548,18 @@ final class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
                 'redirect' => $this->get_return_url($order),
             );
         }
+        if (isset($responseDecoded->Payment->ReturnCode) && $responseDecoded->Payment->ReturnCode == 'GF') {
+            // Error GF detected, notify site admin
+            $error_message = "Return Code: " . $responseDecoded->Payment->ReturnCode . '. Return Message: ' .$responseDecoded->Payment->ReturnMessage . '.' . __('Please contact Cielo for further assistance.');
+            //wp_mail(get_option('admin_email'), 'Erro na transação Cielo', $error_message);
+
+            // Registrar a mensagem de erro em um arquivo de log
+            $this->log->log('error', $error_message, array('source' => 'woocommerce-cielo-credit'));
+
+            $message = __('Order payment failed. Make sure your credit card is valid.', 'lkn-wc-gateway-cielo');
+            
+            throw new Exception($message);
+        }
         if ('yes' === $debug) {
             $this->log->log('error', var_export($response, true), array('source' => 'woocommerce-cielo-credit'));
         }
