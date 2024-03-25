@@ -1,3 +1,10 @@
+# 1.7.0 - 25/03/2024
+* Correção de bug de carregamento de script do 3DS na opção cartão de débito;
+* Adição de lógica para lidar com respostas da API quando o código de retorno é "GF";
+* Ajuste na label de código de segurança;
+* Adição de descrição nas configurações do cartão de débito;
+* Adição de validação no campo de descrição da fatura;
+
 # 1.6.0 - 27/11/2023
 * Correção de bug de carregamento de script do 3DS;
 * Adição de exibição de informações adicionais do cartão nos detalhes do pedido;
