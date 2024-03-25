@@ -8,6 +8,12 @@ msgstr "Adiciona o método de pagamento Cielo API 3.0 para seu site WooCommerce.
 msgid "Cielo - Credit card"
 msgstr "Cielo - Cartão de crédito"
 
+msgid "Please contact Cielo for further assistance."
+msgstr "Por favor, entre em contato com a Cielo para mais assistência."
+
+msgid "To use the 3DS functionality it is necessary to register for 3DS 2.0 (request to eCommerce Support)."
+msgstr "Para utilizar a funcionalidade 3DS é necessário ter o cadastro de 3DS 2.0 (solicitar para o Suporte eCommerce)."
+
 msgid "Allows credit card payment with Cielo API 3.0."
 msgstr "Permite pagamentos com cartão de crédito através da Cielo API 3.0"
 
@@ -44,8 +50,8 @@ msgstr "Merchant Key"
 msgid "Invoice Description"
 msgstr "Descrição da fatura"
 
-msgid "Invoice description that the customer will see on your checkout."
-msgstr "Descrição da fatura que o cliente irá ver durante o pagamento."
+msgid "Invoice description that the customer will see on your checkout (special characters are not accepted)."
+msgstr "Descrição da fatura que o cliente irá ver durante o pagamento (não é aceito caracteres especiais)."
 
 msgid "Environment"
 msgstr "Ambiente"
@@ -73,6 +79,9 @@ msgstr "Data de expiração"
 
 msgid "Card Code"
 msgstr "Código de segurança"
+
+msgid "Security Code"
+msgstr "Cód. de Segurança"
 
 msgid "Credit Card number is required!"
 msgstr "Número de cartão de crédito é obrigatório!"
