@@ -80,6 +80,9 @@ msgstr ""
 msgid "Card Code"
 msgstr ""
 
+msgid "Security Code"
+msgstr ""
+
 msgid "Credit Card number is required!"
 msgstr ""
 

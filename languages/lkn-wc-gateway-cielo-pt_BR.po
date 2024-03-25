@@ -80,6 +80,9 @@ msgstr "Data de expiração"
 msgid "Card Code"
 msgstr "Código de segurança"
 
+msgid "Security Code"
+msgstr "Cód. de Segurança"
+
 msgid "Credit Card number is required!"
 msgstr "Número de cartão de crédito é obrigatório!"
 
