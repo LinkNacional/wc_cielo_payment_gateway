@@ -183,7 +183,7 @@ final class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
             ),
             'env' => array(
                 'title' => __('Environment', 'lkn-wc-gateway-cielo'),
-                'description' => __('Cielo API- sddasd 3.0 environment.', 'lkn-wc-gateway-cielo'),
+                'description' => __('Cielo API 3.0 environment.', 'lkn-wc-gateway-cielo'),
                 'type' => 'select',
                 'options' => array(
                     'production' => __('Production', 'lkn-wc-gateway-cielo'),
@@ -254,19 +254,18 @@ final class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
         <label><?php _e('Card Number', 'lkn-wc-gateway-cielo'); ?>
             <span class="required">*</span></label>
         <input id="lkn_ccno" name="lkn_ccno" type="tel" inputmode="numeric" class="lkn-card-num" maxlength="24"
-            placeholder="XXXX XXXX XXXX XXXX" required>
+            required>
     </div>
     <div class="form-row form-row-first">
         <label><?php _e('Expiry Date', 'lkn-wc-gateway-cielo'); ?>
             <span class="required">*</span></label>
-        <input id="lkn_cc_expdate" name="lkn_cc_expdate" type="tel" inputmode="numeric" placeholder="MM/YY"
-            class="lkn-card-exp" maxlength="7" required>
+        <input id="lkn_cc_expdate" name="lkn_cc_expdate" type="tel" inputmode="numeric" class="lkn-card-exp"
+            maxlength="7" required>
     </div>
     <div class="form-row form-row-secund">
         <label><?php _e('Security Code', 'lkn-wc-gateway-cielo'); ?>
             <span class="required">*</span></label>
-        <input id="lkn_cc_cvc" name="lkn_cc_cvc" type="tel" inputmode="numeric" placeholder="CVV" class="lkn-cvv"
-            maxlength="8" required>
+        <input id="lkn_cc_cvc" name="lkn_cc_cvc" type="tel" inputmode="numeric" class="lkn-cvv" maxlength="8" required>
     </div>
     <?php
             if ('yes' === $activeInstallment) {
@@ -504,7 +503,7 @@ final class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
         }
         if (isset($responseDecoded->Payment->ReturnCode) && 'GF' == $responseDecoded->Payment->ReturnCode) {
             // Error GF detected, notify site admin
-            $error_message = "Return Code: " . $responseDecoded->Payment->ReturnCode . '. Return Message: ' . $responseDecoded->Payment->ReturnMessage . '.' . __('Please contact Cielo for further assistance.');
+            $error_message = "Return Code: " . $responseDecoded->Payment->ReturnCode . '. Return Message: ' . $responseDecoded->Payment->ReturnMessage . '.' . __('Please contact Cielo for further assistance.',  'lkn-wc-gateway-cielo');
             //wp_mail(get_option('admin_email'), 'Erro na transação Cielo', $error_message);
 
             // Registrar a mensagem de erro em um arquivo de log
