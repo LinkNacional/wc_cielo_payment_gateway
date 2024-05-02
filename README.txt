@@ -1,12 +1,12 @@
 === Payment Gateway for Cielo API on WooCommerce ===
 Contributors: linknacional
 Donate link: https://www.linknacional.com.br/wordpress/woocommerce/cielo/
-Tags: woocommerce, invoice, payment, paymethod, card, credit, debit
+Tags: woocommerce, payment, paymethod, card, credit
 Requires at least: 5.7
-Tested up to: 6.4
+Tested up to: 6.5
 Stable tag: 1.7.0
 Requires PHP: 7.2
-License: GPLv2 or later
+License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 Payment Gateway for Cielo API on WooCommerce.
