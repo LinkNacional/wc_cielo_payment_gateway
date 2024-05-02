@@ -61,8 +61,8 @@ final class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
         $this->supports = apply_filters('lkn_wc_cielo_debit_add_support', $this->supports);
 
         $this->method_title = __('Cielo - Debit card', 'lkn-wc-gateway-cielo');
-        $this->method_description = __('Allows debit card payment with Cielo API 3.0.', 'lkn-wc-gateway-cielo') . '<a href="https://www.linknacional.com.br/wordpress/woocommerce/cielo/#cartao-debito-cielo-configurar" target="_blank">' . __('Learn more how to configure.', 'lkn-wc-gateway-cielo') . '</a>';
-
+        $this->method_description = __('Allows debit card payment with Cielo API 3.0.', 'lkn-wc-gateway-cielo') . '<a href="https://www.linknacional.com.br/wordpress/woocommerce/cielo/#cartao-debito-cielo-configurar" target="_blank">' . __('Learn more how to configure.', 'lkn-wc-gateway-cielo') . '</a>' . '<br><br>' . '<p>' . __('To use the 3DS functionality it is necessary to register for 3DS 2.0 (request to eCommerce Support).', 'lkn-wc-gateway-cielo') . '<a href="https://www.cielo.com.br/atendimento/" target="_blank">' . __('Learn more how to configure.', 'lkn-wc-gateway-cielo') . '</a>' . '<p>';
+        
         // Load the settings.
         $this->init_form_fields();
         $this->init_settings();
@@ -77,7 +77,6 @@ final class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
         // Actions.
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
 
-        // Action hook to load custom JavaScript/CSS
         add_action('wp_enqueue_scripts', array($this, 'payment_gateway_scripts'));
 
         // Action hook to load admin JavaScript
@@ -209,8 +208,13 @@ final class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
                 'title' => __('Invoice Description', 'lkn-wc-gateway-cielo'),
                 'type' => 'text',
                 'default' => __('order', 'lkn-wc-gateway-cielo'),
-                'description' => __('Invoice description that the customer will see on your checkout.', 'lkn-wc-gateway-cielo'),
+                'description' => __('Invoice description that the customer will see on your checkout (special characters are not accepted).', 'lkn-wc-gateway-cielo'),
                 'desc_tip' => true,
+                'custom_attributes' => array(
+                    'maxlength' => 50, // Tamanho máximo permitido
+                    'pattern' => '[a-zA-Z]+( [a-zA-Z]+)*', // não pode conter espaços, traços, caracteres especiais ou números, apenas letras
+                    'required' => 'required'
+                )
             ),
             'env' => array(
                 'title' => __('Environment', 'lkn-wc-gateway-cielo'),
@@ -309,170 +313,53 @@ final class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
 
         echo wpautop(wp_kses_post($this->description)); ?>
 
-<fieldset
-    id="wc-<?php echo esc_attr($this->id); ?>-cc-form"
-    class="wc-credit-card-form wc-payment-form"
-    style="background:transparent;"
->
+<fieldset id="wc-<?php echo esc_attr($this->id); ?>-cc-form"
+    class="wc-credit-card-form wc-payment-form" style="background:transparent;">
 
-    <input
-        type="hidden"
-        name="lkn_auth_enabled"
-        class="bpmpi_auth"
-        value="true"
-    />
-    <input
-        type="hidden"
-        name="lkn_auth_enabled_notifyonly"
-        class="bpmpi_auth_notifyonly"
-        value="true"
-    />
-    <input
-        type="hidden"
-        name="lkn_access_token"
-        class="bpmpi_accesstoken"
-        value="<?php esc_attr_e($accessToken); ?>"
-    />
-    <input
-        type="hidden"
-        size="50"
-        name="lkn_order_number"
-        class="bpmpi_ordernumber"
-        value="<?php esc_attr_e(uniqid()); ?>"
-    />
-    <input
-        type="hidden"
-        name="lkn_currency"
-        class="bpmpi_currency"
-        value="BRL"
-    />
-    <input
-        type="hidden"
-        size="50"
-        class="bpmpi_merchant_url"
-        value="<?php esc_attr_e($url); ?>"
-    />
-    <input
-        type="hidden"
-        size="50"
-        id="lkn_cielo_3ds_value"
-        name="lkn_amount"
-        class="bpmpi_totalamount"
-        value="<?php esc_attr_e($total_cart); ?>"
-    />
-    <input
-        type="hidden"
-        size="2"
-        name="lkn_installments"
-        class="bpmpi_installments"
-        value="1"
-    />
-    <input
-        type="hidden"
-        name="lkn_payment_method"
-        class="bpmpi_paymentmethod"
-        value="Debit"
-    />
-    <input
-        type="hidden"
-        id="lkn_bpmpi_cardnumber"
-        class="bpmpi_cardnumber"
-    />
-    <input
-        type="hidden"
-        id="lkn_bpmpi_expmonth"
-        maxlength="2"
-        name="lkn_card_expiry_month"
-        class="bpmpi_cardexpirationmonth"
-    />
-    <input
-        type="hidden"
-        id="lkn_bpmpi_expyear"
-        maxlength="4"
-        name="lkn_card_expiry_year"
-        class="bpmpi_cardexpirationyear"
-    />
-    <input
-        type="hidden"
-        size="50"
-        class="bpmpi_order_productcode"
-        value="PHY"
-    />
-    <input
-        type="hidden"
-        id="lkn_cavv"
-        name="lkn_cielo_3ds_cavv"
-        value=""
-    />
-    <input
-        type="hidden"
-        id="lkn_eci"
-        name="lkn_cielo_3ds_eci"
-        value=""
-    />
-    <input
-        type="hidden"
-        id="lkn_ref_id"
-        name="lkn_cielo_3ds_ref_id"
-        value=""
-    />
-    <input
-        type="hidden"
-        id="lkn_version"
-        name="lkn_cielo_3ds_version"
-        value=""
-    />
-    <input
-        type="hidden"
-        id="lkn_xid"
-        name="lkn_cielo_3ds_xid"
-        value=""
-    />
+    <input type="hidden" name="lkn_auth_enabled" class="bpmpi_auth" value="true" />
+    <input type="hidden" name="lkn_auth_enabled_notifyonly" class="bpmpi_auth_notifyonly" value="true" />
+    <input type="hidden" name="lkn_access_token" class="bpmpi_accesstoken"
+        value="<?php esc_attr_e($accessToken); ?>" />
+    <input type="hidden" size="50" name="lkn_order_number" class="bpmpi_ordernumber"
+        value="<?php esc_attr_e(uniqid()); ?>" />
+    <input type="hidden" name="lkn_currency" class="bpmpi_currency" value="BRL" />
+    <input type="hidden" size="50" class="bpmpi_merchant_url"
+        value="<?php esc_attr_e($url); ?>" />
+    <input type="hidden" size="50" id="lkn_cielo_3ds_value" name="lkn_amount" class="bpmpi_totalamount"
+        value="<?php esc_attr_e($total_cart); ?>" />
+    <input type="hidden" size="2" name="lkn_installments" class="bpmpi_installments" value="1" />
+    <input type="hidden" name="lkn_payment_method" class="bpmpi_paymentmethod" value="Debit" />
+    <input type="hidden" id="lkn_bpmpi_cardnumber" class="bpmpi_cardnumber" />
+    <input type="hidden" id="lkn_bpmpi_expmonth" maxlength="2" name="lkn_card_expiry_month"
+        class="bpmpi_cardexpirationmonth" />
+    <input type="hidden" id="lkn_bpmpi_expyear" maxlength="4" name="lkn_card_expiry_year"
+        class="bpmpi_cardexpirationyear" />
+    <input type="hidden" size="50" class="bpmpi_order_productcode" value="PHY" />
+    <input type="hidden" id="lkn_cavv" name="lkn_cielo_3ds_cavv" value="" />
+    <input type="hidden" id="lkn_eci" name="lkn_cielo_3ds_eci" value="" />
+    <input type="hidden" id="lkn_ref_id" name="lkn_cielo_3ds_ref_id" value="" />
+    <input type="hidden" id="lkn_version" name="lkn_cielo_3ds_version" value="" />
+    <input type="hidden" id="lkn_xid" name="lkn_cielo_3ds_xid" value="" />
 
     <?php do_action('woocommerce_credit_card_form_start', $this->id); ?>
 
     <div class="form-row form-row-wide">
         <label><?php _e('Card Number', 'lkn-wc-gateway-cielo'); ?>
             <span class="required">*</span></label>
-        <input
-            id="lkn_dcno"
-            name="lkn_dcno"
-            type="tel"
-            inputmode="numeric"
-            class="lkn-card-num"
-            maxlength="24"
-            placeholder="XXXX XXXX XXXX XXXX"
-            required
-        >
+        <input id="lkn_dcno" name="lkn_dcno" type="tel" inputmode="numeric" class="lkn-card-num" maxlength="24"
+            required>
     </div>
     <div class="form-row form-row-first">
         <label><?php _e('Expiry Date', 'lkn-wc-gateway-cielo'); ?>
             <span class="required">*</span></label>
-        <input
-            id="lkn_dc_expdate"
-            name="lkn_dc_expdate"
-            type="tel"
-            inputmode="numeric"
-            placeholder="MM/YY"
-            class="lkn-card-exp"
-            maxlength="7"
-            required
-        >
+        <input id="lkn_dc_expdate" name="lkn_dc_expdate" type="tel" inputmode="numeric" class="lkn-card-exp"
+            maxlength="7" required>
     </div>
-    <div class="form-row form-row-last">
-        <label><?php _e('Card Code', 'lkn-wc-gateway-cielo'); ?>
+    <div class="form-row form-row-secund">
+        <label><?php _e('Security Code', 'lkn-wc-gateway-cielo'); ?>
             <span class="required">*</span></label>
-        <input
-            id="lkn_dc_cvc"
-            name="lkn_dc_cvc"
-            type="tel"
-            inputmode="numeric"
-            autocomplete="off"
-            placeholder="CVV"
-            class="lkn-cvv"
-            maxlength="4"
-            required
-        >
+        <input id="lkn_dc_cvc" name="lkn_dc_cvc" type="tel" inputmode="numeric" autocomplete="off" class="lkn-cvv"
+            maxlength="4" required>
     </div>
     <div class="clear"></div>
 
@@ -544,6 +431,8 @@ final class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
         $amount = $order->get_total();
         $capture = ($this->get_option('capture', 'yes') == 'yes') ? true : false;
         $description = sanitize_text_field($this->get_option('invoiceDesc'));
+        $description = preg_replace('/[^a-zA-Z\s]+/', '', $description);
+        $description = preg_replace('/\s+/', ' ', $description);
         $provider = $this->get_card_provider($cardNum);
         $debug = $this->get_option('debug');
         $currency = $order->get_currency();
@@ -722,6 +611,18 @@ final class Lkn_WC_Gateway_Cielo_Debit extends WC_Payment_Gateway {
                 'result' => 'success',
                 'redirect' => $this->get_return_url($order),
             );
+        }
+        if (isset($responseDecoded->Payment->ReturnCode) && 'GF' == $responseDecoded->Payment->ReturnCode) {
+            // Error GF detected, notify site admin
+            $error_message = "Return Code: " . $responseDecoded->Payment->ReturnCode . '. Return Message: ' . $responseDecoded->Payment->ReturnMessage . '.' . __('Please contact Cielo for further assistance.', 'lkn-wc-gateway-cielo');
+            //wp_mail(get_option('admin_email'), 'Erro na transação Cielo', $error_message);
+
+            // Registrar a mensagem de erro em um arquivo de log
+            $this->log->log('error', $error_message, array('source' => 'woocommerce-cielo-credit'));
+
+            $message = __('Order payment failed. Make sure your credit card is valid.', 'lkn-wc-gateway-cielo');
+            
+            throw new Exception($message);
         }
         if ('yes' === $debug) {
             $this->log->log('error', var_export($response, true), array('source' => 'woocommerce-cielo-debit'));
