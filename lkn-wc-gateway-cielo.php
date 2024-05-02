@@ -17,6 +17,14 @@
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
  */
 
+use Lkn\WCCieloPaymentGateway\Includes\LknIntegrationRedeForWoocommerceWcCieloCreditBlocks;
+use Lkn\WCCieloPaymentGateway\Includes\LknIntegrationRedeForWoocommerceWcCieloDebitBlocks;
+use Lkn\WCCieloPaymentGateway\Includes\LknWCGatewayCieloCredit;
+use Lkn\WCCieloPaymentGateway\Includes\LknWCGatewayCieloDebit;
+
+require_once __DIR__ . '/vendor/autoload.php';
+
+
 // Exit if accessed directly.
 if ( ! defined('ABSPATH')) {
     exit;
@@ -27,7 +35,7 @@ if ( ! defined('ABSPATH')) {
  *
  * @class Lkn_WC_Cielo_Payment
  */
-final class Lkn_WC_Cielo_Payment {
+final class LknWCCieloPayment {
     /**
      * Show plugin dependency notice.
      *
@@ -75,6 +83,9 @@ final class Lkn_WC_Cielo_Payment {
         // Load text domains
         add_action('init', array(__CLASS__, 'lkn_wc_gateway_cielo_load_textdomain'));
 
+        add_action('beforewoocommerce_init', array(__CLASS__, 'wcEditorBlocksActive'));
+        add_action('woocommerce_blocks_payment_method_type_registration', array(__CLASS__, 'wcEditorBlocksAddPaymentMethod'));
+
         // Cielo Payments gateway class.
         add_action('plugins_loaded', array(__CLASS__, 'includes'), 0);
 
@@ -91,10 +102,30 @@ final class Lkn_WC_Cielo_Payment {
         add_action('woocommerce_order_details_after_order_table', array(__CLASS__, 'order_details_after_order_table'), 10, 1);
     }
 
-    /**
+    public static function wcEditorBlocksActive(): void {
+        if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
+            Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility(
+                'cart_checkout_blocks',
+                __FILE__,
+                true
+            );
+        }
+    }
+
+    public static function wcEditorBlocksAddPaymentMethod(Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry): void {
+        if ( ! class_exists( 'Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType' )) {
+            return;
+        }
+
+        $payment_method_registry->register( new LknIntegrationRedeForWoocommerceWcCieloCreditBlocks() );
+        $payment_method_registry->register( new LknIntegrationRedeForWoocommerceWcCieloDebitBlocks() );
+
+    } 
+
+    /**  
      * Check plugin environment.
      *
-     * @return bool|null
+     * @return bool|null 
      *
      * @since
      */
@@ -169,25 +200,19 @@ final class Lkn_WC_Cielo_Payment {
      * @param mixed $gateways
      */
     public static function add_gateway($gateways) {
-        $gateways[] = 'Lkn_WC_Gateway_Cielo_Credit';
-        $gateways[] = 'Lkn_WC_Gateway_Cielo_Debit';
+        $gateways[] = new LknWCGatewayCieloCredit();
+        $gateways[] = new LknWCGatewayCieloDebit();
 
         return $gateways;
     }
+
 
     /**
      * Plugin includes.
      */
     public static function includes(): void {
-        Lkn_WC_Cielo_Payment::setup_constants();
-        Lkn_WC_Cielo_Payment::check_environment();
-
-        // Make the Lkn_WC_Gateway_Cielo_Credit class available.
-        if (class_exists('WC_Payment_Gateway')) {
-            require_once 'includes/class-lkn-wc-gateway-cielo-credit.php';
-
-            require_once 'includes/class-lkn-wc-gateway-cielo-debit.php';
-        }
+        LknWCCieloPayment::setup_constants();
+        LknWCCieloPayment::check_environment();
     }
 
     /**
@@ -283,4 +308,4 @@ final class Lkn_WC_Cielo_Payment {
     }
 }
 
-Lkn_WC_Cielo_Payment::init();
+LknWCCieloPayment::init();

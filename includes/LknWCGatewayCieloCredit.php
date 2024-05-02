@@ -1,4 +1,12 @@
 <?php
+
+namespace Lkn\WCCieloPaymentGateway\Includes;
+
+use DateTime;
+use Exception;
+use WC_Logger;
+use WC_Payment_Gateway;
+
 /**
  * Lkn_WC_Gateway_Cielo_Credit class.
  *
@@ -19,7 +27,7 @@ if ( ! defined('ABSPATH')) {
  *
  * @version  1.0.0
  */
-final class Lkn_WC_Gateway_Cielo_Credit extends WC_Payment_Gateway {
+final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
     /**
      * Define instructions to configure and use this plugin.
      *
