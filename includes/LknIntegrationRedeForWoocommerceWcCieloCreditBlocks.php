@@ -43,6 +43,8 @@ final class LknIntegrationRedeForWoocommerceWcCieloCreditBlocks extends Abstract
         return array(
             'title' => $this->gateway->title,
             'description' => $this->gateway->description,
+            'installmentLimit ' => $this->gateway->get_option('installment_limit', 12),
+            'activeInstallment' => $this->gateway->get_option('installment_payment'),
         );
     }
 }
