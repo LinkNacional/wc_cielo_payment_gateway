@@ -1,8 +1,6 @@
 const settings_creditCard = window.wc.wcSettings.getSetting('lkn_cielo_credit_data', {});
 const label_creditCard = window.wp.htmlEntities.decodeEntities(settings_creditCard.title);
 const activeInstallment = window.wp.htmlEntities.decodeEntities(settings_creditCard.activeInstallment);
-const installmentLimit = window.wp.htmlEntities.decodeEntities(settings_creditCard.installmentLimit); // retornando undefined
-
 const Content_cieloCredit = props => {
   const totalAmount = document.querySelectorAll('.wc-block-formatted-money-amount')[1];
   const totalAmountString = totalAmount.innerHTML;
@@ -69,20 +67,24 @@ const Content_cieloCredit = props => {
     });
   };
   const wcComponents = window.wc.blocksComponents;
-  console.log(wcComponents);
   window.wp.element.useEffect(() => {
+    const installmentMin = 5;
     // Verifica se 'activeInstallment' é 'yes' e o valor total é maior que 10
     if (activeInstallment === 'yes' && totalAmountFloat > 10) {
       const maxInstallments = 12; // Limita o parcelamento até 12 vezes, deixei fixo para teste
-      console.log(maxInstallments);
+
       for (let index = 1; index <= maxInstallments; index++) {
         const installmentAmount = (totalAmountFloat / index).toLocaleString('pt-BR', {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2
         });
+        const nextInstallmentAmount = totalAmountFloat / index;
+        if (nextInstallmentAmount < installmentMin) {
+          break;
+        }
         setOptions(prevOptions => [...prevOptions, {
           key: index,
-          label: `${index}x de R$ ${installmentAmount}`
+          label: `${index}x de R$ ${installmentAmount} sem juros`
         }]);
       }
     } else {
@@ -95,7 +97,7 @@ const Content_cieloCredit = props => {
   window.wp.element.useEffect(() => {
     const unsubscribe = onPaymentSetup(async () => {
       // Verifica se todos os campos do creditObject estão preenchidos
-      const allFieldsFilled = Object.values(creditObject).every(field => field.trim() !== '');
+      const allFieldsFilled = Object.values(creditObject).every(field => field.trim() !== '');  
       if (allFieldsFilled) {
         return {
           type: emitResponse.responseTypes.SUCCESS,
@@ -104,7 +106,7 @@ const Content_cieloCredit = props => {
               lkn_ccno: creditObject.lkn_ccno,
               lkn_cc_expdate: creditObject.lkn_cc_expdate,
               lkn_cc_cvc: creditObject.lkn_cc_cvc,
-              lkn_credit_holder_name: creditObject.lkn_credit_holder_name,
+              lkn_cc_holder_name: creditObject.lkn_cc_holder_name,
               lkn_cc_installments: creditObject.lkn_cc_installments
             }
           }
@@ -147,17 +149,17 @@ const Content_cieloCredit = props => {
       updateCreditObject('lkn_cc_cvc', value);
     }
   }), /*#__PURE__*/React.createElement(wcComponents.TextInput, {
-    id: "lkn_credit_holder_name",
+    id: "lkn_cc_holder_name",
     label: "Nome do Titular do Cart\xE3o",
-    value: creditObject.lkn_credit_holder_name,
+    value: creditObject.lkn_cc_holder_name,
     onChange: value => {
-      updateCreditObject('lkn_credit_holder_name', value);
+      updateCreditObject('lkn_cc_holder_name', value);
     }
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       marginBottom: '20px'
     }
-  }), /*#__PURE__*/React.createElement(wcComponents.SortSelect, {
+  }), activeInstallment === 'yes' && /*#__PURE__*/React.createElement(wcComponents.SortSelect, {
     id: "lkn_cc_installments",
     label: "Parcelas:",
     value: creditObject.lkn_cc_installments,
