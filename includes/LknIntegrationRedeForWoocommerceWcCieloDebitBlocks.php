@@ -43,6 +43,10 @@ final class LknIntegrationRedeForWoocommerceWcCieloDebitBlocks extends AbstractP
         return array(
             'title' => $this->gateway->title,
             'description' => $this->gateway->description,
+            'accessToken' => $this->gateway->generate_debit_auth_token(),
+            'url' => get_page_link(),
+            'totalCart' => '', //TODO verificar como pegar valor do carrinho 
+            'orderNumber' => uniqid()
         );
     }
 }
