@@ -1,15 +1,10 @@
 const settings_creditCard = window.wc.wcSettings.getSetting('lkn_cielo_credit_data', {})
 const label_creditCard = window.wp.htmlEntities.decodeEntities(settings_creditCard.title)
 const activeInstallment  = window.wp.htmlEntities.decodeEntities(settings_creditCard.activeInstallment)
+const totalCartDebit  = window.wp.htmlEntities.decodeEntities(settings_creditCard.totalCart)
+
 
 const Content_cieloCredit = (props) => {
-
-  const totalAmount = document.querySelectorAll('.wc-block-formatted-money-amount')[1];
-  const totalAmountString = totalAmount.innerHTML;
-  const cleanTotalAmountString  = totalAmountString.replace(/[^\d.,]/g, '');
-  const formattedTotalAmountString = cleanTotalAmountString.replace(',', '.');
-  const totalAmountFloat = parseFloat(formattedTotalAmountString);
-
   const [options, setOptions] = window.wp.element.useState([])
 
   const { eventRegistration, emitResponse } = props
@@ -73,16 +68,16 @@ const Content_cieloCredit = (props) => {
   window.wp.element.useEffect(() => {
     const installmentMin = 5;
     // Verifica se 'activeInstallment' é 'yes' e o valor total é maior que 10
-    if (activeInstallment === 'yes' && totalAmountFloat > 10) {
+    if (activeInstallment === 'yes' && totalCartDebit > 10) {
       const maxInstallments =  12; // Limita o parcelamento até 12 vezes, deixei fixo para teste
       
       for (let index = 1; index <= maxInstallments; index++) {
-        const installmentAmount = (totalAmountFloat / index).toLocaleString('pt-BR', {
+        const installmentAmount = (totalCartDebit / index).toLocaleString('pt-BR', {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2
         });
 
-        const nextInstallmentAmount = totalAmountFloat / (index);
+        const nextInstallmentAmount = totalCartDebit / (index);
 
         if (nextInstallmentAmount < installmentMin) {
           break; 
@@ -96,7 +91,7 @@ const Content_cieloCredit = (props) => {
     }else{
         setOptions(prevOptions => [
           ...prevOptions,
-          { key: '1', label: `1x de R$ ${totalAmountFloat} (à vista)`}
+          { key: '1', label: `1x de R$ ${totalCartDebit} (à vista)`}
         ])
     }
   },[])
@@ -141,7 +136,7 @@ const Content_cieloCredit = (props) => {
   return (
     <>
       <div>
-        <h3 style={{ textAlign: 'center' }}>Informações do Cartão de Crédito</h3>
+        <h4>Pagamento processado pela Cielo API 3.0</h4>
       </div>
 
       <wcComponents.TextInput
@@ -209,7 +204,6 @@ const Block_Gateway_Credit_Card = {
   }
 };
 
-document.addEventListener('DOMContentLoaded', () => {
-  window.wc.wcBlocksRegistry.registerPaymentMethod(Block_Gateway_Credit_Card)
-})
+window.wc.wcBlocksRegistry.registerPaymentMethod(Block_Gateway_Credit_Card)
+
 

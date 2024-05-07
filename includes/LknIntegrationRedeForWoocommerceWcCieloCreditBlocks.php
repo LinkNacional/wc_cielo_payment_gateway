@@ -44,6 +44,7 @@ final class LknIntegrationRedeForWoocommerceWcCieloCreditBlocks extends Abstract
             'title' => $this->gateway->title,
             'description' => $this->gateway->description,
             'activeInstallment' => $this->gateway->get_option('installment_payment'),
+            'totalCart' => $this->gateway->lknGetCartTotal()
         );
     }
 }

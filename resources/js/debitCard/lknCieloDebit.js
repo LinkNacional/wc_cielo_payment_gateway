@@ -1,11 +1,13 @@
-const settings_debitCard = window.wc.wcSettings.getSetting('lkn_cielo_debit_data', {});
-const label_debitCard = window.wp.htmlEntities.decodeEntities(settings_debitCard.title);
-const accessToken = window.wp.htmlEntities.decodeEntities(settings_debitCard.accessToken);
-const url = window.wp.htmlEntities.decodeEntities(settings_debitCard.url);
-const totalCart = window.wp.htmlEntities.decodeEntities(settings_debitCard.totalCart);
-const orderNumber = window.wp.htmlEntities.decodeEntities(settings_debitCard.orderNumber);
-
+const settingsDebitCard = window.wc.wcSettings.getSetting('lkn_cielo_debit_data', {});
+const labelDebitCard = window.wp.htmlEntities.decodeEntities(settingsDebitCard.title);
+const accessToken = window.wp.htmlEntities.decodeEntities(settingsDebitCard.accessToken);
+const url = window.wp.htmlEntities.decodeEntities(settingsDebitCard.url);
+const totalCart = window.wp.htmlEntities.decodeEntities(settingsDebitCard.totalCart); //verificar isso
+const orderNumber = window.wp.htmlEntities.decodeEntities(settingsDebitCard.orderNumber);
+const dirScript3DS = window.wp.htmlEntities.decodeEntities(settingsDebitCard.dirScript3DS);
+const dirScriptConfig3DS = window.wp.htmlEntities.decodeEntities(settingsDebitCard.dirScriptConfig3DS);
 const Content_cieloDebit = props => {
+  const wcComponents = window.wc.blocksComponents;
   const {
     eventRegistration,
     emitResponse
@@ -61,7 +63,26 @@ const Content_cieloDebit = props => {
       [key]: value
     });
   };
-  const wcComponents = window.wc.blocksComponents;
+  window.wp.element.useEffect(() => {
+    const scriptUrl = dirScript3DS;
+    const existingScript = document.querySelector(`script[src="${scriptUrl}"]`);
+    if (!existingScript) {
+      const script = document.createElement('script');
+      script.src = scriptUrl;
+      script.async = true;
+      document.body.appendChild(script);
+    }
+  }, []);
+  window.wp.element.useEffect(() => {
+    const scriptUrl = dirScriptConfig3DS;
+    const existingScript = document.querySelector(`script[src="${scriptUrl}"]`);
+    if (!existingScript) {
+      const script = document.createElement('script');
+      script.src = scriptUrl;
+      script.async = true;
+      document.body.appendChild(script);
+    }
+  }, []);
   window.wp.element.useEffect(() => {
     const unsubscribe = onPaymentSetup(async () => {
       // Verifica se todos os campos do debitObject estão preenchidos
@@ -89,11 +110,7 @@ const Content_cieloDebit = props => {
       unsubscribe();
     };
   }, [debitObject, emitResponse.responseTypes.ERROR, emitResponse.responseTypes.SUCCESS, onPaymentSetup]);
-  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
-    style: {
-      textAlign: 'center'
-    }
-  }, "Informa\xE7\xF5es do Cart\xE3o de D\xE9bito")), /*#__PURE__*/React.createElement(wcComponents.TextInput, {
+  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h4", null, "Pagamento processado pela Cielo API 3.0")), /*#__PURE__*/React.createElement(wcComponents.TextInput, {
     id: "lkn_dcno",
     label: "N\xFAmero do Cart\xE3o",
     value: debitObject.lkn_dcno,
@@ -188,38 +205,38 @@ const Content_cieloDebit = props => {
     type: "hidden",
     id: "lkn_cavv",
     name: "lkn_cielo_3ds_cavv",
-    value: ""
+    value: true
   }), /*#__PURE__*/React.createElement("input", {
     type: "hidden",
     id: "lkn_eci",
     name: "lkn_cielo_3ds_eci",
-    value: ""
+    value: true
   }), /*#__PURE__*/React.createElement("input", {
     type: "hidden",
     id: "lkn_ref_id",
     name: "lkn_cielo_3ds_ref_id",
-    value: ""
+    value: true
   }), /*#__PURE__*/React.createElement("input", {
     type: "hidden",
     id: "lkn_version",
     name: "lkn_cielo_3ds_version",
-    value: ""
+    value: true
   }), /*#__PURE__*/React.createElement("input", {
     type: "hidden",
     id: "lkn_xid",
     name: "lkn_cielo_3ds_xid",
-    value: ""
+    value: true
   })));
 };
 const Block_Gateway_Debit_Card = {
   name: 'lkn_cielo_debit',
-  label: label_debitCard,
+  label: labelDebitCard,
   content: window.wp.element.createElement(Content_cieloDebit),
   edit: window.wp.element.createElement(Content_cieloDebit),
   canMakePayment: () => true,
-  ariaLabel: label_debitCard,
+  ariaLabel: labelDebitCard,
   supports: {
-    features: settings_debitCard.supports
+    features: settingsDebitCard.supports
   }
 };
 window.wc.wcBlocksRegistry.registerPaymentMethod(Block_Gateway_Debit_Card);

@@ -69,7 +69,6 @@ const { __ } = wp.i18n;
 function bpmpi_config () {
   return {
     onReady: function () {
-
     },
     onSuccess: function (e) {
       // Card is eligible for authentication, and the bearer successfully authenticated

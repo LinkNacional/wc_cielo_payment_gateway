@@ -40,13 +40,22 @@ final class LknIntegrationRedeForWoocommerceWcCieloDebitBlocks extends AbstractP
     }
 
     public function get_payment_method_data() {
+        if ($this->gateway->get_option('env') == 'sandbox') {
+            $dirScriptConfig3DS = LKN_WC_GATEWAY_CIELO_URL . 'resources/js/frontend/lkn-dc-script-sdb.js';
+        } else {
+            $dirScriptConfig3DS = LKN_WC_GATEWAY_CIELO_URL . 'resources/js/frontend/lkn-dc-script-prd.js';
+        }
+        
         return array(
             'title' => $this->gateway->title,
             'description' => $this->gateway->description,
             'accessToken' => $this->gateway->generate_debit_auth_token(),
             'url' => get_page_link(),
             'totalCart' => '', //TODO verificar como pegar valor do carrinho 
-            'orderNumber' => uniqid()
+            'orderNumber' => uniqid(),
+            'dirScript3DS' => LKN_WC_GATEWAY_CIELO_URL . 'resources/js/debitCard/BP.Mpi.3ds20.min.js',
+            'dirScriptConfig3DS' => $dirScriptConfig3DS,
+            'totalCart' => $this->gateway->lknGetCartTotal()
         );
     }
 }

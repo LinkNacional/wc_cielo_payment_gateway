@@ -530,6 +530,16 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
         throw new Exception($message);
     }
 
+    public static function lknGetCartTotal() {
+        $cart_items = WC()->cart->get_cart();
+        $total = 0;
+        foreach ($cart_items as $cart_item_key => $cart_item) {
+            $product = $cart_item['data'];
+            $total += $product->get_price() * $cart_item['quantity'];
+        }
+        return $total;
+    }
+
     /**
      * Proccess refund request in order.
      *

@@ -1,18 +1,21 @@
-const settings_debitCard = window.wc.wcSettings.getSetting('lkn_cielo_debit_data', {})
-const label_debitCard = window.wp.htmlEntities.decodeEntities(settings_debitCard.title)
-const accessToken = window.wp.htmlEntities.decodeEntities(settings_debitCard.accessToken)
-const url = window.wp.htmlEntities.decodeEntities(settings_debitCard.url)
-const totalCart = window.wp.htmlEntities.decodeEntities(settings_debitCard.totalCart)
-const orderNumber = window.wp.htmlEntities.decodeEntities(settings_debitCard.orderNumber)
+const settingsDebitCard = window.wc.wcSettings.getSetting('lkn_cielo_debit_data', {})
+const labelDebitCard = window.wp.htmlEntities.decodeEntities(settingsDebitCard.title)
+const accessToken = window.wp.htmlEntities.decodeEntities(settingsDebitCard.accessToken)
+const url = window.wp.htmlEntities.decodeEntities(settingsDebitCard.url)
+const totalCart = window.wp.htmlEntities.decodeEntities(settingsDebitCard.totalCart) //verificar isso
+const orderNumber = window.wp.htmlEntities.decodeEntities(settingsDebitCard.orderNumber)
+const dirScript3DS = window.wp.htmlEntities.decodeEntities(settingsDebitCard.dirScript3DS)
+const dirScriptConfig3DS = window.wp.htmlEntities.decodeEntities(settingsDebitCard.dirScriptConfig3DS)
 
 const Content_cieloDebit = (props) => {
+  const wcComponents = window.wc.blocksComponents
   const { eventRegistration, emitResponse } = props
   const { onPaymentSetup } = eventRegistration
 
   const [debitObject, setdebitObject] = window.wp.element.useState({
     lkn_dcno: '',
     lkn_dc_expdate: '',
-    lkn_dc_cvc: ''
+    lkn_dc_cvc: '',
   })
 
   const formatDebitCardNumber = value => {
@@ -60,7 +63,28 @@ const Content_cieloDebit = (props) => {
     })
   }
 
-  const wcComponents = window.wc.blocksComponents
+  window.wp.element.useEffect(() => {
+    const scriptUrl = dirScript3DS; 
+    const existingScript = document.querySelector(`script[src="${scriptUrl}"]`);
+    
+    if (!existingScript) {
+      const script = document.createElement('script');
+      script.src = scriptUrl;
+      script.async = true;
+      document.body.appendChild(script);
+    }
+  }, []);
+
+  window.wp.element.useEffect(() => {
+    const scriptUrl = dirScriptConfig3DS; 
+    const existingScript = document.querySelector(`script[src="${scriptUrl}"]`);
+    if(!existingScript){
+      const script = document.createElement('script');
+      script.src = scriptUrl;
+      script.async = true;
+      document.body.appendChild(script);
+    }
+  }, []);
 
   window.wp.element.useEffect(() => {
     const unsubscribe = onPaymentSetup(async () => {
@@ -74,7 +98,7 @@ const Content_cieloDebit = (props) => {
             paymentMethodData: {
               lkn_dcno: debitObject.lkn_dcno,
               lkn_dc_expdate: debitObject.lkn_dc_expdate,
-              lkn_dc_cvc: debitObject.lkn_dc_cvc,
+              lkn_dc_cvc: debitObject.lkn_dc_cvc
             },
           },
         };
@@ -100,7 +124,7 @@ const Content_cieloDebit = (props) => {
   return (
     <>
       <div>
-        <h3 style={{ textAlign: 'center' }}>Informações do Cartão de Débito</h3>
+        <h4>Pagamento processado pela Cielo API 3.0</h4>
       </div>
 
       <wcComponents.TextInput
@@ -144,25 +168,25 @@ const Content_cieloDebit = (props) => {
         <input type="hidden" id="lkn_bpmpi_expmonth" maxLength="2" name="lkn_card_expiry_month" className="bpmpi_cardexpirationmonth" />
         <input type="hidden" id="lkn_bpmpi_expyear" maxLength="4" name="lkn_card_expiry_year" className="bpmpi_cardexpirationyear" />
         <input type="hidden" size="50" className="bpmpi_order_productcode" value="PHY" />
-        <input type="hidden" id="lkn_cavv" name="lkn_cielo_3ds_cavv" value="" />
-        <input type="hidden" id="lkn_eci" name="lkn_cielo_3ds_eci" value="" />
-        <input type="hidden" id="lkn_ref_id" name="lkn_cielo_3ds_ref_id" value="" />
-        <input type="hidden" id="lkn_version" name="lkn_cielo_3ds_version" value="" />
-        <input type="hidden" id="lkn_xid" name="lkn_cielo_3ds_xid" value="" />
+        <input type="hidden" id="lkn_cavv" name="lkn_cielo_3ds_cavv" value />
+        <input type="hidden" id="lkn_eci" name="lkn_cielo_3ds_eci" value />
+        <input type="hidden" id="lkn_ref_id" name="lkn_cielo_3ds_ref_id" value />
+        <input type="hidden" id="lkn_version" name="lkn_cielo_3ds_version" value />
+        <input type="hidden" id="lkn_xid" name="lkn_cielo_3ds_xid" value />
       </div>
     </>
-  )}
-
+  )
+}
 
 const Block_Gateway_Debit_Card = {
   name: 'lkn_cielo_debit',
-  label: label_debitCard,
+  label: labelDebitCard,
   content: window.wp.element.createElement(Content_cieloDebit),
   edit: window.wp.element.createElement(Content_cieloDebit),
   canMakePayment: () => true,
-  ariaLabel: label_debitCard,
+  ariaLabel: labelDebitCard,
   supports: {
-    features: settings_debitCard.supports
+    features: settingsDebitCard.supports
   }
 };
 

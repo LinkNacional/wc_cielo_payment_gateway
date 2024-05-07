@@ -24,7 +24,6 @@ use Lkn\WCCieloPaymentGateway\Includes\LknWCGatewayCieloDebit;
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-
 // Exit if accessed directly.
 if ( ! defined('ABSPATH')) {
     exit;
@@ -119,7 +118,6 @@ final class LknWCCieloPayment {
 
         $payment_method_registry->register( new LknIntegrationRedeForWoocommerceWcCieloCreditBlocks() );
         $payment_method_registry->register( new LknIntegrationRedeForWoocommerceWcCieloDebitBlocks() );
-
     } 
 
     /**  
@@ -205,7 +203,6 @@ final class LknWCCieloPayment {
 
         return $gateways;
     }
-
 
     /**
      * Plugin includes.
@@ -301,6 +298,9 @@ final class LknWCCieloPayment {
         }
         if ( ! defined('LKN_WC_GATEWAY_CIELO_DIR')) {
             define('LKN_WC_GATEWAY_CIELO_DIR', plugin_dir_path(__FILE__));
+        }
+        if ( ! defined('LKN_WC_GATEWAY_CIELO_URL')) {
+            define('LKN_WC_GATEWAY_CIELO_URL', plugin_dir_url(__FILE__));
         }
         if ( ! defined('LKN_WC_GATEWAY_CIELO_MIN_WC_VERSION')) {
             define('LKN_WC_GATEWAY_CIELO_MIN_WC_VERSION', '5.0.0');
