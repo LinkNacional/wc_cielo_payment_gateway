@@ -2,7 +2,7 @@ const settingsDebitCard = window.wc.wcSettings.getSetting('lkn_cielo_debit_data'
 const labelDebitCard = window.wp.htmlEntities.decodeEntities(settingsDebitCard.title);
 const accessToken = window.wp.htmlEntities.decodeEntities(settingsDebitCard.accessToken);
 const url = window.wp.htmlEntities.decodeEntities(settingsDebitCard.url);
-const totalCart = window.wp.htmlEntities.decodeEntities(settingsDebitCard.totalCart); //verificar isso
+const totalCart = window.wp.htmlEntities.decodeEntities(settingsDebitCard.totalCart);
 const orderNumber = window.wp.htmlEntities.decodeEntities(settingsDebitCard.orderNumber);
 const dirScript3DS = window.wp.htmlEntities.decodeEntities(settingsDebitCard.dirScript3DS);
 const dirScriptConfig3DS = window.wp.htmlEntities.decodeEntities(settingsDebitCard.dirScriptConfig3DS);
@@ -85,20 +85,33 @@ const Content_cieloDebit = props => {
   }, []);
   window.wp.element.useEffect(() => {
     const unsubscribe = onPaymentSetup(async () => {
+      lknProccessButton();
       // Verifica se todos os campos do debitObject estão preenchidos
-      const allFieldsFilled = Object.values(debitObject).every(field => field.trim() !== '');
-      if (allFieldsFilled) {
-        return {
-          type: emitResponse.responseTypes.SUCCESS,
-          meta: {
-            paymentMethodData: {
-              lkn_dcno: debitObject.lkn_dcno,
-              lkn_dc_expdate: debitObject.lkn_dc_expdate,
-              lkn_dc_cvc: debitObject.lkn_dc_cvc
-            }
-          }
-        };
-      }
+      // const allFieldsFilled = Object.values(debitObject).every((field) => field.trim() !== '');
+      // const lkn_cavv = document.getElementById('lkn_cavv') as HTMLInputElement
+      // const lkn_eci = document.getElementById('lkn_eci') as HTMLInputElement
+      // const lkn_ref_id = document.getElementById('lkn_ref_id') as HTMLInputElement
+      // const lkn_version=  document.getElementById('lkn_version') as HTMLInputElement
+      // const lkn_xid = document.getElementById('lkn_xid') as HTMLInputElement
+
+      // if (allFieldsFilled) {
+      //   return {
+      //     type: emitResponse.responseTypes.SUCCESS,
+      //     meta: {
+      //       paymentMethodData: {
+      //         lkn_dcno: debitObject.lkn_dcno,
+      //         lkn_dc_expdate: debitObject.lkn_dc_expdate,
+      //         lkn_dc_cvc: debitObject.lkn_dc_cvc,
+      //         lkn_cavv: lkn_cavv.value,
+      //         lkn_eci: lkn_eci.value,
+      //         lkn_ref_id: lkn_ref_id.value,
+      //         lkn_version: lkn_version.value,
+      //         lkn_xid: lkn_xid.value,
+      //       },
+      //     },
+      //   };
+      // }
+
       return {
         type: emitResponse.responseTypes.ERROR,
         message: 'Por favor, preencha todos os campos.'
