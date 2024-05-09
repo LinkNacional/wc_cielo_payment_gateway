@@ -2,10 +2,11 @@ const settingsDebitCard = window.wc.wcSettings.getSetting('lkn_cielo_debit_data'
 const labelDebitCard = window.wp.htmlEntities.decodeEntities(settingsDebitCard.title)
 const accessToken = window.wp.htmlEntities.decodeEntities(settingsDebitCard.accessToken)
 const url = window.wp.htmlEntities.decodeEntities(settingsDebitCard.url)
-const totalCart = window.wp.htmlEntities.decodeEntities(settingsDebitCard.totalCart) 
+const totalCart = window.wp.htmlEntities.decodeEntities(settingsDebitCard.totalCart)
 const orderNumber = window.wp.htmlEntities.decodeEntities(settingsDebitCard.orderNumber)
 const dirScript3DS = window.wp.htmlEntities.decodeEntities(settingsDebitCard.dirScript3DS)
 const dirScriptConfig3DS = window.wp.htmlEntities.decodeEntities(settingsDebitCard.dirScriptConfig3DS)
+const translationsDebit = settingsDebitCard.translations
 
 const Content_cieloDebit = (props) => {
   const wcComponents = window.wc.blocksComponents
@@ -64,9 +65,19 @@ const Content_cieloDebit = (props) => {
   }
 
   window.wp.element.useEffect(() => {
-    const scriptUrl = dirScript3DS; 
+    const elemento = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0]
+
+    elemento.style.display = 'none';
+
+    return () => {
+      elemento.style.display = '';
+    };
+  })
+
+  window.wp.element.useEffect(() => {
+    const scriptUrl = dirScript3DS;
     const existingScript = document.querySelector(`script[src="${scriptUrl}"]`);
-    
+
     if (!existingScript) {
       const script = document.createElement('script');
       script.src = scriptUrl;
@@ -76,9 +87,9 @@ const Content_cieloDebit = (props) => {
   }, []);
 
   window.wp.element.useEffect(() => {
-    const scriptUrl = dirScriptConfig3DS; 
+    const scriptUrl = dirScriptConfig3DS;
     const existingScript = document.querySelector(`script[src="${scriptUrl}"]`);
-    if(!existingScript){
+    if (!existingScript) {
       const script = document.createElement('script');
       script.src = scriptUrl;
       script.async = true;
@@ -86,62 +97,69 @@ const Content_cieloDebit = (props) => {
     }
   }, []);
 
-  // Defina a função para lidar com o clique no botão de submit
-  const handleButtonClick = (event) => {
-    event.preventDefault(); // Evita o comportamento padrão de submissão do formulário
-    console.log('entrou')// Execute sua lógica personalizada ao clicar no botão
+
+  const handleButtonClick = () => {
+    // Verifica se todos os campos do debitObject estão preenchidos
+    const allFieldsFilled = Object.values(debitObject).every((field) => field.trim() !== '');
+  
+    // Seleciona os elementos dos campos de entrada
+    const cardNumberInput = document.getElementById('lkn_dcno');
+    const expDateInput = document.getElementById('lkn_dc_expdate');
+    const cvvInput = document.getElementById('lkn_dc_cvc');
+  
+    // Remove classes de erro e mensagens de validação existentes
+    cardNumberInput?.classList.remove('has-error');
+    expDateInput?.classList.remove('has-error');
+    cvvInput?.classList.remove('has-error');
+  
+    if (allFieldsFilled) {
+      lknProccessButton();
+    } else {
+      // Adiciona classes de erro aos campos vazios
+      if (debitObject.lkn_dcno.trim() === '') {
+        const parentDiv = cardNumberInput?.parentElement;
+        parentDiv?.classList.add('has-error');
+      }
+  
+      if (debitObject.lkn_dc_expdate.trim() === '') {
+        const parentDiv = expDateInput?.parentElement;
+        parentDiv?.classList.add('has-error');
+      }
+  
+      if (debitObject.lkn_dc_cvc.trim() === '') {
+        const parentDiv = cvvInput?.parentElement;
+        parentDiv?.classList.add('has-error');
+      }
+    }
   };
 
-  // Use useEffect para adicionar um event listener ao botão de submit
   window.wp.element.useEffect(() => {
-    const buttonSubmitAuth3ds = document.querySelector('.components-button.wc-block-components-button.wp-element-button.wc-block-components-checkout-place-order-button.contained');
-
-    if (buttonSubmitAuth3ds) {
-      buttonSubmitAuth3ds.addEventListener('click', handleButtonClick);
-
-      // Retorne uma função de limpeza para remover o event listener quando o componente for desmontado
-      return () => {
-        buttonSubmitAuth3ds.removeEventListener('click', handleButtonClick);
-      };
-    }
-  }, []);
-
-  window.wp.element.useEffect(() => {
-    const unsubscribe = onPaymentSetup(async (e) => {
-      e.preventDefault()
-      lknProccessButton ()
-      // Verifica se todos os campos do debitObject estão preenchidos
-      // const allFieldsFilled = Object.values(debitObject).every((field) => field.trim() !== '');
-      // const lkn_cavv = document.getElementById('lkn_cavv') as HTMLInputElement
-      // const lkn_eci = document.getElementById('lkn_eci') as HTMLInputElement
-      // const lkn_ref_id = document.getElementById('lkn_ref_id') as HTMLInputElement
-      // const lkn_version=  document.getElementById('lkn_version') as HTMLInputElement
-      // const lkn_xid = document.getElementById('lkn_xid') as HTMLInputElement
-
-      // if (allFieldsFilled) {
-      //   return {
-      //     type: emitResponse.responseTypes.SUCCESS,
-      //     meta: {
-      //       paymentMethodData: {
-      //         lkn_dcno: debitObject.lkn_dcno,
-      //         lkn_dc_expdate: debitObject.lkn_dc_expdate,
-      //         lkn_dc_cvc: debitObject.lkn_dc_cvc,
-      //         lkn_cavv: lkn_cavv.value,
-      //         lkn_eci: lkn_eci.value,
-      //         lkn_ref_id: lkn_ref_id.value,
-      //         lkn_version: lkn_version.value,
-      //         lkn_xid: lkn_xid.value,
-      //       },
-      //     },
-      //   };
-      // }
+    const unsubscribe = onPaymentSetup(async () => {
+      const Button3dsEnviar = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0].closest('form')
+      
+      const paymentCavv = Button3dsEnviar?.getAttribute('data-payment-cavv');
+      const paymentEci = Button3dsEnviar?.getAttribute('data-payment-eci');
+      const paymentReferenceId = Button3dsEnviar?.getAttribute('data-payment-ref_id');
+      const paymentVersion = Button3dsEnviar?.getAttribute('data-payment-version');
+      const paymentXid = Button3dsEnviar?.getAttribute('data-payment-xid');
 
       return {
-        type: emitResponse.responseTypes.ERROR,
-        message: 'Por favor, preencha todos os campos.',
+        type: emitResponse.responseTypes.SUCCESS,
+        meta: {
+          paymentMethodData: {
+            lkn_dcno: debitObject.lkn_dcno,
+            lkn_dc_expdate: debitObject.lkn_dc_expdate,
+            lkn_dc_cvc: debitObject.lkn_dc_cvc,
+            lkn_cielo_3ds_cavv: paymentCavv,
+            lkn_cielo_3ds_eci: paymentEci,
+            lkn_cielo_3ds_ref_id: paymentReferenceId,
+            lkn_cielo_3ds_version: paymentVersion,
+            lkn_cielo_3ds_xid: paymentXid,
+          },
+        },
       };
-
-    });
+    }
+    );
 
     // Cancela a inscrição quando este componente é desmontado.
     return () => {
@@ -161,30 +179,46 @@ const Content_cieloDebit = (props) => {
 
       <wcComponents.TextInput
         id="lkn_dcno"
-        label="Número do Cartão"
+        label={translationsDebit.cardNumber}
         value={debitObject.lkn_dcno}
         onChange={(value) => {
           updatedebitObject('lkn_dcno', formatDebitCardNumber(value))
         }}
+        required 
       />
 
       <wcComponents.TextInput
         id="lkn_dc_expdate"
-        label="Data de Validade"
+        label={translationsDebit.cardExpiryDate}
         value={debitObject.lkn_dc_expdate}
         onChange={(value) => {
           updatedebitObject('lkn_dc_expdate', value)
         }}
+        required 
       />
 
       <wcComponents.TextInput
         id="lkn_dc_cvc"
-        label="Código de Segurança (CVV)"
+        label={translationsDebit.securityCode}
         value={debitObject.lkn_dc_cvc}
         onChange={(value) => {
           updatedebitObject('lkn_dc_cvc', value)
         }}
+        required 
       />
+
+      <div style={{ marginBottom: '30px' }}></div>
+
+      <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <wcComponents.Button
+          id="sendOrder"
+          onClick={handleButtonClick}
+        >
+          <span>Finalizar pedido</span>
+        </wcComponents.Button>
+      </div>
+
+      <div style={{ marginBottom: '20px' }}></div>
 
       <div>
         <input type="hidden" name="lkn_auth_enabled" className="bpmpi_auth" value="true" />

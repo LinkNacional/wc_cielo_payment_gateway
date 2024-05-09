@@ -6,6 +6,7 @@ const totalCart = window.wp.htmlEntities.decodeEntities(settingsDebitCard.totalC
 const orderNumber = window.wp.htmlEntities.decodeEntities(settingsDebitCard.orderNumber);
 const dirScript3DS = window.wp.htmlEntities.decodeEntities(settingsDebitCard.dirScript3DS);
 const dirScriptConfig3DS = window.wp.htmlEntities.decodeEntities(settingsDebitCard.dirScriptConfig3DS);
+const translationsDebit = settingsDebitCard.translations;
 const Content_cieloDebit = props => {
   const wcComponents = window.wc.blocksComponents;
   const {
@@ -64,6 +65,13 @@ const Content_cieloDebit = props => {
     });
   };
   window.wp.element.useEffect(() => {
+    const elemento = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0];
+    elemento.style.display = 'none';
+    return () => {
+      elemento.style.display = '';
+    };
+  });
+  window.wp.element.useEffect(() => {
     const scriptUrl = dirScript3DS;
     const existingScript = document.querySelector(`script[src="${scriptUrl}"]`);
     if (!existingScript) {
@@ -83,38 +91,59 @@ const Content_cieloDebit = props => {
       document.body.appendChild(script);
     }
   }, []);
+  const handleButtonClick = () => {
+    // Verifica se todos os campos do debitObject estão preenchidos
+    const allFieldsFilled = Object.values(debitObject).every(field => field.trim() !== '');
+
+    // Seleciona os elementos dos campos de entrada
+    const cardNumberInput = document.getElementById('lkn_dcno');
+    const expDateInput = document.getElementById('lkn_dc_expdate');
+    const cvvInput = document.getElementById('lkn_dc_cvc');
+
+    // Remove classes de erro e mensagens de validação existentes
+    cardNumberInput?.classList.remove('has-error');
+    expDateInput?.classList.remove('has-error');
+    cvvInput?.classList.remove('has-error');
+    if (allFieldsFilled) {
+      lknProccessButton();
+    } else {
+      // Adiciona classes de erro aos campos vazios
+      if (debitObject.lkn_dcno.trim() === '') {
+        const parentDiv = cardNumberInput?.parentElement;
+        parentDiv?.classList.add('has-error');
+      }
+      if (debitObject.lkn_dc_expdate.trim() === '') {
+        const parentDiv = expDateInput?.parentElement;
+        parentDiv?.classList.add('has-error');
+      }
+      if (debitObject.lkn_dc_cvc.trim() === '') {
+        const parentDiv = cvvInput?.parentElement;
+        parentDiv?.classList.add('has-error');
+      }
+    }
+  };
   window.wp.element.useEffect(() => {
     const unsubscribe = onPaymentSetup(async () => {
-      lknProccessButton();
-      // Verifica se todos os campos do debitObject estão preenchidos
-      // const allFieldsFilled = Object.values(debitObject).every((field) => field.trim() !== '');
-      // const lkn_cavv = document.getElementById('lkn_cavv') as HTMLInputElement
-      // const lkn_eci = document.getElementById('lkn_eci') as HTMLInputElement
-      // const lkn_ref_id = document.getElementById('lkn_ref_id') as HTMLInputElement
-      // const lkn_version=  document.getElementById('lkn_version') as HTMLInputElement
-      // const lkn_xid = document.getElementById('lkn_xid') as HTMLInputElement
-
-      // if (allFieldsFilled) {
-      //   return {
-      //     type: emitResponse.responseTypes.SUCCESS,
-      //     meta: {
-      //       paymentMethodData: {
-      //         lkn_dcno: debitObject.lkn_dcno,
-      //         lkn_dc_expdate: debitObject.lkn_dc_expdate,
-      //         lkn_dc_cvc: debitObject.lkn_dc_cvc,
-      //         lkn_cavv: lkn_cavv.value,
-      //         lkn_eci: lkn_eci.value,
-      //         lkn_ref_id: lkn_ref_id.value,
-      //         lkn_version: lkn_version.value,
-      //         lkn_xid: lkn_xid.value,
-      //       },
-      //     },
-      //   };
-      // }
-
+      const Button3dsEnviar = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0].closest('form');
+      const paymentCavv = Button3dsEnviar?.getAttribute('data-payment-cavv');
+      const paymentEci = Button3dsEnviar?.getAttribute('data-payment-eci');
+      const paymentReferenceId = Button3dsEnviar?.getAttribute('data-payment-ref_id');
+      const paymentVersion = Button3dsEnviar?.getAttribute('data-payment-version');
+      const paymentXid = Button3dsEnviar?.getAttribute('data-payment-xid');
       return {
-        type: emitResponse.responseTypes.ERROR,
-        message: 'Por favor, preencha todos os campos.'
+        type: emitResponse.responseTypes.SUCCESS,
+        meta: {
+          paymentMethodData: {
+            lkn_dcno: debitObject.lkn_dcno,
+            lkn_dc_expdate: debitObject.lkn_dc_expdate,
+            lkn_dc_cvc: debitObject.lkn_dc_cvc,
+            lkn_cielo_3ds_cavv: paymentCavv,
+            lkn_cielo_3ds_eci: paymentEci,
+            lkn_cielo_3ds_ref_id: paymentReferenceId,
+            lkn_cielo_3ds_version: paymentVersion,
+            lkn_cielo_3ds_xid: paymentXid
+          }
+        }
       };
     });
 
@@ -125,24 +154,43 @@ const Content_cieloDebit = props => {
   }, [debitObject, emitResponse.responseTypes.ERROR, emitResponse.responseTypes.SUCCESS, onPaymentSetup]);
   return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h4", null, "Pagamento processado pela Cielo API 3.0")), /*#__PURE__*/React.createElement(wcComponents.TextInput, {
     id: "lkn_dcno",
-    label: "N\xFAmero do Cart\xE3o",
+    label: translationsDebit.cardNumber,
     value: debitObject.lkn_dcno,
     onChange: value => {
       updatedebitObject('lkn_dcno', formatDebitCardNumber(value));
-    }
+    },
+    required: true
   }), /*#__PURE__*/React.createElement(wcComponents.TextInput, {
     id: "lkn_dc_expdate",
-    label: "Data de Validade",
+    label: translationsDebit.cardExpiryDate,
     value: debitObject.lkn_dc_expdate,
     onChange: value => {
       updatedebitObject('lkn_dc_expdate', value);
-    }
+    },
+    required: true
   }), /*#__PURE__*/React.createElement(wcComponents.TextInput, {
     id: "lkn_dc_cvc",
-    label: "C\xF3digo de Seguran\xE7a (CVV)",
+    label: translationsDebit.securityCode,
     value: debitObject.lkn_dc_cvc,
     onChange: value => {
       updatedebitObject('lkn_dc_cvc', value);
+    },
+    required: true
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: '30px'
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'center'
+    }
+  }, /*#__PURE__*/React.createElement(wcComponents.Button, {
+    id: "sendOrder",
+    onClick: handleButtonClick
+  }, /*#__PURE__*/React.createElement("span", null, "Finalizar pedido"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: '20px'
     }
   }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("input", {
     type: "hidden",

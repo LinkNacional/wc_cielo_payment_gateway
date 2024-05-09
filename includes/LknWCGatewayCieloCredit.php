@@ -706,6 +706,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
         $brand = '';
         $brand = apply_filters('lkn_wc_cielo_get_card_brand', $brand, $cardNumber);
 
+        //TODO verificar esse log que tá salvando
         $this->log->log('error', 'GET BRAND CIELO CARD: ' . var_export($brand, true), array('source' => 'woocommerce-cielo-credit'));
 
         if (empty($brand)) {

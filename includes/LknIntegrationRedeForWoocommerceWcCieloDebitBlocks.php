@@ -54,7 +54,12 @@ final class LknIntegrationRedeForWoocommerceWcCieloDebitBlocks extends AbstractP
             'orderNumber' => uniqid(),
             'dirScript3DS' => LKN_WC_GATEWAY_CIELO_URL . 'resources/js/debitCard/BP.Mpi.3ds20.min.js',
             'dirScriptConfig3DS' => $dirScriptConfig3DS,
-            'totalCart' => $this->gateway->lknGetCartTotal()
+            'totalCart' => $this->gateway->lknGetCartTotal(),
+            'translations' => [
+                'cardNumber' => __('Card Number', 'lkn-wc-gateway-cielo'),
+                'cardExpiryDate' => __('Expiry Date', 'lkn-wc-gateway-cielo'),
+                'securityCode' => __('Security Code', 'lkn-wc-gateway-cielo'),
+            ]
         );
     }
 }

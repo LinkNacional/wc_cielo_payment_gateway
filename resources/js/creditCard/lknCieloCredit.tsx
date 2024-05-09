@@ -2,7 +2,8 @@ const settings_creditCard = window.wc.wcSettings.getSetting('lkn_cielo_credit_da
 const label_creditCard = window.wp.htmlEntities.decodeEntities(settings_creditCard.title)
 const activeInstallment  = window.wp.htmlEntities.decodeEntities(settings_creditCard.activeInstallment)
 const totalCartDebit  = window.wp.htmlEntities.decodeEntities(settings_creditCard.totalCart)
-
+const installmentLimit = window.wp.htmlEntities.decodeEntities(settings_creditCard.installmentLimit);
+const translations = settings_creditCard.translations
 
 const Content_cieloCredit = (props) => {
   const [options, setOptions] = window.wp.element.useState([])
@@ -14,7 +15,6 @@ const Content_cieloCredit = (props) => {
     lkn_ccno: '',
     lkn_cc_expdate: '',
     lkn_cc_cvc: '',
-    lkn_cc_holder_name: '',
     lkn_cc_installments: '1', // Definir padrão como 1 parcela
   })
 
@@ -69,7 +69,7 @@ const Content_cieloCredit = (props) => {
     const installmentMin = 5;
     // Verifica se 'activeInstallment' é 'yes' e o valor total é maior que 10
     if (activeInstallment === 'yes' && totalCartDebit > 10) {
-      const maxInstallments =  12; // Limita o parcelamento até 12 vezes, deixei fixo para teste
+      const maxInstallments = installmentLimit; // Limita o parcelamento até 12 vezes, deixei fixo para teste
       
       for (let index = 1; index <= maxInstallments; index++) {
         const installmentAmount = (totalCartDebit / index).toLocaleString('pt-BR', {
@@ -109,7 +109,6 @@ const Content_cieloCredit = (props) => {
               lkn_ccno: creditObject.lkn_ccno,
               lkn_cc_expdate: creditObject.lkn_cc_expdate,
               lkn_cc_cvc: creditObject.lkn_cc_cvc,
-              lkn_cc_holder_name: creditObject.lkn_cc_holder_name,
               lkn_cc_installments: creditObject.lkn_cc_installments
             },
           },
@@ -141,7 +140,7 @@ const Content_cieloCredit = (props) => {
 
       <wcComponents.TextInput
         id="lkn_ccno"
-        label="Número do Cartão"
+        label={translations.cardNumber}
         value={creditObject.lkn_ccno}
         onChange={(value) => {
           updateCreditObject('lkn_ccno', formatCreditCardNumber(value))
@@ -150,7 +149,7 @@ const Content_cieloCredit = (props) => {
 
       <wcComponents.TextInput
         id="lkn_cc_expdate"
-        label="Data de Validade"
+        label={translations.cardExpiryDate}
         value={creditObject.lkn_cc_expdate}
         onChange={(value) => {
           updateCreditObject('lkn_cc_expdate', value)
@@ -159,19 +158,10 @@ const Content_cieloCredit = (props) => {
 
       <wcComponents.TextInput
         id="lkn_cc_cvc"
-        label="Código de Segurança (CVV)"
+        label={translations.securityCode}
         value={creditObject.lkn_cc_cvc}
         onChange={(value) => {
           updateCreditObject('lkn_cc_cvc', value)
-        }}
-      />
-
-      <wcComponents.TextInput
-        id="lkn_cc_holder_name"
-        label="Nome do Titular do Cartão"
-        value={creditObject.lkn_cc_holder_name}
-        onChange={(value) => {
-          updateCreditObject('lkn_cc_holder_name', value)
         }}
       />
 
@@ -180,7 +170,7 @@ const Content_cieloCredit = (props) => {
       {activeInstallment === 'yes' && (
         <wcComponents.SortSelect
           id="lkn_cc_installments"
-          label="Parcelas:"
+          label={translations.installments}
           value={creditObject.lkn_cc_installments}
           onChange={(event) => {
             updateCreditObject('lkn_cc_installments', event.target.value)

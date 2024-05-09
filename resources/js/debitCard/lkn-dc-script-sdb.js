@@ -14,13 +14,25 @@ function bpmpi_config () {
       const version = e.Version
       const referenceId = e.ReferenceId
 
-      document.getElementById('lkn_cavv').value = cavv
-      document.getElementById('lkn_eci').value = eci
-      document.getElementById('lkn_ref_id').value = referenceId
-      document.getElementById('lkn_version').value = version
-      document.getElementById('lkn_xid').value = xid
+      const Form3dsButton = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0].closest('form')
 
-      //submeter form aqui 
+      Form3dsButton.setAttribute('data-payment-cavv', cavv)
+      Form3dsButton.setAttribute('data-payment-eci', eci)
+      Form3dsButton.setAttribute('data-payment-ref_id', referenceId)
+      Form3dsButton.setAttribute('data-payment-version', version)
+      Form3dsButton.setAttribute('data-payment-xid', xid)
+
+      if (Form3dsButton) {
+        const Button3ds = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0]
+        const event = new MouseEvent('click', {
+          bubbles: true,
+          cancelable: true,
+          view: window
+        })
+        Button3ds.dispatchEvent(event)
+      } else {
+        console.error('Form3dsButton não encontrado.')
+      }
     },
     onFailure: function (e) {
       // Card is not eligible for authentication, but the bearer failed payment
