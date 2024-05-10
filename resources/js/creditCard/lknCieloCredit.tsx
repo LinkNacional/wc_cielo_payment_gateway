@@ -1,7 +1,7 @@
 const settings_creditCard = window.wc.wcSettings.getSetting('lkn_cielo_credit_data', {})
 const label_creditCard = window.wp.htmlEntities.decodeEntities(settings_creditCard.title)
 const activeInstallment  = window.wp.htmlEntities.decodeEntities(settings_creditCard.activeInstallment)
-const totalCartDebit  = window.wp.htmlEntities.decodeEntities(settings_creditCard.totalCart)
+const totalCartCredit  = window.wp.htmlEntities.decodeEntities(settings_creditCard.totalCart)
 const installmentLimit = window.wp.htmlEntities.decodeEntities(settings_creditCard.installmentLimit);
 const translations = settings_creditCard.translations
 const nonceCieloCredit = settings_creditCard.nonceCieloCredit;
@@ -69,16 +69,16 @@ const Content_cieloCredit = (props) => {
   window.wp.element.useEffect(() => {
     const installmentMin = 5;
     // Verifica se 'activeInstallment' é 'yes' e o valor total é maior que 10
-    if (activeInstallment === 'yes' && totalCartDebit > 10) {
+    if (activeInstallment === 'yes' && totalCartCredit > 10) {
       const maxInstallments = installmentLimit; // Limita o parcelamento até 12 vezes, deixei fixo para teste
       
       for (let index = 1; index <= maxInstallments; index++) {
-        const installmentAmount = (totalCartDebit / index).toLocaleString('pt-BR', {
+        const installmentAmount = (totalCartCredit / index).toLocaleString('pt-BR', {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2
         });
 
-        const nextInstallmentAmount = totalCartDebit / (index);
+        const nextInstallmentAmount = totalCartCredit / (index);
 
         if (nextInstallmentAmount < installmentMin) {
           break; 
@@ -92,7 +92,7 @@ const Content_cieloCredit = (props) => {
     }else{
         setOptions(prevOptions => [
           ...prevOptions,
-          { key: '1', label: `1x de R$ ${totalCartDebit} (à vista)`}
+          { key: '1', label: `1x de R$ ${totalCartCredit} (à vista)`}
         ])
     }
   },[])
