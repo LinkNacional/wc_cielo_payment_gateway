@@ -157,6 +157,9 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
                 'description' => __('This controls the title which the user sees during checkout.', 'lkn-wc-gateway-cielo'),
                 'default' => __('Credit card', 'lkn-wc-gateway-cielo'),
                 'desc_tip' => true,
+                'custom_attributes' => array(
+                    'required' => 'required'
+                )
             ),
             'description' => array(
                 'title' => __('Description', 'lkn-wc-gateway-cielo'),
@@ -164,18 +167,27 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
                 'default' => __('Payment processed by Cielo API 3.0', 'lkn-wc-gateway-cielo'),
                 'description' => __('Payment method description that the customer will see on your checkout.', 'lkn-wc-gateway-cielo'),
                 'desc_tip' => true,
+                'custom_attributes' => array(
+                    'required' => 'required'
+                )
             ),
             'merchant_id' => array(
                 'title' => __('Merchant Id', 'lkn-wc-gateway-cielo'),
                 'type' => 'password',
                 'description' => __('Cielo API 3.0 credentials.', 'lkn-wc-gateway-cielo'),
                 'desc_tip' => true,
+                'custom_attributes' => array(
+                    'required' => 'required'
+                )
             ),
             'merchant_key' => array(
                 'title' => __('Merchant Key', 'lkn-wc-gateway-cielo'),
                 'type' => 'password',
                 'description' => __('Cielo API 3.0 credentials.', 'lkn-wc-gateway-cielo'),
                 'desc_tip' => true,
+                'custom_attributes' => array(
+                    'required' => 'required'
+                )
             ),
             'invoiceDesc' => array(
                 'title' => __('Invoice Description', 'lkn-wc-gateway-cielo'),

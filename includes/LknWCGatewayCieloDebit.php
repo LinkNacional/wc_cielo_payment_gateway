@@ -162,6 +162,9 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
                 'description' => __('This controls the title which the user sees during checkout.', 'lkn-wc-gateway-cielo'),
                 'default' => __('Debit card', 'lkn-wc-gateway-cielo'),
                 'desc_tip' => true,
+                'custom_attributes' => array(
+                    'required' => 'required'
+                )
             ),
             'description' => array(
                 'title' => __('Description', 'lkn-wc-gateway-cielo'),
@@ -169,48 +172,72 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
                 'default' => __('Payment processed by Cielo API 3.0', 'lkn-wc-gateway-cielo'),
                 'description' => __('Payment method description that the customer will see on your checkout.', 'lkn-wc-gateway-cielo'),
                 'desc_tip' => true,
+                'custom_attributes' => array(
+                    'required' => 'required'
+                )
             ),
             'client_id' => array(
                 'title' => __('Client Id', 'lkn-wc-gateway-cielo'),
                 'type' => 'password',
                 'description' => __('Cielo 3DS 2.0 registration required (ask for eCommerce support).', 'lkn-wc-gateway-cielo'),
                 'desc_tip' => true,
+                'custom_attributes' => array(
+                    'required' => 'required'
+                )
             ),
             'client_secret' => array(
                 'title' => __('Client Secret', 'lkn-wc-gateway-cielo'),
                 'type' => 'password',
                 'description' => __('Cielo 3DS 2.0 registration required (ask for eCommerce support).', 'lkn-wc-gateway-cielo'),
                 'desc_tip' => true,
+                'custom_attributes' => array(
+                    'required' => 'required'
+                )
             ),
             'merchant_id' => array(
                 'title' => __('Merchant Id', 'lkn-wc-gateway-cielo'),
                 'type' => 'password',
                 'description' => __('Cielo API 3.0 credentials.', 'lkn-wc-gateway-cielo'),
                 'desc_tip' => true,
+                'custom_attributes' => array(
+                    'required' => 'required'
+                )
             ),
             'merchant_key' => array(
                 'title' => __('Merchant Key', 'lkn-wc-gateway-cielo'),
                 'type' => 'password',
                 'description' => __('Cielo API 3.0 credentials.', 'lkn-wc-gateway-cielo'),
                 'desc_tip' => true,
+                'custom_attributes' => array(
+                    'required' => 'required'
+                )
             ),
             'establishment_code' => array(
                 'title' => __('Establishment Code', 'lkn-wc-gateway-cielo'),
                 'type' => 'text',
                 'description' => __('Establishment code for Cielo 3DS E-Commerce 3.0.', 'lkn-wc-gateway-cielo'),
                 'desc_tip' => true,
+                'custom_attributes' => array(
+                    'required' => 'required'
+                )
             ),
             'merchant_name' => array(
                 'title' => __('Merchant Name', 'lkn-wc-gateway-cielo'),
                 'type' => 'text',
                 'description' => __('Establishment name registered on Cielo 3DS E-Commerce 3.0.', 'lkn-wc-gateway-cielo'),
                 'desc_tip' => true,
+                'custom_attributes' => array(
+                    'required' => 'required'
+                )
             ),
             'mcc' => array(
                 'title' => __('Establishment Category Code', 'lkn-wc-gateway-cielo'),
                 'type' => 'text',
                 'description' => __('Establishment category code for Cielo 3DS E-Commerce 3.0.', 'lkn-wc-gateway-cielo'),
                 'desc_tip' => true,
+                'custom_attributes' => array(
+                    'required' => 'required'
+                )
             ),
             'invoiceDesc' => array(
                 'title' => __('Invoice Description', 'lkn-wc-gateway-cielo'),
