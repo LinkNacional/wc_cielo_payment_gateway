@@ -259,52 +259,58 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
      * Generate Cielo API 3.0 in auth token.
      */
     public function generate_debit_auth_token() {
-        $env = $this->get_option('env');
-        $clientId = $this->get_option('client_id');
-        $clientSecret = $this->get_option('client_secret');
-        $url = ('sandbox' === $env) ? 'https://mpisandbox.braspag.com.br/v2/auth/token/' : 'https://mpi.braspag.com.br/v2/auth/token/';
+        try{
+            $env = $this->get_option('env');
+            $clientId = $this->get_option('client_id');
+            $clientSecret = $this->get_option('client_secret');
+            $url = ('sandbox' === $env) ? 'https://mpisandbox.braspag.com.br/v2/auth/token/' : 'https://mpi.braspag.com.br/v2/auth/token/';
 
-        $establishmentCode = $this->get_option('establishment_code');
-        $merchantName = $this->get_option('merchant_name');
-        $mcc = $this->get_option('mcc');
-        $debug = $this->get_option('debug');
+            $establishmentCode = $this->get_option('establishment_code');
+            $merchantName = $this->get_option('merchant_name');
+            $mcc = $this->get_option('mcc');
+            $debug = $this->get_option('debug');
 
-        $authCode = base64_encode($clientId . ':' . $clientSecret);
+            $authCode = base64_encode($clientId . ':' . $clientSecret);
 
-        $args['headers'] = array(
-            'Content-Type' => 'application/json',
-            'Authorization' => 'Basic ' . $authCode,
-        );
+            $args['headers'] = array(
+                'Content-Type' => 'application/json',
+                'Authorization' => 'Basic ' . $authCode,
+            );
 
-        $args['body'] = json_encode(array(
-            'EstablishmentCode' => $establishmentCode,
-            'MerchantName' => $merchantName,
-            'MCC' => $mcc,
-        ));
+            $args['body'] = wp_json_encode(array(
+                'EstablishmentCode' => $establishmentCode,
+                'MerchantName' => $merchantName,
+                'MCC' => $mcc,
+            ));
 
-        $response = wp_remote_post($url, $args);
+            $response = wp_remote_post($url, $args);
 
-        if (is_wp_error($response)) {
-            if ('yes' === $debug) {
-                $this->log->log('error', var_export($response->get_error_messages(), true), array('source' => 'woocommerce-cielo-debit'));
+            if (is_wp_error($response)) {
+                if ('yes' === $debug) {
+                    $this->log->log('error', var_export($response->get_error_messages(), true), array('source' => 'woocommerce-cielo-debit'));
+                }
+
+                $message = __('Auth token generation failed.', 'lkn-wc-gateway-cielo');
+
+                throw new Exception($message);
             }
+            $responseDecoded = json_decode($response['body']);
 
-            $message = __('Auth token generation failed.', 'lkn-wc-gateway-cielo');
-
-            throw new Exception($message);
+            if (isset($responseDecoded->access_token)) {
+                return $responseDecoded->access_token;
+            }
+        }catch ( Exception $e ) {
+            $this->add_error( $e->getMessage() );
+            if ('yes' === $debug) {
+                $this->log->log('error', var_export($response, true), array('source' => 'woocommerce-cielo-debit'));
+            }
+            return false;
         }
-        $responseDecoded = json_decode($response['body']);
-
-        if (isset($responseDecoded->access_token)) {
-            return $responseDecoded->access_token;
-        }
-        if ('yes' === $debug) {
-            $this->log->log('error', var_export($response, true), array('source' => 'woocommerce-cielo-debit'));
-        }
-
-        return false;
     }
 
+    /**
+     * Calculate the total value of items in the WooCommerce cart.
+     */
     public static function lknGetCartTotal() {
         $cart_items = WC()->cart->get_cart();
         $total = 0;
@@ -322,6 +328,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
         $total_cart = number_format($this->get_order_total(), 2, '', '');
         $accessToken = $this->generate_debit_auth_token();
         $url = get_page_link();
+        $nonce = wp_create_nonce( 'nonce_lkn_cielo_debit');
 
         if (isset($_GET['pay_for_order'])) {
             $order_id = wc_get_order_id_by_order_key(sanitize_text_field($_GET['key']));
@@ -333,6 +340,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
 
 <fieldset id="wc-<?php echo esc_attr($this->id); ?>-cc-form"
 	class="wc-credit-card-form wc-payment-form" style="background:transparent;">
+	<input type="hidden" name="nonce_lkn_cielo_debit" class="nonce_lkn_cielo_debit" value="<?php esc_attr_e($nonce); ?>" />
 
 	<input type="hidden" name="lkn_auth_enabled" class="bpmpi_auth" value="true" />
 	<input type="hidden" name="lkn_auth_enabled_notifyonly" class="bpmpi_auth_notifyonly" value="true" />
@@ -362,19 +370,19 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
 	<?php do_action('woocommerce_credit_card_form_start', $this->id); ?>
 
 	<div class="form-row form-row-wide">
-		<label><?php _e('Card Number', 'lkn-wc-gateway-cielo'); ?>
+		<label><?php esc_html_e('Card Number', 'lkn-wc-gateway-cielo'); ?>
 			<span class="required">*</span></label>
 		<input id="lkn_dcno" name="lkn_dcno" type="tel" inputmode="numeric" class="lkn-card-num" maxlength="24"
 			required>
 	</div>
 	<div class="form-row form-row-first">
-		<label><?php _e('Expiry Date', 'lkn-wc-gateway-cielo'); ?>
+		<label><?php esc_html_e('Expiry Date', 'lkn-wc-gateway-cielo'); ?>
 			<span class="required">*</span></label>
 		<input id="lkn_dc_expdate" name="lkn_dc_expdate" type="tel" inputmode="numeric" class="lkn-card-exp"
 			maxlength="7" required>
 	</div>
 	<div class="form-row form-row-secund">
-		<label><?php _e('Security Code', 'lkn-wc-gateway-cielo'); ?>
+		<label><?php esc_html_e('Security Code', 'lkn-wc-gateway-cielo'); ?>
 			<span class="required">*</span></label>
 		<input id="lkn_dc_cvc" name="lkn_dc_cvc" type="tel" inputmode="numeric" autocomplete="off" class="lkn-cvv"
 			maxlength="4" required>
@@ -424,6 +432,13 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
      * @return array
      */
     public function process_payment($order_id) {
+        if(!wp_verify_nonce($_POST['nonce_lkn_cielo_debit'], 'nonce_lkn_cielo_debit')){
+			return array(
+				'result'   => 'fail',
+				'redirect' => '',
+			);
+		}
+
         $order = wc_get_order($order_id);
 
         // Card parameters
@@ -506,7 +521,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
                 'RequestId' => uniqid(),
             );
 
-            $args['body'] = json_encode(array(
+            $args['body'] = wp_json_encode(array(
                 'MerchantOrderId' => $merchantOrderId,
                 'Customer' => array(
                     'Name' => $cardName,
@@ -551,7 +566,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
                 'RequestId' => uniqid(),
             );
 
-            $args['body'] = json_encode(array(
+            $args['body'] = wp_json_encode(array(
                 'MerchantOrderId' => $merchantOrderId,
                 'Customer' => array(
                     'Name' => $cardName,
