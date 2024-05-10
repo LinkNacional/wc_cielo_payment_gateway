@@ -4,6 +4,7 @@ const activeInstallment = window.wp.htmlEntities.decodeEntities(settings_creditC
 const totalCartDebit = window.wp.htmlEntities.decodeEntities(settings_creditCard.totalCart);
 const installmentLimit = window.wp.htmlEntities.decodeEntities(settings_creditCard.installmentLimit);
 const translations = settings_creditCard.translations;
+const nonceCieloCredit = settings_creditCard.nonceCieloCredit;
 const Content_cieloCredit = props => {
   const [options, setOptions] = window.wp.element.useState([]);
   const {
@@ -103,7 +104,8 @@ const Content_cieloCredit = props => {
               lkn_ccno: creditObject.lkn_ccno,
               lkn_cc_expdate: creditObject.lkn_cc_expdate,
               lkn_cc_cvc: creditObject.lkn_cc_cvc,
-              lkn_cc_installments: creditObject.lkn_cc_installments
+              lkn_cc_installments: creditObject.lkn_cc_installments,
+              nonce_lkn_cielo_credit: nonceCieloCredit
             }
           }
         };

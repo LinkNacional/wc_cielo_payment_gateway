@@ -29,7 +29,7 @@ final class LknIntegrationRedeForWoocommerceWcCieloDebitBlocks extends AbstractP
                 'wp-html-entities',
                 'wp-i18n',
             ),
-            null,
+            '1.0.0',
             true
         );
         if ( function_exists( 'wp_set_script_translations' ) ) {
@@ -55,6 +55,7 @@ final class LknIntegrationRedeForWoocommerceWcCieloDebitBlocks extends AbstractP
             'dirScript3DS' => LKN_WC_GATEWAY_CIELO_URL . 'resources/js/debitCard/BP.Mpi.3ds20.min.js',
             'dirScriptConfig3DS' => $dirScriptConfig3DS,
             'totalCart' => $this->gateway->lknGetCartTotal(),
+            'nonceCieloDebit' => wp_create_nonce( 'nonce_lkn_cielo_debit' ),
             'translations' => [
                 'cardNumber' => __('Card Number', 'lkn-wc-gateway-cielo'),
                 'cardExpiryDate' => __('Expiry Date', 'lkn-wc-gateway-cielo'),

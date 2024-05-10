@@ -7,6 +7,7 @@ const orderNumber = window.wp.htmlEntities.decodeEntities(settingsDebitCard.orde
 const dirScript3DS = window.wp.htmlEntities.decodeEntities(settingsDebitCard.dirScript3DS)
 const dirScriptConfig3DS = window.wp.htmlEntities.decodeEntities(settingsDebitCard.dirScriptConfig3DS)
 const translationsDebit = settingsDebitCard.translations
+const nonceCieloDebit = settingsDebitCard.nonceCieloDebit;
 
 const Content_cieloDebit = (props) => {
   const wcComponents = window.wc.blocksComponents
@@ -150,6 +151,7 @@ const Content_cieloDebit = (props) => {
             lkn_dcno: debitObject.lkn_dcno,
             lkn_dc_expdate: debitObject.lkn_dc_expdate,
             lkn_dc_cvc: debitObject.lkn_dc_cvc,
+            nonce_lkn_cielo_debit: nonceCieloDebit,
             lkn_cielo_3ds_cavv: paymentCavv,
             lkn_cielo_3ds_eci: paymentEci,
             lkn_cielo_3ds_ref_id: paymentReferenceId,

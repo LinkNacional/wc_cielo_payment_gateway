@@ -235,6 +235,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
         $noLoginCheckout = isset($_GET['pay_for_order']) ? sanitize_text_field($_GET['pay_for_order']) : 'false';
         $installmentLimit = $this->get_option('installment_limit', 12);
         $installments = array();
+        $nonce = wp_create_nonce( 'nonce_lkn_cielo_credit');
 
         for ($c = 1; $c <= $installmentLimit; ++$c) {
             $interest = preg_replace('/\D/', '', $this->get_option($c . 'x', 0));
@@ -257,21 +258,22 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
 	class="wc-credit-card-form wc-payment-form" style="background:transparent;">
 
 	<?php do_action('woocommerce_credit_card_form_start', $this->id); ?>
+	<input type="hidden" name="nonce_lkn_cielo_credit" class="nonce_lkn_cielo_credit" value="<?php esc_attr_e($nonce); ?>" />
 
 	<div class="form-row form-row-wide">
-		<label><?php _e('Card Number', 'lkn-wc-gateway-cielo'); ?>
+		<label><?php esc_html_e('Card Number', 'lkn-wc-gateway-cielo'); ?>
 			<span class="required">*</span></label>
 		<input id="lkn_ccno" name="lkn_ccno" type="tel" inputmode="numeric" class="lkn-card-num" maxlength="24"
 			required>
 	</div>
 	<div class="form-row form-row-first">
-		<label><?php _e('Expiry Date', 'lkn-wc-gateway-cielo'); ?>
+		<label><?php esc_html_e('Expiry Date', 'lkn-wc-gateway-cielo'); ?>
 			<span class="required">*</span></label>
 		<input id="lkn_cc_expdate" name="lkn_cc_expdate" type="tel" inputmode="numeric" class="lkn-card-exp"
 			maxlength="7" required>
 	</div>
 	<div class="form-row form-row-secund">
-		<label><?php _e('Security Code', 'lkn-wc-gateway-cielo'); ?>
+		<label><?php esc_html_e('Security Code', 'lkn-wc-gateway-cielo'); ?>
 			<span class="required">*</span></label>
 		<input id="lkn_cc_cvc" name="lkn_cc_cvc" type="tel" inputmode="numeric" class="lkn-cvv" maxlength="8" required>
 	</div>
@@ -285,10 +287,10 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
 	<input id="lkn_cc_installment_limit" type="hidden"
 		value="<?php esc_attr_e($installmentLimit); ?>">
 	<input id="lkn_cc_installment_interest" type="hidden"
-		value="<?php esc_attr_e(json_encode($installments)); ?>">
+		value="<?php esc_attr_e(wp_json_encode($installments)); ?>">
 
 	<div class="form-row form-row-wide">
-		<label><?php _e('Installments', 'lkn-wc-gateway-cielo'); ?>
+		<label><?php esc_html_e('Installments', 'lkn-wc-gateway-cielo'); ?>
 		</label>
 		<select id="lkn_cc_installments" name="lkn_cc_installments">
 			<option value="1" selected="1">1 x R$0,00 sem juros</option>
@@ -342,8 +344,15 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
      * @return array
      */
     public function process_payment($order_id) {
-        $order = wc_get_order($order_id);
+        if(!wp_verify_nonce($_POST['nonce_lkn_cielo_credit'], 'nonce_lkn_cielo_credit')){
+			return array(
+				'result'   => 'fail',
+				'redirect' => '',
+			);
+		}
 
+        $order = wc_get_order($order_id);
+        
         // Card parameters
         $cardNum = preg_replace('/\s/', '', sanitize_text_field($_POST['lkn_ccno']));
         $cardExpSplit = explode('/', preg_replace('/\s/', '', sanitize_text_field($_POST['lkn_cc_expdate'])));
@@ -436,7 +445,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
             'MerchantKey' => $merchantSecret,
         );
 
-        $args['body'] = json_encode(array(
+        $args['body'] = wp_json_encode(array(
             'MerchantOrderId' => $merchantOrderId,
             'Payment' => array(
                 'Type' => 'CreditCard',
@@ -524,12 +533,11 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
         if ('yes' === $debug) {
             $this->log->log('error', var_export($response, true), array('source' => 'woocommerce-cielo-credit'));
         }
-
-        $message = __('Order payment failed. Make sure your credit card is valid.', 'lkn-wc-gateway-cielo');
-
-        throw new Exception($message);
     }
-
+    
+    /**
+     * Calculate the total value of items in the WooCommerce cart.
+     */
     public static function lknGetCartTotal() {
         $cart_items = WC()->cart->get_cart();
         $total = 0;
@@ -705,9 +713,6 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
     private function get_card_provider($cardNumber) {
         $brand = '';
         $brand = apply_filters('lkn_wc_cielo_get_card_brand', $brand, $cardNumber);
-
-        //TODO verificar esse log que tá salvando
-        $this->log->log('error', 'GET BRAND CIELO CARD: ' . var_export($brand, true), array('source' => 'woocommerce-cielo-credit'));
 
         if (empty($brand)) {
             // Stores regex for Card Bin Tests

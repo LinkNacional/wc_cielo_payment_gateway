@@ -29,7 +29,7 @@ final class LknIntegrationRedeForWoocommerceWcCieloCreditBlocks extends Abstract
                 'wp-html-entities',
                 'wp-i18n',
             ),
-            null,
+            '1.0.0',
             true
         );
         if ( function_exists( 'wp_set_script_translations' ) ) {
@@ -46,6 +46,7 @@ final class LknIntegrationRedeForWoocommerceWcCieloCreditBlocks extends Abstract
             'activeInstallment' => $this->gateway->get_option('installment_payment'),
             'installmentLimit' => $this->gateway->get_option('installment_limit', 12),
             'totalCart' => $this->gateway->lknGetCartTotal(),
+            'nonceCieloCredit' => wp_create_nonce( 'nonce_lkn_cielo_credit' ),
             'translations' => [
                 'cardNumber' => __('Card Number', 'lkn-wc-gateway-cielo'),
                 'cardExpiryDate' => __('Expiry Date', 'lkn-wc-gateway-cielo'),
