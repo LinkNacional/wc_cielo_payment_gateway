@@ -1,3 +1,9 @@
+# 1.8.0 - 10/05/2024
+* Adição de compatibilidade com block-based checkout;
+* Adição de banner de hospedagem para Wordpress;
+* Adição de campos obrigatórios para as credenciais de cartão de crédito e débito;
+* Melhoria nos tratamentos de erros;
+
 # 1.7.0 - 25/03/2024
 * Correção de bug de carregamento de script do 3DS na opção cartão de débito;
 * Adição de lógica para lidar com respostas da API quando o código de retorno é "GF";
