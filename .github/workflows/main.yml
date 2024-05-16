@@ -28,7 +28,7 @@ jobs:
 
     # Add plugin files to a root directory
     - name: Make plugin root directory
-      run: "mkdir $PLUGIN_NAME && mv -t ./$PLUGIN_NAME ./languages ./resources ./includes *.txt *.php && cp -R ./vendor ./$PLUGIN_NAME  find ./${{env.PLUGIN_NAME}} -type f -exec chmod 0644 {} + && find ./${{env.PLUGIN_NAME}} -type d -exec chmod 0755 {} +  && ls -lah"
+      run: "mkdir $PLUGIN_NAME && mv -t ./$PLUGIN_NAME ./languages ./resources ./includes *.txt *.php && cp -R ./vendor ./$PLUGIN_NAME && find ./${{env.PLUGIN_NAME}} -type f -exec chmod 0644 {} + && find ./${{env.PLUGIN_NAME}} -type d -exec chmod 0755 {} +  && ls -lah"
 
     # Compact plugin as .zip
     - name: Archive Release
