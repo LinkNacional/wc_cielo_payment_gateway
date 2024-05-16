@@ -603,13 +603,15 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
      * Calculate the total value of items in the WooCommerce cart.
      */
     public static function lknGetCartTotal() {
-        $cart_items = WC()->cart->get_cart();
-        $total = 0;
-        foreach ($cart_items as $cart_item_key => $cart_item) {
-            $product = $cart_item['data'];
-            $total += $product->get_price() * $cart_item['quantity'];
+        if (is_cart() || is_checkout()) { 
+            $cart_items = WC()->cart->get_cart();
+            $total = 0;
+            foreach ($cart_items as $cart_item_key => $cart_item) {
+                $product = $cart_item['data'];
+                $total += $product->get_price() * $cart_item['quantity'];
+            }
+            return $total;
         }
-        return $total;
     }
 
     /**

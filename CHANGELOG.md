@@ -1,3 +1,6 @@
+# 1.8.1 - 16/05/2024
+* Correção de erro na página de editar formulário em blocos;
+
 # 1.8.0 - 10/05/2024
 * Adição de compatibilidade com block-based checkout;
 * Adição de banner de hospedagem para Wordpress;
