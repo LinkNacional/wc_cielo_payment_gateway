@@ -348,6 +348,8 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
             }
             return $total;
         }
+
+        return 0;
     }
 
     /**
