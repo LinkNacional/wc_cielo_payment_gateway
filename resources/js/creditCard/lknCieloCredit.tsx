@@ -1,7 +1,7 @@
 const settings_creditCard = window.wc.wcSettings.getSetting('lkn_cielo_credit_data', {})
 const label_creditCard = window.wp.htmlEntities.decodeEntities(settings_creditCard.title)
-const activeInstallment  = window.wp.htmlEntities.decodeEntities(settings_creditCard.activeInstallment)
-const totalCartCredit  = window.wp.htmlEntities.decodeEntities(settings_creditCard.totalCart)
+const activeInstallment = window.wp.htmlEntities.decodeEntities(settings_creditCard.activeInstallment)
+const totalCartCredit = window.wp.htmlEntities.decodeEntities(settings_creditCard.totalCart)
 const installmentLimit = window.wp.htmlEntities.decodeEntities(settings_creditCard.installmentLimit);
 const translations = settings_creditCard.translations
 const nonceCieloCredit = settings_creditCard.nonceCieloCredit;
@@ -20,7 +20,7 @@ const Content_cieloCredit = (props) => {
   })
 
   const formatCreditCardNumber = value => {
-    if (value?.length > 19) return creditObject.lkn_ccno
+    if (value?.length > 24) return creditObject.lkn_ccno
     // Remove caracteres não numéricos
     const cleanedValue = value?.replace(/\D/g, '')
     // Adiciona espaços a cada quatro dígitos
@@ -53,7 +53,7 @@ const Content_cieloCredit = (props) => {
         }
         return
       case 'lkn_cc_cvc':
-        if (value.length > 4) return
+        if (value.length > 8) return
         break
       default:
         break
@@ -71,7 +71,7 @@ const Content_cieloCredit = (props) => {
     // Verifica se 'activeInstallment' é 'yes' e o valor total é maior que 10
     if (activeInstallment === 'yes' && totalCartCredit > 10) {
       const maxInstallments = installmentLimit; // Limita o parcelamento até 12 vezes, deixei fixo para teste
-      
+
       for (let index = 1; index <= maxInstallments; index++) {
         const installmentAmount = (totalCartCredit / index).toLocaleString('pt-BR', {
           minimumFractionDigits: 2,
@@ -81,7 +81,7 @@ const Content_cieloCredit = (props) => {
         const nextInstallmentAmount = totalCartCredit / (index);
 
         if (nextInstallmentAmount < installmentMin) {
-          break; 
+          break;
         }
 
         setOptions(prevOptions => [
@@ -89,13 +89,13 @@ const Content_cieloCredit = (props) => {
           { key: index, label: `${index}x de R$ ${installmentAmount} sem juros` }
         ])
       }
-    }else{
-        setOptions(prevOptions => [
-          ...prevOptions,
-          { key: '1', label: `1x de R$ ${totalCartCredit} (à vista)`}
-        ])
+    } else {
+      setOptions(prevOptions => [
+        ...prevOptions,
+        { key: '1', label: `1x de R$ ${totalCartCredit} (à vista)` }
+      ])
     }
-  },[])
+  }, [])
 
   window.wp.element.useEffect(() => {
     const unsubscribe = onPaymentSetup(async () => {
@@ -181,7 +181,8 @@ const Content_cieloCredit = (props) => {
         />
       )}
     </>
-  )}
+  )
+}
 
 
 const Block_Gateway_Credit_Card = {

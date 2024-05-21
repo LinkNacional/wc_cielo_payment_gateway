@@ -281,7 +281,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
     />
 
     <div class="form-row form-row-wide">
-        <label><?php esc_html_e('Card Number', 'lkn-wc-gateway-cielo'); ?>
+        <label for="lkn_ccno"><?php esc_html_e('Card Number', 'lkn-wc-gateway-cielo'); ?>
             <span class="required">*</span></label>
         <input
             id="lkn_ccno"
@@ -293,8 +293,8 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
             required
         >
     </div>
-    <div class="form-row form-row-first">
-        <label><?php esc_html_e('Expiry Date', 'lkn-wc-gateway-cielo'); ?>
+    <div class="form-row form-row-wide">
+        <label for="lkn_cc_expdate"><?php esc_html_e('Expiry Date', 'lkn-wc-gateway-cielo'); ?>
             <span class="required">*</span></label>
         <input
             id="lkn_cc_expdate"
@@ -306,8 +306,8 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
             required
         >
     </div>
-    <div class="form-row form-row-secund">
-        <label><?php esc_html_e('Security Code', 'lkn-wc-gateway-cielo'); ?>
+    <div class="form-row form-row-wide">
+        <label for="lkn_cc_cvc"><?php esc_html_e('Security Code', 'lkn-wc-gateway-cielo'); ?>
             <span class="required">*</span></label>
         <input
             id="lkn_cc_cvc"
@@ -344,7 +344,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
     >
 
     <div class="form-row form-row-wide">
-        <label><?php esc_html_e('Installments', 'lkn-wc-gateway-cielo'); ?>
+        <label for="lkn_cc_installments"><?php esc_html_e('Installments', 'lkn-wc-gateway-cielo'); ?>
         </label>
         <select
             id="lkn_cc_installments"
@@ -603,7 +603,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
      * Calculate the total value of items in the WooCommerce cart.
      */
     public static function lknGetCartTotal() {
-        if (is_cart() || is_checkout()) { 
+        if (is_cart() || is_checkout()) {
             $cart_items = WC()->cart->get_cart();
             $total = 0;
             foreach ($cart_items as $cart_item_key => $cart_item) {

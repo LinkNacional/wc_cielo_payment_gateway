@@ -339,7 +339,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
      * Calculate the total value of items in the WooCommerce cart.
      */
     public static function lknGetCartTotal() {
-        if (is_cart() || is_checkout()) {            
+        if (is_cart() || is_checkout()) {
             $cart_items = WC()->cart->get_cart();
             $total = 0;
             foreach ($cart_items as $cart_item_key => $cart_item) {
@@ -498,7 +498,8 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
     <?php do_action('woocommerce_credit_card_form_start', $this->id); ?>
 
     <div class="form-row form-row-wide">
-        <label><?php esc_html_e('Card Number', 'lkn-wc-gateway-cielo'); ?>
+        <label
+            for="lkn_dcno"><?php esc_html_e('Card Number', 'lkn-wc-gateway-cielo'); ?>
             <span class="required">*</span></label>
         <input
             id="lkn_dcno"
@@ -510,8 +511,9 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
             required
         >
     </div>
-    <div class="form-row form-row-first">
-        <label><?php esc_html_e('Expiry Date', 'lkn-wc-gateway-cielo'); ?>
+    <div class="form-row form-row-wide">
+        <label
+            for="lkn_dc_expdate"><?php esc_html_e('Expiry Date', 'lkn-wc-gateway-cielo'); ?>
             <span class="required">*</span></label>
         <input
             id="lkn_dc_expdate"
@@ -523,8 +525,9 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
             required
         >
     </div>
-    <div class="form-row form-row-secund">
-        <label><?php esc_html_e('Security Code', 'lkn-wc-gateway-cielo'); ?>
+    <div class="form-row form-row-wide">
+        <label
+            for="lkn_dc_cvc"><?php esc_html_e('Security Code', 'lkn-wc-gateway-cielo'); ?>
             <span class="required">*</span></label>
         <input
             id="lkn_dc_cvc"
