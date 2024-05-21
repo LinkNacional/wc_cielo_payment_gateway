@@ -274,3 +274,6 @@ msgstr ""
 
 msgid "View logs"
 msgstr ""
+
+msgid "Be pro"
+msgstr ""
