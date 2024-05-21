@@ -97,6 +97,10 @@ final class LknWCCieloPayment {
         // Meta links
         add_filter('plugin_action_links_' . plugin_basename(__FILE__), array(__CLASS__, 'lkn_wc_cielo_plugin_row_meta'), 10, 2);
 
+        // Meta links
+        add_filter('plugin_action_links_' . plugin_basename(__FILE__), array(__CLASS__, 'lkn_wc_cielo_plugin_row_meta_pro'), 10, 2);
+
+
         // Thank you page with installments.
         add_action('woocommerce_order_details_after_order_table', array(__CLASS__, 'order_details_after_order_table'), 10, 1);
     }
@@ -248,6 +252,23 @@ final class LknWCCieloPayment {
         );
 
         return array_merge($plugin_meta, $new_meta_links);
+    }
+
+    public static function lkn_wc_cielo_plugin_row_meta_pro($plugin_meta, $plugin_file) {
+        // Defina o URL e o texto do link
+        $url = 'https://www.linknacional.com.br/wordpress/woocommerce/cielo/';
+        $link_text = sprintf(
+            '<span style="color: red;">%s</span>',
+            __('Be pro', 'lkn-wc-gateway-cielo')
+        );
+        
+        // Crie o novo link de meta
+        $new_meta_link = sprintf('<a href="%1$s">%2$s</a>', $url, $link_text);
+        
+        // Adicione o novo link ao array de metadados do plugin
+        $plugin_meta[] = $new_meta_link;
+    
+        return $plugin_meta;
     }
 
     /**

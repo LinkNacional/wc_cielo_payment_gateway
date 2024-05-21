@@ -274,3 +274,6 @@ msgstr "Desenvolvimento"
 
 msgid "View logs"
 msgstr "Ver logs"
+
+msgid "Be pro"
+msgstr "Seja Pro"
