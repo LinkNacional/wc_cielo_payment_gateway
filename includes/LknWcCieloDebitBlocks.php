@@ -5,7 +5,7 @@ namespace Lkn\WCCieloPaymentGateway\Includes;
 use Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType;
 use Lkn\WCCieloPaymentGateway\Includes\LknWCGatewayCieloDebit;
 
-final class LknIntegrationRedeForWoocommerceWcCieloDebitBlocks extends AbstractPaymentMethodType {
+final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType {
     private $gateway;
     protected $name = 'lkn_cielo_debit';
 
@@ -56,11 +56,11 @@ final class LknIntegrationRedeForWoocommerceWcCieloDebitBlocks extends AbstractP
             'dirScriptConfig3DS' => $dirScriptConfig3DS,
             'totalCart' => $this->gateway->lknGetCartTotal(),
             'nonceCieloDebit' => wp_create_nonce( 'nonce_lkn_cielo_debit' ),
-            'translations' => [
+            'translations' => array(
                 'cardNumber' => __('Card Number', 'lkn-wc-gateway-cielo'),
                 'cardExpiryDate' => __('Expiry Date', 'lkn-wc-gateway-cielo'),
                 'securityCode' => __('Security Code', 'lkn-wc-gateway-cielo'),
-            ]
+            )
         );
     }
 }

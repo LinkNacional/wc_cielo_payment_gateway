@@ -17,8 +17,8 @@
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
  */
 
-use Lkn\WCCieloPaymentGateway\Includes\LknIntegrationRedeForWoocommerceWcCieloCreditBlocks;
-use Lkn\WCCieloPaymentGateway\Includes\LknIntegrationRedeForWoocommerceWcCieloDebitBlocks;
+use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloCreditBlocks;
+use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloDebitBlocks;
 use Lkn\WCCieloPaymentGateway\Includes\LknWCGatewayCieloCredit;
 use Lkn\WCCieloPaymentGateway\Includes\LknWCGatewayCieloDebit;
 
@@ -116,8 +116,8 @@ final class LknWCCieloPayment {
             return;
         }
 
-        $payment_method_registry->register( new LknIntegrationRedeForWoocommerceWcCieloCreditBlocks() );
-        $payment_method_registry->register( new LknIntegrationRedeForWoocommerceWcCieloDebitBlocks() );
+        $payment_method_registry->register( new LknWcCieloCreditBlocks() );
+        $payment_method_registry->register( new LknWcCieloDebitBlocks() );
     } 
 
     /**  
