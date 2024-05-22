@@ -274,3 +274,12 @@ msgstr "Desenvolvimento"
 
 msgid "View logs"
 msgstr "Ver logs"
+
+msgid "Be pro"
+msgstr "Seja Pro"
+
+msgid "Card Holder Name"
+msgstr "Nome do Titular do Cartão"
+
+msgid "Card Holder Name is required!"
+msgstr "O nome do titular do cartão é obrigatório!"

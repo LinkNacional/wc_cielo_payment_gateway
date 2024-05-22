@@ -21,7 +21,7 @@ const Content_cieloDebit = (props) => {
   })
 
   const formatDebitCardNumber = value => {
-    if (value?.length > 19) return debitObject.lkn_dcno
+    if (value?.length > 24) return debitObject.lkn_dcno
     // Remove caracteres não numéricos
     const cleanedValue = value?.replace(/\D/g, '')
     // Adiciona espaços a cada quatro dígitos
@@ -54,7 +54,7 @@ const Content_cieloDebit = (props) => {
         }
         return
       case 'lkn_dc_cvc':
-        if (value.length > 4) return
+        if (value.length > 8) return
         break
       default:
         break
@@ -102,17 +102,17 @@ const Content_cieloDebit = (props) => {
   const handleButtonClick = () => {
     // Verifica se todos os campos do debitObject estão preenchidos
     const allFieldsFilled = Object.values(debitObject).every((field) => field.trim() !== '');
-  
+
     // Seleciona os elementos dos campos de entrada
     const cardNumberInput = document.getElementById('lkn_dcno');
     const expDateInput = document.getElementById('lkn_dc_expdate');
     const cvvInput = document.getElementById('lkn_dc_cvc');
-  
+
     // Remove classes de erro e mensagens de validação existentes
     cardNumberInput?.classList.remove('has-error');
     expDateInput?.classList.remove('has-error');
     cvvInput?.classList.remove('has-error');
-  
+
     if (allFieldsFilled) {
       lknProccessButton();
     } else {
@@ -121,12 +121,12 @@ const Content_cieloDebit = (props) => {
         const parentDiv = cardNumberInput?.parentElement;
         parentDiv?.classList.add('has-error');
       }
-  
+
       if (debitObject.lkn_dc_expdate.trim() === '') {
         const parentDiv = expDateInput?.parentElement;
         parentDiv?.classList.add('has-error');
       }
-  
+
       if (debitObject.lkn_dc_cvc.trim() === '') {
         const parentDiv = cvvInput?.parentElement;
         parentDiv?.classList.add('has-error');
@@ -137,7 +137,7 @@ const Content_cieloDebit = (props) => {
   window.wp.element.useEffect(() => {
     const unsubscribe = onPaymentSetup(async () => {
       const Button3dsEnviar = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0].closest('form')
-      
+
       const paymentCavv = Button3dsEnviar?.getAttribute('data-payment-cavv');
       const paymentEci = Button3dsEnviar?.getAttribute('data-payment-eci');
       const paymentReferenceId = Button3dsEnviar?.getAttribute('data-payment-ref_id');
@@ -180,13 +180,19 @@ const Content_cieloDebit = (props) => {
       </div>
 
       <wcComponents.TextInput
+        id="lkn_cardholder_name"
+        label={translations.cardHolder}
+        value={creditObject.lkn_cardholder_name}
+      />
+
+      <wcComponents.TextInput
         id="lkn_dcno"
         label={translationsDebit.cardNumber}
         value={debitObject.lkn_dcno}
         onChange={(value) => {
           updatedebitObject('lkn_dcno', formatDebitCardNumber(value))
         }}
-        required 
+        required
       />
 
       <wcComponents.TextInput
@@ -196,7 +202,7 @@ const Content_cieloDebit = (props) => {
         onChange={(value) => {
           updatedebitObject('lkn_dc_expdate', value)
         }}
-        required 
+        required
       />
 
       <wcComponents.TextInput
@@ -206,7 +212,7 @@ const Content_cieloDebit = (props) => {
         onChange={(value) => {
           updatedebitObject('lkn_dc_cvc', value)
         }}
-        required 
+        required
       />
 
       <div style={{ marginBottom: '30px' }}></div>

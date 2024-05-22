@@ -4,7 +4,7 @@
  * Plugin URI: https://www.linknacional.com.br/wordpress/woocommerce/cielo/
  * Description: Adds the Cielo API 3.0 Payments gateway to your WooCommerce website.
  *
- * Version: 1.8.1
+ * Version: 1.9.0
  *
  * Author: Link Nacional
  * Author URI: https://linknacional.com.br
@@ -17,8 +17,8 @@
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
  */
 
-use Lkn\WCCieloPaymentGateway\Includes\LknIntegrationRedeForWoocommerceWcCieloCreditBlocks;
-use Lkn\WCCieloPaymentGateway\Includes\LknIntegrationRedeForWoocommerceWcCieloDebitBlocks;
+use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloCreditBlocks;
+use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloDebitBlocks;
 use Lkn\WCCieloPaymentGateway\Includes\LknWCGatewayCieloCredit;
 use Lkn\WCCieloPaymentGateway\Includes\LknWCGatewayCieloDebit;
 
@@ -97,6 +97,9 @@ final class LknWCCieloPayment {
         // Meta links
         add_filter('plugin_action_links_' . plugin_basename(__FILE__), array(__CLASS__, 'lkn_wc_cielo_plugin_row_meta'), 10, 2);
 
+        // Meta links
+        add_filter('plugin_action_links_' . plugin_basename(__FILE__), array(__CLASS__, 'lkn_wc_cielo_plugin_row_meta_pro'), 10, 2);
+
         // Thank you page with installments.
         add_action('woocommerce_order_details_after_order_table', array(__CLASS__, 'order_details_after_order_table'), 10, 1);
     }
@@ -116,8 +119,8 @@ final class LknWCCieloPayment {
             return;
         }
 
-        $payment_method_registry->register( new LknIntegrationRedeForWoocommerceWcCieloCreditBlocks() );
-        $payment_method_registry->register( new LknIntegrationRedeForWoocommerceWcCieloDebitBlocks() );
+        $payment_method_registry->register( new LknWcCieloCreditBlocks() );
+        $payment_method_registry->register( new LknWcCieloDebitBlocks() );
     } 
 
     /**  
@@ -250,6 +253,23 @@ final class LknWCCieloPayment {
         return array_merge($plugin_meta, $new_meta_links);
     }
 
+    public static function lkn_wc_cielo_plugin_row_meta_pro($plugin_meta, $plugin_file) {
+        // Defina o URL e o texto do link
+        $url = 'https://www.linknacional.com.br/wordpress/woocommerce/cielo/';
+        $link_text = sprintf(
+            '<span style="color: red; font-weight: bold;">%s</span>',
+            __('Be pro', 'lkn-wc-gateway-cielo')
+        );
+        
+        // Crie o novo link de meta
+        $new_meta_link = sprintf('<a href="%1$s">%2$s</a>', $url, $link_text);
+        
+        // Adicione o novo link ao array de metadados do plugin
+        $plugin_meta[] = $new_meta_link;
+    
+        return $plugin_meta;
+    }
+
     /**
      * Show the Installments info in Thank you page.
      *
@@ -288,7 +308,7 @@ final class LknWCCieloPayment {
     private static function setup_constants(): void {
         // Defines addon version number for easy reference.
         if ( ! defined('LKN_WC_CIELO_VERSION')) {
-            define('LKN_WC_CIELO_VERSION', '1.8.1');
+            define('LKN_WC_CIELO_VERSION', '1.9.0');
         }
         if ( ! defined('LKN_WC_CIELO_TRANSLATION_PATH')) {
             define('LKN_WC_CIELO_TRANSLATION_PATH', plugin_dir_path(__FILE__) . 'languages/');
