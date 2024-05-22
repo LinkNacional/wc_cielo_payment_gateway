@@ -180,6 +180,12 @@ const Content_cieloDebit = (props) => {
       </div>
 
       <wcComponents.TextInput
+        id="lkn_cardholder_name"
+        label={translations.cardHolder}
+        value={creditObject.lkn_cardholder_name}
+      />
+
+      <wcComponents.TextInput
         id="lkn_dcno"
         label={translationsDebit.cardNumber}
         value={debitObject.lkn_dcno}

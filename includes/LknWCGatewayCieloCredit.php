@@ -282,10 +282,10 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
 
     <div class="form-row form-row-wide">
         <label
-            for="lkn-cardholder-name"><?php esc_html_e('Card Holder Name', 'lkn-wc-gateway-cielo'); ?>
+            for="lkn_cardholder_name"><?php esc_html_e('Card Holder Name', 'lkn-wc-gateway-cielo'); ?>
             <span class="required">*</span></label>
         <input
-            id="lkn-cardholder-name"
+            id="lkn_cardholder_name"
             name="lkn_cardholder_name"
             type="text"
             autocomplete="cc-name"

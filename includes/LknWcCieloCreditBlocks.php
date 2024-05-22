@@ -51,7 +51,8 @@ final class LknWcCieloCreditBlocks extends AbstractPaymentMethodType {
                 'cardNumber' => __('Card Number', 'lkn-wc-gateway-cielo'),
                 'cardExpiryDate' => __('Expiry Date', 'lkn-wc-gateway-cielo'),
                 'securityCode' => __('Security Code', 'lkn-wc-gateway-cielo'),
-                'installments' => __('Installments', 'lkn-wc-gateway-cielo')
+                'installments' => __('Installments', 'lkn-wc-gateway-cielo'),
+                'cardHolder' => __('Card Holder Name', 'lkn-wc-gateway-cielo'),
             )
         );
     }
