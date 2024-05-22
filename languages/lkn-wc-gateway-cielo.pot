@@ -277,3 +277,9 @@ msgstr ""
 
 msgid "Be pro"
 msgstr ""
+
+msgid "Card Holder Name"
+msgstr ""
+
+msgid "Card Holder Name is required!"
+msgstr ""
