@@ -4,7 +4,7 @@
  * Plugin URI: https://www.linknacional.com.br/wordpress/woocommerce/cielo/
  * Description: Adds the Cielo API 3.0 Payments gateway to your WooCommerce website.
  *
- * Version: 1.8.1
+ * Version: 1.9.0
  *
  * Author: Link Nacional
  * Author URI: https://linknacional.com.br
@@ -99,7 +99,6 @@ final class LknWCCieloPayment {
 
         // Meta links
         add_filter('plugin_action_links_' . plugin_basename(__FILE__), array(__CLASS__, 'lkn_wc_cielo_plugin_row_meta_pro'), 10, 2);
-
 
         // Thank you page with installments.
         add_action('woocommerce_order_details_after_order_table', array(__CLASS__, 'order_details_after_order_table'), 10, 1);
@@ -309,7 +308,7 @@ final class LknWCCieloPayment {
     private static function setup_constants(): void {
         // Defines addon version number for easy reference.
         if ( ! defined('LKN_WC_CIELO_VERSION')) {
-            define('LKN_WC_CIELO_VERSION', '1.8.1');
+            define('LKN_WC_CIELO_VERSION', '1.9.0');
         }
         if ( ! defined('LKN_WC_CIELO_TRANSLATION_PATH')) {
             define('LKN_WC_CIELO_TRANSLATION_PATH', plugin_dir_path(__FILE__) . 'languages/');
