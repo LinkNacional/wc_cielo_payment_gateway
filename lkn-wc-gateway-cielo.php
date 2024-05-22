@@ -257,7 +257,7 @@ final class LknWCCieloPayment {
         // Defina o URL e o texto do link
         $url = 'https://www.linknacional.com.br/wordpress/woocommerce/cielo/';
         $link_text = sprintf(
-            '<span style="color: red;">%s</span>',
+            '<span style="color: red; font-weight: bold;">%s</span>',
             __('Be pro', 'lkn-wc-gateway-cielo')
         );
         
