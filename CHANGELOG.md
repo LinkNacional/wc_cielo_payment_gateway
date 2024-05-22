@@ -1,7 +1,8 @@
 # 1.9.0 - 22/05/2024
 * Correção de erro nos campos de entrada do formulário;
 * Adição de tratamento de erro para o campo de entrada do titular do cartão;
-* Adição de campo de entrada do titular do cartão.
+* Adição de campo de entrada do titular do cartão;
+* Adição de botão "seja pro".
 
 # 1.8.1 - 16/05/2024
 * Correção de erro na página de editar formulário em blocos;

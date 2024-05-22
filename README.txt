@@ -76,7 +76,8 @@ Payment Gateway for Cielo API on WooCommerce plugin is dependent on WooCommerce 
 **22/05/2024**
 * Fixed error on form field inputs;
 * Add error treatment for cardholder input field;
-* Add cardholder input.
+* Add cardholder input;
+* Add be pro button.
 
 = 1.8.1 =
 **16/05/2024**
