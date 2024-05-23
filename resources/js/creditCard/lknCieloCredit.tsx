@@ -13,6 +13,7 @@ const Content_cieloCredit = (props) => {
   const { onPaymentSetup } = eventRegistration
 
   const [creditObject, setCreditObject] = window.wp.element.useState({
+    lkn_cc_cardholder_name: '',
     lkn_ccno: '',
     lkn_cc_expdate: '',
     lkn_cc_cvc: '',
@@ -30,6 +31,14 @@ const Content_cieloCredit = (props) => {
 
   const updateCreditObject = (key, value) => {
     switch (key) {
+      case 'lkn_cc_cardholder_name':
+        // Atualiza o estado
+        setCreditObject({
+          ...creditObject,
+          [key]: value
+        })
+
+        break
       case 'lkn_cc_expdate':
         if (value.length > 7) return
 
@@ -141,9 +150,13 @@ const Content_cieloCredit = (props) => {
       </div>
 
       <wcComponents.TextInput
-        id="lkn_cardholder_name"
+        id="lkn_cc_cardholder_name"
         label={translations.cardHolder}
-        value={creditObject.lkn_cardholder_name}
+        value={creditObject.lkn_cc_cardholder_name}
+        onChange={(value) => {
+          updateCreditObject('lkn_cc_cardholder_name', value)
+        }}
+        required
       />
 
       <wcComponents.TextInput
@@ -153,6 +166,7 @@ const Content_cieloCredit = (props) => {
         onChange={(value) => {
           updateCreditObject('lkn_ccno', formatCreditCardNumber(value))
         }}
+        required
       />
 
       <wcComponents.TextInput
@@ -162,6 +176,7 @@ const Content_cieloCredit = (props) => {
         onChange={(value) => {
           updateCreditObject('lkn_cc_expdate', value)
         }}
+        required
       />
 
       <wcComponents.TextInput
@@ -171,6 +186,7 @@ const Content_cieloCredit = (props) => {
         onChange={(value) => {
           updateCreditObject('lkn_cc_cvc', value)
         }}
+        required
       />
 
       <div style={{ marginBottom: '20px' }}></div>

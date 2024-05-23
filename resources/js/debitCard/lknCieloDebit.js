@@ -18,6 +18,7 @@ const Content_cieloDebit = props => {
     onPaymentSetup
   } = eventRegistration
   const [debitObject, setdebitObject] = window.wp.element.useState({
+    lkn_cc_cardholder_name: '',
     lkn_dcno: '',
     lkn_dc_expdate: '',
     lkn_dc_cvc: ''
@@ -32,6 +33,13 @@ const Content_cieloDebit = props => {
   }
   const updatedebitObject = (key, value) => {
     switch (key) {
+      case 'lkn_dc_cardholder_name':
+        // Atualiza o estado
+        setdebitObject({
+          ...debitObject,
+          [key]: value
+        })
+        break
       case 'lkn_dc_expdate':
         if (value.length > 7) return
 
@@ -155,9 +163,13 @@ const Content_cieloDebit = props => {
     }
   }, [debitObject, emitResponse.responseTypes.ERROR, emitResponse.responseTypes.SUCCESS, onPaymentSetup])
   return /* #__PURE__ */React.createElement(React.Fragment, null, /* #__PURE__ */React.createElement('div', null, /* #__PURE__ */React.createElement('h4', null, 'Pagamento processado pela Cielo API 3.0')), /* #__PURE__ */React.createElement(wcComponents.TextInput, {
-    id: 'lkn_cardholder_name',
+    id: 'lkn_dc_cardholder_name',
     label: translations.cardHolder,
-    value: creditObject.lkn_cardholder_name
+    value: debitObject.lkn_dc_cardholder_name,
+    onChange: value => {
+      updatedebitObject('lkn_dcno', value)
+    },
+    required: true
   }), /* #__PURE__ */React.createElement(wcComponents.TextInput, {
     id: 'lkn_dcno',
     label: translationsDebit.cardNumber,

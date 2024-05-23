@@ -15,6 +15,7 @@ const Content_cieloCredit = props => {
     onPaymentSetup
   } = eventRegistration
   const [creditObject, setCreditObject] = window.wp.element.useState({
+    lkn_cc_cardholder_name: '',
     lkn_ccno: '',
     lkn_cc_expdate: '',
     lkn_cc_cvc: '',
@@ -30,6 +31,13 @@ const Content_cieloCredit = props => {
   }
   const updateCreditObject = (key, value) => {
     switch (key) {
+      case 'lkn_cc_cardholder_name':
+        // Atualiza o estado
+        setCreditObject({
+          ...creditObject,
+          [key]: value
+        })
+        break
       case 'lkn_cc_expdate':
         if (value.length > 7) return
 
@@ -121,30 +129,37 @@ const Content_cieloCredit = props => {
     }
   }, [creditObject, emitResponse.responseTypes.ERROR, emitResponse.responseTypes.SUCCESS, onPaymentSetup])
   return /* #__PURE__ */React.createElement(React.Fragment, null, /* #__PURE__ */React.createElement('div', null, /* #__PURE__ */React.createElement('h4', null, 'Pagamento processado pela Cielo API 3.0')), /* #__PURE__ */React.createElement(wcComponents.TextInput, {
-    id: 'lkn_cardholder_name',
+    id: 'lkn_cc_cardholder_name',
     label: translations.cardHolder,
-    value: creditObject.lkn_cardholder_name
+    value: creditObject.lkn_cc_cardholder_name,
+    onChange: value => {
+      updateCreditObject('lkn_cc_cardholder_name', value)
+    },
+    required: true
   }), /* #__PURE__ */React.createElement(wcComponents.TextInput, {
     id: 'lkn_ccno',
     label: translations.cardNumber,
     value: creditObject.lkn_ccno,
     onChange: value => {
       updateCreditObject('lkn_ccno', formatCreditCardNumber(value))
-    }
+    },
+    required: true
   }), /* #__PURE__ */React.createElement(wcComponents.TextInput, {
     id: 'lkn_cc_expdate',
     label: translations.cardExpiryDate,
     value: creditObject.lkn_cc_expdate,
     onChange: value => {
       updateCreditObject('lkn_cc_expdate', value)
-    }
+    },
+    required: true
   }), /* #__PURE__ */React.createElement(wcComponents.TextInput, {
     id: 'lkn_cc_cvc',
     label: translations.securityCode,
     value: creditObject.lkn_cc_cvc,
     onChange: value => {
       updateCreditObject('lkn_cc_cvc', value)
-    }
+    },
+    required: true
   }), /* #__PURE__ */React.createElement('div', {
     style: {
       marginBottom: '20px'
