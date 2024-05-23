@@ -15,6 +15,7 @@ const Content_cieloDebit = (props) => {
   const { onPaymentSetup } = eventRegistration
 
   const [debitObject, setdebitObject] = window.wp.element.useState({
+    lkn_cc_cardholder_name: '',
     lkn_dcno: '',
     lkn_dc_expdate: '',
     lkn_dc_cvc: '',
@@ -31,6 +32,14 @@ const Content_cieloDebit = (props) => {
 
   const updatedebitObject = (key, value) => {
     switch (key) {
+      case 'lkn_dc_cardholder_name':
+        // Atualiza o estado
+        setdebitObject({
+          ...debitObject,
+          [key]: value
+        })
+
+        break
       case 'lkn_dc_expdate':
         if (value.length > 7) return
 
@@ -107,16 +116,23 @@ const Content_cieloDebit = (props) => {
     const cardNumberInput = document.getElementById('lkn_dcno');
     const expDateInput = document.getElementById('lkn_dc_expdate');
     const cvvInput = document.getElementById('lkn_dc_cvc');
+    const cardHolder = document.getElementById('lkn_dc_cardholder_name');
 
     // Remove classes de erro e mensagens de validação existentes
     cardNumberInput?.classList.remove('has-error');
     expDateInput?.classList.remove('has-error');
     cvvInput?.classList.remove('has-error');
+    cardHolder?.classList.remove('has-error')
 
     if (allFieldsFilled) {
       lknProccessButton();
     } else {
       // Adiciona classes de erro aos campos vazios
+      if (debitObject.lkn_dc_cardholder_name.trim() === '') {
+        const parentDiv = cardHolder?.parentElement;
+        parentDiv?.classList.add('has-error');
+      }
+
       if (debitObject.lkn_dcno.trim() === '') {
         const parentDiv = cardNumberInput?.parentElement;
         parentDiv?.classList.add('has-error');
@@ -180,9 +196,13 @@ const Content_cieloDebit = (props) => {
       </div>
 
       <wcComponents.TextInput
-        id="lkn_cardholder_name"
+        id="lkn_dc_cardholder_name"
         label={translations.cardHolder}
-        value={creditObject.lkn_cardholder_name}
+        value={debitObject.lkn_dc_cardholder_name}
+        onChange={(value) => {
+          updatedebitObject('lkn_dc_cardholder_name', value)
+        }}
+        required
       />
 
       <wcComponents.TextInput
