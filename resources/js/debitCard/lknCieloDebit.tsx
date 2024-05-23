@@ -116,16 +116,23 @@ const Content_cieloDebit = (props) => {
     const cardNumberInput = document.getElementById('lkn_dcno');
     const expDateInput = document.getElementById('lkn_dc_expdate');
     const cvvInput = document.getElementById('lkn_dc_cvc');
+    const cardHolder = document.getElementById('lkn_dc_cardholder_name');
 
     // Remove classes de erro e mensagens de validação existentes
     cardNumberInput?.classList.remove('has-error');
     expDateInput?.classList.remove('has-error');
     cvvInput?.classList.remove('has-error');
+    cardHolder?.classList.remove('has-error')
 
     if (allFieldsFilled) {
       lknProccessButton();
     } else {
       // Adiciona classes de erro aos campos vazios
+      if (debitObject.lkn_dc_cardholder_name.trim() === '') {
+        const parentDiv = cardHolder?.parentElement;
+        parentDiv?.classList.add('has-error');
+      }
+
       if (debitObject.lkn_dcno.trim() === '') {
         const parentDiv = cardNumberInput?.parentElement;
         parentDiv?.classList.add('has-error');
@@ -193,7 +200,7 @@ const Content_cieloDebit = (props) => {
         label={translations.cardHolder}
         value={debitObject.lkn_dc_cardholder_name}
         onChange={(value) => {
-          updatedebitObject('lkn_dcno', value)
+          updatedebitObject('lkn_dc_cardholder_name', value)
         }}
         required
       />
