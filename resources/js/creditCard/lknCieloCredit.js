@@ -121,9 +121,9 @@ const Content_cieloCredit = props => {
     }
   }, [creditObject, emitResponse.responseTypes.ERROR, emitResponse.responseTypes.SUCCESS, onPaymentSetup])
   return /* #__PURE__ */React.createElement(React.Fragment, null, /* #__PURE__ */React.createElement('div', null, /* #__PURE__ */React.createElement('h4', null, 'Pagamento processado pela Cielo API 3.0')), /* #__PURE__ */React.createElement(wcComponents.TextInput, {
-    id: 'lkn_cardholder_name',
+    id: 'lkn_cardholder_name_credit',
     label: translations.cardHolder,
-    value: creditObject.lkn_cardholder_name
+    value: creditObject.lkn_cardholder_name_credit
   }), /* #__PURE__ */React.createElement(wcComponents.TextInput, {
     id: 'lkn_ccno',
     label: translations.cardNumber,

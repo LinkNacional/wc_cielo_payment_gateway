@@ -282,11 +282,11 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
 
     <div class="form-row form-row-wide">
         <label
-            for="lkn_cardholder_name"><?php esc_html_e('Card Holder Name', 'lkn-wc-gateway-cielo'); ?>
+            for="lkn_cardholder_name_credit"><?php esc_html_e('Card Holder Name', 'lkn-wc-gateway-cielo'); ?>
             <span class="required">*</span></label>
         <input
-            id="lkn_cardholder_name"
-            name="lkn_cardholder_name"
+            id="lkn_cardholder_name_credit"
+            name="lkn_cardholder_name_credit"
             type="text"
             autocomplete="cc-name"
             required
@@ -395,7 +395,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
             $ccnum = sanitize_text_field($_POST['lkn_ccno']);
             $expDate = sanitize_text_field($_POST['lkn_cc_expdate']);
             $cvv = sanitize_text_field($_POST['lkn_cc_cvc']);
-            $cardName = sanitize_text_field($_POST['lkn_cardholder_name']);
+            $cardName = sanitize_text_field($_POST['lkn_cardholder_name_credit']);
 
             $validCcNumber = $this->validate_card_number($ccnum, true);
             $validExpDate = $this->validate_exp_date($expDate, true);
@@ -435,7 +435,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
         $cardExp = $cardExpSplit[0] . '/20' . $cardExpSplit[1];
         $cardExpShort = $cardExpSplit[0] . '/' . $cardExpSplit[1];
         $cardCvv = sanitize_text_field($_POST['lkn_cc_cvc']);
-        $cardName = sanitize_text_field($_POST['lkn_cardholder_name']);
+        $cardName = sanitize_text_field($_POST['lkn_cardholder_name_credit']);
         $installments = 1;
 
         // POST parameters

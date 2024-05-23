@@ -141,9 +141,9 @@ const Content_cieloCredit = (props) => {
       </div>
 
       <wcComponents.TextInput
-        id="lkn_cardholder_name"
+        id="lkn_cardholder_name_credit"
         label={translations.cardHolder}
-        value={creditObject.lkn_cardholder_name}
+        value={creditObject.lkn_cardholder_name_credit}
       />
 
       <wcComponents.TextInput
