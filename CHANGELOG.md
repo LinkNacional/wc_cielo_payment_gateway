@@ -1,3 +1,8 @@
+# 1.9.1 - 23/05/2024
+* Correção de erro no campo de titular do cartão;
+* Correção de erro na validação dos campos do novo template de checkout;
+* Ajustes no reconhecimento de parcelas em faturas e páginas fora do padrão do WooCommerce.
+
 # 1.9.0 - 22/05/2024
 * Correção de erro nos campos de entrada do formulário;
 * Adição de tratamento de erro para o campo de entrada do titular do cartão;
