@@ -18,7 +18,7 @@ const Content_cieloDebit = props => {
     onPaymentSetup
   } = eventRegistration
   const [debitObject, setdebitObject] = window.wp.element.useState({
-    lkn_cc_cardholder_name: '',
+    lkn_dc_cardholder_name: '',
     lkn_dcno: '',
     lkn_dc_expdate: '',
     lkn_dc_cvc: ''
@@ -150,6 +150,7 @@ const Content_cieloDebit = props => {
         meta: {
           paymentMethodData: {
             lkn_dcno: debitObject.lkn_dcno,
+            lkn_dc_cardholder_name: debitObject.lkn_dc_cardholder_name,
             lkn_dc_expdate: debitObject.lkn_dc_expdate,
             lkn_dc_cvc: debitObject.lkn_dc_cvc,
             nonce_lkn_cielo_debit: nonceCieloDebit,
