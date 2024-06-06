@@ -117,6 +117,7 @@ const Content_cieloCredit = (props) => {
           meta: {
             paymentMethodData: {
               lkn_ccno: creditObject.lkn_ccno,
+              lkn_cc_cardholder_name: creditObject.lkn_cc_cardholder_name,
               lkn_cc_expdate: creditObject.lkn_cc_expdate,
               lkn_cc_cvc: creditObject.lkn_cc_cvc,
               lkn_cc_installments: creditObject.lkn_cc_installments,

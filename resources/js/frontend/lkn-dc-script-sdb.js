@@ -84,7 +84,7 @@ function bpmpi_config () {
       document.getElementById('lkn_version').value = version
       document.getElementById('lkn_xid').value = xid
 
-      const formCheckoutWC = document.getElementById('order_review')
+      const Button3ds = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0]
       const formCartWC = document.getElementsByName('checkout')[0]
 
       if (formCartWC) {
@@ -93,7 +93,7 @@ function bpmpi_config () {
         btnSubmit.setAttribute('type', 'submit')
         btnSubmit.click()
       } else {
-        formCheckoutWC.submit()
+        Button3ds.click()
       }
     },
     onFailure: function (e) {

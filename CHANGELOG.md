@@ -1,3 +1,6 @@
+# 1.9.2 - 05/06/2024
+* Correção de validação no campo nome do titular do cartão;
+
 # 1.9.1 - 23/05/2024
 * Correção de erro no campo de titular do cartão;
 * Correção de erro na validação dos campos do novo template de checkout;
