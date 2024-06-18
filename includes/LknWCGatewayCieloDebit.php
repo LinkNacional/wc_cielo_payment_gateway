@@ -799,7 +799,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
 
             // Remove cart
             WC()->cart->empty_cart();
-
+            $update_order = apply_filters("lkn_wc_cielo_update_order", $order_id);
             $order->update_meta_data('lkn_nsu', $responseDecoded->Payment->ProofOfSale);
             $order->add_order_note(
                 __('Payment completed successfully. Payment id:', 'lkn-wc-gateway-cielo') .
