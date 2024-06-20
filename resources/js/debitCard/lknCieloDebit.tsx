@@ -1,15 +1,15 @@
-const settingsDebitCard = window.wc.wcSettings.getSetting('lkn_cielo_debit_data', {})
-const labelDebitCard = window.wp.htmlEntities.decodeEntities(settingsDebitCard.title)
-const accessToken = window.wp.htmlEntities.decodeEntities(settingsDebitCard.accessToken)
-const url = window.wp.htmlEntities.decodeEntities(settingsDebitCard.url)
-const totalCart = window.wp.htmlEntities.decodeEntities(settingsDebitCard.totalCart)
-const orderNumber = window.wp.htmlEntities.decodeEntities(settingsDebitCard.orderNumber)
-const dirScript3DS = window.wp.htmlEntities.decodeEntities(settingsDebitCard.dirScript3DS)
-const dirScriptConfig3DS = window.wp.htmlEntities.decodeEntities(settingsDebitCard.dirScriptConfig3DS)
-const translationsDebit = settingsDebitCard.translations
-const nonceCieloDebit = settingsDebitCard.nonceCieloDebit;
+const lknDCsettingsCielo = window.wc.wcSettings.getSetting('lkn_cielo_debit_data', {})
+const lknDCLabelCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.title)
+const lknDCAccessTokenCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.accessToken)
+const lknDCUrlCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.url)
+const lknDCTotalCartCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.totalCart)
+const lknDCOrderNumberCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.orderNumber)
+const lknDCDirScript3DSCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.dirScript3DS)
+const lknDCDirScriptConfig3DSCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.dirScriptConfig3DS)
+const lknDCTranslationsDebitCielo = lknDCsettingsCielo.translations
+const lknDCNonceCieloDebit = lknDCsettingsCielo.nonceCieloDebit;
 
-const Content_cieloDebit = (props) => {
+const lknDCContentCielo = (props) => {
   const wcComponents = window.wc.blocksComponents
   const { eventRegistration, emitResponse } = props
   const { onPaymentSetup } = eventRegistration
@@ -75,17 +75,19 @@ const Content_cieloDebit = (props) => {
   }
 
   window.wp.element.useEffect(() => {
-    const elemento = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0]
+    const lknDCElement = document.querySelectorAll('.wc-block-components-checkout-place-order-button')
 
-    elemento.style.display = 'none';
+    if (lknDCElement && lknDCElement[0]) {
+      lknDCElement[0].style.display = 'none';
 
-    return () => {
-      elemento.style.display = '';
-    };
+      return () => {
+        lknDCElement[0].style.display = '';
+      };
+    }
   })
 
   window.wp.element.useEffect(() => {
-    const scriptUrl = dirScript3DS;
+    const scriptUrl = lknDCDirScript3DSCielo;
     const existingScript = document.querySelector(`script[src="${scriptUrl}"]`);
 
     if (!existingScript) {
@@ -97,7 +99,7 @@ const Content_cieloDebit = (props) => {
   }, []);
 
   window.wp.element.useEffect(() => {
-    const scriptUrl = dirScriptConfig3DS;
+    const scriptUrl = lknDCDirScriptConfig3DSCielo;
     const existingScript = document.querySelector(`script[src="${scriptUrl}"]`);
     if (!existingScript) {
       const script = document.createElement('script');
@@ -112,7 +114,7 @@ const Content_cieloDebit = (props) => {
     // Verifica se todos os campos do debitObject estão preenchidos
     const allFieldsFilled = Object.values(debitObject).every((field) => field.trim() !== '');
 
-    // Seleciona os elementos dos campos de entrada
+    // Seleciona os lknDCElements dos campos de entrada
     const cardNumberInput = document.getElementById('lkn_dcno');
     const expDateInput = document.getElementById('lkn_dc_expdate');
     const cvvInput = document.getElementById('lkn_dc_cvc');
@@ -125,7 +127,7 @@ const Content_cieloDebit = (props) => {
     cardHolder?.classList.remove('has-error')
 
     if (allFieldsFilled) {
-      lknProccessButton();
+      lknDCProccessButton();
     } else {
       // Adiciona classes de erro aos campos vazios
       if (debitObject.lkn_dc_cardholder_name.trim() === '') {
@@ -168,7 +170,7 @@ const Content_cieloDebit = (props) => {
             lkn_dc_cardholder_name: debitObject.lkn_dc_cardholder_name,
             lkn_dc_expdate: debitObject.lkn_dc_expdate,
             lkn_dc_cvc: debitObject.lkn_dc_cvc,
-            nonce_lkn_cielo_debit: nonceCieloDebit,
+            nonce_lkn_cielo_debit: lknDCNonceCieloDebit,
             lkn_cielo_3ds_cavv: paymentCavv,
             lkn_cielo_3ds_eci: paymentEci,
             lkn_cielo_3ds_ref_id: paymentReferenceId,
@@ -198,7 +200,7 @@ const Content_cieloDebit = (props) => {
 
       <wcComponents.TextInput
         id="lkn_dc_cardholder_name"
-        label={translations.cardHolder}
+        label={lknDCTranslationsDebitCielo.cardHolder}
         value={debitObject.lkn_dc_cardholder_name}
         onChange={(value) => {
           updatedebitObject('lkn_dc_cardholder_name', value)
@@ -208,7 +210,7 @@ const Content_cieloDebit = (props) => {
 
       <wcComponents.TextInput
         id="lkn_dcno"
-        label={translationsDebit.cardNumber}
+        label={lknDCTranslationsDebitCielo.cardNumber}
         value={debitObject.lkn_dcno}
         onChange={(value) => {
           updatedebitObject('lkn_dcno', formatDebitCardNumber(value))
@@ -218,7 +220,7 @@ const Content_cieloDebit = (props) => {
 
       <wcComponents.TextInput
         id="lkn_dc_expdate"
-        label={translationsDebit.cardExpiryDate}
+        label={lknDCTranslationsDebitCielo.cardExpiryDate}
         value={debitObject.lkn_dc_expdate}
         onChange={(value) => {
           updatedebitObject('lkn_dc_expdate', value)
@@ -228,7 +230,7 @@ const Content_cieloDebit = (props) => {
 
       <wcComponents.TextInput
         id="lkn_dc_cvc"
-        label={translationsDebit.securityCode}
+        label={lknDCTranslationsDebitCielo.securityCode}
         value={debitObject.lkn_dc_cvc}
         onChange={(value) => {
           updatedebitObject('lkn_dc_cvc', value)
@@ -252,11 +254,11 @@ const Content_cieloDebit = (props) => {
       <div>
         <input type="hidden" name="lkn_auth_enabled" className="bpmpi_auth" value="true" />
         <input type="hidden" name="lkn_auth_enabled_notifyonly" className="bpmpi_auth_notifyonly" value="true" />
-        <input type="hidden" name="lkn_access_token" className="bpmpi_accesstoken" value={accessToken} />
-        <input type="hidden" size="50" name="lkn_order_number" className="bpmpi_ordernumber" value={orderNumber} />
+        <input type="hidden" name="lkn_access_token" className="bpmpi_accesstoken" value={lknDCAccessTokenCielo} />
+        <input type="hidden" size="50" name="lkn_order_number" className="bpmpi_ordernumber" value={lknDCOrderNumberCielo} />
         <input type="hidden" name="lkn_currency" className="bpmpi_currency" value="BRL" />
-        <input type="hidden" size="50" className="bpmpi_merchant_url" value={url} />
-        <input type="hidden" size="50" id="lkn_cielo_3ds_value" name="lkn_amount" className="bpmpi_totalamount" value={totalCart} />
+        <input type="hidden" size="50" className="bpmpi_merchant_url" value={lknDCUrlCielo} />
+        <input type="hidden" size="50" id="lkn_cielo_3ds_value" name="lkn_amount" className="bpmpi_totalamount" value={lknDCTotalCartCielo} />
         <input type="hidden" size="2" name="lkn_installments" className="bpmpi_installments" value="1" />
         <input type="hidden" name="lkn_payment_method" className="bpmpi_paymentmethod" value="Debit" />
         <input type="hidden" id="lkn_bpmpi_cardnumber" className="bpmpi_cardnumber" />
@@ -273,16 +275,16 @@ const Content_cieloDebit = (props) => {
   )
 }
 
-const Block_Gateway_Debit_Card = {
+const Lkn_DC_Block_Gateway_Cielo = {
   name: 'lkn_cielo_debit',
-  label: labelDebitCard,
-  content: window.wp.element.createElement(Content_cieloDebit),
-  edit: window.wp.element.createElement(Content_cieloDebit),
+  label: lknDCLabelCielo,
+  content: window.wp.element.createElement(lknDCContentCielo),
+  edit: window.wp.element.createElement(lknDCContentCielo),
   canMakePayment: () => true,
-  ariaLabel: labelDebitCard,
+  ariaLabel: lknDCLabelCielo,
   supports: {
-    features: settingsDebitCard.supports
+    features: lknDCsettingsCielo.supports
   }
 };
 
-window.wc.wcBlocksRegistry.registerPaymentMethod(Block_Gateway_Debit_Card)
+window.wc.wcBlocksRegistry.registerPaymentMethod(Lkn_DC_Block_Gateway_Cielo)
