@@ -6,7 +6,7 @@
     "mounts": [
         {
             "source": "/path/to/your/wordpress-stubs",
-            "target": "/home/vscode/wordpress",
+            "target": "/home/vscode/_wordpress",
             "type": "bind"
         }
     ],
