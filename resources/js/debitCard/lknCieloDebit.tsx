@@ -9,6 +9,40 @@ const lknDCDirScriptConfig3DSCielo = window.wp.htmlEntities.decodeEntities(lknDC
 const lknDCTranslationsDebitCielo = lknDCsettingsCielo.translations
 const lknDCNonceCieloDebit = lknDCsettingsCielo.nonceCieloDebit;
 
+const lknDCHideCheckoutButton = () => {
+  const lknDCElement = document.querySelectorAll('.wc-block-components-checkout-place-order-button')
+
+  if (lknDCElement && lknDCElement[0]) {
+    lknDCElement[0].style.display = 'none';
+  }
+}
+
+const lknDCInitCieloPaymentForm = () => {
+  document.addEventListener('DOMContentLoaded', lknDCHideCheckoutButton)
+  lknDCHideCheckoutButton()
+
+  // Load Cielo 3DS BpMPI Script
+  const scriptUrlBpmpi = lknDCDirScript3DSCielo;
+  const existingScriptBpmpi = document.querySelector(`script[src="${scriptUrlBpmpi}"]`);
+
+  if (!existingScriptBpmpi) {
+    const scriptBpmpi = document.createElement('script');
+    scriptBpmpi.src = scriptUrlBpmpi;
+    scriptBpmpi.async = true;
+    document.body.appendChild(scriptBpmpi);
+  }
+
+  // Load Cielo 3DS Config Script
+  const scriptUrl = lknDCDirScriptConfig3DSCielo;
+  const existingScript = document.querySelector(`script[src="${scriptUrl}"]`);
+  if (!existingScript) {
+    const script = document.createElement('script');
+    script.src = scriptUrl;
+    script.async = true;
+    document.body.appendChild(script);
+  }
+}
+
 const lknDCContentCielo = (props) => {
   const wcComponents = window.wc.blocksComponents
   const { eventRegistration, emitResponse } = props
@@ -78,36 +112,15 @@ const lknDCContentCielo = (props) => {
     const lknDCElement = document.querySelectorAll('.wc-block-components-checkout-place-order-button')
 
     if (lknDCElement && lknDCElement[0]) {
+      // Hides the checkout button on cielo debit select
       lknDCElement[0].style.display = 'none';
 
+      // Shows the checkout button on payment change
       return () => {
         lknDCElement[0].style.display = '';
       };
     }
   })
-
-  window.wp.element.useEffect(() => {
-    const scriptUrl = lknDCDirScript3DSCielo;
-    const existingScript = document.querySelector(`script[src="${scriptUrl}"]`);
-
-    if (!existingScript) {
-      const script = document.createElement('script');
-      script.src = scriptUrl;
-      script.async = true;
-      document.body.appendChild(script);
-    }
-  }, []);
-
-  window.wp.element.useEffect(() => {
-    const scriptUrl = lknDCDirScriptConfig3DSCielo;
-    const existingScript = document.querySelector(`script[src="${scriptUrl}"]`);
-    if (!existingScript) {
-      const script = document.createElement('script');
-      script.src = scriptUrl;
-      script.async = true;
-      document.body.appendChild(script);
-    }
-  }, []);
 
 
   const handleButtonClick = () => {
@@ -153,6 +166,7 @@ const lknDCContentCielo = (props) => {
   };
 
   window.wp.element.useEffect(() => {
+    lknDCInitCieloPaymentForm()
     const unsubscribe = onPaymentSetup(async () => {
       const Button3dsEnviar = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0].closest('form')
 
