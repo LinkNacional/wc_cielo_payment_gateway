@@ -43,6 +43,7 @@ final class LknWcCieloCreditBlocks extends AbstractPaymentMethodType {
         return array(
             'title' => $this->gateway->title,
             'description' => $this->gateway->description,
+            'supports' => $this->gateway->supports,
             'activeInstallment' => $this->gateway->get_option('installment_payment'),
             'installmentLimit' => $this->gateway->get_option('installment_limit', 12),
             'totalCart' => $this->gateway->lknGetCartTotal(),

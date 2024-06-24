@@ -60,7 +60,7 @@ function bpmpi_config () {
   }
 }
 
-function lknProccessButton () {
+function lknDCProccessButton () {
   try {
     const cardNumber = document.getElementById('lkn_dcno').value.replace(/\D/g, '')
     let expDate = document.getElementById('lkn_dc_expdate').value

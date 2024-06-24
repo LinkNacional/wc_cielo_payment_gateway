@@ -1,5 +1,6 @@
 # 1.9.3 - 18/06/2024
 * Adição de compatibilidade com a funcionalidade Orders Auto-Complete do plugin pro;
+* Correção de problema de renderização do Cielo débito 3DS.
 
 # 1.9.2 - 05/06/2024
 * Correção de validação no campo nome do titular do cartão;
