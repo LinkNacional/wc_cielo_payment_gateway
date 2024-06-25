@@ -31,15 +31,16 @@ const { __ } = wp.i18n;
     const paymentBox = document.getElementById('payment')
     const lknWcCieloPaymentCCTypeInput = document.querySelector('#lkn_cc_type')
 
-    lknWcCieloPaymentCCTypeInput.onchange = (e) => {
-      if (e.target.value == 'Debit') {
-        document.querySelector('#lkn_cc_installments').parentElement.style.display = 'none'
-      } else {
-        document.querySelector('#lkn_cc_installments').parentElement.style.display = ''
-      }
-    }
 
     if (document.querySelector('#lkn_dcno')) {
+      lknWcCieloPaymentCCTypeInput.onchange = (e) => {
+        if (e.target.value == 'Debit') {
+          document.querySelector('#lkn_cc_installments').parentElement.style.display = 'none'
+        } else {
+          document.querySelector('#lkn_cc_installments').parentElement.style.display = ''
+        }
+      }
+
       document.querySelector('#lkn_dcno').onchange = (e) => {
         var cardBin = e.target.value.substring(0, 6);
         var url = window.location.origin + '/wp-json/lknWCGatewayCielo/checkCard?cardbin=' + cardBin;
@@ -50,7 +51,6 @@ const { __ } = wp.i18n;
             'Accept': "application/json",
           },
           success: function (response) {
-            console.log('Sucesso:', response);
             var options = document.querySelectorAll('#lkn_cc_type option');
             options.forEach(function (option) {
               if ('Crédito' == response.CardType && option.value !== 'Credit') {
@@ -119,6 +119,22 @@ function bpmpi_config() {
       const eci = e.Eci
       const version = e.Version
       const referenceId = e.ReferenceId
+      const Form3dsButton = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0]?.closest('form')
+
+      if (Form3dsButton) {
+        Form3dsButton.setAttribute('data-payment-cavv', cavv)
+        Form3dsButton.setAttribute('data-payment-eci', eci)
+        Form3dsButton.setAttribute('data-payment-ref_id', referenceId)
+        Form3dsButton.setAttribute('data-payment-version', version)
+        Form3dsButton.setAttribute('data-payment-xid', xid)
+        const Button3ds = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0]
+        const event = new MouseEvent('click', {
+          bubbles: true,
+          cancelable: true,
+          view: window
+        })
+        Button3ds.dispatchEvent(event)
+      }
 
       document.getElementById('lkn_cavv').value = cavv
       document.getElementById('lkn_eci').value = eci

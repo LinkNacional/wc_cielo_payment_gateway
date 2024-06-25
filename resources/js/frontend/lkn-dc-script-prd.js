@@ -108,7 +108,7 @@ const { __ } = wp.i18n;
   })
 })(jQuery)
 
-function bpmpi_config () {
+function bpmpi_config() {
   return {
     onReady: function () {
 
@@ -120,6 +120,22 @@ function bpmpi_config () {
       const eci = e.Eci
       const version = e.Version
       const referenceId = e.ReferenceId
+      const Form3dsButton = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0]?.closest('form')
+
+      if (Form3dsButton) {
+        Form3dsButton.setAttribute('data-payment-cavv', cavv)
+        Form3dsButton.setAttribute('data-payment-eci', eci)
+        Form3dsButton.setAttribute('data-payment-ref_id', referenceId)
+        Form3dsButton.setAttribute('data-payment-version', version)
+        Form3dsButton.setAttribute('data-payment-xid', xid)
+        const Button3ds = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0]
+        const event = new MouseEvent('click', {
+          bubbles: true,
+          cancelable: true,
+          view: window
+        })
+        Button3ds.dispatchEvent(event)
+      }
 
       document.getElementById('lkn_cavv').value = cavv
       document.getElementById('lkn_eci').value = eci
@@ -176,7 +192,7 @@ function bpmpi_config () {
   }
 }
 
-function lknDCProccessButton () {
+function lknDCProccessButton() {
   try {
     const cardNumber = document.getElementById('lkn_dcno').value.replace(/\D/g, '')
     let expDate = document.getElementById('lkn_dc_expdate').value

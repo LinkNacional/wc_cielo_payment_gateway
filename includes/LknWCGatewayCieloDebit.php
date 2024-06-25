@@ -620,6 +620,10 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
                 >
 
                 <div class="form-row form-row-wide">
+                    <label
+                        for="lkn_cc_installments"><?php esc_html_e('Installments', 'lkn-wc-gateway-cielo'); ?>
+                        <span class="required">*</span>
+                    </label>
                     <select
                         id="lkn_cc_installments"
                         name="lkn_cc_installments"
@@ -685,6 +689,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
                 'redirect' => '',
             );
         }
+        throw new Exception(json_encode($_POST));
 
         $order = wc_get_order($order_id);
 

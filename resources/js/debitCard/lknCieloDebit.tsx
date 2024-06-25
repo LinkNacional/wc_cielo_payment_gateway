@@ -1,13 +1,16 @@
 const lknDCsettingsCielo = window.wc.wcSettings.getSetting('lkn_cielo_debit_data', {})
 const lknDCLabelCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.title)
 const lknDCAccessTokenCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.accessToken)
+const lknDCActiveInstallmentCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.activeInstallment)
 const lknDCUrlCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.url)
 const lknDCTotalCartCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.totalCart)
 const lknDCOrderNumberCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.orderNumber)
 const lknDCDirScript3DSCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.dirScript3DS)
+const lknDCInstallmentLimitCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.installmentLimit);
 const lknDCDirScriptConfig3DSCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.dirScriptConfig3DS)
 const lknDCTranslationsDebitCielo = lknDCsettingsCielo.translations
 const lknDCNonceCieloDebit = lknDCsettingsCielo.nonceCieloDebit;
+const lknDCTranslationsCielo = lknDCsettingsCielo.translations
 
 const lknDCHideCheckoutButton = () => {
   const lknDCElement = document.querySelectorAll('.wc-block-components-checkout-place-order-button')
@@ -48,11 +51,14 @@ const lknDCContentCielo = (props) => {
   const { eventRegistration, emitResponse } = props
   const { onPaymentSetup } = eventRegistration
 
+  const [options, setOptions] = window.wp.element.useState([])
   const [debitObject, setdebitObject] = window.wp.element.useState({
     lkn_dc_cardholder_name: '',
     lkn_dcno: '',
     lkn_dc_expdate: '',
     lkn_dc_cvc: '',
+    lkn_cc_installments: '1', // Definir padrão como 1 parcela
+    lkn_cc_type: 'Credit',
   })
 
   const formatDebitCardNumber = value => {
@@ -62,6 +68,50 @@ const lknDCContentCielo = (props) => {
     // Adiciona espaços a cada quatro dígitos
     const formattedValue = cleanedValue?.replace(/(.{4})/g, '$1 ')?.trim()
     return formattedValue
+  }
+
+  const updateDebitObject = (key, value) => {
+    switch (key) {
+      case 'lkn_cc_cardholder_name':
+        // Atualiza o estado
+        setdebitObject({
+          ...debitObject,
+          [key]: value
+        })
+
+        break
+      case 'lkn_cc_expdate':
+        if (value.length > 7) return
+
+        // Verifica se o valor é uma data válida (MM/YY)
+        const isValidDate = /^\d{2}\/\d{2}$/.test(value)
+        if (!isValidDate) {
+          // Remove caracteres não numéricos
+          const cleanedValue = value?.replace(/\D/g, '')
+          let formattedValue = cleanedValue?.replace(/^(.{2})/, '$1 / ')?.trim()
+
+          // Se o tamanho da string for 5, remove o espaço e a barra adicionados anteriormente
+          if (formattedValue.length === 4) {
+            formattedValue = formattedValue.replace(/\s\//, '')
+          }
+
+          // Atualiza o estado
+          setdebitObject({
+            ...debitObject,
+            [key]: formattedValue
+          })
+        }
+        return
+      case 'lkn_cc_cvc':
+        if (value.length > 8) return
+        break
+      default:
+        break
+    }
+    setdebitObject({
+      ...debitObject,
+      [key]: value
+    })
   }
 
   const updatedebitObject = (key, value) => {
@@ -175,11 +225,10 @@ const lknDCContentCielo = (props) => {
       const paymentReferenceId = Button3dsEnviar?.getAttribute('data-payment-ref_id');
       const paymentVersion = Button3dsEnviar?.getAttribute('data-payment-version');
       const paymentXid = Button3dsEnviar?.getAttribute('data-payment-xid');
-
       return {
         type: emitResponse.responseTypes.SUCCESS,
         meta: {
-          paymentMethodData: {
+          paymentMethodData: { //TODO Corrigir campos faltando
             lkn_dcno: debitObject.lkn_dcno,
             lkn_dc_cardholder_name: debitObject.lkn_dc_cardholder_name,
             lkn_dc_expdate: debitObject.lkn_dc_expdate,
@@ -190,6 +239,8 @@ const lknDCContentCielo = (props) => {
             lkn_cielo_3ds_ref_id: paymentReferenceId,
             lkn_cielo_3ds_version: paymentVersion,
             lkn_cielo_3ds_xid: paymentXid,
+            lkn_cc_installments: debitObject.lkn_cc_installments,
+            lkn_cc_type: debitObject.lkn_cc_type,
           },
         },
       };
@@ -205,6 +256,38 @@ const lknDCContentCielo = (props) => {
     emitResponse.responseTypes.SUCCESS,
     onPaymentSetup
   ]);
+
+  window.wp.element.useEffect(() => {
+    const installmentMin = 5;
+    // Verifica se 'lknCCActiveInstallmentCielo' é 'yes' e o valor total é maior que 10
+    if (lknDCActiveInstallmentCielo === 'yes' && lknDCTotalCartCielo > 10) {
+      const maxInstallments = lknDCInstallmentLimitCielo; // Limita o parcelamento até 12 vezes, deixei fixo para teste
+
+      for (let index = 1; index <= maxInstallments; index++) {
+        const installmentAmount = (lknDCTotalCartCielo / index).toLocaleString('pt-BR', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        });
+
+        const nextInstallmentAmount = lknDCTotalCartCielo / (index);
+
+        if (nextInstallmentAmount < installmentMin) {
+          break;
+        }
+
+        setOptions(prevOptions => [
+          ...prevOptions,
+          { key: index, label: `${index}x de R$ ${installmentAmount} sem juros` }
+        ])
+      }
+    } else {
+      setOptions(prevOptions => [
+        ...prevOptions,
+        { key: '1', label: `1x de R$ ${lknDCTotalCartCielo} (à vista)` }
+      ])
+    }
+  }, [])
+
 
   return (
     <>
@@ -251,6 +334,34 @@ const lknDCContentCielo = (props) => {
         }}
         required
       />
+      <div style={{ marginBottom: '30px' }}></div>
+
+      <wcComponents.SortSelect
+        id="lkn_cc_type"
+        label={lknDCTranslationsCielo.cardType}
+        value={debitObject.lkn_cc_type}
+        onChange={(event) => {
+          updateDebitObject('lkn_cc_type', event.target.value)
+        }}
+        options={[
+          { key: 'Credit', label: lknDCTranslationsCielo.creditCard },
+          { key: 'Debit', label: lknDCTranslationsCielo.debitCard }
+        ]}
+      />
+
+      <div style={{ marginBottom: '30px' }}></div>
+
+      {(lknDCActiveInstallmentCielo === 'yes' && debitObject.lkn_cc_type == 'Credit') && (
+        <wcComponents.SortSelect
+          id="lkn_cc_installments"
+          label={lknDCTranslationsCielo.cardType}
+          value={debitObject.lkn_cc_installments}
+          onChange={(event) => {
+            updateDebitObject('lkn_cc_installments', event.target.value)
+          }}
+          options={options}
+        />
+      )}
 
       <div style={{ marginBottom: '30px' }}></div>
 
