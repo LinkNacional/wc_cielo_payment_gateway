@@ -283,3 +283,12 @@ msgstr ""
 
 msgid "Card Holder Name is required!"
 msgstr ""
+
+msgid "Card type"
+msgstr ""
+
+msgid "Credit Card"
+msgstr "Cartão de Crédito"
+
+msgid "Debit Card"
+msgstr "Cartão de Débito"

@@ -17,10 +17,11 @@
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
  */
 
-use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloCreditBlocks;
-use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloDebitBlocks;
 use Lkn\WCCieloPaymentGateway\Includes\LknWCGatewayCieloCredit;
 use Lkn\WCCieloPaymentGateway\Includes\LknWCGatewayCieloDebit;
+use Lkn\WCCieloPaymentGateway\Includes\LknWCGatewayCieloEndpoint;
+use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloCreditBlocks;
+use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloDebitBlocks;
 
 require_once __DIR__ . '/vendor/autoload.php';
 
@@ -102,6 +103,8 @@ final class LknWCCieloPayment {
 
         // Thank you page with installments.
         add_action('woocommerce_order_details_after_order_table', array(__CLASS__, 'order_details_after_order_table'), 10, 1);
+    
+		add_action('rest_api_init', array(new LknWCGatewayCieloEndpoint(), 'registerOrderCaptureEndPoint'));
     }
 
     public static function wcEditorBlocksActive(): void {

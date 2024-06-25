@@ -2,12 +2,15 @@
 // Implements script internationalization
 
 (function ($) {
-
-
   $(window).on('load', () => {
-    document.querySelector('.bpmpi_accesstoken').value = lknWcCieloPaymentGatewayToken
-    document.querySelectorAll('.blockUI.blockOverlay').forEach((load)=>{
-      load.remove()
-    })
-  })
-})(jQuery)
+    // Defina o valor do access token
+    if (document.querySelector('.bpmpi_accesstoken')) {
+      document.querySelector('.bpmpi_accesstoken').value = lknWcCieloPaymentGatewayToken;
+
+      // Remova os elementos de overlay
+      document.querySelectorAll('.blockUI.blockOverlay').forEach((load) => {
+        load.remove();
+      });
+    }
+  });
+})(jQuery);

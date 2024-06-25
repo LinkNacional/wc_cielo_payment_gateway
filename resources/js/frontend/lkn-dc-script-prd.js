@@ -30,6 +30,48 @@ const { __ } = wp.i18n;
     const debitForm = document.getElementById('wc-lkn_cielo_debit-cc-form')
     const paymentBox = document.getElementById('payment')
 
+    const lknWcCieloPaymentCCTypeInput = document.querySelector('#lkn_cc_type')
+
+    lknWcCieloPaymentCCTypeInput.onchange = (e) => {
+      if (e.target.value == 'Debit') {
+        document.querySelector('#lkn_cc_installments').parentElement.style.display = 'none'
+      } else {
+        document.querySelector('#lkn_cc_installments').parentElement.style.display = ''
+      }
+    }
+
+    if (document.querySelector('#lkn_dcno')) {
+      document.querySelector('#lkn_dcno').onchange = (e) => {
+        var cardBin = e.target.value.substring(0, 6);
+        var url = window.location.origin + '/wp-json/lknWCGatewayCielo/checkCard?cardbin=' + cardBin;
+        $.ajax({
+          url: url,
+          type: 'GET',
+          headers: {
+            'Accept': "application/json",
+          },
+          success: function (response) {
+            console.log('Sucesso:', response);
+            var options = document.querySelectorAll('#lkn_cc_type option');
+            options.forEach(function (option) {
+              if ('Crédito' == response.CardType && option.value !== 'Credit') {
+                option.disabled = true;
+                option.selected = false;
+              } else if ('Débito' == response.CardType && option.value !== 'Debit') {
+                option.disabled = true;
+                option.selected = false;
+              } else {
+                option.disabled = false; // Reabilita opções que correspondem ao tipo de cartão
+              }
+            });
+          },
+          error: function (error) {
+            console.error('Erro:', error);
+          }
+        });
+      }
+    }
+
     if (debitPaymethod || debitForm) {
       lknLoadDebitFunctions()
     }
