@@ -20,8 +20,10 @@ const { __ } = wp.i18n;
 
     if (debitPaymethod && debitPaymethod.checked === false) {
       const btnSubmit = document.getElementById('place_order')
-      btnSubmit.setAttribute('type', 'submit')
-      btnSubmit.removeEventListener('click', lknDCProccessButton, true)
+      if(btnSubmit){
+        btnSubmit.setAttribute('type', 'submit')
+        btnSubmit.removeEventListener('click', lknDCProccessButton, true)
+      }
     }
   }
 
@@ -29,19 +31,20 @@ const { __ } = wp.i18n;
     const debitPaymethod = document.getElementById('payment_method_lkn_cielo_debit')
     const debitForm = document.getElementById('wc-lkn_cielo_debit-cc-form')
     const paymentBox = document.getElementById('payment')
-
     const lknWcCieloPaymentCCTypeInput = document.querySelector('#lkn_cc_type')
+    const lknWcCieloCcDcInstallment = document.querySelector('#lkn_cc_dc_installments')
+    const lknWcCieloCcDcNo = document.querySelector('#lkn_dcno')
 
-    lknWcCieloPaymentCCTypeInput.onchange = (e) => {
-      if (e.target.value == 'Debit') {
-        document.querySelector('#lkn_cc_installments').parentElement.style.display = 'none'
-      } else {
-        document.querySelector('#lkn_cc_installments').parentElement.style.display = ''
+    if (lknWcCieloCcDcNo && lknWcCieloPaymentCCTypeInput) {
+      lknWcCieloPaymentCCTypeInput.onchange = (e) => {
+        if (e.target.value == 'Debit' && lknWcCieloCcDcInstallment) {
+          lknWcCieloCcDcInstallment.parentElement.style.display = 'none'
+        } else if(lknWcCieloCcDcInstallment) {
+          lknWcCieloCcDcInstallment.parentElement.style.display = ''
+        }
       }
-    }
 
-    if (document.querySelector('#lkn_dcno')) {
-      document.querySelector('#lkn_dcno').onchange = (e) => {
+      lknWcCieloCcDcNo.onchange = (e) => {
         var cardBin = e.target.value.substring(0, 6);
         var url = window.location.origin + '/wp-json/lknWCGatewayCielo/checkCard?cardbin=' + cardBin;
         $.ajax({
@@ -52,16 +55,39 @@ const { __ } = wp.i18n;
           },
           success: function (response) {
             var options = document.querySelectorAll('#lkn_cc_type option');
+
+            // Reset all options: enable all and deselect all
+            options.forEach(function (option) {
+              option.disabled = false;
+              option.selected = false;
+            });
+
             options.forEach(function (option) {
               if ('Crédito' == response.CardType && option.value !== 'Credit') {
                 option.disabled = true;
                 option.selected = false;
+                if(lknWcCieloCcDcInstallment){
+                  lknWcCieloCcDcInstallment.parentElement.style.display = '';
+                }
               } else if ('Débito' == response.CardType && option.value !== 'Debit') {
                 option.disabled = true;
                 option.selected = false;
-              } else {
-                option.disabled = false; // Reabilita opções que correspondem ao tipo de cartão
+                if(lknWcCieloCcDcInstallment){
+                  lknWcCieloCcDcInstallment.parentElement.style.display = 'none';
+                }
+              } else if ('Crédito' == response.CardType && option.value === 'Credit') {
+                if(lknWcCieloCcDcInstallment){
+                  lknWcCieloCcDcInstallment.parentElement.style.display = '';
+                }
+                option.selected = true;
+              } else if ('Débito' == response.CardType && option.value === 'Debit') {
+                option.selected = true;
+              } else if ('Multiplo' == response.CardType) {
+                if(lknWcCieloCcDcInstallment){
+                  lknWcCieloCcDcInstallment.parentElement.style.display = '';
+                }
               }
+
             });
           },
           error: function (error) {
@@ -86,8 +112,8 @@ const { __ } = wp.i18n;
     }
 
     $('body').on('updated_checkout', function () {
-      const debitForm = document.getElementById('wc-lkn_cielo_debit-cc-form')
       const debitPaymethod = document.getElementById('payment_method_lkn_cielo_debit')
+      const debitForm = document.getElementById('wc-lkn_cielo_debit-cc-form')
       const paymentBox = document.getElementById('payment')
 
       if (debitPaymethod || debitForm) {
@@ -142,7 +168,7 @@ function bpmpi_config() {
       document.getElementById('lkn_version').value = version
       document.getElementById('lkn_xid').value = xid
 
-      const formCheckoutWC = document.getElementById('order_review')
+      const Button3ds = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0]
       const formCartWC = document.getElementsByName('checkout')[0]
 
       if (formCartWC) {
@@ -151,7 +177,7 @@ function bpmpi_config() {
         btnSubmit.setAttribute('type', 'submit')
         btnSubmit.click()
       } else {
-        formCheckoutWC.submit()
+        Button3ds.click()
       }
     },
     onFailure: function (e) {

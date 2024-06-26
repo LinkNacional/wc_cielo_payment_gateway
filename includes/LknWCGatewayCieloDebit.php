@@ -70,8 +70,8 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
 
         $this->supports = apply_filters('lkn_wc_cielo_debit_add_support', $this->supports);
 
-        $this->method_title = __('Cielo - Debit card', 'lkn-wc-gateway-cielo');
-        $this->method_description = __('Allows debit card payment with Cielo API 3.0.', 'lkn-wc-gateway-cielo') . '<a href="https://www.linknacional.com.br/wordpress/woocommerce/cielo/#cartao-debito-cielo-configurar" target="_blank">' . __('Learn more how to configure.', 'lkn-wc-gateway-cielo') . '</a>' . '<br><br>' . '<p>' . __('To use the 3DS functionality it is necessary to register for 3DS 2.0 (request to eCommerce Support).', 'lkn-wc-gateway-cielo') . '<a href="https://www.cielo.com.br/atendimento/" target="_blank">' . __('Learn more how to configure.', 'lkn-wc-gateway-cielo') . '</a>' . '<p>';
+        $this->method_title = __('Cielo - Debit and credit cards', 'lkn-wc-gateway-cielo');
+        $this->method_description = __('Allows debit and credit cards payment with Cielo API 3.0.', 'lkn-wc-gateway-cielo') . '<a href="https://www.linknacional.com.br/wordpress/woocommerce/cielo/#cartao-debito-cielo-configurar" target="_blank">' . __('Learn more how to configure.', 'lkn-wc-gateway-cielo') . '</a>' . '<br><br>' . '<p>' . __('To use the 3DS functionality it is necessary to register for 3DS 2.0 (request to eCommerce Support).', 'lkn-wc-gateway-cielo') . '<a href="https://www.cielo.com.br/atendimento/" target="_blank">' . __('Learn more how to configure.', 'lkn-wc-gateway-cielo') . '</a>' . '<p>';
         
         // Load the settings.
         $this->init_form_fields();
@@ -145,8 +145,8 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
         wp_enqueue_script('lkn-mask-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/formatter.js', array('jquery'), $this->version, false);
         wp_enqueue_script('lkn-mask-script-load', plugin_dir_url(__FILE__) . '../resources/js/frontend/define-mask.js', array('lkn-mask-script', 'jquery'), $this->version, false);
         
-        wp_enqueue_script('lkn-installment-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-cc-installment.js', array('jquery'), $this->version, false);
-        wp_localize_script('lkn-installment-script', 'lknWCCieloCredit', $installmentArgs);
+        wp_enqueue_script('lkn-cc-dc-installment-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-cc-dc-installment.js', array('jquery'), $this->version, false);
+        wp_localize_script('lkn-cc-dc-installment-script', 'lknWCCieloCredit', $installmentArgs);
         
         wp_enqueue_script('lkn-cielo-debit-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/BP.Mpi.3ds20.min.js', array('jquery'), $this->version, false);
 
@@ -599,33 +599,33 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
 
             <?php if ('yes' === $activeInstallment) { ?>
                 <input
-                    id="lkn_cc_installment_total"
+                    id="lkn_cc_dc_installment_total"
                     type="hidden"
                     value="<?php esc_attr_e($installmentsTotal); ?>"
                 >
                 <input
-                    id="lkn_cc_no_login_checkout"
+                    id="lkn_cc_dc_no_login_checkout"
                     type="hidden"
                     value="<?php esc_attr_e($noLoginCheckout); ?>"
                 >
                 <input
-                    id="lkn_cc_installment_limit"
+                    id="lkn_cc_dc_installment_limit"
                     type="hidden"
                     value="<?php esc_attr_e($installmentLimit); ?>"
                 >
                 <input
-                    id="lkn_cc_installment_interest"
+                    id="lkn_cc_dc_installment_interest"
                     type="hidden"
                     value="<?php esc_attr_e(wp_json_encode($installments)); ?>"
                 >
 
                 <div class="form-row form-row-wide">
                     <label
-                        for="lkn_cc_installments"><?php esc_html_e('Installments', 'lkn-wc-gateway-cielo'); ?>
+                        for="lkn_cc_dc_installments"><?php esc_html_e('Installments', 'lkn-wc-gateway-cielo'); ?>
                         <span class="required">*</span>
                     </label>
                     <select
-                        id="lkn_cc_installments"
+                        id="lkn_cc_dc_installments"
                         name="lkn_cc_installments"
                     >
                         <option

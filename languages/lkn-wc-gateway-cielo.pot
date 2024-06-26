@@ -104,10 +104,10 @@ msgstr ""
 msgid "Order refunded, payment id:"
 msgstr ""
 
-msgid "Cielo - Debit card"
+msgid "Cielo - Debit and credit cards"
 msgstr ""
 
-msgid "Allows debit card payment with Cielo API 3.0."
+msgid "Allows debit and credit cards payment with Cielo API 3.0."
 msgstr ""
 
 msgid "Learn more how to configure."

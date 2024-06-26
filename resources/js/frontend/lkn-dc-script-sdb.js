@@ -20,8 +20,10 @@ const { __ } = wp.i18n;
 
     if (debitPaymethod && debitPaymethod.checked === false) {
       const btnSubmit = document.getElementById('place_order')
-      btnSubmit.setAttribute('type', 'submit')
-      btnSubmit.removeEventListener('click', lknDCProccessButton, true)
+      if(btnSubmit){
+        btnSubmit.setAttribute('type', 'submit')
+        btnSubmit.removeEventListener('click', lknDCProccessButton, true)
+      }
     }
   }
 
@@ -30,18 +32,19 @@ const { __ } = wp.i18n;
     const debitForm = document.getElementById('wc-lkn_cielo_debit-cc-form')
     const paymentBox = document.getElementById('payment')
     const lknWcCieloPaymentCCTypeInput = document.querySelector('#lkn_cc_type')
+    const lknWcCieloCcDcInstallment = document.querySelector('#lkn_cc_dc_installments')
+    const lknWcCieloCcDcNo = document.querySelector('#lkn_dcno')
 
-
-    if (document.querySelector('#lkn_dcno')) {
+    if (lknWcCieloCcDcNo && lknWcCieloPaymentCCTypeInput) {
       lknWcCieloPaymentCCTypeInput.onchange = (e) => {
-        if (e.target.value == 'Debit') {
-          document.querySelector('#lkn_cc_installments').parentElement.style.display = 'none'
-        } else {
-          document.querySelector('#lkn_cc_installments').parentElement.style.display = ''
+        if (e.target.value == 'Debit' && lknWcCieloCcDcInstallment) {
+          lknWcCieloCcDcInstallment.parentElement.style.display = 'none'
+        } else if(lknWcCieloCcDcInstallment) {
+          lknWcCieloCcDcInstallment.parentElement.style.display = ''
         }
       }
 
-      document.querySelector('#lkn_dcno').onchange = (e) => {
+      lknWcCieloCcDcNo.onchange = (e) => {
         var cardBin = e.target.value.substring(0, 6);
         var url = window.location.origin + '/wp-json/lknWCGatewayCielo/checkCard?cardbin=' + cardBin;
         $.ajax({
@@ -63,20 +66,28 @@ const { __ } = wp.i18n;
               if ('Crédito' == response.CardType && option.value !== 'Credit') {
                 option.disabled = true;
                 option.selected = false;
-                document.querySelector('#lkn_cc_installments').parentElement.style.display = '';
+                if(lknWcCieloCcDcInstallment){
+                  lknWcCieloCcDcInstallment.parentElement.style.display = '';
+                }
               } else if ('Débito' == response.CardType && option.value !== 'Debit') {
                 option.disabled = true;
                 option.selected = false;
-                document.querySelector('#lkn_cc_installments').parentElement.style.display = 'none';
+                if(lknWcCieloCcDcInstallment){
+                  lknWcCieloCcDcInstallment.parentElement.style.display = 'none';
+                }
               } else if ('Crédito' == response.CardType && option.value === 'Credit') {
-                document.querySelector('#lkn_cc_installments').parentElement.style.display = '';
+                if(lknWcCieloCcDcInstallment){
+                  lknWcCieloCcDcInstallment.parentElement.style.display = '';
+                }
                 option.selected = true;
               } else if ('Débito' == response.CardType && option.value === 'Debit') {
                 option.selected = true;
-              } else if ('Multiplo' == response.CardType){
-                document.querySelector('#lkn_cc_installments').parentElement.style.display = '';
+              } else if ('Multiplo' == response.CardType) {
+                if(lknWcCieloCcDcInstallment){
+                  lknWcCieloCcDcInstallment.parentElement.style.display = '';
+                }
               }
-              
+
             });
           },
           error: function (error) {

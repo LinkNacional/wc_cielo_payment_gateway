@@ -104,11 +104,11 @@ msgstr "Pagamento de pedido realizado com sucesso. Id de pagamento:"
 msgid "Order refunded, payment id:"
 msgstr "Pedido reembolsado, id do pagamento:"
 
-msgid "Cielo - Debit card"
-msgstr "Cielo - Cartão de débito"
+msgid "Cielo - Debit and credit cards"
+msgstr "Cielo - Cartões de débito e crédito"
 
-msgid "Allows debit card payment with Cielo API 3.0."
-msgstr "Permite pagamentos com cartão de débito através da Cielo API 3.0."
+msgid "Allows debit and credit cards payment with Cielo API 3.0."
+msgstr "Permite pagamentos com cartões de débito e crédito através da Cielo API 3.0."
 
 msgid "Learn more how to configure."
 msgstr "Saiba mais sobre como configurar."
