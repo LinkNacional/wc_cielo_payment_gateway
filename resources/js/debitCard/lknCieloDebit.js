@@ -51,6 +51,14 @@ const lknDCContentCielo = props => {
     onPaymentSetup
   } = eventRegistration;
   const [options, setOptions] = window.wp.element.useState([]);
+  const [cardBinState, setCardBinState] = window.wp.element.useState(0);
+  const [cardTypeOptions, setCardTypeOptions] = window.wp.element.useState([{
+    key: 'Credit',
+    label: lknDCTranslationsCielo.creditCard
+  }, {
+    key: 'Debit',
+    label: lknDCTranslationsCielo.debitCard
+  }]);
   const [debitObject, setdebitObject] = window.wp.element.useState({
     lkn_dc_cardholder_name: '',
     lkn_dcno: '',
@@ -69,16 +77,16 @@ const lknDCContentCielo = props => {
     const formattedValue = cleanedValue === null || cleanedValue === void 0 || (_cleanedValue$replace = cleanedValue.replace(/(.{4})/g, '$1 ')) === null || _cleanedValue$replace === void 0 ? void 0 : _cleanedValue$replace.trim();
     return formattedValue;
   };
-  const updateDebitObject = (key, value) => {
+  const updatedebitObject = (key, value) => {
     switch (key) {
-      case 'lkn_cc_cardholder_name':
+      case 'lkn_dc_cardholder_name':
         // Atualiza o estado
         setdebitObject({
           ...debitObject,
           [key]: value
         });
         break;
-      case 'lkn_cc_expdate':
+      case 'lkn_dc_expdate':
         if (value.length > 7) return;
 
         // Verifica se o valor é uma data válida (MM/YY)
@@ -101,51 +109,62 @@ const lknDCContentCielo = props => {
           });
         }
         return;
-      case 'lkn_cc_cvc':
-        if (value.length > 8) return;
-        break;
-      default:
-        break;
-    }
-    setdebitObject({
-      ...debitObject,
-      [key]: value
-    });
-  };
-  const updatedebitObject = (key, value) => {
-    switch (key) {
-      case 'lkn_dc_cardholder_name':
-        // Atualiza o estado
-        setdebitObject({
-          ...debitObject,
-          [key]: value
-        });
-        break;
-      case 'lkn_dc_expdate':
-        if (value.length > 7) return;
-
-        // Verifica se o valor é uma data válida (MM/YY)
-        const isValidDate = /^\d{2}\/\d{2}$/.test(value);
-        if (!isValidDate) {
-          var _cleanedValue$replace3;
-          // Remove caracteres não numéricos
-          const cleanedValue = value === null || value === void 0 ? void 0 : value.replace(/\D/g, '');
-          let formattedValue = cleanedValue === null || cleanedValue === void 0 || (_cleanedValue$replace3 = cleanedValue.replace(/^(.{2})/, '$1 / ')) === null || _cleanedValue$replace3 === void 0 ? void 0 : _cleanedValue$replace3.trim();
-
-          // Se o tamanho da string for 5, remove o espaço e a barra adicionados anteriormente
-          if (formattedValue.length === 4) {
-            formattedValue = formattedValue.replace(/\s\//, '');
-          }
-
-          // Atualiza o estado
-          setdebitObject({
-            ...debitObject,
-            [key]: formattedValue
-          });
-        }
-        return;
       case 'lkn_dc_cvc':
         if (value.length > 8) return;
+      case 'lkn_dcno':
+        if (value.length > 7) {
+          var cardBin = value.replace(' ', '').substring(0, 6);
+          var url = window.location.origin + '/wp-json/lknWCGatewayCielo/checkCard?cardbin=' + cardBin;
+          if (cardBin !== cardBinState) {
+            setCardBinState(cardBin); // Mova o setCardBinState para antes da requisição
+
+            fetch(url, {
+              method: 'GET',
+              headers: {
+                'Accept': 'application/json'
+              }
+            }).then(response => {
+              if (!response.ok) {
+                throw new Error('Network response was not ok ' + response.statusText);
+              }
+              return response.json();
+            }).then(data => {
+              if ('Crédito' == data.CardType) {
+                setCardTypeOptions([{
+                  key: 'Credit',
+                  label: lknDCTranslationsCielo.creditCard
+                }]);
+                setdebitObject(prevState => ({
+                  ...prevState,
+                  lkn_cc_type: 'Credit'
+                }));
+              } else if ('Débito' == data.CardType) {
+                setCardTypeOptions([{
+                  key: 'Debit',
+                  label: lknDCTranslationsCielo.debitCard
+                }]);
+                setdebitObject(prevState => ({
+                  ...prevState,
+                  lkn_cc_type: 'Debit'
+                }));
+              } else {
+                setCardTypeOptions([{
+                  key: 'Credit',
+                  label: lknDCTranslationsCielo.creditCard
+                }, {
+                  key: 'Debit',
+                  label: lknDCTranslationsCielo.debitCard
+                }]);
+              }
+            }).catch(error => {
+              console.error('Erro:', error);
+            });
+          }
+          setdebitObject(prevState => ({
+            ...prevState,
+            lkn_dcno: value
+          }));
+        }
         break;
       default:
         break;
@@ -217,6 +236,7 @@ const lknDCContentCielo = props => {
         type: emitResponse.responseTypes.SUCCESS,
         meta: {
           paymentMethodData: {
+            //TODO Corrigir campos faltando
             lkn_dcno: debitObject.lkn_dcno,
             lkn_dc_cardholder_name: debitObject.lkn_dc_cardholder_name,
             lkn_dc_expdate: debitObject.lkn_dc_expdate,
@@ -307,15 +327,9 @@ const lknDCContentCielo = props => {
     label: lknDCTranslationsCielo.cardType,
     value: debitObject.lkn_cc_type,
     onChange: event => {
-      updateDebitObject('lkn_cc_type', event.target.value);
+      updatedebitObject('lkn_cc_type', event.target.value);
     },
-    options: [{
-      key: 'Credit',
-      label: lknDCTranslationsCielo.creditCard
-    }, {
-      key: 'Debit',
-      label: lknDCTranslationsCielo.debitCard
-    }]
+    options: cardTypeOptions
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       marginBottom: '30px'
@@ -325,7 +339,7 @@ const lknDCContentCielo = props => {
     label: lknDCTranslationsCielo.cardType,
     value: debitObject.lkn_cc_installments,
     onChange: event => {
-      updateDebitObject('lkn_cc_installments', event.target.value);
+      updatedebitObject('lkn_cc_installments', event.target.value);
     },
     options: options
   }), /*#__PURE__*/React.createElement("div", {

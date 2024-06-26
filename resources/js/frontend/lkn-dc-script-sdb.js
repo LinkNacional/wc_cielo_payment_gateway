@@ -52,16 +52,31 @@ const { __ } = wp.i18n;
           },
           success: function (response) {
             var options = document.querySelectorAll('#lkn_cc_type option');
+
+            // Reset all options: enable all and deselect all
+            options.forEach(function (option) {
+              option.disabled = false;
+              option.selected = false;
+            });
+
             options.forEach(function (option) {
               if ('Crédito' == response.CardType && option.value !== 'Credit') {
                 option.disabled = true;
                 option.selected = false;
+                document.querySelector('#lkn_cc_installments').parentElement.style.display = '';
               } else if ('Débito' == response.CardType && option.value !== 'Debit') {
                 option.disabled = true;
                 option.selected = false;
-              } else {
-                option.disabled = false; // Reabilita opções que correspondem ao tipo de cartão
+                document.querySelector('#lkn_cc_installments').parentElement.style.display = 'none';
+              } else if ('Crédito' == response.CardType && option.value === 'Credit') {
+                document.querySelector('#lkn_cc_installments').parentElement.style.display = '';
+                option.selected = true;
+              } else if ('Débito' == response.CardType && option.value === 'Debit') {
+                option.selected = true;
+              } else if ('Multiplo' == response.CardType){
+                document.querySelector('#lkn_cc_installments').parentElement.style.display = '';
               }
+              
             });
           },
           error: function (error) {

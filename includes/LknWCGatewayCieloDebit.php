@@ -689,7 +689,6 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
                 'redirect' => '',
             );
         }
-        throw new Exception(json_encode($_POST));
 
         $order = wc_get_order($order_id);
 
@@ -902,7 +901,6 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
             throw new Exception($message);
         }
         $responseDecoded = json_decode($response['body']);
-        /* throw new Exception(json_encode($responseDecoded)); */
 
         if (isset($responseDecoded->Payment) && (1 == $responseDecoded->Payment->Status || 2 == $responseDecoded->Payment->Status)) {
             $order->payment_complete($responseDecoded->Payment->PaymentId);

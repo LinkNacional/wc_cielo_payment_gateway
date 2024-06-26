@@ -51,7 +51,6 @@ const { __ } = wp.i18n;
             'Accept': "application/json",
           },
           success: function (response) {
-            console.log('Sucesso:', response);
             var options = document.querySelectorAll('#lkn_cc_type option');
             options.forEach(function (option) {
               if ('Crédito' == response.CardType && option.value !== 'Credit') {
