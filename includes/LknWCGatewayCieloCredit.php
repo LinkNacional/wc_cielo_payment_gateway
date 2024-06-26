@@ -6,6 +6,7 @@ use DateTime;
 use Exception;
 use WC_Logger;
 use WC_Payment_Gateway;
+use WC_Subscriptions_Order;
 
 /**
  * Lkn_WC_Gateway_Cielo_Credit class.
@@ -87,6 +88,8 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
 
         // Action hook to load custom JavaScript
         add_action('wp_enqueue_scripts', array($this, 'payment_gateway_scripts'));
+
+        //do_action('lkn_wc_cielo_scheduled_subscription_payment', $this->id);
 
         // Action hook to load admin JavaScript
         if (function_exists('get_plugins')) {
@@ -452,6 +455,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
         $debug = $this->get_option('debug');
         $currency = $order->get_currency();
         $activeInstallment = $this->get_option('installment_payment');
+        $subscriptionSaveCard = false; 
 
         if ($this->validate_card_holder_name($cardName, false) === false) {
             $message = __('Card Holder Name is required!', 'lkn-wc-gateway-cielo');
@@ -518,6 +522,13 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
             }
         }
 
+        // Adicione esta linha para processar o pagamento recorrente se o pedido contiver uma assinatura
+        if (WC_Subscriptions_Order::order_contains_subscription($order_id)) {
+            $order = apply_filters('lkn_wc_cielo_process_recurring_payment', $order);
+
+            $subscriptionSaveCard = true;
+        } 
+
         $amountFormated = number_format($amount, 2, '', '');
 
         $args['headers'] = array(
@@ -539,7 +550,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
                     'Holder' => $cardName,
                     'ExpirationDate' => $cardExp,
                     'SecurityCode' => $cardCvv,
-                    'SaveCard' => false,
+                    'SaveCard' => $subscriptionSaveCard,
                     'Brand' => $provider,
                 ),
             ),
@@ -564,6 +575,12 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
 
         if (isset($responseDecoded->Payment) && (1 == $responseDecoded->Payment->Status || 2 == $responseDecoded->Payment->Status)) {
             $order->payment_complete($responseDecoded->Payment->PaymentId);
+
+            if (WC_Subscriptions_Order::order_contains_subscription($order_id)) {
+                // Salvar o token e a bandeira do cartão no meta do pedido
+                add_post_meta($order_id, '_cielo_card_token', $responseDecoded->Payment->CreditCard->CardToken);
+                add_post_meta($order_id, '_cielo_card_brand', $provider);
+            }
 
             // Remove cart
             WC()->cart->empty_cart();
