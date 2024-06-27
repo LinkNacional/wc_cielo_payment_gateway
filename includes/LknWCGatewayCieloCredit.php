@@ -89,7 +89,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
         // Action hook to load custom JavaScript
         add_action('wp_enqueue_scripts', array($this, 'payment_gateway_scripts'));
 
-        //do_action('lkn_wc_cielo_scheduled_subscription_payment', $this->id);
+        do_action('lkn_wc_cielo_scheduled_subscription_payment', $this->id);
 
         // Action hook to load admin JavaScript
         if (function_exists('get_plugins')) {
@@ -578,8 +578,19 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
 
             if (WC_Subscriptions_Order::order_contains_subscription($order_id)) {
                 // Salvar o token e a bandeira do cartão no meta do pedido
-                add_post_meta($order_id, '_cielo_card_token', $responseDecoded->Payment->CreditCard->CardToken);
-                add_post_meta($order_id, '_cielo_card_brand', $provider);
+                $user_id = $order->get_user_id();
+
+                // Dados do cartão de pagamento
+                $cardPayment = array(
+                    'cardToken' => $responseDecoded->Payment->CreditCard->CardToken,
+                    'brand' => $provider,
+                );
+
+                // Codificar os dados do cartão de pagamento em base64
+                $paymentOptions = array('payment' => base64_encode(json_encode($cardPayment)));
+
+                // Atualizar o user meta com os dados codificados em base64
+                update_user_meta($user_id, 'cielo_card_token', $paymentOptions['payment']);    
             }
 
             // Remove cart
