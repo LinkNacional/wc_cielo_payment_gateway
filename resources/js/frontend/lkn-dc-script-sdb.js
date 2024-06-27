@@ -169,14 +169,18 @@ function bpmpi_config() {
       document.getElementById('lkn_xid').value = xid
 
       const Button3ds = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0]
-      const formCartWC = document.getElementsByName('checkout')[0]
+      const formCartWC = document.getElementsByName('checkout')[0] ? document.getElementsByName('checkout')[0] : document.querySelector('#order_review')
 
       if (formCartWC) {
         const btnSubmit = document.getElementById('place_order')
-        btnSubmit.removeEventListener('click', lknDCProccessButton, true)
-        btnSubmit.setAttribute('type', 'submit')
-        btnSubmit.click()
-      } else {
+
+        if (btnSubmit) {
+          btnSubmit.removeEventListener('click', lknDCProccessButton, true)
+          btnSubmit.setAttribute('type', 'submit')
+          btnSubmit.click()
+        }
+      } else if (Button3ds) {
+
         Button3ds.click()
       }
     },

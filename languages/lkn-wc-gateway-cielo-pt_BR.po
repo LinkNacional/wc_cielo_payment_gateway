@@ -122,11 +122,11 @@ msgstr "Client Id"
 msgid "Client Secret"
 msgstr "Client Secret"
 
-msgid "Enable Debit Card Payments"
-msgstr "Habilita pagamentos via cartão de débito"
+msgid "Enable Debit and Credit Card Payments"
+msgstr "Habilita pagamentos via cartão de débito e crédito"
 
-msgid "Debit card"
-msgstr "Cartão de débito"
+msgid "Debit and credit cards"
+msgstr "Cartões de débito e crédito"
 
 msgid "Establishment Code"
 msgstr "Código de estabelecimento"

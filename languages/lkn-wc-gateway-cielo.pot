@@ -122,10 +122,10 @@ msgstr ""
 msgid "Client Secret"
 msgstr ""
 
-msgid "Enable Debit Card Payments"
+msgid "Enable Debit and Credit Card Payments"
 msgstr ""
 
-msgid "Debit card"
+msgid "Debit and credit cards"
 msgstr ""
 
 msgid "Establishment Code"
