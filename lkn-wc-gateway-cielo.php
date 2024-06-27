@@ -54,7 +54,7 @@ final class LknWCCieloPayment {
             __('for the Cielo API 3.0 Payments for WooCommerce add-on to activate', 'lkn-wc-gateway-cielo')
         );
 
-        echo $message;
+        echo wp_kses_post($message);
     }
 
     /**
@@ -73,7 +73,7 @@ final class LknWCCieloPayment {
             __('plugin installed and activated for the Cielo API 3.0 Payments for WooCommerce add-on to activate', 'lkn-wc-gateway-cielo')
         );
 
-        echo $message;
+        echo wp_kses_post($message);
     }
 
     /**
