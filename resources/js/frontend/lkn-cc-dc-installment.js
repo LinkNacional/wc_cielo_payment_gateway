@@ -7,11 +7,11 @@
     $('body').on('updated_checkout', lknWCCieloLoadInstallments)
   })
 
-  function lknWCCieloLoadInstallments () {
-    const lknInstallmentSelect = document.getElementById('lkn_cc_installments')
-    const lknTotal = document.getElementById('lkn_cc_installment_total')
-    let lknInstallmentLimit = document.getElementById('lkn_cc_installment_limit')
-    let lknInstallmentInterest = document.getElementById('lkn_cc_installment_interest')
+  function lknWCCieloLoadInstallments() {
+    const lknInstallmentSelect = document.getElementById('lkn_cc_dc_installments')
+    const lknTotal = document.getElementById('lkn_cc_dc_installment_total')
+    let lknInstallmentLimit = document.getElementById('lkn_cc_dc_installment_limit')
+    let lknInstallmentInterest = document.getElementById('lkn_cc_dc_installment_interest')
 
     if (lknInstallmentLimit) {
       lknInstallmentLimit = lknInstallmentLimit.value

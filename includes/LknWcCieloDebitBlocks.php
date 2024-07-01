@@ -52,6 +52,8 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType {
             'accessToken' => $this->gateway->generate_debit_auth_token(),
             'url' => get_page_link(),
             'orderNumber' => uniqid(),
+            'activeInstallment' => $this->gateway->get_option('installment_payment'),
+            'installmentLimit' => $this->gateway->get_option('installment_limit', 12),
             'dirScript3DS' => LKN_WC_GATEWAY_CIELO_URL . 'resources/js/debitCard/BP.Mpi.3ds20.min.js',
             'dirScriptConfig3DS' => $dirScriptConfig3DS,
             'totalCart' => $this->gateway->lknGetCartTotal(),
@@ -60,7 +62,11 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType {
                 'cardNumber' => __('Card Number', 'lkn-wc-gateway-cielo'),
                 'cardExpiryDate' => __('Expiry Date', 'lkn-wc-gateway-cielo'),
                 'securityCode' => __('Security Code', 'lkn-wc-gateway-cielo'),
+                'installments' => __('Installments', 'lkn-wc-gateway-cielo'),
                 'cardHolder' => __('Card Holder Name', 'lkn-wc-gateway-cielo'),
+                'creditCard' => __('Credit Card', 'lkn-wc-gateway-cielo'),
+                'debitCard' => __('Debit Card', 'lkn-wc-gateway-cielo'),
+                'cardType' => __('Card type', 'lkn-wc-gateway-cielo'),
             )
         );
     }
