@@ -10,6 +10,7 @@ final class LknWCGatewayCieloEndpoint {
         register_rest_route('lknWCGatewayCielo', '/checkCard', array(
             'methods' => 'GET',
             'callback' => array($this, 'orderCapture'),
+            'permission_callback' => '__return_true',
         ));
     }
     
