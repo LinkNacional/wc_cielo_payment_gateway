@@ -89,7 +89,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
         // Action hook to load custom JavaScript
         add_action('wp_enqueue_scripts', array($this, 'payment_gateway_scripts'));
 
-        do_action('lkn_wc_cielo_scheduled_subscription_payment', $this->id);
+        add_action( 'woocommerce_scheduled_subscription_payment_' . $this->id, array($this, 'process_subscription_payment'), 10, 2 );
 
         // Action hook to load admin JavaScript
         if (function_exists('get_plugins')) {
@@ -101,6 +101,17 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
             }
         }
     }
+
+    /**
+     * Process subscription payment.
+     *
+     * @param  float     $amount
+     * @param  WC_Order  $order
+     * @return void
+     */
+    public function process_subscription_payment( $amount, $order ): void {
+        do_action('lkn_wc_cielo_scheduled_subscription_payment', $amount, $order);
+    }	
 
     /**
      * Load admin JavaScript for the admin page.
@@ -488,6 +499,12 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
             throw new Exception($message);
         }
 
+        // Adicione esta linha para processar o pagamento recorrente se o pedido contiver uma assinatura
+        if (WC_Subscriptions_Order::order_contains_subscription($order_id)) {
+            $order = apply_filters('lkn_wc_cielo_process_recurring_payment', $order);
+            $subscriptionSaveCard = true;
+        } 
+
         // Convert the amount to equivalent in BRL
         if ('BRL' !== $currency) {
             $amount = apply_filters('lkn_wc_cielo_convert_amount', $amount, $currency);
@@ -521,13 +538,6 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
                 $amount = apply_filters('lkn_wc_cielo_calculate_interest', $amount, $interest);
             }
         }
-
-        // Adicione esta linha para processar o pagamento recorrente se o pedido contiver uma assinatura
-        if (WC_Subscriptions_Order::order_contains_subscription($order_id)) {
-            $order = apply_filters('lkn_wc_cielo_process_recurring_payment', $order);
-
-            $subscriptionSaveCard = true;
-        } 
 
         $amountFormated = number_format($amount, 2, '', '');
 
@@ -590,7 +600,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
                 $paymentOptions = array('payment' => base64_encode(json_encode($cardPayment)));
 
                 // Atualizar o user meta com os dados codificados em base64
-                update_user_meta($user_id, 'cielo_card_token', $paymentOptions['payment']);    
+                update_user_meta($user_id, 'cielo_card_token', $paymentOptions['payment']);
             }
 
             // Remove cart
