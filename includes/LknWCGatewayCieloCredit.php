@@ -590,6 +590,10 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
                 // Salvar o token e a bandeira do cartão no meta do pedido
                 $user_id = $order->get_user_id();
 
+                if (!isset($responseDecoded->Payment->CreditCard->CardToken)){
+                    $order->add_order_note('O token para cobranças automáticas não foi gerado, então as cobranças automáticas não poderão ser efetuadas.');
+                }
+
                 // Dados do cartão de pagamento
                 $cardPayment = array(
                     'cardToken' => $responseDecoded->Payment->CreditCard->CardToken,
@@ -601,6 +605,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
 
                 // Atualizar o user meta com os dados codificados em base64
                 update_user_meta($user_id, 'cielo_card_token', $paymentOptions['payment']);
+                
             }
 
             // Remove cart
