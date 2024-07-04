@@ -1,12 +1,12 @@
-const settings_creditCard = window.wc.wcSettings.getSetting('lkn_cielo_credit_data', {})
-const label_creditCard = window.wp.htmlEntities.decodeEntities(settings_creditCard.title)
-const activeInstallment = window.wp.htmlEntities.decodeEntities(settings_creditCard.activeInstallment)
-const totalCartCredit = window.wp.htmlEntities.decodeEntities(settings_creditCard.totalCart)
-const installmentLimit = window.wp.htmlEntities.decodeEntities(settings_creditCard.installmentLimit);
-const translations = settings_creditCard.translations
-const nonceCieloCredit = settings_creditCard.nonceCieloCredit;
+const lknCCSettingsCielo = window.wc.wcSettings.getSetting('lkn_cielo_credit_data', {})
+const lknCCLabelCielo = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.title)
+const lknCCActiveInstallmentCielo = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.activeInstallment)
+const lknCCTotalCartCielo = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.totalCart)
+const lknCCInstallmentLimitCielo = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.installmentLimit);
+const lknCCTranslationsCielo = lknCCSettingsCielo.translations
+const lknCCNonceCieloCredit = lknCCSettingsCielo.nonceCieloCredit;
 
-const Content_cieloCredit = (props) => {
+const lknCCContentCielo = (props) => {
   const [options, setOptions] = window.wp.element.useState([])
 
   const { eventRegistration, emitResponse } = props
@@ -77,17 +77,17 @@ const Content_cieloCredit = (props) => {
 
   window.wp.element.useEffect(() => {
     const installmentMin = 5;
-    // Verifica se 'activeInstallment' é 'yes' e o valor total é maior que 10
-    if (activeInstallment === 'yes' && totalCartCredit > 10) {
-      const maxInstallments = installmentLimit; // Limita o parcelamento até 12 vezes, deixei fixo para teste
+    // Verifica se 'lknCCActiveInstallmentCielo' é 'yes' e o valor total é maior que 10
+    if (lknCCActiveInstallmentCielo === 'yes' && lknCCTotalCartCielo > 10) {
+      const maxInstallments = lknCCInstallmentLimitCielo; // Limita o parcelamento até 12 vezes, deixei fixo para teste
 
       for (let index = 1; index <= maxInstallments; index++) {
-        const installmentAmount = (totalCartCredit / index).toLocaleString('pt-BR', {
+        const installmentAmount = (lknCCTotalCartCielo / index).toLocaleString('pt-BR', {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2
         });
 
-        const nextInstallmentAmount = totalCartCredit / (index);
+        const nextInstallmentAmount = lknCCTotalCartCielo / (index);
 
         if (nextInstallmentAmount < installmentMin) {
           break;
@@ -101,7 +101,7 @@ const Content_cieloCredit = (props) => {
     } else {
       setOptions(prevOptions => [
         ...prevOptions,
-        { key: '1', label: `1x de R$ ${totalCartCredit} (à vista)` }
+        { key: '1', label: `1x de R$ ${lknCCTotalCartCielo} (à vista)` }
       ])
     }
   }, [])
@@ -121,7 +121,7 @@ const Content_cieloCredit = (props) => {
               lkn_cc_expdate: creditObject.lkn_cc_expdate,
               lkn_cc_cvc: creditObject.lkn_cc_cvc,
               lkn_cc_installments: creditObject.lkn_cc_installments,
-              nonce_lkn_cielo_credit: nonceCieloCredit,
+              nonce_lkn_cielo_credit: lknCCNonceCieloCredit,
             },
           },
         };
@@ -152,7 +152,7 @@ const Content_cieloCredit = (props) => {
 
       <wcComponents.TextInput
         id="lkn_cc_cardholder_name"
-        label={translations.cardHolder}
+        label={lknCCTranslationsCielo.cardHolder}
         value={creditObject.lkn_cc_cardholder_name}
         onChange={(value) => {
           updateCreditObject('lkn_cc_cardholder_name', value)
@@ -162,7 +162,7 @@ const Content_cieloCredit = (props) => {
 
       <wcComponents.TextInput
         id="lkn_ccno"
-        label={translations.cardNumber}
+        label={lknCCTranslationsCielo.cardNumber}
         value={creditObject.lkn_ccno}
         onChange={(value) => {
           updateCreditObject('lkn_ccno', formatCreditCardNumber(value))
@@ -172,7 +172,7 @@ const Content_cieloCredit = (props) => {
 
       <wcComponents.TextInput
         id="lkn_cc_expdate"
-        label={translations.cardExpiryDate}
+        label={lknCCTranslationsCielo.cardExpiryDate}
         value={creditObject.lkn_cc_expdate}
         onChange={(value) => {
           updateCreditObject('lkn_cc_expdate', value)
@@ -182,7 +182,7 @@ const Content_cieloCredit = (props) => {
 
       <wcComponents.TextInput
         id="lkn_cc_cvc"
-        label={translations.securityCode}
+        label={lknCCTranslationsCielo.securityCode}
         value={creditObject.lkn_cc_cvc}
         onChange={(value) => {
           updateCreditObject('lkn_cc_cvc', value)
@@ -192,10 +192,10 @@ const Content_cieloCredit = (props) => {
 
       <div style={{ marginBottom: '20px' }}></div>
 
-      {activeInstallment === 'yes' && (
+      {lknCCActiveInstallmentCielo === 'yes' && (
         <wcComponents.SortSelect
           id="lkn_cc_installments"
-          label={translations.installments}
+          label={lknCCTranslationsCielo.installments}
           value={creditObject.lkn_cc_installments}
           onChange={(event) => {
             updateCreditObject('lkn_cc_installments', event.target.value)
@@ -208,18 +208,16 @@ const Content_cieloCredit = (props) => {
 }
 
 
-const Block_Gateway_Credit_Card = {
+const Lkn_CC_Block_Gateway_Cielo = {
   name: 'lkn_cielo_credit',
-  label: label_creditCard,
-  content: window.wp.element.createElement(Content_cieloCredit),
-  edit: window.wp.element.createElement(Content_cieloCredit),
+  label: lknCCLabelCielo,
+  content: window.wp.element.createElement(lknCCContentCielo),
+  edit: window.wp.element.createElement(lknCCContentCielo),
   canMakePayment: () => true,
-  ariaLabel: label_creditCard,
+  ariaLabel: lknCCLabelCielo,
   supports: {
-    features: settings_creditCard.supports
+    features: lknCCSettingsCielo.supports
   }
 };
 
-window.wc.wcBlocksRegistry.registerPaymentMethod(Block_Gateway_Credit_Card)
-
-
+window.wc.wcBlocksRegistry.registerPaymentMethod(Lkn_CC_Block_Gateway_Cielo)

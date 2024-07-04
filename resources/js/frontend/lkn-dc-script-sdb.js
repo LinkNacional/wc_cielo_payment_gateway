@@ -10,8 +10,8 @@ const { __ } = wp.i18n;
 
     if (btnSubmit) {
       btnSubmit.setAttribute('type', 'button')
-      btnSubmit.removeEventListener('click', lknProccessButton, true)
-      btnSubmit.addEventListener('click', lknProccessButton, true)
+      btnSubmit.removeEventListener('click', lknDCProccessButton, true)
+      btnSubmit.addEventListener('click', lknDCProccessButton, true)
     }
   }
 
@@ -21,7 +21,7 @@ const { __ } = wp.i18n;
     if (debitPaymethod && debitPaymethod.checked === false) {
       const btnSubmit = document.getElementById('place_order')
       btnSubmit.setAttribute('type', 'submit')
-      btnSubmit.removeEventListener('click', lknProccessButton, true)
+      btnSubmit.removeEventListener('click', lknDCProccessButton, true)
     }
   }
 
@@ -89,7 +89,7 @@ function bpmpi_config () {
 
       if (formCartWC) {
         const btnSubmit = document.getElementById('place_order')
-        btnSubmit.removeEventListener('click', lknProccessButton, true)
+        btnSubmit.removeEventListener('click', lknDCProccessButton, true)
         btnSubmit.setAttribute('type', 'submit')
         btnSubmit.click()
       } else {
@@ -133,7 +133,7 @@ function bpmpi_config () {
   }
 }
 
-function lknProccessButton () {
+function lknDCProccessButton () {
   try {
     const cardNumber = document.getElementById('lkn_dcno').value.replace(/\D/g, '')
     let expDate = document.getElementById('lkn_dc_expdate').value

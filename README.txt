@@ -75,6 +75,7 @@ Payment Gateway for Cielo API on WooCommerce plugin is dependent on WooCommerce 
 = 1.9.3 =
 **18/06/2024**
 * Add compatibility with the Orders Auto-Complete functionality of the pro plugin;
+* Fixed rendering issue for Cielo Debit 3DS card.
 
 = 1.9.2 =
 **05/06/2024**
