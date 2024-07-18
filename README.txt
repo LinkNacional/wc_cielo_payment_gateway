@@ -3,8 +3,8 @@ Contributors: linknacional
 Donate link: https://www.linknacional.com.br/wordpress/woocommerce/cielo/
 Tags: woocommerce, payment, paymethod, card, credit
 Requires at least: 5.7
-Tested up to: 6.5
-Stable tag: 1.9.3
+Tested up to: 6.6
+Stable tag: 1.9.2
 Requires PHP: 7.2
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -62,20 +62,15 @@ Payment Gateway for Cielo API on WooCommerce plugin is dependent on WooCommerce 
 
 == Screenshots ==
 
-1. Credit card configuration of payment method;
-
-2. Debit card configuration of payment method;
-
-3. Credit card front page with payment fields;
-
-4. Debit card front page with payment fields.
+1. Payment methods credit and debit card.
+2. Debit card configuration page.
+3. Debit card configuration page.
+4. Credit card configuration page.
+5. Credit card configuration page.
+6. Credit card front page with payment fields.
+7. Debit card front page with payment fields.
 
 == Changelog ==
-
-= 1.9.3 =
-**18/06/2024**
-* Add compatibility with the Orders Auto-Complete functionality of the pro plugin;
-* Fixed rendering issue for Cielo Debit 3DS card.
 
 = 1.9.2 =
 **05/06/2024**
