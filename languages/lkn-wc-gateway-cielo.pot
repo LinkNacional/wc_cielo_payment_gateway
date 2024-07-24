@@ -283,3 +283,15 @@ msgstr ""
 
 msgid "Card Holder Name is required!"
 msgstr ""
+
+msgid "Validate License"
+msgstr ""
+
+msgid "Click the button to validate your license."
+msgstr ""
+
+msgid "Invalid or expired license!"
+msgstr ""
+
+msgid "License validated successfully!"
+msgstr ""
