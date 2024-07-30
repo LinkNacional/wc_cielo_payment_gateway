@@ -54,7 +54,6 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
      * @var WC_Logger
      */
     private $log;
-    
     private $accessToken;
     
     /**
@@ -591,50 +590,51 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
                     <option
                         value="Credit"
                         selected="1"
-                    ><?php esc_html_e('Credit Card', 'lkn-wc-gateway-cielo'); ?></option>
-                    <option
-                        value="Debit"
-                    ><?php esc_html_e('Debit Card', 'lkn-wc-gateway-cielo'); ?></option>
+                    ><?php esc_html_e('Credit card', 'lkn-wc-gateway-cielo'); ?>
+                    </option>
+                    <option value="Debit">
+                        <?php esc_html_e('Debit card', 'lkn-wc-gateway-cielo'); ?>
+                    </option>
                 </select>
             </div>
 
             <?php if ('yes' === $activeInstallment) { ?>
-                <input
-                    id="lkn_cc_dc_installment_total"
-                    type="hidden"
-                    value="<?php echo esc_attr($installmentsTotal); ?>"
-                >
-                <input
-                    id="lkn_cc_dc_no_login_checkout"
-                    type="hidden"
-                    value="<?php echo esc_attr($noLoginCheckout); ?>"
-                >
-                <input
-                    id="lkn_cc_dc_installment_limit"
-                    type="hidden"
-                    value="<?php echo esc_attr($installmentLimit); ?>"
-                >
-                <input
-                    id="lkn_cc_dc_installment_interest"
-                    type="hidden"
-                    value="<?php echo esc_attr(wp_json_encode($installments)); ?>"
-                >
+            <input
+                id="lkn_cc_dc_installment_total"
+                type="hidden"
+                value="<?php echo esc_attr($installmentsTotal); ?>"
+            >
+            <input
+                id="lkn_cc_dc_no_login_checkout"
+                type="hidden"
+                value="<?php echo esc_attr($noLoginCheckout); ?>"
+            >
+            <input
+                id="lkn_cc_dc_installment_limit"
+                type="hidden"
+                value="<?php echo esc_attr($installmentLimit); ?>"
+            >
+            <input
+                id="lkn_cc_dc_installment_interest"
+                type="hidden"
+                value="<?php echo esc_attr(wp_json_encode($installments)); ?>"
+            >
 
-                <div class="form-row form-row-wide">
-                    <label
-                        for="lkn_cc_dc_installments"><?php esc_html_e('Installments', 'lkn-wc-gateway-cielo'); ?>
-                        <span class="required">*</span>
-                    </label>
-                    <select
-                        id="lkn_cc_dc_installments"
-                        name="lkn_cc_installments"
-                    >
-                        <option
-                            value="1"
-                            selected="1"
-                        >1 x R$0,00 sem juros</option>
-                    </select>
-                </div>
+            <div class="form-row form-row-wide">
+                <label
+                    for="lkn_cc_dc_installments"><?php esc_html_e('Installments', 'lkn-wc-gateway-cielo'); ?>
+                    <span class="required">*</span>
+                </label>
+                <select
+                    id="lkn_cc_dc_installments"
+                    name="lkn_cc_installments"
+                >
+                    <option
+                        value="1"
+                        selected="1"
+                    >1 x R$0,00 sem juros</option>
+                </select>
+            </div>
             <?php } ?>
 
             <div class="clear"></div>

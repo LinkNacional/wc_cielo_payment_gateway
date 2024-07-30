@@ -64,8 +64,8 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType {
                 'securityCode' => __('Security Code', 'lkn-wc-gateway-cielo'),
                 'installments' => __('Installments', 'lkn-wc-gateway-cielo'),
                 'cardHolder' => __('Card Holder Name', 'lkn-wc-gateway-cielo'),
-                'creditCard' => __('Credit Card', 'lkn-wc-gateway-cielo'),
-                'debitCard' => __('Debit Card', 'lkn-wc-gateway-cielo'),
+                'creditCard' => __('Credit card', 'lkn-wc-gateway-cielo'),
+                'debitCard' => __('Debit card', 'lkn-wc-gateway-cielo'),
                 'cardType' => __('Card type', 'lkn-wc-gateway-cielo'),
             )
         );

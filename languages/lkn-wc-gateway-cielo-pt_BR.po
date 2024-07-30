@@ -287,11 +287,6 @@ msgstr "O nome do titular do cartão é obrigatório!"
 msgid "Card type"
 msgstr "Tipo de cartão"
 
-msgid "Credit Card"
-msgstr "Cartão de Crédito"
-
-msgid "Debit Card"
-msgstr "Cartão de Débito"
 msgid "Validate License"
 msgstr "Validar Licença"
 
