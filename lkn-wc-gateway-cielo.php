@@ -12,7 +12,7 @@
  * Text Domain: lkn-wc-gateway-cielo
  * Domain Path: /languages/
  * 
- * Copyright: © 2023 Link Nacional.
+ * Copyright: © 2024 Link Nacional.
  * License: GNU General Public License v3.0
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
  */
