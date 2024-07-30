@@ -1,5 +1,7 @@
-# 1.10.0 - 03/07/2024
-* Adição de compatibilidade com o plugin oficial do WooCommerce Subscriptions;
+# 1.10.0 - 30/07/2024
+* Adição de pagamentos de crédito com validação 3DS;
+* Adição de validação de BIN para selecionar tipo de cartão automáticamente;
+* Adição de compatibilidade com o plugin oficial do WooCommerce Subscriptions.
 
 # 1.9.3 - 18/06/2024
 * Adição de compatibilidade com a funcionalidade Orders Auto-Complete do plugin pro;

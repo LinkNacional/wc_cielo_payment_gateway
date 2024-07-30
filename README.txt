@@ -4,7 +4,7 @@ Donate link: https://www.linknacional.com.br/wordpress/woocommerce/cielo/
 Tags: woocommerce, payment, paymethod, card, credit
 Requires at least: 5.7
 Tested up to: 6.6
-Stable tag: 1.9.2
+Stable tag: 1.10.0
 Requires PHP: 7.2
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -73,8 +73,10 @@ Payment Gateway for Cielo API on WooCommerce plugin is dependent on WooCommerce 
 == Changelog ==
 
 = 1.10.0 =
-**03/07/2024**
-* Add compatibility with the official WooCommerce Subscriptions plugin;
+**30/07/2024**
+* Add credit payments with 3DS validation;
+* Add BIN validation to automatically select card type;
+* Add compatibility with the official WooCommerce Subscriptions plugin.
 
 = 1.9.3 =
 **18/06/2024**

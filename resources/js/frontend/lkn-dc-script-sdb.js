@@ -20,8 +20,10 @@ const { __ } = wp.i18n;
 
     if (debitPaymethod && debitPaymethod.checked === false) {
       const btnSubmit = document.getElementById('place_order')
-      btnSubmit.setAttribute('type', 'submit')
-      btnSubmit.removeEventListener('click', lknDCProccessButton, true)
+      if(btnSubmit){
+        btnSubmit.setAttribute('type', 'submit')
+        btnSubmit.removeEventListener('click', lknDCProccessButton, true)
+      }
     }
   }
 
@@ -29,6 +31,72 @@ const { __ } = wp.i18n;
     const debitPaymethod = document.getElementById('payment_method_lkn_cielo_debit')
     const debitForm = document.getElementById('wc-lkn_cielo_debit-cc-form')
     const paymentBox = document.getElementById('payment')
+    const lknWcCieloPaymentCCTypeInput = document.querySelector('#lkn_cc_type')
+    const lknWcCieloCcDcInstallment = document.querySelector('#lkn_cc_dc_installments')
+    const lknWcCieloCcDcNo = document.querySelector('#lkn_dcno')
+
+    if (lknWcCieloCcDcNo && lknWcCieloPaymentCCTypeInput) {
+      lknWcCieloPaymentCCTypeInput.onchange = (e) => {
+        if (e.target.value == 'Debit' && lknWcCieloCcDcInstallment) {
+          lknWcCieloCcDcInstallment.parentElement.style.display = 'none'
+        } else if(lknWcCieloCcDcInstallment) {
+          lknWcCieloCcDcInstallment.parentElement.style.display = ''
+        }
+      }
+
+      lknWcCieloCcDcNo.onchange = (e) => {
+        var cardBin = e.target.value.substring(0, 6);
+        var url = window.location.origin + '/wp-json/lknWCGatewayCielo/checkCard?cardbin=' + cardBin;
+        $.ajax({
+          url: url,
+          type: 'GET',
+          headers: {
+            'Accept': "application/json",
+          },
+          success: function (response) {
+            var options = document.querySelectorAll('#lkn_cc_type option');
+
+            // Reset all options: enable all and deselect all
+            options.forEach(function (option) {
+              option.disabled = false;
+              option.selected = false;
+            });
+
+            options.forEach(function (option) {
+              if ('Crédito' == response.CardType && option.value !== 'Credit') {
+                option.disabled = true;
+                option.selected = false;
+                if(lknWcCieloCcDcInstallment){
+                  lknWcCieloCcDcInstallment.parentElement.style.display = '';
+                }
+              } else if ('Débito' == response.CardType && option.value !== 'Debit') {
+                option.disabled = true;
+                option.selected = false;
+                if(lknWcCieloCcDcInstallment){
+                  lknWcCieloCcDcInstallment.parentElement.style.display = 'none';
+                }
+              } else if ('Crédito' == response.CardType && option.value === 'Credit') {
+                if(lknWcCieloCcDcInstallment){
+                  lknWcCieloCcDcInstallment.parentElement.style.display = '';
+                }
+                option.selected = true;
+              } else if ('Débito' == response.CardType && option.value === 'Debit') {
+                option.selected = true;
+              } else if ('Multiplo' == response.CardType) {
+                if(lknWcCieloCcDcInstallment){
+                  lknWcCieloCcDcInstallment.parentElement.style.display = '';
+                }
+              }
+
+            });
+          },
+          error: function (error) {
+            console.error('Erro:', error);
+          }
+        });
+      }
+    }
+
 
     if (debitPaymethod || debitForm) {
       lknLoadDebitFunctions()
@@ -66,7 +134,7 @@ const { __ } = wp.i18n;
   })
 })(jQuery)
 
-function bpmpi_config () {
+function bpmpi_config() {
   return {
     onReady: function () {
     },
@@ -77,6 +145,22 @@ function bpmpi_config () {
       const eci = e.Eci
       const version = e.Version
       const referenceId = e.ReferenceId
+      const Form3dsButton = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0]?.closest('form')
+
+      if (Form3dsButton) {
+        Form3dsButton.setAttribute('data-payment-cavv', cavv)
+        Form3dsButton.setAttribute('data-payment-eci', eci)
+        Form3dsButton.setAttribute('data-payment-ref_id', referenceId)
+        Form3dsButton.setAttribute('data-payment-version', version)
+        Form3dsButton.setAttribute('data-payment-xid', xid)
+        const Button3ds = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0]
+        const event = new MouseEvent('click', {
+          bubbles: true,
+          cancelable: true,
+          view: window
+        })
+        Button3ds.dispatchEvent(event)
+      }
 
       document.getElementById('lkn_cavv').value = cavv
       document.getElementById('lkn_eci').value = eci
@@ -86,14 +170,25 @@ function bpmpi_config () {
 
       const Button3ds = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0]
       const formCartWC = document.getElementsByName('checkout')[0] ? document.getElementsByName('checkout')[0] : document.querySelector('#order_review')
+
       if (formCartWC) {
         const btnSubmit = document.getElementById('place_order')
-        btnSubmit.removeEventListener('click', lknDCProccessButton, true)
-        btnSubmit.setAttribute('type', 'submit')
-        btnSubmit.click()
-      } else {
-        if(Button3ds){
-          Button3ds.click()
+
+        if (btnSubmit) {
+          btnSubmit.removeEventListener('click', lknDCProccessButton, true)
+          btnSubmit.setAttribute('type', 'submit')
+          btnSubmit.click()
+        }
+      } else if (Button3ds) {
+        if (formCartWC) {
+          const btnSubmit = document.getElementById('place_order')
+          btnSubmit.removeEventListener('click', lknDCProccessButton, true)
+          btnSubmit.setAttribute('type', 'submit')
+          btnSubmit.click()
+        } else {
+          if(Button3ds){
+            Button3ds.click()
+          }
         }
       }
     },
@@ -134,7 +229,7 @@ function bpmpi_config () {
   }
 }
 
-function lknDCProccessButton () {
+function lknDCProccessButton() {
   try {
     const cardNumber = document.getElementById('lkn_dcno').value.replace(/\D/g, '')
     let expDate = document.getElementById('lkn_dc_expdate').value
