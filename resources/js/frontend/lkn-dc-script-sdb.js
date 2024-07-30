@@ -180,8 +180,16 @@ function bpmpi_config() {
           btnSubmit.click()
         }
       } else if (Button3ds) {
-
-        Button3ds.click()
+        if (formCartWC) {
+          const btnSubmit = document.getElementById('place_order')
+          btnSubmit.removeEventListener('click', lknDCProccessButton, true)
+          btnSubmit.setAttribute('type', 'submit')
+          btnSubmit.click()
+        } else {
+          if(Button3ds){
+            Button3ds.click()
+          }
+        }
       }
     },
     onFailure: function (e) {

@@ -292,3 +292,14 @@ msgstr "Cartão de Crédito"
 
 msgid "Debit Card"
 msgstr "Cartão de Débito"
+msgid "Validate License"
+msgstr "Validar Licença"
+
+msgid "Click the button to validate your license."
+msgstr "Clique no botão para validar sua licença."
+
+msgid "Invalid or expired license!"
+msgstr "Licença inválida ou expirada!"
+
+msgid "License validated successfully!"
+msgstr "Licença validada com sucesso!"
