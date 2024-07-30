@@ -264,7 +264,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
         $nonce = wp_create_nonce( 'nonce_lkn_cielo_credit');
 
         for ($c = 1; $c <= $installmentLimit; ++$c) {
-            $interest = preg_replace('/\D/', '', $this->get_option($c . 'x', 0));
+            $interest = $this->get_option($c . 'x', 0);
             if ($interest > 0) {
                 $installments[] = array('id' => $c, 'interest' => $interest);
             }

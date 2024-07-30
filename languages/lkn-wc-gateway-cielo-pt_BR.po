@@ -283,3 +283,15 @@ msgstr "Nome do Titular do Cartão"
 
 msgid "Card Holder Name is required!"
 msgstr "O nome do titular do cartão é obrigatório!"
+
+msgid "Validate License"
+msgstr "Validar Licença"
+
+msgid "Click the button to validate your license."
+msgstr "Clique no botão para validar sua licença."
+
+msgid "Invalid or expired license!"
+msgstr "Licença inválida ou expirada!"
+
+msgid "License validated successfully!"
+msgstr "Licença validada com sucesso!"
