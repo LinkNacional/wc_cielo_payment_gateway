@@ -76,6 +76,7 @@ Payment Gateway for Cielo API on WooCommerce plugin is dependent on WooCommerce 
 **30/07/2024**
 * Add credit payments with 3DS validation;
 * Add BIN validation to automatically select card type;
+* Fix bug on debit 3DS render;
 * Add compatibility with the official WooCommerce Subscriptions plugin.
 
 = 1.9.3 =
