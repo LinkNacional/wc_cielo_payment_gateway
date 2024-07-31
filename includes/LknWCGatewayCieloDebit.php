@@ -402,6 +402,11 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
         >
             <input
                 type="hidden"
+                id="lkn_cielo_3ds_installment_show"
+                value="no"
+            />
+            <input
+                type="hidden"
                 name="nonce_lkn_cielo_debit"
                 class="nonce_lkn_cielo_debit"
                 value="<?php echo esc_attr($nonce); ?>"
@@ -620,7 +625,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
                 value="<?php echo esc_attr(wp_json_encode($installments)); ?>"
             >
 
-            <div class="form-row form-row-wide">
+            <div id="lkn-cc-dc-installment-row" class="form-row form-row-wide">
                 <label
                     for="lkn_cc_dc_installments"><?php esc_html_e('Installments', 'lkn-wc-gateway-cielo'); ?>
                     <span class="required">*</span>

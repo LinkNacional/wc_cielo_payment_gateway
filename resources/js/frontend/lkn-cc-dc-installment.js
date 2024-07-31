@@ -7,11 +7,34 @@
     $('body').on('updated_checkout', lknWCCieloLoadInstallments)
   })
 
-  function lknWCCieloLoadInstallments() {
+  function lknWCCieloShowInstallments () {
+    const installmentShow = $('#lkn_cielo_3ds_installment_show')
+    const installmentRow = $('#lkn-cc-dc-installment-row')
+
+    if (installmentShow.length && installmentShow.val() === 'no') {
+      if (installmentRow.length) {
+        installmentRow.show()
+        installmentShow.val('yes')
+      }
+    } else {
+      if (installmentRow.length) {
+        installmentRow.hide()
+        installmentShow.val('no')
+      }
+    }
+  }
+
+  function lknWCCieloLoadInstallments () {
+    const typeCard = $('#lkn_cc_type')
     const lknInstallmentSelect = document.getElementById('lkn_cc_dc_installments')
     const lknTotal = document.getElementById('lkn_cc_dc_installment_total')
     let lknInstallmentLimit = document.getElementById('lkn_cc_dc_installment_limit')
     let lknInstallmentInterest = document.getElementById('lkn_cc_dc_installment_interest')
+
+    if (typeCard.length) {
+      typeCard.on('change', lknWCCieloShowInstallments)
+      lknWCCieloShowInstallments()
+    }
 
     if (lknInstallmentLimit) {
       lknInstallmentLimit = lknInstallmentLimit.value
