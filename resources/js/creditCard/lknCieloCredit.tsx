@@ -46,14 +46,14 @@ const lknCCContentCielo = (props) => {
         // Verifica se o valor é uma data válida (MM/YY)
         const isValidDate = /^\d{2}\/\d{2}$/.test(value)
         if (!isValidDate) {
-          // Remove caracteres não numéricos
-          const cleanedValue = value?.replace(/\D/g, '')
-          let formattedValue = cleanedValue?.replace(/^(.{2})/, '$1 / ')?.trim()
+            // Remove caracteres não numéricos
+            const cleanedValue = value?.replace(/\D/g, '')
+            let formattedValue = cleanedValue?.replace(/^(.{2})(.{2})$/, '$1 / $2');
 
-          // Se o tamanho da string for 5, remove o espaço e a barra adicionados anteriormente
-          if (formattedValue.length === 4) {
-            formattedValue = formattedValue.replace(/\s\//, '')
-          }
+            // Se o tamanho da string for 6 (MMYYYY), formate para MM / YY
+            if (cleanedValue.length === 6) {
+                formattedValue = cleanedValue?.replace(/^(.{2})(.{2})(.{2})$/, '$1 / $3');
+            }
 
           // Atualiza o estado
           setCreditObject({
