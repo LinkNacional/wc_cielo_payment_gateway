@@ -4,7 +4,7 @@
  * Plugin URI: https://www.linknacional.com.br/wordpress/woocommerce/cielo/
  * Description: Adds the Cielo API 3.0 Payments gateway to your WooCommerce website.
  *
- * Version: 1.9.3
+ * Version: 1.10.0
  *
  * Author: Link Nacional
  * Author URI: https://linknacional.com.br
@@ -12,15 +12,16 @@
  * Text Domain: lkn-wc-gateway-cielo
  * Domain Path: /languages/
  * 
- * Copyright: © 2023 Link Nacional.
+ * Copyright: © 2024 Link Nacional.
  * License: GNU General Public License v3.0
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
  */
 
-use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloCreditBlocks;
-use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloDebitBlocks;
 use Lkn\WCCieloPaymentGateway\Includes\LknWCGatewayCieloCredit;
 use Lkn\WCCieloPaymentGateway\Includes\LknWCGatewayCieloDebit;
+use Lkn\WCCieloPaymentGateway\Includes\LknWCGatewayCieloEndpoint;
+use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloCreditBlocks;
+use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloDebitBlocks;
 
 require_once __DIR__ . '/vendor/autoload.php';
 
@@ -53,7 +54,7 @@ final class LknWCCieloPayment {
             __('for the Cielo API 3.0 Payments for WooCommerce add-on to activate', 'lkn-wc-gateway-cielo')
         );
 
-        echo $message;
+        echo wp_kses_post($message);
     }
 
     /**
@@ -72,7 +73,7 @@ final class LknWCCieloPayment {
             __('plugin installed and activated for the Cielo API 3.0 Payments for WooCommerce add-on to activate', 'lkn-wc-gateway-cielo')
         );
 
-        echo $message;
+        echo wp_kses_post($message);
     }
 
     /**
@@ -102,6 +103,8 @@ final class LknWCCieloPayment {
 
         // Thank you page with installments.
         add_action('woocommerce_order_details_after_order_table', array(__CLASS__, 'order_details_after_order_table'), 10, 1);
+    
+		add_action('rest_api_init', array(new LknWCGatewayCieloEndpoint(), 'registerOrderCaptureEndPoint'));
     }
 
     public static function wcEditorBlocksActive(): void {
@@ -308,7 +311,7 @@ final class LknWCCieloPayment {
     private static function setup_constants(): void {
         // Defines addon version number for easy reference.
         if ( ! defined('LKN_WC_CIELO_VERSION')) {
-            define('LKN_WC_CIELO_VERSION', '1.9.3');
+            define('LKN_WC_CIELO_VERSION', '1.10.0');
         }
         if ( ! defined('LKN_WC_CIELO_TRANSLATION_PATH')) {
             define('LKN_WC_CIELO_TRANSLATION_PATH', plugin_dir_path(__FILE__) . 'languages/');
