@@ -298,3 +298,6 @@ msgstr "Licença inválida ou expirada!"
 
 msgid "License validated successfully!"
 msgstr "Licença validada com sucesso!"
+
+msgid "Interest"
+msgstr "Juros"

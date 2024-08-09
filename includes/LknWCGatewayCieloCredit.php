@@ -538,7 +538,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
 
             if ($this->get_option('installment_interest') === 'yes') {
                 $interest = $this->get_option($installments . 'x', 0);
-                $amount = apply_filters('lkn_wc_cielo_calculate_interest', $amount, $interest);
+                $amount = apply_filters('lkn_wc_cielo_calculate_interest', $amount, $interest, $order);
             }
         }
 

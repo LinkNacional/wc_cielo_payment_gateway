@@ -298,3 +298,6 @@ msgstr ""
 
 msgid "License validated successfully!"
 msgstr ""
+
+msgid "Interest"
+msgstr ""
