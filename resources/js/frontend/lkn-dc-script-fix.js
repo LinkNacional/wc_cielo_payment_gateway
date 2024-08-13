@@ -1,18 +1,16 @@
 /* eslint-disable no-undef */
 // Implements script internationalization
 
-/* eslint-disable no-undef */
-// Implements script internationalization
-function lknWcCieloPaymentGatewayRemoveLoad() {
+function lknWcCieloPaymentGatewayRemoveLoad () {
   if (document.querySelector('.bpmpi_accesstoken')) {
-    document.querySelector('.bpmpi_accesstoken').value = lknWcCieloPaymentGatewayToken;
+    document.querySelector('.bpmpi_accesstoken').value = lknWcCieloPaymentGatewayToken
 
     // Remova os elementos de overlay
     const loadOverlay = document.querySelectorAll('.blockUI.blockOverlay')
-    if(loadOverlay) {
+    if (loadOverlay) {
       loadOverlay.forEach((load) => {
-        load.remove();
-      });
+        load.remove()
+      })
     }
   }
 }
@@ -20,7 +18,7 @@ function lknWcCieloPaymentGatewayRemoveLoad() {
 document.onchange = () => {
   setTimeout(() => {
     lknWcCieloPaymentGatewayRemoveLoad()
-  }, 1000);
+  }, 1000)
 }
 
 (function ($) {
@@ -30,8 +28,7 @@ document.onchange = () => {
     document.onchange = () => {
       setTimeout(() => {
         lknWcCieloPaymentGatewayRemoveLoad()
-      }, 1000);
+      }, 1000)
     }
-  });
-
-})(jQuery);
+  })
+})(jQuery)

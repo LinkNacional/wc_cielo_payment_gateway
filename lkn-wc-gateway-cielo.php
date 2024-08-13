@@ -11,7 +11,7 @@
  *
  * Text Domain: lkn-wc-gateway-cielo
  * Domain Path: /languages/
- * 
+ *
  * Copyright: © 2024 Link Nacional.
  * License: GNU General Public License v3.0
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -23,12 +23,12 @@ use Lkn\WCCieloPaymentGateway\Includes\LknWCGatewayCieloEndpoint;
 use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloCreditBlocks;
 use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloDebitBlocks;
 
-require_once __DIR__ . '/vendor/autoload.php';
-
 // Exit if accessed directly.
 if ( ! defined('ABSPATH')) {
     exit;
 }
+
+require_once __DIR__ . '/vendor/autoload.php';
 
 /**
  * WC Cielo Payment gateway plugin class.
@@ -103,8 +103,8 @@ final class LknWCCieloPayment {
 
         // Thank you page with installments.
         add_action('woocommerce_order_details_after_order_table', array(__CLASS__, 'order_details_after_order_table'), 10, 1);
-    
-		add_action('rest_api_init', array(new LknWCGatewayCieloEndpoint(), 'registerOrderCaptureEndPoint'));
+
+        add_action('rest_api_init', array(new LknWCGatewayCieloEndpoint(), 'registerOrderCaptureEndPoint'));
     }
 
     public static function wcEditorBlocksActive(): void {
@@ -124,12 +124,12 @@ final class LknWCCieloPayment {
 
         $payment_method_registry->register( new LknWcCieloCreditBlocks() );
         $payment_method_registry->register( new LknWcCieloDebitBlocks() );
-    } 
+    }
 
-    /**  
+    /**
      * Check plugin environment.
      *
-     * @return bool|null 
+     * @return bool|null
      *
      * @since
      */
@@ -263,13 +263,13 @@ final class LknWCCieloPayment {
             '<span style="color: red; font-weight: bold;">%s</span>',
             __('Be pro', 'lkn-wc-gateway-cielo')
         );
-        
+
         // Crie o novo link de meta
         $new_meta_link = sprintf('<a href="%1$s">%2$s</a>', $url, $link_text);
-        
+
         // Adicione o novo link ao array de metadados do plugin
         $plugin_meta[] = $new_meta_link;
-    
+
         return $plugin_meta;
     }
 

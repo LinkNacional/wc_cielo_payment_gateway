@@ -71,7 +71,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
 
         $this->method_title = __('Cielo - Credit card', 'lkn-wc-gateway-cielo');
         $this->method_description = __('Allows credit card payment with Cielo API 3.0.', 'lkn-wc-gateway-cielo');
-        
+
         // Load the settings.
         $this->init_form_fields();
         $this->init_settings();
@@ -111,7 +111,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
      */
     public function process_subscription_payment( $amount, $order ): void {
         do_action('lkn_wc_cielo_scheduled_subscription_payment', $amount, $order);
-    }	
+    }
 
     /**
      * Load admin JavaScript for the admin page.
@@ -142,7 +142,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
 
         $installmentArgs = array();
         $installmentArgs = apply_filters('lkn_wc_cielo_js_credit_args', array('installment_min' => '5'));
-        
+
         wp_enqueue_script('lkn-mask-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/formatter.js', array('jquery'), $this->version, false);
         wp_enqueue_script('lkn-mask-script-load', plugin_dir_url(__FILE__) . '../resources/js/frontend/define-mask.js', array('lkn-mask-script', 'jquery'), $this->version, false);
 
@@ -469,7 +469,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
         $debug = $this->get_option('debug');
         $currency = $order->get_currency();
         $activeInstallment = $this->get_option('installment_payment');
-        $subscriptionSaveCard = false; 
+        $subscriptionSaveCard = false;
 
         if ($this->validate_card_holder_name($cardName, false) === false) {
             $message = __('Card Holder Name is required!', 'lkn-wc-gateway-cielo');
@@ -506,7 +506,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
         if (class_exists('WC_Subscriptions_Order') && WC_Subscriptions_Order::order_contains_subscription($order_id)) {
             $order = apply_filters('lkn_wc_cielo_process_recurring_payment', $order);
             $subscriptionSaveCard = true;
-        } 
+        }
 
         // Convert the amount to equivalent in BRL
         if ('BRL' !== $currency) {
@@ -658,14 +658,14 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
             $this->log->log('error', $error_message, array('source' => 'woocommerce-cielo-credit'));
 
             $message = __('Order payment failed. Make sure your credit card is valid.', 'lkn-wc-gateway-cielo');
-            
+
             throw new Exception(esc_attr($message));
         }
         if ('yes' === $debug) {
             $this->log->log('error', var_export($response, true), array('source' => 'woocommerce-cielo-credit'));
         }
     }
-    
+
     /**
      * Calculate the total value of items in the WooCommerce cart.
      */

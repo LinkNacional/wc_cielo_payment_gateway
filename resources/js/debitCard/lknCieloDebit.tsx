@@ -86,20 +86,20 @@ const lknDCContentCielo = (props) => {
         })
 
         break
-        case 'lkn_dc_expdate':
+      case 'lkn_dc_expdate':
         if (value.length > 7) return
 
         // Verifica se o valor é uma data válida (MM/YY)
         const isValidDate = /^\d{2}\/\d{2}$/.test(value);
         if (!isValidDate) {
-            // Remove caracteres não numéricos
-            const cleanedValue = value?.replace(/\D/g, '');
-            let formattedValue = cleanedValue?.replace(/^(.{2})(.{2})$/, '$1 / $2');
+          // Remove caracteres não numéricos
+          const cleanedValue = value?.replace(/\D/g, '');
+          let formattedValue = cleanedValue?.replace(/^(.{2})(.{2})$/, '$1 / $2');
 
-            // Se o tamanho da string for 6 (MMYYYY), formate para MM / YY
-            if (cleanedValue.length === 6) {
-                formattedValue = cleanedValue?.replace(/^(.{2})(.{2})(.{2})$/, '$1 / $3');
-            }
+          // Se o tamanho da string for 6 (MMYYYY), formate para MM / YY
+          if (cleanedValue.length === 6) {
+            formattedValue = cleanedValue?.replace(/^(.{2})(.{2})(.{2})$/, '$1 / $3');
+          }
 
           // Atualiza o estado
           setdebitObject({
@@ -110,62 +110,62 @@ const lknDCContentCielo = (props) => {
         return
       case 'lkn_dc_cvc':
         if (value.length > 8) return
-        case 'lkn_dcno':
-          if (value.length > 7) {
-            var cardBin = value.replace(' ', '').substring(0, 6);
-            var url = window.location.origin + '/wp-json/lknWCGatewayCielo/checkCard?cardbin=' + cardBin;
+      case 'lkn_dcno':
+        if (value.length > 7) {
+          var cardBin = value.replace(' ', '').substring(0, 6);
+          var url = window.location.origin + '/wp-json/lknWCGatewayCielo/checkCard?cardbin=' + cardBin;
 
-            if(cardBin !== cardBinState) {
-                setCardBinState(cardBin);  // Mova o setCardBinState para antes da requisição
-    
-                fetch(url, {
-                  method: 'GET',
-                  headers: {
-                    'Accept': 'application/json'
-                  }
-                })
-                .then(response => {
-                  if (!response.ok) {
-                    throw new Error('Network response was not ok ' + response.statusText);
-                  }
-                  return response.json();
-                })
-                .then(data => {
-  
-                  if ('Crédito' == data.CardType) {
-                    setCardTypeOptions([
-                      { key: 'Credit', label: lknDCTranslationsCielo.creditCard },
-                    ]);
-                    setdebitObject(prevState => ({
-                      ...prevState,
-                      lkn_cc_type: 'Credit'
-                    }));
-                  } else if ('Débito' == data.CardType) {
-                      setCardTypeOptions([
-                        { key: 'Debit', label: lknDCTranslationsCielo.debitCard }
-                      ]);
-                      setdebitObject(prevState => ({
-                        ...prevState,
-                        lkn_cc_type: 'Debit'
-                      }));
-                  } else {
-                    setCardTypeOptions([
-                      { key: 'Credit', label: lknDCTranslationsCielo.creditCard },
-                      { key: 'Debit', label: lknDCTranslationsCielo.debitCard }
-                    ]);
-                  }
-                })
-                .catch(error => {
-                    console.error('Erro:', error);
-                });
-            }      
-            setdebitObject(prevState => ({
-              ...prevState,
-              lkn_dcno: value
-            }));
+          if (cardBin !== cardBinState) {
+            setCardBinState(cardBin);  // Mova o setCardBinState para antes da requisição
+
+            fetch(url, {
+              method: 'GET',
+              headers: {
+                'Accept': 'application/json'
+              }
+            })
+              .then(response => {
+                if (!response.ok) {
+                  throw new Error('Network response was not ok ' + response.statusText);
+                }
+                return response.json();
+              })
+              .then(data => {
+
+                if ('Crédito' == data.CardType) {
+                  setCardTypeOptions([
+                    { key: 'Credit', label: lknDCTranslationsCielo.creditCard },
+                  ]);
+                  setdebitObject(prevState => ({
+                    ...prevState,
+                    lkn_cc_type: 'Credit'
+                  }));
+                } else if ('Débito' == data.CardType) {
+                  setCardTypeOptions([
+                    { key: 'Debit', label: lknDCTranslationsCielo.debitCard }
+                  ]);
+                  setdebitObject(prevState => ({
+                    ...prevState,
+                    lkn_cc_type: 'Debit'
+                  }));
+                } else {
+                  setCardTypeOptions([
+                    { key: 'Credit', label: lknDCTranslationsCielo.creditCard },
+                    { key: 'Debit', label: lknDCTranslationsCielo.debitCard }
+                  ]);
+                }
+              })
+              .catch(error => {
+                console.error('Erro:', error);
+              });
           }
-          break;
-      
+          setdebitObject(prevState => ({
+            ...prevState,
+            lkn_dcno: value
+          }));
+        }
+        break;
+
       default:
         break
     }
