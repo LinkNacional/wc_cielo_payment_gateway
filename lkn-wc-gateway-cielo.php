@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Plugin Name: Payment Gateway for Cielo API on WooCommerce
  * Plugin URI: https://www.linknacional.com.br/wordpress/woocommerce/cielo/
@@ -110,7 +111,7 @@ final class LknWCCieloPayment {
 
         $date_modified = $order->get_base_data()["date_modified"];
         $date_string = $date_modified->format('Y-m-d');
-        $method = strtoupper($order->get_payment_method()) == "PIX" ? "plugin-wc-cielo-api-pro":"plugin-wc_cielo_payment_gateway";
+        $method = strtoupper($order->get_payment_method()) == "PIX" ? "plugin-wc-cielo-api-pro" : "plugin-wc_cielo_payment_gateway";
 
         $html = '
         <div id="lkn-btn-postbox" class="postbox ">
@@ -120,18 +121,18 @@ final class LknWCCieloPayment {
             </div>
             <div class="inside">
                 <div class="customer-history order-attribution-metabox">
-                  <a  class="button" href="' . admin_url("admin.php?page=wc-status&tab=logs&view=single_file&file_id=-$method-") . $date_string . '" target="_blank">Ver Logs</a>
+                  <a  class="button" href="' . admin_url("admin.php?page=wc-status&tab=logs&view=single_file&file_id=-$method-") . $date_string . '" target="_blank">' . __("See Logs", "lkn-wc-gateway-cielo") . '</a>
                 </div>
             </div>
         </div>
         ';
-        
+
         echo wp_kses_post($html);
         wp_enqueue_script("lkn-log-button-create", LKN_WC_GATEWAY_CIELO_URL . "resources/js/admin/lkn-logs-button.js");
     }
 
     public static function wcEditorBlocksActive(): void {
-        if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
+        if (class_exists('\Automattic\WooCommerce\Utilities\FeaturesUtil')) {
             Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility(
                 'cart_checkout_blocks',
                 __FILE__,
@@ -141,13 +142,13 @@ final class LknWCCieloPayment {
     }
 
     public static function wcEditorBlocksAddPaymentMethod(Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry): void {
-        if ( ! class_exists( 'Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType' )) {
+        if ( ! class_exists('Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType')) {
             return;
         }
 
-        $payment_method_registry->register( new LknWcCieloCreditBlocks() );
-        $payment_method_registry->register( new LknWcCieloDebitBlocks() );
-    } 
+        $payment_method_registry->register(new LknWcCieloCreditBlocks());
+        $payment_method_registry->register(new LknWcCieloDebitBlocks());
+    }
 
     /**  
      * Check plugin environment.
@@ -286,13 +287,13 @@ final class LknWCCieloPayment {
             '<span style="color: red; font-weight: bold;">%s</span>',
             __('Be pro', 'lkn-wc-gateway-cielo')
         );
-        
+
         // Crie o novo link de meta
         $new_meta_link = sprintf('<a href="%1$s">%2$s</a>', $url, $link_text);
-        
+
         // Adicione o novo link ao array de metadados do plugin
         $plugin_meta[] = $new_meta_link;
-    
+
         return $plugin_meta;
     }
 

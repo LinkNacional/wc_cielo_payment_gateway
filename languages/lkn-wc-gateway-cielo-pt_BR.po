@@ -283,3 +283,6 @@ msgstr "Nome do Titular do Cartão"
 
 msgid "Card Holder Name is required!"
 msgstr "O nome do titular do cartão é obrigatório!"
+
+msgid "See Logs"
+msgstr "Ver Logs"
