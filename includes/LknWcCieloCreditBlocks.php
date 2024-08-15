@@ -40,12 +40,23 @@ final class LknWcCieloCreditBlocks extends AbstractPaymentMethodType {
     }
 
     public function get_payment_method_data() {
+        $installmentLimit = $this->gateway->get_option('installment_limit', 12);
+        $installments = array();
+
+        for ($c = 1; $c <= $installmentLimit; ++$c) {
+            $interest = $this->gateway->get_option($c . 'x', 0);
+            if ($interest > 0) {
+                $installments[] = array('id' => $c, 'interest' => $interest);
+            }
+        }
+
         return array(
             'title' => $this->gateway->title,
             'description' => $this->gateway->description,
             'supports' => $this->gateway->supports,
             'activeInstallment' => $this->gateway->get_option('installment_payment'),
-            'installmentLimit' => $this->gateway->get_option('installment_limit', 12),
+            'installmentLimit' => $installmentLimit,
+            'installments' => $installments,
             'totalCart' => $this->gateway->lknGetCartTotal(),
             'nonceCieloCredit' => wp_create_nonce( 'nonce_lkn_cielo_credit' ),
             'translations' => array(
@@ -58,4 +69,3 @@ final class LknWcCieloCreditBlocks extends AbstractPaymentMethodType {
         );
     }
 }
-?>

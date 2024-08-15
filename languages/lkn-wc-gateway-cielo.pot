@@ -104,10 +104,10 @@ msgstr ""
 msgid "Order refunded, payment id:"
 msgstr ""
 
-msgid "Cielo - Debit card"
+msgid "Cielo - Debit and credit card"
 msgstr ""
 
-msgid "Allows debit card payment with Cielo API 3.0."
+msgid "Allows debit and credit card payment with Cielo API 3.0."
 msgstr ""
 
 msgid "Learn more how to configure."
@@ -122,10 +122,10 @@ msgstr ""
 msgid "Client Secret"
 msgstr ""
 
-msgid "Enable Debit Card Payments"
+msgid "Enable Debit and Credit Card Payments"
 msgstr ""
 
-msgid "Debit card"
+msgid "Debit and credit card"
 msgstr ""
 
 msgid "Establishment Code"
@@ -282,4 +282,19 @@ msgid "Card Holder Name"
 msgstr ""
 
 msgid "Card Holder Name is required!"
+msgstr ""
+
+msgid "Card type"
+msgstr ""
+
+msgid "Validate License"
+msgstr ""
+
+msgid "Click the button to validate your license."
+msgstr ""
+
+msgid "Invalid or expired license!"
+msgstr ""
+
+msgid "License validated successfully!"
 msgstr ""

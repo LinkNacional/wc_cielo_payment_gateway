@@ -1,3 +1,10 @@
+# 1.10.0 - 16/08/2024
+* Adição de pagamentos de crédito com validação 3DS;
+* Adição de validação de BIN para selecionar tipo de cartão automáticamente;
+* Correção de bug de renderização débito 3DS;
+* Melhorias de compatibilidade com WooCommerce Cielo PRO;
+* Adição de dependência com o plugin WooCommerce.
+
 # 1.9.3 - 18/06/2024
 * Adição de compatibilidade com a funcionalidade Orders Auto-Complete do plugin pro;
 * Correção de problema de renderização do Cielo débito 3DS.

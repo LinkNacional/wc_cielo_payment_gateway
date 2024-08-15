@@ -3,6 +3,7 @@ const lknCCLabelCielo = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo
 const lknCCActiveInstallmentCielo = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.activeInstallment)
 const lknCCTotalCartCielo = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.totalCart)
 const lknCCInstallmentLimitCielo = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.installmentLimit);
+const lknCCinstallmentsCielo = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.installments);
 const lknCCTranslationsCielo = lknCCSettingsCielo.translations
 const lknCCNonceCieloCredit = lknCCSettingsCielo.nonceCieloCredit;
 
@@ -47,11 +48,11 @@ const lknCCContentCielo = (props) => {
         if (!isValidDate) {
           // Remove caracteres não numéricos
           const cleanedValue = value?.replace(/\D/g, '')
-          let formattedValue = cleanedValue?.replace(/^(.{2})/, '$1 / ')?.trim()
+          let formattedValue = cleanedValue?.replace(/^(.{2})(.{2})$/, '$1 / $2');
 
-          // Se o tamanho da string for 5, remove o espaço e a barra adicionados anteriormente
-          if (formattedValue.length === 4) {
-            formattedValue = formattedValue.replace(/\s\//, '')
+          // Se o tamanho da string for 6 (MMYYYY), formate para MM / YY
+          if (cleanedValue.length === 6) {
+            formattedValue = cleanedValue?.replace(/^(.{2})(.{2})(.{2})$/, '$1 / $3');
           }
 
           // Atualiza o estado
@@ -86,17 +87,32 @@ const lknCCContentCielo = (props) => {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2
         });
-
-        const nextInstallmentAmount = lknCCTotalCartCielo / (index);
-
+        let nextInstallmentAmount = lknCCTotalCartCielo / (index);
         if (nextInstallmentAmount < installmentMin) {
           break;
         }
+        let formatedInterest = false;
+        for (let t = 0; t < lknCCinstallmentsCielo.length; t++) {
+          const installmentObj = lknCCinstallmentsCielo[t];
+          // Verify if it is the right installment
+          if (installmentObj.id === index) {
+            nextInstallmentAmount = (lknCCTotalCartCielo + lknCCTotalCartCielo * (parseFloat(installmentObj.interest) / 100)) / index;
+            formatedInterest = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(nextInstallmentAmount)
+          }
+        }
 
-        setOptions(prevOptions => [
-          ...prevOptions,
-          { key: index, label: `${index}x de R$ ${installmentAmount} sem juros` }
-        ])
+        if (formatedInterest) {
+          setOptions(prevOptions => [...prevOptions, {
+            key: index,
+            label: `${index}x de ${formatedInterest}`
+          }]);
+        } else {
+          setOptions(prevOptions => [...prevOptions, {
+            key: index,
+            label: `${index}x de R$ ${installmentAmount} sem juros`
+          }]);
+        }
+
       }
     } else {
       setOptions(prevOptions => [

@@ -45,13 +45,15 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType {
         } else {
             $dirScriptConfig3DS = LKN_WC_GATEWAY_CIELO_URL . 'resources/js/debitCard/lkn-dc-script-prd.js';
         }
-        
+
         return array(
             'title' => $this->gateway->title,
             'description' => $this->gateway->description,
             'accessToken' => $this->gateway->generate_debit_auth_token(),
             'url' => get_page_link(),
             'orderNumber' => uniqid(),
+            'activeInstallment' => $this->gateway->get_option('installment_payment'),
+            'installmentLimit' => $this->gateway->get_option('installment_limit', 12),
             'dirScript3DS' => LKN_WC_GATEWAY_CIELO_URL . 'resources/js/debitCard/BP.Mpi.3ds20.min.js',
             'dirScriptConfig3DS' => $dirScriptConfig3DS,
             'totalCart' => $this->gateway->lknGetCartTotal(),
@@ -60,9 +62,12 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType {
                 'cardNumber' => __('Card Number', 'lkn-wc-gateway-cielo'),
                 'cardExpiryDate' => __('Expiry Date', 'lkn-wc-gateway-cielo'),
                 'securityCode' => __('Security Code', 'lkn-wc-gateway-cielo'),
+                'installments' => __('Installments', 'lkn-wc-gateway-cielo'),
                 'cardHolder' => __('Card Holder Name', 'lkn-wc-gateway-cielo'),
+                'creditCard' => __('Credit card', 'lkn-wc-gateway-cielo'),
+                'debitCard' => __('Debit card', 'lkn-wc-gateway-cielo'),
+                'cardType' => __('Card type', 'lkn-wc-gateway-cielo'),
             )
         );
     }
 }
-?>
