@@ -1224,4 +1224,3 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
         }
     }
 }
-?>

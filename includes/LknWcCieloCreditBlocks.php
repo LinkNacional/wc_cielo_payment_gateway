@@ -69,4 +69,3 @@ final class LknWcCieloCreditBlocks extends AbstractPaymentMethodType {
         );
     }
 }
-?>
