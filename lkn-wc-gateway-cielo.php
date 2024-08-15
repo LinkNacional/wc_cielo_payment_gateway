@@ -102,6 +102,32 @@ final class LknWCCieloPayment {
 
         // Thank you page with installments.
         add_action('woocommerce_order_details_after_order_table', array(__CLASS__, 'order_details_after_order_table'), 10, 1);
+        add_action('woocommerce_admin_order_items_after_line_items', array(__CLASS__, "seeLogs"));
+    }
+
+    public static function seeLogs($id): void {
+        $order = wc_get_order($id);
+
+        $date_modified = $order->get_base_data()["date_modified"];
+        $date_string = $date_modified->format('Y-m-d');
+        $method = strtoupper($order->get_payment_method()) == "PIX" ? "plugin-wc-cielo-api-pro":"plugin-wc_cielo_payment_gateway";
+
+        $html = '
+        <div id="lkn-btn-postbox" class="postbox ">
+            <div class="postbox-header">
+                <h2 class="hndle ui-sortable-handle">Logs</h2>
+              
+            </div>
+            <div class="inside">
+                <div class="customer-history order-attribution-metabox">
+                  <a  class="button" href="' . admin_url("admin.php?page=wc-status&tab=logs&view=single_file&file_id=-$method-") . $date_string . '" target="_blank">Ver Logs</a>
+                </div>
+            </div>
+        </div>
+        ';
+        
+        echo wp_kses_post($html);
+        wp_enqueue_script("lkn-log-button-create", LKN_WC_GATEWAY_CIELO_URL . "resources/js/admin/lkn-logs-button.js");
     }
 
     public static function wcEditorBlocksActive(): void {
