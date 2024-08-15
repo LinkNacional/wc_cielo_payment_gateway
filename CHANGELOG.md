@@ -1,3 +1,6 @@
+# 1.10.0 - 18/06/2024
+* Adição de um botão que a levará o usuario dos detalhes do pedido até as logs.
+
 # 1.9.3 - 18/06/2024
 * Adição de compatibilidade com a funcionalidade Orders Auto-Complete do plugin pro;
 * Correção de problema de renderização do Cielo débito 3DS.
