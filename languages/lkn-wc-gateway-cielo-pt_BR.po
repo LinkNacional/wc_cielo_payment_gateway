@@ -298,3 +298,9 @@ msgstr "Licença inválida ou expirada!"
 
 msgid "License validated successfully!"
 msgstr "Licença validada com sucesso!"
+
+msgid "Payment Complete Status"
+msgstr "Status de Pagamento Completo"
+
+msgid "Choose the status for the order after the payment is successfully completed. If the order meets the criteria set by the autocomplete configuration, the selected status will be overridden."
+msgstr "Escolha o status para o pedido após o pagamento ser concluído com sucesso. Se o pedido atender aos requisitos da configuração de autocompletar, o status selecionado será sobrescrito."
