@@ -302,5 +302,11 @@ msgstr ""
 msgid "Payment Complete Status"
 msgstr ""
 
-msgid "Choose the status for the order after the payment is successfully completed. If the order meets the criteria set by the autocomplete configuration, the selected status will be overridden."
+msgid "Option to automatically set the order status after payment confirmation through this gateway."
+msgstr ""
+
+msgid "Setting to set the order status after payment confirmation according to the product type. None: follow default settings or full payment status."
+msgstr ""
+
+msgid "Please enter a valid CPF or CNPJ."
 msgstr ""

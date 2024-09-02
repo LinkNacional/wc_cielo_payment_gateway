@@ -307,3 +307,6 @@ msgstr "Opção para definir automaticamente o status do pedido após confirmaç
 
 msgid "Setting to set the order status after payment confirmation according to the product type. None: follow default settings or full payment status."
 msgstr "Configuração para definir o status do pedido após a confirmação de pagamento de acordo com o tipo do produto. Nenhum: seguir as configurações padrão ou status de pagamento completo."
+
+msgid "Please enter a valid CPF or CNPJ."
+msgstr "Por favor, insira um CPF ou CNPJ válido."
