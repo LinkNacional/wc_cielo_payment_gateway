@@ -1,3 +1,7 @@
+# 1.11.0 - 02/09/2024
+* Adição de traduções para campo de CPF para pagamentos com Pix.
+* Adição compatibilidade com configuração para alterar status quando o pedido for pago.
+
 # 1.10.0 - 16/08/2024
 * Adição de pagamentos de crédito com validação 3DS;
 * Adição de validação de BIN para selecionar tipo de cartão automáticamente;
