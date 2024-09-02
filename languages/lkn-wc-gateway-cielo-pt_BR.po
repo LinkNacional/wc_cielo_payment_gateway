@@ -302,5 +302,8 @@ msgstr "Licença validada com sucesso!"
 msgid "Payment Complete Status"
 msgstr "Status de Pagamento Completo"
 
-msgid "Choose the status for the order after the payment is successfully completed. If the order meets the criteria set by the autocomplete configuration, the selected status will be overridden."
-msgstr "Escolha o status para o pedido após o pagamento ser concluído com sucesso. Se o pedido atender aos requisitos da configuração de autocompletar, o status selecionado será sobrescrito."
+msgid "Option to automatically set the order status after payment confirmation through this gateway."
+msgstr "Opção para definir automaticamente o status do pedido após confirmação de pagamento por esse gateway."
+
+msgid "Setting to set the order status after payment confirmation according to the product type. None: follow default settings or full payment status."
+msgstr "Configuração para definir o status do pedido após a confirmação de pagamento de acordo com o tipo do produto. Nenhum: seguir as configurações padrão ou status de pagamento completo."
