@@ -588,7 +588,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
 
         if (isset($responseDecoded->Payment) && (1 == $responseDecoded->Payment->Status || 2 == $responseDecoded->Payment->Status)) {
             $order->payment_complete($responseDecoded->Payment->PaymentId);
-            apply_filters("lkn_wc_cielo_change_order_status", $order, $this);
+            do_action("lkn_wc_cielo_change_order_status", $order, $this);
             
             if (class_exists('WC_Subscriptions_Order') && WC_Subscriptions_Order::order_contains_subscription($order_id)) {
                 // Salvar o token e a bandeira do cartão no meta do pedido
@@ -613,7 +613,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
 
             // Remove cart
             WC()->cart->empty_cart();
-            $update_order = apply_filters("lkn_wc_cielo_update_order", $order_id);
+            do_action("lkn_wc_cielo_update_order", $order_id);
 
             $order->update_meta_data('lkn_nsu', $responseDecoded->Payment->ProofOfSale);
             $order->add_order_note(
