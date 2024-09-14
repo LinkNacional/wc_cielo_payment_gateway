@@ -298,3 +298,15 @@ msgstr ""
 
 msgid "License validated successfully!"
 msgstr ""
+
+msgid "Payment Complete Status"
+msgstr ""
+
+msgid "Option to automatically set the order status after payment confirmation through this gateway."
+msgstr ""
+
+msgid "Setting to set the order status after payment confirmation according to the product type. None: follow default settings or full payment status."
+msgstr ""
+
+msgid "Please enter a valid CPF or CNPJ."
+msgstr ""

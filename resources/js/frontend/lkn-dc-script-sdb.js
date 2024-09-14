@@ -243,3 +243,37 @@ function lknDCProccessButton () {
     alert(__('Authentication failed check the card information and try again', 'lkn-wc-gateway-cielo'))
   }
 }
+
+
+//Carrega js do 3DS
+document.addEventListener('DOMContentLoaded', function () {
+  let radioInputs = Array.from(document.querySelectorAll('input[type=radio][id^=payment_method]'));
+
+  // Adiciona um listener a cada elemento
+  radioInputs.forEach(input => {
+    input.addEventListener('change', function() {
+      if (this.id === 'payment_method_lkn_cielo_debit') {
+        lknWcGatewayCieloLoadScript();
+      }
+    });
+  });
+
+  radioInputCieloDebit = document.getElementById('payment_method_lkn_cielo_debit');
+  if(radioInputCieloDebit){
+    if(radioInputCieloDebit.checked){
+      lknWcGatewayCieloLoadScript();
+    }
+  }
+
+  function lknWcGatewayCieloLoadScript(){
+    const scriptUrlBpmpi = lknDCDirScript3DSCieloShortCode;
+    const existingScriptBpmpi = document.querySelector(`script[src="${scriptUrlBpmpi}"]`);
+
+    if (!existingScriptBpmpi) {
+      const scriptBpmpi = document.createElement('script');
+      scriptBpmpi.src = scriptUrlBpmpi;
+      scriptBpmpi.async = true;
+      document.body.appendChild(scriptBpmpi);
+    }
+  }
+})
