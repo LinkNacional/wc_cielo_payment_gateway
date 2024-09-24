@@ -7,6 +7,9 @@
     $('body').on('updated_checkout', lknWCCieloLoadInstallments)
   })
 
+  lknWCCieloLoadInstallments()
+  $('body').on('updated_checkout', lknWCCieloLoadInstallments)
+  
   function lknWCCieloShowInstallments () {
     const installmentShow = $('#lkn_cielo_3ds_installment_show')
     const installmentRow = $('#lkn-cc-dc-installment-row')
