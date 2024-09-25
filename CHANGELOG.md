@@ -1,3 +1,6 @@
+# 1.11.1 - 25/09/2024
+* Correção em valores das parcelas quando são feitas alterações no carrinho.
+
 # 1.11.0 - 02/09/2024
 * Adição de traduções para campo de CPF para pagamentos com Pix.
 * Adição compatibilidade com configuração para alterar status quando o pedido for pago.

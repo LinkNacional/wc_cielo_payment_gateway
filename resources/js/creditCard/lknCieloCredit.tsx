@@ -76,50 +76,93 @@ const lknCCContentCielo = (props) => {
 
   const wcComponents = window.wc.blocksComponents
 
-  window.wp.element.useEffect(() => {
-    const installmentMin = 5;
-    // Verifica se 'lknCCActiveInstallmentCielo' é 'yes' e o valor total é maior que 10
+  const calculateInstallments = (lknCCTotalCartCielo) => {
+    const installmentMin = 5
     if (lknCCActiveInstallmentCielo === 'yes' && lknCCTotalCartCielo > 10) {
-      const maxInstallments = lknCCInstallmentLimitCielo; // Limita o parcelamento até 12 vezes, deixei fixo para teste
+      const maxInstallments = lknCCInstallmentLimitCielo
 
       for (let index = 1; index <= maxInstallments; index++) {
         const installmentAmount = (lknCCTotalCartCielo / index).toLocaleString('pt-BR', {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2
-        });
-        let nextInstallmentAmount = lknCCTotalCartCielo / (index);
+        })
+        let nextInstallmentAmount = lknCCTotalCartCielo / index
         if (nextInstallmentAmount < installmentMin) {
-          break;
+          break
         }
-        let formatedInterest = false;
+        let formatedInterest = false
         for (let t = 0; t < lknCCinstallmentsCielo.length; t++) {
-          const installmentObj = lknCCinstallmentsCielo[t];
-          // Verify if it is the right installment
+          const installmentObj = lknCCinstallmentsCielo[t]
           if (installmentObj.id === index) {
-            nextInstallmentAmount = (lknCCTotalCartCielo + lknCCTotalCartCielo * (parseFloat(installmentObj.interest) / 100)) / index;
-            formatedInterest = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(nextInstallmentAmount)
+            nextInstallmentAmount = (lknCCTotalCartCielo + lknCCTotalCartCielo * (parseFloat(installmentObj.interest) / 100)) / index
+            formatedInterest = new Intl.NumberFormat('pt-br', {
+              style: 'currency',
+              currency: 'BRL'
+            }).format(nextInstallmentAmount)
           }
         }
-
         if (formatedInterest) {
           setOptions(prevOptions => [...prevOptions, {
             key: index,
             label: `${index}x de ${formatedInterest}`
-          }]);
+          }])
         } else {
           setOptions(prevOptions => [...prevOptions, {
             key: index,
             label: `${index}x de R$ ${installmentAmount} sem juros`
-          }]);
+          }])
         }
-
       }
     } else {
-      setOptions(prevOptions => [
-        ...prevOptions,
-        { key: '1', label: `1x de R$ ${lknCCTotalCartCielo} (à vista)` }
-      ])
+      setOptions(prevOptions => [...prevOptions, {
+        key: '1',
+        label: `1x de R$ ${lknCCTotalCartCielo} (à vista)`
+      }])
     }
+  }
+
+  window.wp.element.useEffect(() => {
+    calculateInstallments(lknCCTotalCartCielo);
+    
+    const intervalId = setInterval(() => {
+      var targetNode = document.querySelector('.wc-block-formatted-money-amount.wc-block-components-formatted-money-amount.wc-block-components-totals-footer-item-tax-value');
+      // Configuração do observer: quais mudanças serão observadas
+      if(targetNode){
+        var config = { childList: true, subtree: true, characterData: true };
+
+        var changeValue = () => {
+          setOptions([])
+          // Remover tudo exceto os números e a vírgula
+          let newValue = targetNode.textContent.replace(/[^\d,]/g, '');
+
+          // Substituir a vírgula por um ponto
+          newValue = newValue.replace(',', '.');
+
+          // Converter para número
+          newValue = parseFloat(newValue);
+
+          calculateInstallments(newValue)
+        }
+
+        changeValue()
+  
+        // Função de callback que será executada quando ocorrerem mudanças
+        var callback = function(mutationsList, observer) {
+            for(var mutation of mutationsList) {
+              if (mutation.type === 'childList' || mutation.type === 'characterData') {
+                changeValue()
+              }
+            }
+        };
+  
+        // Cria uma instância do observer e o conecta ao nó alvo
+        var observer = new MutationObserver(callback);
+        observer.observe(targetNode, config);
+
+        clearInterval(intervalId);
+      }
+    }, 500);
+
   }, [])
 
   window.wp.element.useEffect(() => {
@@ -158,7 +201,7 @@ const lknCCContentCielo = (props) => {
     emitResponse.responseTypes.ERROR,
     emitResponse.responseTypes.SUCCESS,
     onPaymentSetup
-  ]);
+  ]); 
 
   return (
     <>

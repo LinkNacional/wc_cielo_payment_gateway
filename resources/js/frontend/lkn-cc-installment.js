@@ -7,6 +7,9 @@
     $('body').on('updated_checkout', lknWCCieloLoadInstallments)
   })
 
+  lknWCCieloLoadInstallments()
+  $('body').on('updated_checkout', lknWCCieloLoadInstallments)
+
   function lknWCCieloLoadInstallments () {
     const lknInstallmentSelect = document.getElementById('lkn_cc_installments')
     const lknTotal = document.getElementById('lkn_cc_installment_total')
