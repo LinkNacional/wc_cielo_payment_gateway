@@ -314,23 +314,29 @@ const lknDCContentCielo = (props) => {
       if(targetNode){
         var config = { childList: true, subtree: true, characterData: true };
   
+        var changeValue = () => {
+          setOptions([])
+          // Remover tudo exceto os números e a vírgula
+          let valorNumerico = targetNode.textContent.replace(/[^\d,]/g, '');
+
+          // Substituir a vírgula por um ponto
+          valorNumerico = valorNumerico.replace(',', '.');
+
+          // Converter para número
+          valorNumerico = parseFloat(valorNumerico);
+
+          calculateInstallments(valorNumerico)
+        }
+
+        changeValue()
+
         // Função de callback que será executada quando ocorrerem mudanças
         var callback = function(mutationsList, observer) {
-            for(var mutation of mutationsList) {
-                if (mutation.type === 'childList' || mutation.type === 'characterData') {
-                  setOptions([])
-                  // Remover tudo exceto os números e a vírgula
-                  let valorNumerico = targetNode.textContent.replace(/[^\d,]/g, '');
-
-                  // Substituir a vírgula por um ponto
-                  valorNumerico = valorNumerico.replace(',', '.');
-
-                  // Converter para número
-                  valorNumerico = parseFloat(valorNumerico);
-
-                  calculateInstallments(valorNumerico)
-                }
+          for(var mutation of mutationsList) {
+            if (mutation.type === 'childList' || mutation.type === 'characterData') {
+              changeValue()
             }
+          }
         };
   
         // Cria uma instância do observer e o conecta ao nó alvo
@@ -339,7 +345,7 @@ const lknDCContentCielo = (props) => {
 
         clearInterval(intervalId);
       }
-    }, 1000);
+    }, 500);
   }, [])
 
 

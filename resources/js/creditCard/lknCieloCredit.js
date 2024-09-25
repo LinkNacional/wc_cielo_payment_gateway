@@ -122,28 +122,30 @@ const lknCCContentCielo = props => {
       var targetNode = document.querySelector('.wc-block-formatted-money-amount.wc-block-components-formatted-money-amount.wc-block-components-totals-footer-item-tax-value');
       // Configuração do observer: quais mudanças serão observadas
       if (targetNode) {
-        setOptions([]);
         var config = {
           childList: true,
           subtree: true,
           characterData: true
         };
+        var changeValue = () => {
+          setOptions([]);
+          // Remover tudo exceto os números e a vírgula
+          let newValue = targetNode.textContent.replace(/[^\d,]/g, '');
+
+          // Substituir a vírgula por um ponto
+          newValue = newValue.replace(',', '.');
+
+          // Converter para número
+          newValue = parseFloat(newValue);
+          calculateInstallments(newValue);
+        };
+        changeValue();
 
         // Função de callback que será executada quando ocorrerem mudanças
         var callback = function (mutationsList, observer) {
           for (var mutation of mutationsList) {
             if (mutation.type === 'childList' || mutation.type === 'characterData') {
-              setOptions([]);
-              // Remover tudo exceto os números e a vírgula
-              let valorNumerico = targetNode.textContent.replace(/[^\d,]/g, '');
-
-              // Substituir a vírgula por um ponto
-              valorNumerico = valorNumerico.replace(',', '.');
-
-              // Converter para número
-              valorNumerico = parseFloat(valorNumerico);
-              console.log(valorNumerico);
-              calculateInstallments(valorNumerico);
+              changeValue();
             }
           }
         };
@@ -152,17 +154,8 @@ const lknCCContentCielo = props => {
         var observer = new MutationObserver(callback);
         observer.observe(targetNode, config);
         clearInterval(intervalId);
-
-        let valorNumerico = targetNode.textContent.replace(/[^\d,]/g, '');
-        // Substituir a vírgula por um ponto
-        valorNumerico = valorNumerico.replace(',', '.');
-
-        // Converter para número
-        valorNumerico = parseFloat(valorNumerico);
-        console.log(valorNumerico);
-        calculateInstallments(valorNumerico);
       }
-    }, 1000);
+    }, 500);
   }, []);
   window.wp.element.useEffect(() => {
     const unsubscribe = onPaymentSetup(async () => {

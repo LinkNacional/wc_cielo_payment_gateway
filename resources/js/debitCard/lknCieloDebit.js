@@ -295,21 +295,25 @@ const lknDCContentCielo = props => {
           subtree: true,
           characterData: true
         };
+        var changeValue = () => {
+          setOptions([]);
+          // Remover tudo exceto os números e a vírgula
+          let valorNumerico = targetNode.textContent.replace(/[^\d,]/g, '');
+
+          // Substituir a vírgula por um ponto
+          valorNumerico = valorNumerico.replace(',', '.');
+
+          // Converter para número
+          valorNumerico = parseFloat(valorNumerico);
+          calculateInstallments(valorNumerico);
+        };
+        changeValue();
 
         // Função de callback que será executada quando ocorrerem mudanças
         var callback = function (mutationsList, observer) {
           for (var mutation of mutationsList) {
             if (mutation.type === 'childList' || mutation.type === 'characterData') {
-              setOptions([]);
-              // Remover tudo exceto os números e a vírgula
-              let valorNumerico = targetNode.textContent.replace(/[^\d,]/g, '');
-
-              // Substituir a vírgula por um ponto
-              valorNumerico = valorNumerico.replace(',', '.');
-
-              // Converter para número
-              valorNumerico = parseFloat(valorNumerico);
-              calculateInstallments(valorNumerico);
+              changeValue();
             }
           }
         };
@@ -319,7 +323,7 @@ const lknDCContentCielo = props => {
         observer.observe(targetNode, config);
         clearInterval(intervalId);
       }
-    }, 1000);
+    }, 500);
   }, []);
   return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h4", null, "Pagamento processado pela Cielo API 3.0")), /*#__PURE__*/React.createElement(wcComponents.TextInput, {
     id: "lkn_dc_cardholder_name",
