@@ -299,6 +299,9 @@ msgstr "Licença inválida ou expirada!"
 msgid "License validated successfully!"
 msgstr "Licença validada com sucesso!"
 
+msgid "Interest"
+msgstr "Juros"
+
 msgid "Payment Complete Status"
 msgstr "Status de Pagamento Completo"
 

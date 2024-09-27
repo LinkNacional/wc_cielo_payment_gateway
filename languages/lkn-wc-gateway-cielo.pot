@@ -299,6 +299,9 @@ msgstr ""
 msgid "License validated successfully!"
 msgstr ""
 
+msgid "Interest"
+msgstr ""
+
 msgid "Payment Complete Status"
 msgstr ""
 
