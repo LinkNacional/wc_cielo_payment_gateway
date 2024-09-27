@@ -299,6 +299,9 @@ msgstr ""
 msgid "License validated successfully!"
 msgstr ""
 
+msgid "Interest"
+msgstr ""
+
 msgid "Payment Complete Status"
 msgstr ""
 
@@ -309,4 +312,10 @@ msgid "Setting to set the order status after payment confirmation according to t
 msgstr ""
 
 msgid "Please enter a valid CPF or CNPJ."
+msgstr ""
+
+msgid "Input placeholders"
+msgstr ""
+
+msgid "Enables input placeholders for debit/credit card fields for classic checkout"
 msgstr ""

@@ -4,7 +4,7 @@ Donate link: https://www.linknacional.com.br/wordpress/woocommerce/cielo/
 Tags: woocommerce, payment, paymethod, card, credit
 Requires at least: 5.7
 Tested up to: 6.6
-Stable tag: 1.11.1
+Stable tag: 1.11.2
 Requires PHP: 7.2
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -71,6 +71,10 @@ Payment Gateway for Cielo API on WooCommerce plugin is dependent on WooCommerce 
 7. Debit card front page with payment fields.
 
 == Changelog ==
+= 1.11.2 =
+**27/09/2024**
+* Fix placeholders on WooCommerce classic checkout;
+* Fix of calculation of installment amounts for customers with active Cielo PRO.
 
 = 1.11.1 =
 **25/09/2024**

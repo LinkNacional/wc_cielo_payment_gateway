@@ -243,6 +243,12 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
                 'label' => __('Enables installment payments for amounts greater than 10,00 R$', 'lkn-wc-gateway-cielo'),
                 'default' => 'no',
             ),
+            'placeholder' => array(
+                'title' => __('Input placeholders', 'lkn-wc-gateway-cielo'),
+                'type' => 'checkbox',
+                'label' => __('Enables input placeholders for debit/credit card fields for classic checkout', 'lkn-wc-gateway-cielo'),
+                'default' => 'no',
+            )
         );
 
         $customConfigs = apply_filters('lkn_wc_cielo_get_custom_configs', array(), $this->id);
@@ -262,6 +268,12 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
         $installmentLimit = $this->get_option('installment_limit', 12);
         $installments = array();
         $nonce = wp_create_nonce( 'nonce_lkn_cielo_credit');
+        $placeholder = $this->get_option('placeholder', 'no');
+        $placeholderEnabled = false;
+
+        if ('yes' === $placeholder) {
+            $placeholderEnabled = true;
+        }
 
         for ($c = 1; $c <= $installmentLimit; ++$c) {
             $interest = $this->get_option($c . 'x', 0);
@@ -304,6 +316,8 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
             type="text"
             autocomplete="cc-name"
             required
+            placeholder="<?php echo $placeholderEnabled ? esc_attr('John Doe') : ''; ?>"
+            data-placeholder="<?php echo $placeholderEnabled ? esc_attr('John Doe') : ''; ?>"
         >
     </div>
 
@@ -319,6 +333,8 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
             class="lkn-card-num"
             maxlength="24"
             required
+            placeholder="<?php echo $placeholderEnabled ? esc_attr('**** **** **** ****') : ''; ?>"
+            data-placeholder="<?php echo $placeholderEnabled ? esc_attr('**** **** ****') : ''; ?>"
         >
     </div>
     <div class="form-row form-row-wide">
@@ -333,6 +349,8 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
             class="lkn-card-exp"
             maxlength="7"
             required
+            placeholder="<?php echo $placeholderEnabled ? esc_attr('**/****') : ''; ?>"
+            data-placeholder="<?php echo $placeholderEnabled ? esc_attr('**/****') : ''; ?>"
         >
     </div>
     <div class="form-row form-row-wide">
@@ -347,6 +365,8 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
             class="lkn-cvv"
             maxlength="8"
             required
+            placeholder="<?php echo $placeholderEnabled ? esc_attr('***') : ''; ?>"
+            data-placeholder="<?php echo $placeholderEnabled ? esc_attr('***') : ''; ?>"
         >
     </div>
     <?php
@@ -538,7 +558,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
 
             if ($this->get_option('installment_interest') === 'yes') {
                 $interest = $this->get_option($installments . 'x', 0);
-                $amount = apply_filters('lkn_wc_cielo_calculate_interest', $amount, $interest);
+                $amount = apply_filters('lkn_wc_cielo_calculate_interest', $amount, $interest, $order);
             }
         }
 
