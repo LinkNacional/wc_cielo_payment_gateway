@@ -313,3 +313,9 @@ msgstr "Configuração para definir o status do pedido após a confirmação de 
 
 msgid "Please enter a valid CPF or CNPJ."
 msgstr "Por favor, insira um CPF ou CNPJ válido."
+
+msgid "Input placeholders"
+msgstr "Espaços reservados de entrada"
+
+msgid "Enables input placeholders for debit/credit card fields for classic checkout"
+msgstr "Permite espaços reservados de entrada para campos de cartão de débito/crédito para checkout clássico"

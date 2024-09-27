@@ -313,3 +313,9 @@ msgstr ""
 
 msgid "Please enter a valid CPF or CNPJ."
 msgstr ""
+
+msgid "Input placeholders"
+msgstr ""
+
+msgid "Enables input placeholders for debit/credit card fields for classic checkout"
+msgstr ""
