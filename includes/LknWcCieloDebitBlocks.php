@@ -45,7 +45,7 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType {
         } else {
             $dirScriptConfig3DS = LKN_WC_GATEWAY_CIELO_URL . 'resources/js/debitCard/lkn-dc-script-prd.js';
         }
-        
+
         return array(
             'title' => $this->gateway->title,
             'description' => $this->gateway->description,
@@ -71,4 +71,3 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType {
         );
     }
 }
-?>

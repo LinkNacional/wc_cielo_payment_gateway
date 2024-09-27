@@ -20,7 +20,7 @@ const { __ } = wp.i18n;
 
     if (debitPaymethod && debitPaymethod.checked === false) {
       const btnSubmit = document.getElementById('place_order')
-      if(btnSubmit){
+      if (btnSubmit) {
         btnSubmit.setAttribute('type', 'submit')
         btnSubmit.removeEventListener('click', lknDCProccessButton, true)
       }
@@ -37,63 +37,62 @@ const { __ } = wp.i18n;
 
     if (lknWcCieloCcDcNo && lknWcCieloPaymentCCTypeInput) {
       lknWcCieloPaymentCCTypeInput.onchange = (e) => {
-        if (e.target.value == 'Debit' && lknWcCieloCcDcInstallment) {
+        if (e.target.value === 'Debit' && lknWcCieloCcDcInstallment) {
           lknWcCieloCcDcInstallment.parentElement.style.display = 'none'
-        } else if(lknWcCieloCcDcInstallment) {
+        } else if (lknWcCieloCcDcInstallment) {
           lknWcCieloCcDcInstallment.parentElement.style.display = ''
         }
       }
 
       lknWcCieloCcDcNo.onchange = (e) => {
-        var cardBin = e.target.value.substring(0, 6);
-        var url = window.location.origin + '/wp-json/lknWCGatewayCielo/checkCard?cardbin=' + cardBin;
+        const cardBin = e.target.value.substring(0, 6)
+        const url = window.location.origin + '/wp-json/lknWCGatewayCielo/checkCard?cardbin=' + cardBin
         $.ajax({
-          url: url,
+          url,
           type: 'GET',
           headers: {
-            'Accept': "application/json",
+            Accept: 'application/json'
           },
           success: function (response) {
-            var options = document.querySelectorAll('#lkn_cc_type option');
+            const options = document.querySelectorAll('#lkn_cc_type option')
 
             // Reset all options: enable all and deselect all
             options.forEach(function (option) {
-              option.disabled = false;
-              option.selected = false;
-            });
+              option.disabled = false
+              option.selected = false
+            })
 
             options.forEach(function (option) {
-              if ('Crédito' == response.CardType && option.value !== 'Credit') {
-                option.disabled = true;
-                option.selected = false;
-                if(lknWcCieloCcDcInstallment){
-                  lknWcCieloCcDcInstallment.parentElement.style.display = '';
+              if (response.CardType === 'Crédito' && option.value !== 'Credit') {
+                option.disabled = true
+                option.selected = false
+                if (lknWcCieloCcDcInstallment) {
+                  lknWcCieloCcDcInstallment.parentElement.style.display = ''
                 }
-              } else if ('Débito' == response.CardType && option.value !== 'Debit') {
-                option.disabled = true;
-                option.selected = false;
-                if(lknWcCieloCcDcInstallment){
-                  lknWcCieloCcDcInstallment.parentElement.style.display = 'none';
+              } else if (response.CardType === 'Débito' && option.value !== 'Debit') {
+                option.disabled = true
+                option.selected = false
+                if (lknWcCieloCcDcInstallment) {
+                  lknWcCieloCcDcInstallment.parentElement.style.display = 'none'
                 }
-              } else if ('Crédito' == response.CardType && option.value === 'Credit') {
-                if(lknWcCieloCcDcInstallment){
-                  lknWcCieloCcDcInstallment.parentElement.style.display = '';
+              } else if (response.CardType === 'Crédito' && option.value === 'Credit') {
+                if (lknWcCieloCcDcInstallment) {
+                  lknWcCieloCcDcInstallment.parentElement.style.display = ''
                 }
-                option.selected = true;
-              } else if ('Débito' == response.CardType && option.value === 'Debit') {
-                option.selected = true;
-              } else if ('Multiplo' == response.CardType) {
-                if(lknWcCieloCcDcInstallment){
-                  lknWcCieloCcDcInstallment.parentElement.style.display = '';
+                option.selected = true
+              } else if (response.CardType === 'Débito' && option.value === 'Debit') {
+                option.selected = true
+              } else if (response.CardType === 'Multiplo') {
+                if (lknWcCieloCcDcInstallment) {
+                  lknWcCieloCcDcInstallment.parentElement.style.display = ''
                 }
               }
-
-            });
+            })
           },
           error: function (error) {
-            console.error('Erro:', error);
+            console.error('Erro:', error)
           }
-        });
+        })
       }
     }
 
@@ -133,7 +132,7 @@ const { __ } = wp.i18n;
   })
 })(jQuery)
 
-function bpmpi_config() {
+function bpmpi_config () {
   return {
     onReady: function () {
 
@@ -217,7 +216,7 @@ function bpmpi_config() {
   }
 }
 
-function lknDCProccessButton() {
+function lknDCProccessButton () {
   try {
     const cardNumber = document.getElementById('lkn_dcno').value.replace(/\D/g, '')
     let expDate = document.getElementById('lkn_dc_expdate').value
@@ -233,3 +232,36 @@ function lknDCProccessButton() {
     alert(__('Authentication failed check the card information and try again', 'lkn-wc-gateway-cielo'))
   }
 }
+
+//Carrega js do 3DS
+document.addEventListener('DOMContentLoaded', function () {
+  let radioInputs = Array.from(document.querySelectorAll('input[type=radio][id^=payment_method]'));
+
+  // Adiciona um listener a cada elemento
+  radioInputs.forEach(input => {
+    input.addEventListener('change', function() {
+      if (this.id === 'payment_method_lkn_cielo_debit') {
+        lknWcGatewayCieloLoadScript();
+      }
+    });
+  });
+
+  radioInputCieloDebit = document.getElementById('payment_method_lkn_cielo_debit');
+  if(radioInputCieloDebit){
+    if(radioInputCieloDebit.checked){
+      lknWcGatewayCieloLoadScript();
+    }
+  }
+
+  function lknWcGatewayCieloLoadScript(){
+    const scriptUrlBpmpi = lknDCDirScript3DSCieloShortCode;
+    const existingScriptBpmpi = document.querySelector(`script[src="${scriptUrlBpmpi}"]`);
+
+    if (!existingScriptBpmpi) {
+      const scriptBpmpi = document.createElement('script');
+      scriptBpmpi.src = scriptUrlBpmpi;
+      scriptBpmpi.async = true;
+      document.body.appendChild(scriptBpmpi);
+    }
+  }
+})

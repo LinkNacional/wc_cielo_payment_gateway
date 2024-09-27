@@ -104,10 +104,10 @@ msgstr ""
 msgid "Order refunded, payment id:"
 msgstr ""
 
-msgid "Cielo - Debit and credit cards"
+msgid "Cielo - Debit and credit card"
 msgstr ""
 
-msgid "Allows debit and credit cards payment with Cielo API 3.0."
+msgid "Allows debit and credit card payment with Cielo API 3.0."
 msgstr ""
 
 msgid "Learn more how to configure."
@@ -125,7 +125,7 @@ msgstr ""
 msgid "Enable Debit and Credit Card Payments"
 msgstr ""
 
-msgid "Debit and credit cards"
+msgid "Debit and credit card"
 msgstr ""
 
 msgid "Establishment Code"
@@ -300,4 +300,16 @@ msgid "License validated successfully!"
 msgstr ""
 
 msgid "Interest"
+msgstr ""
+
+msgid "Payment Complete Status"
+msgstr ""
+
+msgid "Option to automatically set the order status after payment confirmation through this gateway."
+msgstr ""
+
+msgid "Setting to set the order status after payment confirmation according to the product type. None: follow default settings or full payment status."
+msgstr ""
+
+msgid "Please enter a valid CPF or CNPJ."
 msgstr ""

@@ -49,7 +49,7 @@ final class LknWcCieloCreditBlocks extends AbstractPaymentMethodType {
                 $installments[] = array('id' => $c, 'interest' => $interest);
             }
         }
-        
+
         return array(
             'title' => $this->gateway->title,
             'description' => $this->gateway->description,
@@ -69,4 +69,3 @@ final class LknWcCieloCreditBlocks extends AbstractPaymentMethodType {
         );
     }
 }
-?>

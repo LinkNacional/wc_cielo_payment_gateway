@@ -104,11 +104,11 @@ msgstr "Pagamento de pedido realizado com sucesso. Id de pagamento:"
 msgid "Order refunded, payment id:"
 msgstr "Pedido reembolsado, id do pagamento:"
 
-msgid "Cielo - Debit and credit cards"
-msgstr "Cielo - Cartões de débito e crédito"
+msgid "Cielo - Debit and credit card"
+msgstr "Cielo - Cartão de débito e crédito"
 
-msgid "Allows debit and credit cards payment with Cielo API 3.0."
-msgstr "Permite pagamentos com cartões de débito e crédito através da Cielo API 3.0."
+msgid "Allows debit and credit card payment with Cielo API 3.0."
+msgstr "Permite pagamentos com cartão de débito e crédito através da Cielo API 3.0."
 
 msgid "Learn more how to configure."
 msgstr "Saiba mais sobre como configurar."
@@ -125,8 +125,8 @@ msgstr "Client Secret"
 msgid "Enable Debit and Credit Card Payments"
 msgstr "Habilita pagamentos via cartão de débito e crédito"
 
-msgid "Debit and credit cards"
-msgstr "Cartões de débito e crédito"
+msgid "Debit and credit card"
+msgstr "Cartão de débito e crédito"
 
 msgid "Establishment Code"
 msgstr "Código de estabelecimento"
@@ -301,3 +301,15 @@ msgstr "Licença validada com sucesso!"
 
 msgid "Interest"
 msgstr "Juros"
+
+msgid "Payment Complete Status"
+msgstr "Status de Pagamento Completo"
+
+msgid "Option to automatically set the order status after payment confirmation through this gateway."
+msgstr "Opção para definir automaticamente o status do pedido após confirmação de pagamento por esse gateway."
+
+msgid "Setting to set the order status after payment confirmation according to the product type. None: follow default settings or full payment status."
+msgstr "Configuração para definir o status do pedido após a confirmação de pagamento de acordo com o tipo do produto. Nenhum: seguir as configurações padrão ou status de pagamento completo."
+
+msgid "Please enter a valid CPF or CNPJ."
+msgstr "Por favor, insira um CPF ou CNPJ válido."

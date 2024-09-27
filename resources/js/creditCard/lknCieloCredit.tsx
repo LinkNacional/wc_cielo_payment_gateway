@@ -46,14 +46,14 @@ const lknCCContentCielo = (props) => {
         // Verifica se o valor é uma data válida (MM/YY)
         const isValidDate = /^\d{2}\/\d{2}$/.test(value)
         if (!isValidDate) {
-            // Remove caracteres não numéricos
-            const cleanedValue = value?.replace(/\D/g, '')
-            let formattedValue = cleanedValue?.replace(/^(.{2})(.{2})$/, '$1 / $2');
+          // Remove caracteres não numéricos
+          const cleanedValue = value?.replace(/\D/g, '')
+          let formattedValue = cleanedValue?.replace(/^(.{2})(.{2})$/, '$1 / $2');
 
-            // Se o tamanho da string for 6 (MMYYYY), formate para MM / YY
-            if (cleanedValue.length === 6) {
-                formattedValue = cleanedValue?.replace(/^(.{2})(.{2})(.{2})$/, '$1 / $3');
-            }
+          // Se o tamanho da string for 6 (MMYYYY), formate para MM / YY
+          if (cleanedValue.length === 6) {
+            formattedValue = cleanedValue?.replace(/^(.{2})(.{2})(.{2})$/, '$1 / $3');
+          }
 
           // Atualiza o estado
           setCreditObject({
@@ -97,22 +97,22 @@ const lknCCContentCielo = (props) => {
           // Verify if it is the right installment
           if (installmentObj.id === index) {
             nextInstallmentAmount = (lknCCTotalCartCielo + lknCCTotalCartCielo * (parseFloat(installmentObj.interest) / 100)) / index;
-            formatedInterest = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(nextInstallmentAmount)    
-          } 
-        }  
-        
-        if(formatedInterest){
+            formatedInterest = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(nextInstallmentAmount)
+          }
+        }
+
+        if (formatedInterest) {
           setOptions(prevOptions => [...prevOptions, {
             key: index,
             label: `${index}x de ${formatedInterest}`
           }]);
-        }else{          
+        } else {
           setOptions(prevOptions => [...prevOptions, {
             key: index,
             label: `${index}x de R$ ${installmentAmount} sem juros`
           }]);
         }
-        
+
       }
     } else {
       setOptions(prevOptions => [
