@@ -73,7 +73,8 @@ Payment Gateway for Cielo API on WooCommerce plugin is dependent on WooCommerce 
 == Changelog ==
 = 1.11.2 =
 **27/09/2024**
-* Fix placeholders on WooCommerce classic checkout.
+* Fix placeholders on WooCommerce classic checkout;
+* Fix of calculation of installment amounts for customers with active Cielo PRO.
 
 = 1.11.1 =
 **25/09/2024**

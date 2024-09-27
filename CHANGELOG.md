@@ -1,5 +1,6 @@
 # 1.11.2 - 27/09/2024
-* Correção de placeholder para WooCommerce classic checkout.
+* Correção de placeholder para WooCommerce classic checkout;
+* Correção de cálculo de valores de parcelamento para clientes com Cielo PRO ativo.
 
 # 1.11.1 - 25/09/2024
 * Correção em valores das parcelas quando são feitas alterações no carrinho.
