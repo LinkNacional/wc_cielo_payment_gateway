@@ -426,6 +426,8 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
     public function validate_fields() {
         $validateCompatMode = $this->get_option('input_validation_compatibility', 'no');
         if ( ! wp_verify_nonce($_POST['nonce_lkn_cielo_credit'], 'nonce_lkn_cielo_credit')) {
+            $this->log->log('error', 'Nonce verification failed. Nonce: ' . var_export($_POST['nonce_lkn_cielo_credit'], true), array('source' => 'woocommerce-cielo-credit'));
+            $this->add_notice_once(__('Nonce verification failed, try reloading the page', 'lkn-wc-gateway-cielo'), 'error');
             return false;
         }
         if ('no' === $validateCompatMode) {
@@ -458,10 +460,9 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
      */
     public function process_payment($order_id) {
         if ( ! wp_verify_nonce($_POST['nonce_lkn_cielo_credit'], 'nonce_lkn_cielo_credit')) {
-            return array(
-                'result' => 'fail',
-                'redirect' => '',
-            );
+            $this->log->log('error', 'Nonce verification failed. Nonce: ' . var_export($_POST['nonce_lkn_cielo_credit'], true), array('source' => 'woocommerce-cielo-credit'));
+            $this->add_notice_once(__('Nonce verification failed, try reloading the page', 'lkn-wc-gateway-cielo'), 'error');
+            throw new Exception(esc_attr(__('Nonce verification failed, try reloading the page', 'lkn-wc-gateway-cielo')));
         }
 
         $order = wc_get_order($order_id);
@@ -968,3 +969,4 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
         }
     }
 }
+?>
