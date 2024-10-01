@@ -1,3 +1,7 @@
+# 1.11.3 - 02/10/2024
+* Adição de melhoria na validação de campos;
+* Ajustes no redirecionamento em caso de falha no pagamento.
+
 # 1.11.2 - 27/09/2024
 * Correção de placeholder para WooCommerce classic checkout;
 * Correção de cálculo de valores de parcelamento para clientes com Cielo PRO ativo.
