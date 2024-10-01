@@ -74,7 +74,8 @@ Payment Gateway for Cielo API on WooCommerce plugin is dependent on WooCommerce 
 = 1.11.3 =
 **02/10/2024**
 * Added improvements to field validation;
-* Adjustments to redirection in case of payment failure.
+* Adjustments to redirection in case of payment failure;
+* Fixed order with installments with interest has a different total value of the product.
 
 = 1.11.2 =
 **27/09/2024**
