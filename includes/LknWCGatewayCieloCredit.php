@@ -248,6 +248,14 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
                 'type' => 'checkbox',
                 'label' => __('Enables input placeholders for debit/credit card fields for classic checkout', 'lkn-wc-gateway-cielo'),
                 'default' => 'no',
+            ),
+            'nonce_compatibility' => array(
+                'title' => __('Nonce verification compatibility mode', 'lkn-wc-gateway-cielo'),
+                'description' => __('Enable only if your checkout page is facing nonce verification issue', 'lkn-wc-gateway-cielo'),
+                'label' => __('Enable for checkout page validation compatibility', 'lkn-wc-gateway-cielo'),
+                'type' => 'checkbox',
+                'default' => 'no',
+                'desc_tip' => true,
             )
         );
 
@@ -459,7 +467,9 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
      * @return array
      */
     public function process_payment($order_id) {
-        if ( ! wp_verify_nonce($_POST['nonce_lkn_cielo_credit'], 'nonce_lkn_cielo_credit')) {
+        $nonceInactive = $this->get_option('nonce_compatibility', 'no');
+
+        if ( ! wp_verify_nonce($_POST['asdnonce_lkn_cielo_credit'], 'nonce_lkn_cielo_credit') && 'no' === $nonceInactive) {
             $this->log->log('error', 'Nonce verification failed. Nonce: ' . var_export($_POST['nonce_lkn_cielo_credit'], true), array('source' => 'woocommerce-cielo-credit'));
             $this->add_notice_once(__('Nonce verification failed, try reloading the page', 'lkn-wc-gateway-cielo'), 'error');
             throw new Exception(esc_attr(__('Nonce verification failed, try reloading the page', 'lkn-wc-gateway-cielo')));
@@ -686,6 +696,10 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
         if ('yes' === $debug) {
             $this->log->log('error', var_export($response, true), array('source' => 'woocommerce-cielo-credit'));
         }
+
+        $message = __('Order payment failed. Make sure your credit card is valid.', 'lkn-wc-gateway-cielo');
+
+        throw new Exception(esc_attr($message));
     }
 
     /**

@@ -1,3 +1,7 @@
+# 1.11.4 - 04/10/2024
+* Adicionado modo de compatibilidade para validação de nonce;
+* Corrigido erro no envio de cartão de crédito inválido.
+
 # 1.11.3 - 02/10/2024
 * Adição de melhoria na validação de campos;
 * Ajustes no redirecionamento em caso de falha no pagamento;
