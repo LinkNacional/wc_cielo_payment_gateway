@@ -294,6 +294,14 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
                 'type' => 'checkbox',
                 'label' => __('Enables input placeholders for debit/credit card fields for classic checkout', 'lkn-wc-gateway-cielo'),
                 'default' => 'no',
+            ),
+            'nonce_compatibility' => array(
+                'title' => __('Nonce verification compatibility mode', 'lkn-wc-gateway-cielo'),
+                'description' => __('Enable only if your checkout page is facing nonce verification issue', 'lkn-wc-gateway-cielo'),
+                'label' => __('Enable for checkout page validation compatibility', 'lkn-wc-gateway-cielo'),
+                'type' => 'checkbox',
+                'default' => 'no',
+                'desc_tip' => true,
             )
         );
 
@@ -719,7 +727,9 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
      * @return array
      */
     public function process_payment($order_id) {
-        if ( ! wp_verify_nonce($_POST['nonce_lkn_cielo_debit'], 'nonce_lkn_cielo_debit')) {
+        $nonceInactive = $this->get_option('nonce_compatibility', 'no');
+
+        if ( ! wp_verify_nonce($_POST['nonce_lkn_cielo_debit'], 'nonce_lkn_cielo_debit') && 'no' === $nonceInactive) {
             $this->log->log('error', 'Nonce verification failed. Nonce: ' . var_export($_POST['nonce_lkn_cielo_debit'], true), array('source' => 'woocommerce-cielo-debit'));
             $this->add_notice_once(__('Nonce verification failed, try reloading the page', 'lkn-wc-gateway-cielo'), 'error');
             throw new Exception(esc_attr(__('Nonce verification failed, try reloading the page', 'lkn-wc-gateway-cielo')));
