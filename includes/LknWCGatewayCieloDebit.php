@@ -576,8 +576,8 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
             class="lkn-card-num"
             maxlength="24"
             required
-            placeholder="<?php echo $placeholderEnabled ? esc_attr('**** **** **** ****') : ''; ?>"
-            data-placeholder="<?php echo $placeholderEnabled ? esc_attr('**** **** ****') : ''; ?>"
+            placeholder="<?php echo $placeholderEnabled ? esc_attr('XXXX XXXX XXXX XXXX') : ''; ?>"
+            data-placeholder="<?php echo $placeholderEnabled ? esc_attr('XXXX XXXX XXXX XXXX') : ''; ?>"
         >
     </div>
     <div class="form-row form-row-wide">
@@ -592,8 +592,8 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
             class="lkn-card-exp"
             maxlength="7"
             required
-            placeholder="<?php echo $placeholderEnabled ? esc_attr('**/****') : ''; ?>"
-            data-placeholder="<?php echo $placeholderEnabled ? esc_attr('**/****') : ''; ?>"
+            placeholder="<?php echo $placeholderEnabled ? esc_attr('MM/YY') : ''; ?>"
+            data-placeholder="<?php echo $placeholderEnabled ? esc_attr('MM/YY') : ''; ?>"
         >
     </div>
     <div class="form-row form-row-wide">
@@ -609,8 +609,8 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
             class="lkn-cvv"
             maxlength="4"
             required
-            placeholder="<?php echo $placeholderEnabled ? esc_attr('***') : ''; ?>"
-            data-placeholder="<?php echo $placeholderEnabled ? esc_attr('***') : ''; ?>"
+            placeholder="<?php echo $placeholderEnabled ? esc_attr('CVV') : ''; ?>"
+            data-placeholder="<?php echo $placeholderEnabled ? esc_attr('CVV') : ''; ?>"
         >
     </div>
     <div class="form-row form-row-wide">
