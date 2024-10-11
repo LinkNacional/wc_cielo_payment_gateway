@@ -70,7 +70,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
         $this->supports = apply_filters('lkn_wc_cielo_debit_add_support', $this->supports);
 
         $this->method_title = __('Cielo - Debit and credit card', 'lkn-wc-gateway-cielo');
-        $this->method_description = __('Allows debit and credit card payment with Cielo API 3.0.', 'lkn-wc-gateway-cielo') . '<a href="https://www.linknacional.com.br/wordpress/woocommerce/cielo/#cartao-debito-cielo-configurar" target="_blank">' . __('Learn more how to configure.', 'lkn-wc-gateway-cielo') . '</a>' . '<br><br>' . '<p>' . __('To use the 3DS functionality it is necessary to register for 3DS 2.0 (request to eCommerce Support).', 'lkn-wc-gateway-cielo') . '<a href="https://www.cielo.com.br/atendimento/" target="_blank">' . __('Learn more how to configure.', 'lkn-wc-gateway-cielo') . '</a>' . '<p>';
+        $this->method_description = __('Allows debit and credit card payment with Cielo API 3.0.', 'lkn-wc-gateway-cielo') . '<a href="https://www.linknacional.com.br/wordpress/woocommerce/cielo/#cartao-debito-cielo-configurar" target="_blank">' . __('Learn more how to configure.', 'lkn-wc-gateway-cielo') . '</a>' . '<br><br>' . '<p>' . __('To use the 3DS functionality it is necessary to register for 3DS 2.2 (request to eCommerce Support).', 'lkn-wc-gateway-cielo') . '<a href="https://www.cielo.com.br/atendimento/" target="_blank">' . __('Learn more how to configure.', 'lkn-wc-gateway-cielo') . '</a>' . '<p>';
 
         // Load the settings.
         $this->init_form_fields();
@@ -189,7 +189,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
             'client_id' => array(
                 'title' => __('Client Id', 'lkn-wc-gateway-cielo'),
                 'type' => 'password',
-                'description' => __('Cielo 3DS 2.0 registration required (ask for eCommerce support).', 'lkn-wc-gateway-cielo'),
+                'description' => __('Cielo 3DS 2.2 registration required (ask for eCommerce support).', 'lkn-wc-gateway-cielo'),
                 'desc_tip' => true,
                 'custom_attributes' => array(
                     'required' => 'required'
@@ -198,7 +198,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
             'client_secret' => array(
                 'title' => __('Client Secret', 'lkn-wc-gateway-cielo'),
                 'type' => 'password',
-                'description' => __('Cielo 3DS 2.0 registration required (ask for eCommerce support).', 'lkn-wc-gateway-cielo'),
+                'description' => __('Cielo 3DS 2.2 registration required (ask for eCommerce support).', 'lkn-wc-gateway-cielo'),
                 'desc_tip' => true,
                 'custom_attributes' => array(
                     'required' => 'required'
@@ -800,7 +800,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
             throw new Exception(esc_attr($message));
         }
         if (empty($eci)) {
-            $message = __('Invalid Cielo 3DS 2.0 authentication.', 'lkn-wc-gateway-cielo');
+            $message = __('Invalid Cielo 3DS 2.2 authentication.', 'lkn-wc-gateway-cielo');
 
             throw new Exception(esc_attr($message));
         }
@@ -883,12 +883,12 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
             $args['body'] = wp_json_encode($body);
         } else {
             if (empty($cavv)) {
-                $message = __('Invalid Cielo 3DS 2.0 authentication.', 'lkn-wc-gateway-cielo');
+                $message = __('Invalid Cielo 3DS 2.2 authentication.', 'lkn-wc-gateway-cielo');
 
                 throw new Exception(esc_attr($message));
             }
             if (empty($xid)) {
-                $message = __('Invalid Cielo 3DS 2.0 authentication.', 'lkn-wc-gateway-cielo');
+                $message = __('Invalid Cielo 3DS 2.2 authentication.', 'lkn-wc-gateway-cielo');
 
                 throw new Exception(esc_attr($message));
             }
