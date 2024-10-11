@@ -202,7 +202,7 @@ function bpmpi_config () {
 
       const lknDebitCCForm = document.getElementById('wc-lkn_cielo_debit-cc-form')
       if (lknDebitCCForm) {
-        alert(__('Error in the 3DS 2.0 authentication process check that your credentials are filled in correctly', 'lkn-wc-gateway-cielo'))
+        alert(__('Error in the 3DS 2.2 authentication process check that your credentials are filled in correctly', 'lkn-wc-gateway-cielo'))
       }
     },
     onUnsupportedBrand: function (e) {

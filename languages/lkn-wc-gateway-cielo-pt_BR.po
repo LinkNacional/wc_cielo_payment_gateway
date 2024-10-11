@@ -11,8 +11,8 @@ msgstr "Cielo - Cartão de crédito"
 msgid "Please contact Cielo for further assistance."
 msgstr "Por favor, entre em contato com a Cielo para mais assistência."
 
-msgid "To use the 3DS functionality it is necessary to register for 3DS 2.0 (request to eCommerce Support)."
-msgstr "Para utilizar a funcionalidade 3DS é necessário ter o cadastro de 3DS 2.0 (solicitar para o Suporte eCommerce)."
+msgid "To use the 3DS functionality it is necessary to register for 3DS 2.2 (request to eCommerce Support)."
+msgstr "Para utilizar a funcionalidade 3DS é necessário ter o cadastro de 3DS 2.2 (solicitar para o Suporte eCommerce)."
 
 msgid "Allows credit card payment with Cielo API 3.0."
 msgstr "Permite pagamentos com cartão de crédito através da Cielo API 3.0"
@@ -113,8 +113,8 @@ msgstr "Permite pagamentos com cartão de débito e crédito através da Cielo A
 msgid "Learn more how to configure."
 msgstr "Saiba mais sobre como configurar."
 
-msgid "Cielo 3DS 2.0 registration required (ask for eCommerce support)."
-msgstr "Necessário cadastro de Cielo 3DS 2.0 (solicitar para o suporte ecommerce)"
+msgid "Cielo 3DS 2.2 registration required (ask for eCommerce support)."
+msgstr "Necessário cadastro de Cielo 3DS 2.2 (solicitar para o suporte ecommerce)"
 
 msgid "Client Id"
 msgstr "Client Id"
@@ -257,8 +257,8 @@ msgstr "Pagamento de pedido falhou. Quantidade de parcelas inválida."
 msgid "Invalid Cielo API 3.0 credentials."
 msgstr "Credenciais da Cielo API 3.0 inválidas."
 
-msgid "Invalid Cielo 3DS 2.0 authentication."
-msgstr "Autenticação Cielo 3DS 2.0 inválida."
+msgid "Invalid Cielo 3DS 2.2 authentication."
+msgstr "Autenticação Cielo 3DS 2.2 inválida."
 
 msgid "Installment"
 msgstr "Parcelamento"

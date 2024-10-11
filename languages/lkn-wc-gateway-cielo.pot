@@ -11,7 +11,7 @@ msgstr ""
 msgid "Please contact Cielo for further assistance."
 msgstr ""
 
-msgid "To use the 3DS functionality it is necessary to register for 3DS 2.0 (request to eCommerce Support)."
+msgid "To use the 3DS functionality it is necessary to register for 3DS 2.2 (request to eCommerce Support)."
 msgstr ""
 
 msgid "Allows credit card payment with Cielo API 3.0."
@@ -113,7 +113,7 @@ msgstr ""
 msgid "Learn more how to configure."
 msgstr ""
 
-msgid "Cielo 3DS 2.0 registration required (ask for eCommerce support)."
+msgid "Cielo 3DS 2.2 registration required (ask for eCommerce support)."
 msgstr ""
 
 msgid "Client Id"
@@ -257,7 +257,7 @@ msgstr ""
 msgid "Invalid Cielo API 3.0 credentials."
 msgstr ""
 
-msgid "Invalid Cielo 3DS 2.0 authentication."
+msgid "Invalid Cielo 3DS 2.2 authentication."
 msgstr ""
 
 msgid "Installment"
