@@ -43,12 +43,7 @@ final class LknWcCieloCreditBlocks extends AbstractPaymentMethodType {
         $installmentLimit = $this->gateway->get_option('installment_limit', 12);
         $installments = array();
 
-        for ($c = 1; $c <= $installmentLimit; ++$c) {
-            $interest = $this->gateway->get_option($c . 'x', 0);
-            if ($interest > 0) {
-                $installments[] = array('id' => $c, 'interest' => $interest);
-            }
-        }
+        $installments = apply_filters('lkn_wc_cielo_set_installments', $installments, $this->gateway);
 
         return array(
             'title' => $this->gateway->title,
