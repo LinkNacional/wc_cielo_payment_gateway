@@ -415,6 +415,13 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
             $total_cart = number_format($order->get_total(), 2, '', '');
         }
 
+        for ($c = 1; $c <= $installmentLimit; ++$c) {
+            $interest = $this->get_option($c . 'x', 0);
+            if ($interest > 0) {
+                $installments[] = array('id' => $c, 'interest' => $interest);
+            }
+        }
+
         echo wp_kses_post(wpautop($this->description)); ?>
 
 <fieldset
@@ -809,10 +816,6 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
             $amount = apply_filters('lkn_wc_cielo_convert_amount', $amount, $currency);
 
             $order->add_meta_data('amount_converted', $amount, true);
-
-            $amount = number_format($amount, 2, '', '');
-        } else {
-            $amount = number_format($amount, 2, '', '');
         }
 
         // If installments option is active verify $_POST attribute
@@ -838,9 +841,11 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
 
             if ($this->get_option('installment_interest') === 'yes') {
                 $interest = $this->get_option($installments . 'x', 0);
-                $amount = apply_filters('lkn_wc_cielo_calculate_interest', $amount, $interest);
+                $amount = apply_filters('lkn_wc_cielo_calculate_interest', $amount, $interest, $order);
             }
         }
+
+        $amountFormated = number_format($amount, 2, '', '');
 
         // Verify if authentication is data-only
         // @see {https://developercielo.github.io/manual/3ds}
@@ -859,7 +864,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
                 ),
                 'Payment' => array(
                     'Type' => $cardType . "Card",
-                    'Amount' => (int) $amount,
+                    'Amount' => (int) $amountFormated,
                     'Installments' => $installments,
                     'Authenticate' => true,
                     'Capture' => (bool) $capture,
