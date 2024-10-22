@@ -193,7 +193,9 @@ const lknDCContentCielo = (props) => {
 
   const handleButtonClick = () => {
     // Verifica se todos os campos do debitObject estão preenchidos
-    const allFieldsFilled = Object.values(debitObject).every((field) => field.trim() !== '');
+    const allFieldsFilled = Object.keys(debitObject)
+      .filter(key => key !== 'lkn_dc_cardholder_name')
+      .every(key => debitObject[key].trim() !== '');
 
     // Seleciona os lknDCElements dos campos de entrada
     const cardNumberInput = document.getElementById('lkn_dcno');
@@ -211,11 +213,6 @@ const lknDCContentCielo = (props) => {
       lknDCProccessButton();
     } else {
       // Adiciona classes de erro aos campos vazios
-      if (debitObject.lkn_dc_cardholder_name.trim() === '') {
-        const parentDiv = cardHolder?.parentElement;
-        parentDiv?.classList.add('has-error');
-      }
-
       if (debitObject.lkn_dcno.trim() === '') {
         const parentDiv = cardNumberInput?.parentElement;
         parentDiv?.classList.add('has-error');

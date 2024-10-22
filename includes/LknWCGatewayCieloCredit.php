@@ -424,7 +424,8 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
         </fieldset>
 
         <?php
-        do_action('lkn_wc_cielo_remove_cardholder_name', $this, 'credit');
+        
+        do_action('lkn_wc_cielo_remove_cardholder_name', $this);
     }
 
     /**
