@@ -168,7 +168,9 @@ const lknCCContentCielo = (props) => {
   window.wp.element.useEffect(() => {
     const unsubscribe = onPaymentSetup(async () => {
       // Verifica se todos os campos do creditObject estão preenchidos
-      const allFieldsFilled = Object.values(creditObject).every((field) => field.trim() !== '');
+      const allFieldsFilled = Object.keys(creditObject)
+        .filter(key => key !== 'lkn_cc_cardholder_name')
+        .every(key => creditObject[key].trim() !== '');
 
       if (allFieldsFilled) {
         return {

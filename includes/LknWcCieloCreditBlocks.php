@@ -36,6 +36,7 @@ final class LknWcCieloCreditBlocks extends AbstractPaymentMethodType {
             wp_set_script_translations( 'lkn_cielo_credit-blocks-integration');
         }
 
+        do_action('lkn_wc_cielo_remove_cardholder_name', $this->gateway);
         return array('lkn_cielo_credit-blocks-integration');
     }
 

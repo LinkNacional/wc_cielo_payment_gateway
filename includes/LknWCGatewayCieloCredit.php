@@ -300,130 +300,131 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
 
         echo wp_kses_post(wpautop($this->description)); ?>
 
-<fieldset
-    id="wc-<?php echo esc_attr($this->id); ?>-cc-form"
-    class="wc-credit-card-form wc-payment-form"
-    style="background:transparent;"
->
-
-    <?php do_action('woocommerce_credit_card_form_start', $this->id); ?>
-    <input
-        type="hidden"
-        name="nonce_lkn_cielo_credit"
-        class="nonce_lkn_cielo_credit"
-        value="<?php echo esc_attr($nonce); ?>"
-    />
-
-    <div class="form-row form-row-wide">
-        <label
-            for="lkn_cc_cardholder_name"><?php esc_html_e('Card Holder Name', 'lkn-wc-gateway-cielo'); ?>
-            <span class="required">*</span></label>
-        <input
-            id="lkn_cc_cardholder_name"
-            name="lkn_cc_cardholder_name"
-            type="text"
-            autocomplete="cc-name"
-            required
-            placeholder="<?php echo $placeholderEnabled ? esc_attr('John Doe') : ''; ?>"
-            data-placeholder="<?php echo $placeholderEnabled ? esc_attr('John Doe') : ''; ?>"
+        <fieldset
+            id="wc-<?php echo esc_attr($this->id); ?>-cc-form"
+            class="wc-credit-card-form wc-payment-form"
+            style="background:transparent;"
         >
-    </div>
 
-    <div class="form-row form-row-wide">
-        <label
-            for="lkn_ccno"><?php esc_html_e('Card Number', 'lkn-wc-gateway-cielo'); ?>
-            <span class="required">*</span></label>
-        <input
-            id="lkn_ccno"
-            name="lkn_ccno"
-            type="tel"
-            inputmode="numeric"
-            class="lkn-card-num"
-            maxlength="24"
-            required
-            placeholder="<?php echo $placeholderEnabled ? esc_attr('XXXX XXXX XXXX XXXX') : ''; ?>"
-            data-placeholder="<?php echo $placeholderEnabled ? esc_attr('XXXX XXXX XXXX XXXX') : ''; ?>"
-        >
-    </div>
-    <div class="form-row form-row-wide">
-        <label
-            for="lkn_cc_expdate"><?php esc_html_e('Expiry Date', 'lkn-wc-gateway-cielo'); ?>
-            <span class="required">*</span></label>
-        <input
-            id="lkn_cc_expdate"
-            name="lkn_cc_expdate"
-            type="tel"
-            inputmode="numeric"
-            class="lkn-card-exp"
-            maxlength="7"
-            required
-            placeholder="<?php echo $placeholderEnabled ? esc_attr('MM/YY') : ''; ?>"
-            data-placeholder="<?php echo $placeholderEnabled ? esc_attr('MM/YY') : ''; ?>"
-        >
-    </div>
-    <div class="form-row form-row-wide">
-        <label
-            for="lkn_cc_cvc"><?php esc_html_e('Security Code', 'lkn-wc-gateway-cielo'); ?>
-            <span class="required">*</span></label>
-        <input
-            id="lkn_cc_cvc"
-            name="lkn_cc_cvc"
-            type="tel"
-            inputmode="numeric"
-            class="lkn-cvv"
-            maxlength="8"
-            required
-            placeholder="<?php echo $placeholderEnabled ? esc_attr('CVV') : ''; ?>"
-            data-placeholder="<?php echo $placeholderEnabled ? esc_attr('CVV') : ''; ?>"
-        >
-    </div>
-    <?php
-                    if ('yes' === $activeInstallment) {
-                        ?>
-    <input
-        id="lkn_cc_installment_total"
-        type="hidden"
-        value="<?php echo esc_attr($total_cart); ?>"
-    >
-    <input
-        id="lkn_cc_no_login_checkout"
-        type="hidden"
-        value="<?php echo esc_attr($noLoginCheckout); ?>"
-    >
-    <input
-        id="lkn_cc_installment_limit"
-        type="hidden"
-        value="<?php echo esc_attr($installmentLimit); ?>"
-    >
-    <input
-        id="lkn_cc_installment_interest"
-        type="hidden"
-        value="<?php echo esc_attr(wp_json_encode($installments)); ?>"
-    >
+            <?php do_action('woocommerce_credit_card_form_start', $this->id); ?>
+            <input
+                type="hidden"
+                name="nonce_lkn_cielo_credit"
+                class="nonce_lkn_cielo_credit"
+                value="<?php echo esc_attr($nonce); ?>"
+            />
 
-    <div class="form-row form-row-wide">
-        <select
-            id="lkn_cc_installments"
-            name="lkn_cc_installments"
-        >
-            <option
-                value="1"
-                selected="1"
-            >1 x R$0,00 sem juros</option>
-        </select>
-    </div>
-    <?php
-                    } ?>
-    <div id="lkn-cc-notice"></div>
-    <div class="clear"></div>
+            <div class="form-row form-row-wide">
+                <label
+                    for="lkn_cc_cardholder_name"><?php esc_html_e('Card Holder Name', 'lkn-wc-gateway-cielo'); ?>
+                    <span class="required">*</span></label>
+                <input
+                    id="lkn_cc_cardholder_name"
+                    name="lkn_cc_cardholder_name"
+                    type="text"
+                    autocomplete="cc-name"
+                    required
+                    placeholder="<?php echo $placeholderEnabled ? esc_attr('John Doe') : ''; ?>"
+                    data-placeholder="<?php echo $placeholderEnabled ? esc_attr('John Doe') : ''; ?>"
+                >
+            </div>
 
-    <?php do_action('woocommerce_credit_card_form_end', $this->id); ?>
+            <div class="form-row form-row-wide">
+                <label
+                    for="lkn_ccno"><?php esc_html_e('Card Number', 'lkn-wc-gateway-cielo'); ?>
+                    <span class="required">*</span></label>
+                <input
+                    id="lkn_ccno"
+                    name="lkn_ccno"
+                    type="tel"
+                    inputmode="numeric"
+                    class="lkn-card-num"
+                    maxlength="24"
+                    required
+                    placeholder="<?php echo $placeholderEnabled ? esc_attr('XXXX XXXX XXXX XXXX') : ''; ?>"
+                    data-placeholder="<?php echo $placeholderEnabled ? esc_attr('XXXX XXXX XXXX XXXX') : ''; ?>"
+                >
+            </div>
+            <div class="form-row form-row-wide">
+                <label
+                    for="lkn_cc_expdate"><?php esc_html_e('Expiry Date', 'lkn-wc-gateway-cielo'); ?>
+                    <span class="required">*</span></label>
+                <input
+                    id="lkn_cc_expdate"
+                    name="lkn_cc_expdate"
+                    type="tel"
+                    inputmode="numeric"
+                    class="lkn-card-exp"
+                    maxlength="7"
+                    required
+                    placeholder="<?php echo $placeholderEnabled ? esc_attr('MM/YY') : ''; ?>"
+                    data-placeholder="<?php echo $placeholderEnabled ? esc_attr('MM/YY') : ''; ?>"
+                >
+            </div>
+            <div class="form-row form-row-wide">
+                <label
+                    for="lkn_cc_cvc"><?php esc_html_e('Security Code', 'lkn-wc-gateway-cielo'); ?>
+                    <span class="required">*</span></label>
+                <input
+                    id="lkn_cc_cvc"
+                    name="lkn_cc_cvc"
+                    type="tel"
+                    inputmode="numeric"
+                    class="lkn-cvv"
+                    maxlength="8"
+                    required
+                    placeholder="<?php echo $placeholderEnabled ? esc_attr('CVV') : ''; ?>"
+                    data-placeholder="<?php echo $placeholderEnabled ? esc_attr('CVV') : ''; ?>"
+                >
+            </div>
+            <?php
+                            if ('yes' === $activeInstallment) {
+                                ?>
+            <input
+                id="lkn_cc_installment_total"
+                type="hidden"
+                value="<?php echo esc_attr($total_cart); ?>"
+            >
+            <input
+                id="lkn_cc_no_login_checkout"
+                type="hidden"
+                value="<?php echo esc_attr($noLoginCheckout); ?>"
+            >
+            <input
+                id="lkn_cc_installment_limit"
+                type="hidden"
+                value="<?php echo esc_attr($installmentLimit); ?>"
+            >
+            <input
+                id="lkn_cc_installment_interest"
+                type="hidden"
+                value="<?php echo esc_attr(wp_json_encode($installments)); ?>"
+            >
 
-    <div class="clear"></div>
+            <div class="form-row form-row-wide">
+                <select
+                    id="lkn_cc_installments"
+                    name="lkn_cc_installments"
+                >
+                    <option
+                        value="1"
+                        selected="1"
+                    >1 x R$0,00 sem juros</option>
+                </select>
+            </div>
+            <?php
+                            } ?>
+            <div id="lkn-cc-notice"></div>
+            <div class="clear"></div>
 
-</fieldset>
+            <?php do_action('woocommerce_credit_card_form_end', $this->id); ?>
 
-<?php
+            <div class="clear"></div>
+
+        </fieldset>
+
+        <?php
+        do_action('lkn_wc_cielo_remove_cardholder_name', $this, 'credit');
     }
 
     /**
@@ -442,14 +443,12 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
             $ccnum = sanitize_text_field($_POST['lkn_ccno']);
             $expDate = sanitize_text_field($_POST['lkn_cc_expdate']);
             $cvv = sanitize_text_field($_POST['lkn_cc_cvc']);
-            $cardName = sanitize_text_field($_POST['lkn_cc_cardholder_name']);
 
             $validCcNumber = $this->validate_card_number($ccnum, true);
             $validExpDate = $this->validate_exp_date($expDate, true);
             $validCvv = $this->validate_cvv($cvv, true);
-            $validCardHolder = $this->validate_card_holder_name($cardName, true);
 
-            if (true === $validCcNumber && true === $validExpDate && true === $validCvv && true === $validCardHolder) {
+            if (true === $validCcNumber && true === $validExpDate && true === $validCvv) {
                 return true;
             }
 
@@ -484,6 +483,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
         $cardExpShort = $cardExpSplit[0] . '/' . $cardExpSplit[1];
         $cardCvv = sanitize_text_field($_POST['lkn_cc_cvc']);
         $cardName = sanitize_text_field($_POST['lkn_cc_cardholder_name']);
+        $cardName = apply_filters('lkn_wc_cielo_get_cardholder_name', $cardName, $this, $order);
         $installments = 1;
 
         // POST parameters
