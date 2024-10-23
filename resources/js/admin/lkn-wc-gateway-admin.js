@@ -21,6 +21,7 @@ if (lknCieloAdminPage && (lknCieloAdminPage === 'lkn_cielo_credit' || lknCieloAd
   lknCieloNoticeDiv.innerHTML = '<div style="font-size: 21px;padding: 6px 0px 10px 0px;">Obtenha novas funcionalidades com Cielo API Pro</div>' +
   '<a href="https://www.linknacional.com.br/wordpress/woocommerce/cielo/" target="_blank">Conheça e compre o plugin PRO</a>' +
   '<ul style="margin: 10px 28px;list-style: disclosure-closed;">' +
+    '<li>Integração com PIX Cielo</li>' +
     '<li>Captura manual da transação/pedido</li>' +
     '<li>Ferramenta de reembolso total ou parcial</li>' +
     '<li>Compatibilidade com pagamentos feitos em moedas internacionais</li>' +

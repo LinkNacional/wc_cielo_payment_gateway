@@ -319,3 +319,15 @@ msgstr ""
 
 msgid "Enables input placeholders for debit/credit card fields for classic checkout"
 msgstr ""
+
+msgid "Share with"
+msgstr ""
+
+msgid "Copied!"
+msgstr ""
+
+msgid "Copy"
+msgstr ""
+
+msgid "Share"
+msgstr ""

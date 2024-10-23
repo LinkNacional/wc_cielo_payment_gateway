@@ -37,18 +37,18 @@
         const formatedInstallment = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(installment)
         const option = document.createElement('option')
         let text = document.createTextNode(i + 'x ' + formatedInstallment + ' sem juros')
+        if (lknWCCieloCredit.licenseResult) {
+          for (let t = 0; t < lknInstallmentInterest.length; t++) {
+            const installmentObj = lknInstallmentInterest[t]
+            // Verify if it is the right installment
+            if (installmentObj.id === i) {
+              const interest = (amount + (amount * (installmentObj.interest / 100))) / i // installment + (installment * (installmentObj.interest / 100));
+              const formatedInterest = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(interest)
 
-        for (let t = 0; t < lknInstallmentInterest.length; t++) {
-          const installmentObj = lknInstallmentInterest[t]
-          // Verify if it is the right installment
-          if (installmentObj.id === i) {
-            const interest = (amount + (amount * (installmentObj.interest / 100))) / i // installment + (installment * (installmentObj.interest / 100));
-            const formatedInterest = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(interest)
-
-            text = document.createTextNode(i + 'x ' + formatedInterest)
+              text = document.createTextNode(i + 'x ' + formatedInterest)
+            }
           }
         }
-
         option.value = i
         option.appendChild(text)
         lknInstallmentSelect.appendChild(option)

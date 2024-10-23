@@ -319,3 +319,15 @@ msgstr "Espaços reservados de entrada"
 
 msgid "Enables input placeholders for debit/credit card fields for classic checkout"
 msgstr "Permite espaços reservados de entrada para campos de cartão de débito/crédito para checkout clássico"
+
+msgid "Share with"
+msgstr "Compartilhar com"
+
+msgid "Copied!"
+msgstr "Copiado!"
+
+msgid "Copy"
+msgstr "Copiar"
+
+msgid "Share"
+msgstr "Compartilhar"
