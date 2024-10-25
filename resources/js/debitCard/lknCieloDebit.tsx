@@ -7,6 +7,7 @@ const lknDCTotalCartCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsC
 const lknDCOrderNumberCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.orderNumber)
 const lknDCDirScript3DSCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.dirScript3DS)
 const lknDCInstallmentLimitCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.installmentLimit);
+const lknCC3DSinstallmentsCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.installments);
 const lknDCDirScriptConfig3DSCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.dirScriptConfig3DS)
 const lknDCTranslationsDebitCielo = lknDCsettingsCielo.translations
 const lknDCNonceCieloDebit = lknDCsettingsCielo.nonceCieloDebit;
@@ -192,7 +193,9 @@ const lknDCContentCielo = (props) => {
 
   const handleButtonClick = () => {
     // Verifica se todos os campos do debitObject estão preenchidos
-    const allFieldsFilled = Object.values(debitObject).every((field) => field.trim() !== '');
+    const allFieldsFilled = Object.keys(debitObject)
+      .filter(key => key !== 'lkn_dc_cardholder_name')
+      .every(key => debitObject[key].trim() !== '');
 
     // Seleciona os lknDCElements dos campos de entrada
     const cardNumberInput = document.getElementById('lkn_dcno');
@@ -210,11 +213,6 @@ const lknDCContentCielo = (props) => {
       lknDCProccessButton();
     } else {
       // Adiciona classes de erro aos campos vazios
-      if (debitObject.lkn_dc_cardholder_name.trim() === '') {
-        const parentDiv = cardHolder?.parentElement;
-        parentDiv?.classList.add('has-error');
-      }
-
       if (debitObject.lkn_dcno.trim() === '') {
         const parentDiv = cardNumberInput?.parentElement;
         parentDiv?.classList.add('has-error');
@@ -286,22 +284,40 @@ const lknDCContentCielo = (props) => {
           maximumFractionDigits: 2
         });
 
-        const nextInstallmentAmount = lknDCTotalCartCielo / (index);
+        let nextInstallmentAmount = lknDCTotalCartCielo / index
 
         if (nextInstallmentAmount < installmentMin) {
           break;
         }
 
-        setOptions(prevOptions => [
-          ...prevOptions,
-          { key: index, label: `${index}x de R$ ${installmentAmount} sem juros` }
-        ])
+        let formatedInterest = false
+        for (let t = 0; t < lknCC3DSinstallmentsCielo.length; t++) {
+          const installmentObj = lknCC3DSinstallmentsCielo[t]
+          if (installmentObj.id === index) {
+            nextInstallmentAmount = (lknDCTotalCartCielo + lknDCTotalCartCielo * (parseFloat(installmentObj.interest) / 100)) / index
+            formatedInterest = new Intl.NumberFormat('pt-br', {
+              style: 'currency',
+              currency: 'BRL'
+            }).format(nextInstallmentAmount)
+          }
+        }
+        if (formatedInterest) {
+          setOptions(prevOptions => [...prevOptions, {
+            key: index,
+            label: `${index}x de ${formatedInterest}`
+          }])
+        } else {
+          setOptions(prevOptions => [...prevOptions, {
+            key: index,
+            label: `${index}x de R$ ${installmentAmount} sem juros`
+          }])
+        }
       }
     } else {
-      setOptions(prevOptions => [
-        ...prevOptions,
-        { key: '1', label: `1x de R$ ${lknDCTotalCartCielo} (à vista)` }
-      ])
+      setOptions(prevOptions => [...prevOptions, {
+        key: '1',
+        label: `1x de R$ ${lknDCTotalCartCielo} (à vista)`
+      }])
     }
   }
 

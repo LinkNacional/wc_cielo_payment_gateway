@@ -14,17 +14,20 @@
     const installmentShow = $('#lkn_cielo_3ds_installment_show')
     const installmentRow = $('#lkn-cc-dc-installment-row')
 
-    if (installmentShow.length && installmentShow.val() === 'no') {
-      if (installmentRow.length) {
-        installmentRow.show()
-        installmentShow.val('yes')
-      }
-    } else {
-      if (installmentRow.length) {
-        installmentRow.hide()
-        installmentShow.val('no')
+    if(installmentShow && installmentRow) {
+      if (installmentShow.length && installmentShow.val() === 'no') {
+        if (installmentRow.length) {
+          installmentRow.show()
+          installmentShow.val('yes')
+        }
+      } else {
+        if (installmentRow.length) {
+          installmentRow.hide()
+          installmentShow.val('no')
+        }
       }
     }
+
   }
 
   function lknWCCieloLoadInstallments () {

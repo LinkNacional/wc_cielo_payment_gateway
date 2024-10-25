@@ -1,3 +1,6 @@
+# 1.12.0 - 22/10/2024
+* Adição de compatibilidade com novas funcionalidades do WooCommerce Cielo PRO.
+
 # 1.11.5 - 10/10/2024
 * Correção em validação de nonce;
 * Alteração em placeholders.
