@@ -592,7 +592,6 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
                 'SoftDescriptor' => $description,
                 'CreditCard' => array(
                     'CardNumber' => $cardNum,
-                    'Holder' => $cardName,
                     'ExpirationDate' => $cardExp,
                     'SecurityCode' => $cardCvv,
                     'SaveCard' => $subscriptionSaveCard,
