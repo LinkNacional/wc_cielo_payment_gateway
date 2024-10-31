@@ -223,6 +223,10 @@ function lknDCProccessButton () {
 
     expDate = expDate.split('/')
 
+    if (expDate.length === 2) {
+      expDate[1] = '20' + expDate[1]
+    }
+
     document.getElementById('lkn_bpmpi_cardnumber').value = cardNumber
     document.getElementById('lkn_bpmpi_expmonth').value = expDate[0].replace(/\D/g, '')
     document.getElementById('lkn_bpmpi_expyear').value = expDate[1].replace(/\D/g, '')
@@ -233,35 +237,35 @@ function lknDCProccessButton () {
   }
 }
 
-//Carrega js do 3DS
+// Carrega js do 3DS
 document.addEventListener('DOMContentLoaded', function () {
-  let radioInputs = Array.from(document.querySelectorAll('input[type=radio][id^=payment_method]'));
+  const radioInputs = Array.from(document.querySelectorAll('input[type=radio][id^=payment_method]'))
 
   // Adiciona um listener a cada elemento
   radioInputs.forEach(input => {
-    input.addEventListener('change', function() {
+    input.addEventListener('change', function () {
       if (this.id === 'payment_method_lkn_cielo_debit') {
-        lknWcGatewayCieloLoadScript();
+        lknWcGatewayCieloLoadScript()
       }
-    });
-  });
+    })
+  })
 
-  radioInputCieloDebit = document.getElementById('payment_method_lkn_cielo_debit');
-  if(radioInputCieloDebit){
-    if(radioInputCieloDebit.checked){
-      lknWcGatewayCieloLoadScript();
+  radioInputCieloDebit = document.getElementById('payment_method_lkn_cielo_debit')
+  if (radioInputCieloDebit) {
+    if (radioInputCieloDebit.checked) {
+      lknWcGatewayCieloLoadScript()
     }
   }
 
-  function lknWcGatewayCieloLoadScript(){
-    const scriptUrlBpmpi = lknDCDirScript3DSCieloShortCode;
-    const existingScriptBpmpi = document.querySelector(`script[src="${scriptUrlBpmpi}"]`);
+  function lknWcGatewayCieloLoadScript () {
+    const scriptUrlBpmpi = lknDCDirScript3DSCieloShortCode
+    const existingScriptBpmpi = document.querySelector(`script[src="${scriptUrlBpmpi}"]`)
 
     if (!existingScriptBpmpi) {
-      const scriptBpmpi = document.createElement('script');
-      scriptBpmpi.src = scriptUrlBpmpi;
-      scriptBpmpi.async = true;
-      document.body.appendChild(scriptBpmpi);
+      const scriptBpmpi = document.createElement('script')
+      scriptBpmpi.src = scriptUrlBpmpi
+      scriptBpmpi.async = true
+      document.body.appendChild(scriptBpmpi)
     }
   }
 })

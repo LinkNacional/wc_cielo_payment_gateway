@@ -67,6 +67,10 @@ function lknDCProccessButton () {
 
     expDate = expDate.split('/')
 
+    if (expDate.length === 2) {
+      expDate[1] = '20' + expDate[1]
+    }
+
     document.getElementById('lkn_bpmpi_cardnumber').value = cardNumber
     document.getElementById('lkn_bpmpi_expmonth').value = expDate[0].replace(/\D/g, '')
     document.getElementById('lkn_bpmpi_expyear').value = expDate[1].replace(/\D/g, '')

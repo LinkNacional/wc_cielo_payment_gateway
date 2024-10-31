@@ -63,13 +63,50 @@ function bpmpi_config () {
 function lknDCProccessButton () {
   try {
     const cardNumber = document.getElementById('lkn_dcno').value.replace(/\D/g, '')
+    const cardHolder = document.getElementById('lkn_dc_cardholder_name')
+
+    if (cardHolder) {
+      document.getElementById('lkn_bpmpi_billto_contactname').value = cardHolder.value
+    } else {
+      const firstName = document.getElementById('billing_first_name').value
+      const lastName = document.getElementById('billing_last_name').value
+      document.getElementById('lkn_bpmpi_billto_contactname').value = firstName + ' ' + lastName
+    }
+
+    const phoneNumber = document.getElementById('billing-phone') ? document.getElementById('billing-phone').value : ''
+    const billingCountry = document.getElementById('billing-country') ? document.getElementById('billing-country').value : ''
+    const billingAddress1 = document.getElementById('billing-address_1') ? document.getElementById('billing-address_1').value : ''
+    const billingAddress2 = document.getElementById('billing-address_2') ? document.getElementById('billing-address_2').value : ''
+    const billingCity = document.getElementById('billing-city') ? document.getElementById('billing-city').value : ''
+    const billingPostcode = document.getElementById('billing-postcode') ? document.getElementById('billing-postcode').value : ''
+    const billingState = document.getElementById('billing-state') ? document.getElementById('billing-state').value : ''
+    const email = document.getElementById('email') ? document.getElementById('email').value : ''
+    const billingCpf = document.getElementById('billing_cpf') ? document.getElementById('billing_cpf').value : ''
+    const billingCnpj = document.getElementById('billing_cnpj') ? document.getElementById('billing_cnpj').value : ''
+
     let expDate = document.getElementById('lkn_dc_expdate').value
 
     expDate = expDate.split('/')
 
+    if (expDate.length === 2) {
+      expDate[1] = '20' + expDate[1]
+    }
+
     document.getElementById('lkn_bpmpi_cardnumber').value = cardNumber
     document.getElementById('lkn_bpmpi_expmonth').value = expDate[0].replace(/\D/g, '')
     document.getElementById('lkn_bpmpi_expyear').value = expDate[1].replace(/\D/g, '')
+
+    if (document.getElementById('lkn_bpmpi_useraccount_guest').value === '1') {
+      document.getElementById('lkn_bpmpi_billto_customerid').value = billingCpf || billingCnpj
+      document.getElementById('lkn_bpmpi_billto_phonenumber').value = phoneNumber
+      document.getElementById('lkn_bpmpi_billto_email').value = email
+      document.getElementById('lkn_bpmpi_billto_street1').value = billingAddress1
+      document.getElementById('lkn_bpmpi_billto_street2').value =
+      document.getElementById('lkn_bpmpi_billto_city').value = billingCity
+      document.getElementById('lkn_bpmpi_billto_state').value = billingState
+      document.getElementById('lkn_bpmpi_billto_zipcode').value = billingPostcode
+      document.getElementById('lkn_bpmpi_billto_country').value = billingCountry
+    }
 
     bpmpi_authenticate()
   } catch (error) {

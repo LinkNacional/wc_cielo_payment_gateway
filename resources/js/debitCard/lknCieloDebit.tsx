@@ -6,12 +6,17 @@ const lknDCUrlCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.u
 const lknDCTotalCartCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.totalCart)
 const lknDCOrderNumberCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.orderNumber)
 const lknDCDirScript3DSCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.dirScript3DS)
-const lknDCInstallmentLimitCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.installmentLimit);
-const lknCC3DSinstallmentsCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.installments);
+const lknDCInstallmentLimitCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.installmentLimit)
+const lknCC3DSinstallmentsCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.installments)
 const lknDCDirScriptConfig3DSCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.dirScriptConfig3DS)
 const lknDCTranslationsDebitCielo = lknDCsettingsCielo.translations
-const lknDCNonceCieloDebit = lknDCsettingsCielo.nonceCieloDebit;
+const lknDCNonceCieloDebit = lknDCsettingsCielo.nonceCieloDebit
 const lknDCTranslationsCielo = lknDCsettingsCielo.translations
+const lknDCBec = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.bec)
+const lknDCClientIp = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.client_ip)
+const lknDCUserGuest = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.user_guest)
+const lknDCAuthMethod = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.authentication_method)
+const lknDCClient = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.client)
 
 const lknDCHideCheckoutButton = () => {
   const lknDCElement = document.querySelectorAll('.wc-block-components-checkout-place-order-button')
@@ -327,9 +332,9 @@ const lknDCContentCielo = (props) => {
     const intervalId = setInterval(() => {
       var targetNode = document.querySelector('.wc-block-formatted-money-amount.wc-block-components-formatted-money-amount.wc-block-components-totals-footer-item-tax-value');
       // Configuração do observer: quais mudanças serão observadas
-      if(targetNode){
+      if (targetNode) {
         var config = { childList: true, subtree: true, characterData: true };
-  
+
         var changeValue = () => {
           setOptions([])
           // Remover tudo exceto os números e a vírgula
@@ -347,14 +352,14 @@ const lknDCContentCielo = (props) => {
         changeValue()
 
         // Função de callback que será executada quando ocorrerem mudanças
-        var callback = function(mutationsList, observer) {
-          for(var mutation of mutationsList) {
+        var callback = function (mutationsList, observer) {
+          for (var mutation of mutationsList) {
             if (mutation.type === 'childList' || mutation.type === 'characterData') {
               changeValue()
             }
           }
         };
-  
+
         // Cria uma instância do observer e o conecta ao nó alvo
         var observer = new MutationObserver(callback);
         observer.observe(targetNode, config);
@@ -452,17 +457,37 @@ const lknDCContentCielo = (props) => {
       <div>
         <input type="hidden" name="lkn_auth_enabled" className="bpmpi_auth" value="true" />
         <input type="hidden" name="lkn_auth_enabled_notifyonly" className="bpmpi_auth_notifyonly" value="true" />
+        <input type="hidden" name="lkn_auth_suppresschallenge" className="bpmpi_auth_suppresschallenge" value="false" />
         <input type="hidden" name="lkn_access_token" className="bpmpi_accesstoken" value={lknDCAccessTokenCielo} />
         <input type="hidden" size="50" name="lkn_order_number" className="bpmpi_ordernumber" value={lknDCOrderNumberCielo} />
         <input type="hidden" name="lkn_currency" className="bpmpi_currency" value="BRL" />
-        <input type="hidden" size="50" className="bpmpi_merchant_url" value={lknDCUrlCielo} />
         <input type="hidden" size="50" id="lkn_cielo_3ds_value" name="lkn_amount" className="bpmpi_totalamount" value={lknDCTotalCartCielo} />
         <input type="hidden" size="2" name="lkn_installments" className="bpmpi_installments" value="1" />
         <input type="hidden" name="lkn_payment_method" className="bpmpi_paymentmethod" value="Debit" />
         <input type="hidden" id="lkn_bpmpi_cardnumber" className="bpmpi_cardnumber" />
         <input type="hidden" id="lkn_bpmpi_expmonth" maxLength="2" name="lkn_card_expiry_month" className="bpmpi_cardexpirationmonth" />
         <input type="hidden" id="lkn_bpmpi_expyear" maxLength="4" name="lkn_card_expiry_year" className="bpmpi_cardexpirationyear" />
+        <input type="hidden" id="lkn_bpmpi_default_card" name="lkn_default_card" className="bpmpi_default_card" value="false" />
+        <input type="hidden" id="lkn_bpmpi_order_recurrence" name="lkn_order_recurrence" className="bpmpi_order_recurrence" value="false" />
         <input type="hidden" size="50" className="bpmpi_order_productcode" value="PHY" />
+        <input type="hidden" size="50" className="bpmpi_transaction_mode" value="S" />
+        <input type="hidden" size="50" className="bpmpi_merchant_url" value={lknDCUrlCielo} />
+        <input type="hidden" size="14" id="lkn_bpmpi_billto_customerid" name="lkn_card_customerid" className="bpmpi_billto_customerid" value={lknDCClient.billing_document} />
+        <input type="hidden" size="120" id="lkn_bpmpi_billto_contactname" name="lkn_card_contactname" className="bpmpi_billto_contactname" value={lknDCClient.name} />
+        <input type="hidden" size="15" id="lkn_bpmpi_billto_phonenumber" name="lkn_card_phonenumber" className="bpmpi_billto_phonenumber" value={lknDCClient.billing_phone} />
+        <input type="hidden" size="255" id="lkn_bpmpi_billto_email" name="lkn_card_email" className="bpmpi_billto_email" value={lknDCClient.email} />
+        <input type="hidden" size="60" id="lkn_bpmpi_billto_street1" name="lkn_card_billto_street1" className="bpmpi_billto_street1" value={lknDCClient.billing_address_1} />
+        <input type="hidden" size="60" id="lkn_bpmpi_billto_street2" name="lkn_card_billto_street2" className="bpmpi_billto_street2" value={lknDCClient.billing_address_2} />
+        <input type="hidden" size="50" id="lkn_bpmpi_billto_city" name="lkn_card_billto_city" className="bpmpi_billto_city" value={lknDCClient.billing_city} />
+        <input type="hidden" size="2" id="lkn_bpmpi_billto_state" name="lkn_card_billto_state" className="bpmpi_billto_state" value={lknDCClient.billing_state} />
+        <input type="hidden" size="8" id="lkn_bpmpi_billto_zipcode" name="lkn_card_billto_zipcode" className="bpmpi_billto_zipcode" value={lknDCClient.billing_postcode} />
+        <input type="hidden" size="2" id="lkn_bpmpi_billto_country" name="lkn_card_billto_country" className="bpmpi_billto_country" value={lknDCClient.billing_country} />
+        <input type="hidden" id="lkn_bpmpi_shipto_sameasbillto" name="lkn_card_shipto_sameasbillto" className="bpmpi_shipto_sameasbillto" value="true" />
+        <input type="hidden" id="lkn_bpmpi_useraccount_guest" name="lkn_card_useraccount_guest" className="bpmpi_useraccount_guest" value={lknDCUserGuest} />
+        <input type="hidden" id="lkn_bpmpi_useraccount_authenticationmethod" name="lkn_card_useraccount_authenticationmethod" className="bpmpi_useraccount_authenticationmethod" value={lknDCAuthMethod} />
+        <input type="hidden" size="45" id="lkn_bpmpi_device_ipaddress" name="lkn_card_device_ipaddress" className="bpmpi_device_ipaddress" value={lknDCClientIp} />
+        <input type="hidden" size="7" id="lkn_bpmpi_device_channel" name="lkn_card_device_channel" className="bpmpi_device_channel" value="Browser" />
+        <input type="hidden" size="10" id="lkn_bpmpi_brand_establishment_code" name="lkn_card_brand_establishment_code" className="bpmpi_brand_establishment_code" value={lknDCBec} />
         <input type="hidden" id="lkn_cavv" name="lkn_cielo_3ds_cavv" value />
         <input type="hidden" id="lkn_eci" name="lkn_cielo_3ds_eci" value />
         <input type="hidden" id="lkn_ref_id" name="lkn_cielo_3ds_ref_id" value />
