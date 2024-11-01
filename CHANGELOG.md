@@ -1,3 +1,6 @@
+# 1.12.1 - 06/11/2024
+* Adição de correções para transações autenticadas com 3DS 2.2
+
 # 1.12.0 - 22/10/2024
 * Adição de compatibilidade com novas funcionalidades do WooCommerce Cielo PRO.
 
