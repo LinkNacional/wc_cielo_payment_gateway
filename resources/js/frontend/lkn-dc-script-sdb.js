@@ -192,6 +192,7 @@ function bpmpi_config () {
     },
     onFailure: function (e) {
       // Card is not eligible for authentication, but the bearer failed payment
+      console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage)
 
       const lknDebitCCForm = document.getElementById('wc-lkn_cielo_debit-cc-form')
       if (lknDebitCCForm) {
@@ -200,16 +201,19 @@ function bpmpi_config () {
     },
     onUnenrolled: function (e) {
       // Card is not eligible for authentication (unauthenticable)
+      console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage)
 
       alert(__('Card Ineligible for Authentication', 'lkn-wc-gateway-cielo'))
     },
     onDisabled: function () {
       // Store don't require bearer authentication (class "bpmpi_auth" false -> disabled authentication).
+      console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage)
 
       alert(__('Authentication disabled by the store', 'lkn-wc-gateway-cielo'))
     },
     onError: function (e) {
       // Error on proccess in authentication
+      console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage)
 
       const lknDebitCCForm = document.getElementById('wc-lkn_cielo_debit-cc-form')
       if (lknDebitCCForm) {
@@ -218,6 +222,7 @@ function bpmpi_config () {
     },
     onUnsupportedBrand: function (e) {
       // Provider not supported for authentication
+      console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage)
 
       alert(__('Provider not supported by Cielo 3DS authentication', 'lkn-wc-gateway-cielo'))
     },

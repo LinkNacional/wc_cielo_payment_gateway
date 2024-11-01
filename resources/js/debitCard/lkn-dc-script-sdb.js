@@ -36,9 +36,11 @@ function bpmpi_config () {
     },
     onFailure: function (e) {
       // Card is not eligible for authentication, but the bearer failed payment
+      console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage)
       alert(__('Authentication failed check the card information and try again', 'lkn-wc-gateway-cielo'))
     },
     onUnenrolled: function (e) {
+      console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage)
       // Card is not eligible for authentication (unauthenticable)
       alert(__('Card Ineligible for Authentication', 'lkn-wc-gateway-cielo'))
     },
@@ -47,10 +49,12 @@ function bpmpi_config () {
       alert(__('Authentication disabled by the store', 'lkn-wc-gateway-cielo'))
     },
     onError: function (e) {
+      console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage)
       // Error on proccess in authentication
       alert(__('Error in the 3DS 2.2 authentication process check that your credentials are filled in correctly', 'lkn-wc-gateway-cielo'))
     },
     onUnsupportedBrand: function (e) {
+      console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage)
       // Provider not supported for authentication
       alert(__('Provider not supported by Cielo 3DS authentication', 'lkn-wc-gateway-cielo'))
     },
@@ -96,12 +100,12 @@ function lknDCProccessButton () {
     document.getElementById('lkn_bpmpi_expmonth').value = expDate[0].replace(/\D/g, '')
     document.getElementById('lkn_bpmpi_expyear').value = expDate[1].replace(/\D/g, '')
 
-    if (document.getElementById('lkn_bpmpi_useraccount_guest').value === '1') {
+    if (document.getElementById('lkn_bpmpi_useraccount_guest').value === 'true') {
       document.getElementById('lkn_bpmpi_billto_customerid').value = billingCpf || billingCnpj
       document.getElementById('lkn_bpmpi_billto_phonenumber').value = phoneNumber
       document.getElementById('lkn_bpmpi_billto_email').value = email
       document.getElementById('lkn_bpmpi_billto_street1').value = billingAddress1
-      document.getElementById('lkn_bpmpi_billto_street2').value =
+      document.getElementById('lkn_bpmpi_billto_street2').value = billingAddress2
       document.getElementById('lkn_bpmpi_billto_city').value = billingCity
       document.getElementById('lkn_bpmpi_billto_state').value = billingState
       document.getElementById('lkn_bpmpi_billto_zipcode').value = billingPostcode

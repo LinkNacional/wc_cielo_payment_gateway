@@ -718,7 +718,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
             $product = $cart_item['data'];
             $total += $product->get_price() * $cart_item['quantity'];
         }
-        return $total;
+        return number_format($total, 2, '', '');
 
         return 0;
     }
