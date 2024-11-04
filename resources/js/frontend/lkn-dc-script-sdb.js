@@ -255,23 +255,22 @@ function lknDCProccessButton () {
 
 // Carrega js do 3DS
 document.addEventListener('DOMContentLoaded', function () {
-  const radioInputs = Array.from(document.querySelectorAll('input[type=radio][id^=payment_method]'))
+  const radioInputCieloDebitId = 'payment_method_lkn_cielo_debit';
 
-  // Adiciona um listener a cada elemento
-  radioInputs.forEach(input => {
-    input.addEventListener('change', function () {
-      if (this.id === 'payment_method_lkn_cielo_debit') {
-        lknWcGatewayCieloLoadScript()
-      }
-    })
-  })
-
-  radioInputCieloDebit = document.getElementById('payment_method_lkn_cielo_debit')
-  if (radioInputCieloDebit) {
-    if (radioInputCieloDebit.checked) {
+  // Configura o MutationObserver para monitorar alterações no DOM
+  const observer = new MutationObserver((mutationsList) => {
+    // Verifica se o input de pagamento desejado está selecionado
+    const radioInputCieloDebit = document.getElementById(radioInputCieloDebitId);
+    if (radioInputCieloDebit && radioInputCieloDebit.checked) {
       lknWcGatewayCieloLoadScript()
     }
-  }
+  })
+
+  // Configura o observer para observar mudanças no body
+  observer.observe(document.body, {
+    childList: true, // Monitoramento de adição/remoção de elementos
+    subtree: true,   // Monitoramento em todo o DOM, não apenas no nível imediato
+  });
 
   function lknWcGatewayCieloLoadScript () {
     const scriptUrlBpmpi = lknDCDirScript3DSCieloShortCode
