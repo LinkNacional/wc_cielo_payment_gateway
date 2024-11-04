@@ -36,11 +36,13 @@ function bpmpi_config () {
     },
     onFailure: function (e) {
       // Card is not eligible for authentication, but the bearer failed payment
-      console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage)
+      console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage + ' raw: ' + JSON.stringify(e))
+
       alert(__('Authentication failed check the card information and try again', 'lkn-wc-gateway-cielo'))
     },
     onUnenrolled: function (e) {
-      console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage)
+      console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage + ' raw: ' + JSON.stringify(e))
+
       // Card is not eligible for authentication (unauthenticable)
       alert(__('Card Ineligible for Authentication', 'lkn-wc-gateway-cielo'))
     },
@@ -49,12 +51,14 @@ function bpmpi_config () {
       alert(__('Authentication disabled by the store', 'lkn-wc-gateway-cielo'))
     },
     onError: function (e) {
-      console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage)
+      console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage + ' raw: ' + JSON.stringify(e))
+
       // Error on proccess in authentication
       alert(__('Error in the 3DS 2.2 authentication process check that your credentials are filled in correctly', 'lkn-wc-gateway-cielo'))
     },
     onUnsupportedBrand: function (e) {
-      console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage)
+      console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage + ' raw: ' + JSON.stringify(e))
+
       // Provider not supported for authentication
       alert(__('Provider not supported by Cielo 3DS authentication', 'lkn-wc-gateway-cielo'))
     },
