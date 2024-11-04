@@ -192,6 +192,7 @@ function bpmpi_config () {
     },
     onFailure: function (e) {
       // Card is not eligible for authentication, but the bearer failed payment
+      console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage)
 
       const lknDebitCCForm = document.getElementById('wc-lkn_cielo_debit-cc-form')
       if (lknDebitCCForm) {
@@ -200,16 +201,19 @@ function bpmpi_config () {
     },
     onUnenrolled: function (e) {
       // Card is not eligible for authentication (unauthenticable)
+      console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage)
 
       alert(__('Card Ineligible for Authentication', 'lkn-wc-gateway-cielo'))
     },
     onDisabled: function () {
       // Store don't require bearer authentication (class "bpmpi_auth" false -> disabled authentication).
+      console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage)
 
       alert(__('Authentication disabled by the store', 'lkn-wc-gateway-cielo'))
     },
     onError: function (e) {
       // Error on proccess in authentication
+      console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage)
 
       const lknDebitCCForm = document.getElementById('wc-lkn_cielo_debit-cc-form')
       if (lknDebitCCForm) {
@@ -218,6 +222,7 @@ function bpmpi_config () {
     },
     onUnsupportedBrand: function (e) {
       // Provider not supported for authentication
+      console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage)
 
       alert(__('Provider not supported by Cielo 3DS authentication', 'lkn-wc-gateway-cielo'))
     },
@@ -234,6 +239,10 @@ function lknDCProccessButton () {
 
     expDate = expDate.split('/')
 
+    if (expDate.length === 2) {
+      expDate[1] = '20' + expDate[1]
+    }
+
     document.getElementById('lkn_bpmpi_cardnumber').value = cardNumber
     document.getElementById('lkn_bpmpi_expmonth').value = expDate[0].replace(/\D/g, '')
     document.getElementById('lkn_bpmpi_expyear').value = expDate[1].replace(/\D/g, '')
@@ -244,36 +253,34 @@ function lknDCProccessButton () {
   }
 }
 
-
-//Carrega js do 3DS
+// Carrega js do 3DS
 document.addEventListener('DOMContentLoaded', function () {
-  let radioInputs = Array.from(document.querySelectorAll('input[type=radio][id^=payment_method]'));
+  const radioInputCieloDebitId = 'payment_method_lkn_cielo_debit';
 
-  // Adiciona um listener a cada elemento
-  radioInputs.forEach(input => {
-    input.addEventListener('change', function() {
-      if (this.id === 'payment_method_lkn_cielo_debit') {
-        lknWcGatewayCieloLoadScript();
-      }
-    });
+  // Configura o MutationObserver para monitorar alterações no DOM
+  const observer = new MutationObserver((mutationsList) => {
+    // Verifica se o input de pagamento desejado está selecionado
+    const radioInputCieloDebit = document.getElementById(radioInputCieloDebitId);
+    if (radioInputCieloDebit && radioInputCieloDebit.checked) {
+      lknWcGatewayCieloLoadScript()
+    }
+  })
+
+  // Configura o observer para observar mudanças no body
+  observer.observe(document.body, {
+    childList: true, // Monitoramento de adição/remoção de elementos
+    subtree: true,   // Monitoramento em todo o DOM, não apenas no nível imediato
   });
 
-  radioInputCieloDebit = document.getElementById('payment_method_lkn_cielo_debit');
-  if(radioInputCieloDebit){
-    if(radioInputCieloDebit.checked){
-      lknWcGatewayCieloLoadScript();
-    }
-  }
-
-  function lknWcGatewayCieloLoadScript(){
-    const scriptUrlBpmpi = lknDCDirScript3DSCieloShortCode;
-    const existingScriptBpmpi = document.querySelector(`script[src="${scriptUrlBpmpi}"]`);
+  function lknWcGatewayCieloLoadScript () {
+    const scriptUrlBpmpi = lknDCDirScript3DSCieloShortCode
+    const existingScriptBpmpi = document.querySelector(`script[src="${scriptUrlBpmpi}"]`)
 
     if (!existingScriptBpmpi) {
-      const scriptBpmpi = document.createElement('script');
-      scriptBpmpi.src = scriptUrlBpmpi;
-      scriptBpmpi.async = true;
-      document.body.appendChild(scriptBpmpi);
+      const scriptBpmpi = document.createElement('script')
+      scriptBpmpi.src = scriptUrlBpmpi
+      scriptBpmpi.async = true
+      document.body.appendChild(scriptBpmpi)
     }
   }
 })
