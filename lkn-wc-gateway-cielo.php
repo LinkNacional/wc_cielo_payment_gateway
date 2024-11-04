@@ -311,7 +311,7 @@ final class LknWCCieloPayment {
     private static function setup_constants(): void {
         // Defines addon version number for easy reference.
         if ( ! defined('LKN_WC_CIELO_VERSION')) {
-            define('LKN_WC_CIELO_VERSION', '1.12.0');
+            define('LKN_WC_CIELO_VERSION', '1.12.1');
         }
         if ( ! defined('LKN_WC_CIELO_TRANSLATION_PATH')) {
             define('LKN_WC_CIELO_TRANSLATION_PATH', plugin_dir_path(__FILE__) . 'languages/');
