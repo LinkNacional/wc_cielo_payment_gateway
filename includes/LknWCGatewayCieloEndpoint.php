@@ -26,6 +26,7 @@ final class LknWCGatewayCieloEndpoint {
         // Define a URL da API com o BIN do cartão
         $url = ('production' == $debitOption['env']) ? 'https://apiquery.cieloecommerce.cielo.com.br/1/cardBin/' : 'https://apiquerysandbox.cieloecommerce.cielo.com.br/1/cardBin/';
         $url = $url . $cardBin;
+        $url = apply_filters('lkn_wc_change_bin_url', $url);
 
         // Configura os cabeçalhos da requisição
         $headers = array(
@@ -33,6 +34,7 @@ final class LknWCGatewayCieloEndpoint {
             'MerchantId' => $merchantId,
             'MerchantKey' => $merchantKey
         );
+        $headers = apply_filters('lkn_wc_change_bin_headers', $headers);
 
         // Faz a requisição utilizando wp_remote_get
         $response = wp_remote_get($url, array(
