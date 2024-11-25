@@ -337,3 +337,12 @@ msgstr ""
 
 msgid "Payment made with 3DS validation"
 msgstr ""
+
+msgid "General"
+msgstr ""
+
+msgid "Card"
+msgstr ""
+
+msgid "Developer"
+msgstr ""

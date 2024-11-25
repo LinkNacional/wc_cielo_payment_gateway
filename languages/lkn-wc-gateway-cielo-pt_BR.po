@@ -337,3 +337,12 @@ msgstr "Pagamento realizado sem validação 3DS"
 
 msgid "Payment made with 3DS validation"
 msgstr "Pagamento realizado com validação 3DS"
+
+msgid "General"
+msgstr "Geral"
+
+msgid "Card"
+msgstr "Cartão"
+
+msgid "Developer"
+msgstr "Desenvolvedor"

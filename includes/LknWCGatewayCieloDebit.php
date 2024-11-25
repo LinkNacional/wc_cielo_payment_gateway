@@ -110,6 +110,15 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
      */
     public function admin_load_script(): void {
         wp_enqueue_script('lkn-wc-gateway-admin', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-wc-gateway-admin.js', array('wp-i18n'), $this->version, 'all');
+    
+        $page = isset($_GET['page']) ? sanitize_text_field(wp_unslash($_GET['page'])) : '';
+        $tab = isset($_GET['tab']) ? sanitize_text_field(wp_unslash($_GET['tab'])) : '';
+        $section = isset($_GET['section']) ? sanitize_text_field(wp_unslash($_GET['section'])) : '';
+
+        if ( 'wc-settings' === $page && 'checkout' === $tab && $section == $this->id) {
+            wp_enqueue_script('lknWCGatewayCieloCreditSettingsLayoutScript', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-wc-gateway-admin-layout.js', array('jquery'), $this->version, false);
+            wp_enqueue_style('lkn-admin-layout', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-admin-layout.css', array(), $this->version, 'all');
+        }
     }
 
     /**
@@ -161,6 +170,10 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
      */
     public function init_form_fields(): void {
         $this->form_fields = array(
+            'general' => array(
+                'title' => esc_attr__( 'General', 'lkn-wc-gateway-cielo' ),
+                'type' => 'title',
+            ),
             'enabled' => array(
                 'title' => __('Enable/Disable', 'lkn-wc-gateway-cielo'),
                 'type' => 'checkbox',
@@ -273,16 +286,9 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
                 'default' => 'production',
                 'desc_tip' => true,
             ),
-            'debug' => array(
-                'title' => __('Debug', 'lkn-wc-gateway-cielo'),
-                'type' => 'checkbox',
-                'label' => sprintf(
-                    '%1$s. <a href="%2$s">%3$s</a>',
-                    __('Enable log capture for payments', 'lkn-wc-gateway-cielo'),
-                    admin_url('admin.php?page=wc-status&tab=logs'),
-                    __('View logs', 'lkn-wc-gateway-cielo')
-                ),
-                'default' => 'no',
+            'card' => array(
+                'title' => esc_attr__( 'Card', 'lkn-wc-gateway-cielo' ),
+                'type' => 'title',
             ),
             'installment_payment' => array(
                 'title' => __('Installment payments', 'lkn-wc-gateway-cielo'),
@@ -309,6 +315,21 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
                 'type' => 'checkbox',
                 'label' => __('Permitir pagamentos sem verficação 3DS', 'lkn-wc-gateway-cielo'),
                 'description' => __('Para cartões inelegíveis seguir com a transação sem autenticação, menos seguro mas maior conversão.', 'lkn-wc-gateway-cielo'),
+                'default' => 'no',
+            ),
+            'developer' => array(
+                'title' => esc_attr__( 'Developer', 'lkn-wc-gateway-cielo' ),
+                'type' => 'title',
+            ),
+            'debug' => array(
+                'title' => __('Debug', 'lkn-wc-gateway-cielo'),
+                'type' => 'checkbox',
+                'label' => sprintf(
+                    '%1$s. <a href="%2$s">%3$s</a>',
+                    __('Enable log capture for payments', 'lkn-wc-gateway-cielo'),
+                    admin_url('admin.php?page=wc-status&tab=logs'),
+                    __('View logs', 'lkn-wc-gateway-cielo')
+                ),
                 'default' => 'no',
             )
         );
