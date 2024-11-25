@@ -50,6 +50,10 @@ final class LknWCGatewayCieloEndpoint {
         $body = wp_remote_retrieve_body($response);
         $data = json_decode($body, true);
 
+        if (isset($data['cardQuery'])) {
+            return new WP_REST_Response($data['cardQuery'], 200);
+        }
+
         return new WP_REST_Response($data, 200);
     }
 }
