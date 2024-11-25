@@ -80,6 +80,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
         $this->title = $this->get_option('title');
         $this->description = $this->get_option('description');
         $this->instructions = $this->get_option('instructions', $this->description);
+        $this->log = new WC_Logger();
         $this->accessToken = $this->generate_debit_auth_token();
 
         $post = get_post();
@@ -87,7 +88,6 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
             wp_enqueue_script('lkn-fix-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-dc-script-fix.js', array('wp-i18n', 'jquery'), $this->version, false);
             wp_localize_script('lkn-fix-script', 'lknWcCieloPaymentGatewayToken', $this->accessToken);
         }
-        $this->log = new WC_Logger();
 
         // Actions.
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
