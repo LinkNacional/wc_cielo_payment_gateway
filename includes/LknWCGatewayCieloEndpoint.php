@@ -2,6 +2,7 @@
 namespace Lkn\WCCieloPaymentGateway\Includes;
 use Lkn\WCCieloPaymentGateway\Includes\LknWCGatewayCieloDebit;
 use WP_Error;
+use WC_Logger;
 use WP_REST_Response;
 
 final class LknWCGatewayCieloEndpoint {
@@ -22,6 +23,7 @@ final class LknWCGatewayCieloEndpoint {
         $debitOption = get_option('woocommerce_lkn_cielo_debit_settings');
         $merchantId = $debitOption['merchant_id'];
         $merchantKey = $debitOption['merchant_key'];
+        $log = new WC_Logger();
 
         // Define a URL da API com o BIN do cartão
         $url = ('production' == $debitOption['env']) ? 'https://apiquery.cieloecommerce.cielo.com.br/1/cardBin/' : 'https://apiquerysandbox.cieloecommerce.cielo.com.br/1/cardBin/';
@@ -40,6 +42,12 @@ final class LknWCGatewayCieloEndpoint {
         $response = wp_remote_get($url, array(
             'headers' => $headers
         ));
+
+        if ('yes' === $debitOption['debug']) {
+            $log->log('info', json_encode($response), array('source' => 'woocommerce-cielo-debit-bin'));
+        }
+
+        $response = apply_filters('lkn_wc_check_bin_response', $response, $debitOption, $cardBin);
 
         // Verifica se houve algum erro na requisição
         if (is_wp_error($response)) {
