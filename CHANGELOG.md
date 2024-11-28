@@ -1,3 +1,9 @@
+# 1.13.0 - 25/11/2024
+* Adição de configuração para permitir transações sem 3DS;
+* Adição de filtros para alterar URL de consultas de cartão;
+* Alteração em layout de configurações;
+* Correção em chamada de de logger.
+
 # 1.12.1 - 06/11/2024
 * Adição de correções para transações autenticadas com 3DS 2.2
 

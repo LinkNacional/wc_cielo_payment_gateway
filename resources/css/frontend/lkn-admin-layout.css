@@ -1,0 +1,29 @@
+#lknWcCieloCreditBlocksSettingsLayoutDiv{
+    padding: 10px 24px;
+    background-color: #FFFFFF;
+    border-radius: 10px;
+}
+
+#lknWcCieloCreditBlocksSettingsLayoutMenu{
+    height: 27px;
+}
+
+#lknWcCieloCreditBlocksSettingsLayoutMenu a:first-of-type {
+    margin: 0px !important;
+}
+
+#lknWcCieloCreditBlocksSettingsLayoutMenu a {
+    height: 22px !important;
+    border: none;
+    background-color: #F0F0F1;
+    color: #9A9A9A;
+}
+
+#lknWcCieloCreditBlocksSettingsLayoutMenu a:hover {
+    color: black;
+}
+
+#lknWcCieloCreditBlocksSettingsLayoutMenu a.nav-tab.nav-tab-active {
+    margin-top: 1.5px !important;
+    color: black;
+}

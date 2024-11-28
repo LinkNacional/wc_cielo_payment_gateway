@@ -331,3 +331,18 @@ msgstr ""
 
 msgid "Share"
 msgstr ""
+
+msgid "Payment made without 3DS validation"
+msgstr ""
+
+msgid "Payment made with 3DS validation"
+msgstr ""
+
+msgid "General"
+msgstr ""
+
+msgid "Card"
+msgstr ""
+
+msgid "Developer"
+msgstr ""

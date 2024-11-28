@@ -132,63 +132,67 @@ const { __ } = wp.i18n;
   })
 })(jQuery)
 
+function submitForm (e) {
+  const cavv = e.Cavv
+  const xid = e.Xid
+  const eci = e.Eci
+  const version = e.Version
+  const referenceId = e.ReferenceId
+  const Form3dsButton = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0]?.closest('form')
+
+  if (Form3dsButton) {
+    Form3dsButton.setAttribute('data-payment-cavv', cavv)
+    Form3dsButton.setAttribute('data-payment-eci', eci)
+    Form3dsButton.setAttribute('data-payment-ref_id', referenceId)
+    Form3dsButton.setAttribute('data-payment-version', version)
+    Form3dsButton.setAttribute('data-payment-xid', xid)
+    const Button3ds = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0]
+    const event = new MouseEvent('click', {
+      bubbles: true,
+      cancelable: true,
+      view: window
+    })
+    Button3ds.dispatchEvent(event)
+  }
+
+  document.getElementById('lkn_cavv').value = cavv
+  document.getElementById('lkn_eci').value = eci
+  document.getElementById('lkn_ref_id').value = referenceId
+  document.getElementById('lkn_version').value = version
+  document.getElementById('lkn_xid').value = xid
+
+  const Button3ds = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0]
+  const formCartWC = document.getElementsByName('checkout')[0] ? document.getElementsByName('checkout')[0] : document.querySelector('#order_review')
+
+  if (formCartWC) {
+    const btnSubmit = document.getElementById('place_order')
+
+    if (btnSubmit) {
+      btnSubmit.removeEventListener('click', lknDCProccessButton, true)
+      btnSubmit.setAttribute('type', 'submit')
+      btnSubmit.click()
+    }
+  } else if (Button3ds) {
+    if (formCartWC) {
+      const btnSubmit = document.getElementById('place_order')
+      btnSubmit.removeEventListener('click', lknDCProccessButton, true)
+      btnSubmit.setAttribute('type', 'submit')
+      btnSubmit.click()
+    } else {
+      if (Button3ds) {
+        Button3ds.click()
+      }
+    }
+  }
+}
+
 function bpmpi_config () {
   return {
     onReady: function () {
     },
     onSuccess: function (e) {
       // Card is eligible for authentication, and the bearer successfully authenticated
-      const cavv = e.Cavv
-      const xid = e.Xid
-      const eci = e.Eci
-      const version = e.Version
-      const referenceId = e.ReferenceId
-      const Form3dsButton = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0]?.closest('form')
-
-      if (Form3dsButton) {
-        Form3dsButton.setAttribute('data-payment-cavv', cavv)
-        Form3dsButton.setAttribute('data-payment-eci', eci)
-        Form3dsButton.setAttribute('data-payment-ref_id', referenceId)
-        Form3dsButton.setAttribute('data-payment-version', version)
-        Form3dsButton.setAttribute('data-payment-xid', xid)
-        const Button3ds = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0]
-        const event = new MouseEvent('click', {
-          bubbles: true,
-          cancelable: true,
-          view: window
-        })
-        Button3ds.dispatchEvent(event)
-      }
-
-      document.getElementById('lkn_cavv').value = cavv
-      document.getElementById('lkn_eci').value = eci
-      document.getElementById('lkn_ref_id').value = referenceId
-      document.getElementById('lkn_version').value = version
-      document.getElementById('lkn_xid').value = xid
-
-      const Button3ds = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0]
-      const formCartWC = document.getElementsByName('checkout')[0] ? document.getElementsByName('checkout')[0] : document.querySelector('#order_review')
-
-      if (formCartWC) {
-        const btnSubmit = document.getElementById('place_order')
-
-        if (btnSubmit) {
-          btnSubmit.removeEventListener('click', lknDCProccessButton, true)
-          btnSubmit.setAttribute('type', 'submit')
-          btnSubmit.click()
-        }
-      } else if (Button3ds) {
-        if (formCartWC) {
-          const btnSubmit = document.getElementById('place_order')
-          btnSubmit.removeEventListener('click', lknDCProccessButton, true)
-          btnSubmit.setAttribute('type', 'submit')
-          btnSubmit.click()
-        } else {
-          if (Button3ds) {
-            Button3ds.click()
-          }
-        }
-      }
+      submitForm(e)
     },
     onFailure: function (e) {
       // Card is not eligible for authentication, but the bearer failed payment
@@ -202,14 +206,22 @@ function bpmpi_config () {
     onUnenrolled: function (e) {
       // Card is not eligible for authentication (unauthenticable)
       console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage)
-
-      alert(__('Card Ineligible for Authentication', 'lkn-wc-gateway-cielo'))
+      //aqui
+      if(lknDCScriptAllowCardIneligible == 'yes'){
+        submitForm(e)
+      }else{
+        alert(__('Card Ineligible for Authentication', 'lkn-wc-gateway-cielo'))
+      }
     },
     onDisabled: function () {
       // Store don't require bearer authentication (class "bpmpi_auth" false -> disabled authentication).
       console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage)
-
-      alert(__('Authentication disabled by the store', 'lkn-wc-gateway-cielo'))
+      //aqui
+      if(lknDCScriptAllowCardIneligible == 'yes'){
+        submitForm(e)
+      }else{
+        alert(__('Authentication disabled by the store', 'lkn-wc-gateway-cielo'))
+      }
     },
     onError: function (e) {
       // Error on proccess in authentication
@@ -223,8 +235,12 @@ function bpmpi_config () {
     onUnsupportedBrand: function (e) {
       // Provider not supported for authentication
       console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage)
-
-      alert(__('Provider not supported by Cielo 3DS authentication', 'lkn-wc-gateway-cielo'))
+      //aqui
+      if(lknDCScriptAllowCardIneligible == 'yes'){
+        submitForm(e)
+      }else{
+        alert(__('Provider not supported by Cielo 3DS authentication', 'lkn-wc-gateway-cielo'))
+      }
     },
 
     Environment: 'SDB', // SDB or PRD
