@@ -346,3 +346,9 @@ msgstr "Cartão"
 
 msgid "Developer"
 msgstr "Desenvolvedor"
+
+msgid "Order captured"
+msgstr "Pedido capturado"
+
+msgid "Order successfully captured!"
+msgstr "Pedido capturado com sucesso!"

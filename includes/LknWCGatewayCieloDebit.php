@@ -1213,7 +1213,8 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
 
         if (isset($responseDecoded->Payment) && (1 == $responseDecoded->Payment->Status || 2 == $responseDecoded->Payment->Status)) {
             $order->payment_complete($responseDecoded->Payment->PaymentId);
-            do_action("lkn_wc_cielo_change_order_status", $order, $this);
+            $order->add_meta_data('paymentId', $responseDecoded->Payment->PaymentId, true);
+            do_action("lkn_wc_cielo_change_order_status", $order, $this, $capture);
             
             // Remove cart
             WC()->cart->empty_cart();

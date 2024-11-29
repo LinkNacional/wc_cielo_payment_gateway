@@ -346,3 +346,9 @@ msgstr ""
 
 msgid "Developer"
 msgstr ""
+
+msgid "Order captured"
+msgstr ""
+
+msgid "Order successfully captured!"
+msgstr ""
