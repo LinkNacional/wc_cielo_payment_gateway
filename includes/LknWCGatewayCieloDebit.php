@@ -1170,7 +1170,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
                     ),
                     'Payment' => array(
                         'Type' => $cardType . "Card",
-                        'Amount' => (int) $amount,
+                        'Amount' => (int) $amountFormated,
                         'Installments' => $installments,
                         'Authenticate' => true,
                         'Capture' => (bool) $capture,

@@ -1,3 +1,6 @@
+# 1.13.1 - 29/11/2024
+* Correção de formatação de valor do pedido.
+
 # 1.13.0 - 25/11/2024
 * Adição de configuração para permitir transações sem 3DS;
 * Adição de filtros para alterar URL de consultas de cartão;
