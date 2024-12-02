@@ -1,3 +1,7 @@
+# 1.13.2 - 02/12/2024
+* Correção de hook de limitação de parcelamento;
+* Correção de evento de consulta bin formulário legado.
+
 # 1.13.1 - 29/11/2024
 * Correção de formatação de valor do pedido.
 

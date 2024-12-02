@@ -93,6 +93,11 @@ Payment Gateway for Cielo API on WooCommerce plugin is dependent on WooCommerce 
 7. Debit card front page with payment fields.
 
 == Changelog ==
+= 1.13.2 =
+**02/12/2024**
+* Fix for installment limitation hook;
+* Fix for BIN query event in legacy form.
+
 = 1.13.1 =
 **29/11/2024**
 * Fix order value formatting.
