@@ -27,7 +27,7 @@ const { __ } = wp.i18n;
     }
   }
 
-  $(window).on('load', () => {
+  function checkBinCard(){
     const debitPaymethod = document.getElementById('payment_method_lkn_cielo_debit')
     const debitForm = document.getElementById('wc-lkn_cielo_debit-cc-form')
     const paymentBox = document.getElementById('payment')
@@ -129,7 +129,16 @@ const { __ } = wp.i18n;
         paymentBox.addEventListener('click', lknVerifyGateway, true)
       }
     })
+  }
+
+  $(window).on('load', () => {
+    checkBinCard()
+    $('body').on('updated_checkout', checkBinCard)
   })
+
+  checkBinCard()
+  $('body').on('updated_checkout', checkBinCard)
+
 })(jQuery)
 
 function submitForm (e) {
