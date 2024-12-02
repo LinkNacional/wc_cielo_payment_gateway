@@ -110,7 +110,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
      */
     public function admin_load_script(): void {
         wp_enqueue_script('lkn-wc-gateway-admin', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-wc-gateway-admin.js', array('wp-i18n'), $this->version, 'all');
-    
+
         $page = isset($_GET['page']) ? sanitize_text_field(wp_unslash($_GET['page'])) : '';
         $tab = isset($_GET['tab']) ? sanitize_text_field(wp_unslash($_GET['tab'])) : '';
         $section = isset($_GET['section']) ? sanitize_text_field(wp_unslash($_GET['section'])) : '';
@@ -419,7 +419,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
 
     private function get_client_ip() {
         $ip_address = '';
-    
+
         if ( ! empty($_SERVER['HTTP_CLIENT_IP'])) {
             $ip_address = $_SERVER['HTTP_CLIENT_IP'];
         } elseif ( ! empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
@@ -431,7 +431,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
         } else {
             $ip_address = $_SERVER['REMOTE_ADDR'];
         }
-    
+
         return $ip_address;
     }
 
@@ -455,6 +455,8 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
         $installmentLimit = $this->get_option('installment_limit', 12);
         $installments = array();
         $installmentsTotal = number_format($this->get_order_total(), 2, '.', '');
+
+        $installmentLimit = apply_filters('lkn_wc_cielo_set_installment_limit', $installmentLimit, $this);
 
         if (isset($_GET['pay_for_order'])) {
             $order_id = wc_get_order_id_by_order_key(sanitize_text_field($_GET['key']));
@@ -1000,7 +1002,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
         $provider = $this->get_card_provider($cardNum);
         $debug = $this->get_option('debug');
         $currency = $order->get_currency();
-        $activeInstallment = $this->get_option('installment_payment'); 
+        $activeInstallment = $this->get_option('installment_payment');
         if ($this->validate_card_holder_name($cardName, false) === false) {
             $message = __('Card Holder Name is required!', 'lkn-wc-gateway-cielo');
 
@@ -1072,7 +1074,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
 
         $amountFormated = number_format($amount, 2, '', '');
 
-        if($this->get_option('allow_card_ineligible', 'no') == 'yes' && $cardType == 'Credit' && $refId == 'null'){
+        if ($this->get_option('allow_card_ineligible', 'no') == 'yes' && 'Credit' == $cardType && 'null' == $refId) {
             $args['headers'] = array(
                 'Content-Type' => 'application/json',
                 'MerchantId' => $merchantId,
@@ -1102,7 +1104,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
             $args['body'] = wp_json_encode($body);
 
             $order->add_order_note(__('Payment made without 3DS validation', 'lkn-wc-gateway-cielo'));
-        }else{
+        } else {
             $order->add_order_note(__('Payment made with 3DS validation', 'lkn-wc-gateway-cielo'));
 
             // Verify if authentication is data-only
@@ -1114,7 +1116,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
                     'MerchantKey' => $merchantSecret,
                     'RequestId' => uniqid(),
                 );
-    
+
                 $body = array(
                     'MerchantOrderId' => $merchantOrderId,
                     'Customer' => array(
@@ -1141,28 +1143,28 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
                         ),
                     ),
                 );
-    
+
                 $body = apply_filters('lkn_wc_cielo_process_body', $body, $_POST, $order_id);
                 $args['body'] = wp_json_encode($body);
             } else {
                 if (empty($cavv) && $this->get_option('allow_card_ineligible', 'no') == 'no') {
                     $message = __('Invalid Cielo 3DS 2.2 authentication.', 'lkn-wc-gateway-cielo');
-    
+
                     throw new Exception(esc_attr($message));
                 }
                 if (empty($xid) && $this->get_option('allow_card_ineligible', 'no') == 'no') {
                     $message = __('Invalid Cielo 3DS 2.2 authentication.', 'lkn-wc-gateway-cielo');
-    
+
                     throw new Exception(esc_attr($message));
                 }
-    
+
                 $args['headers'] = array(
                     'Content-Type' => 'application/json',
                     'MerchantId' => $merchantId,
                     'MerchantKey' => $merchantSecret,
                     'RequestId' => uniqid(),
                 );
-    
+
                 $body = array(
                     'MerchantOrderId' => $merchantOrderId,
                     'Customer' => array(
@@ -1191,9 +1193,9 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
                         ),
                     ),
                 );
-    
+
                 $body = apply_filters('lkn_wc_cielo_process_body', $body, $_POST, $order_id);
-    
+
                 $args['body'] = wp_json_encode($body);
             }
         }
@@ -1213,8 +1215,9 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
 
         if (isset($responseDecoded->Payment) && (1 == $responseDecoded->Payment->Status || 2 == $responseDecoded->Payment->Status)) {
             $order->payment_complete($responseDecoded->Payment->PaymentId);
-            do_action("lkn_wc_cielo_change_order_status", $order, $this);
-            
+            $order->add_meta_data('paymentId', $responseDecoded->Payment->PaymentId, true);
+            do_action("lkn_wc_cielo_change_order_status", $order, $this, $capture);
+
             // Remove cart
             WC()->cart->empty_cart();
             do_action("lkn_wc_cielo_update_order", $order_id);

@@ -68,6 +68,8 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType {
         $installmentLimit = $this->gateway->get_option('installment_limit', 12);
         $installments = array();
         
+        $installmentLimit = apply_filters('lkn_wc_cielo_set_installment_limit', $installmentLimit, $this->gateway);
+
         $installments = apply_filters('lkn_wc_cielo_set_installments', $installments, $this->gateway);
         $user = wp_get_current_user();
 
@@ -88,7 +90,6 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType {
             'url' => get_page_link(),
             'orderNumber' => uniqid(),
             'activeInstallment' => $this->gateway->get_option('installment_payment'),
-            'installmentLimit' => $this->gateway->get_option('installment_limit', 12),
             'dirScript3DS' => LKN_WC_GATEWAY_CIELO_URL . 'resources/js/debitCard/BP.Mpi.3ds20.min.js',
             'dirScriptConfig3DS' => $dirScriptConfig3DS,
             'totalCart' => $this->gateway->lknGetCartTotal(),
