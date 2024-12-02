@@ -300,6 +300,8 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
         $placeholder = $this->get_option('placeholder', 'no');
         $placeholderEnabled = false;
 
+        $installmentLimit = apply_filters('lkn_wc_cielo_set_installment_limit', $installmentLimit, $this);
+
         if ('yes' === $placeholder) {
             $placeholderEnabled = true;
         }
