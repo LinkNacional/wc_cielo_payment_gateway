@@ -64,10 +64,12 @@
                 
                 aElements[0].className = 'nav-tab nav-tab-active';
 
-                // Inserir a div após o segundo <p>
-                const secondP = mainForm.querySelectorAll('p')[2];
-                if (secondP) {
-                    secondP.parentNode.insertBefore(divElement, secondP.nextSibling);
+                // Inserir a div após o segundo ou primeiro <p>
+                const pElements = mainForm.querySelectorAll('p');
+                if (pElements[2]) {
+                    pElements[2].parentNode.insertBefore(divElement, pElements[2].nextSibling);
+                }else{
+                    pElements[0].parentNode.insertBefore(divElement, pElements[0].nextSibling);
                 }
         
                 tables.forEach((table, index) => {
