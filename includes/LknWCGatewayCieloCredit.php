@@ -1,6 +1,7 @@
 <?php
 
 namespace Lkn\WCCieloPaymentGateway\Includes;
+use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloHelper;
 
 use DateTime;
 use Exception;
@@ -126,6 +127,11 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
         if ( 'wc-settings' === $page && 'checkout' === $tab && $section == $this->id) {
             wp_enqueue_script('lknWCGatewayCieloCreditSettingsLayoutScript', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-wc-gateway-admin-layout.js', array('jquery'), $this->version, false);
             wp_enqueue_style('lkn-admin-layout', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-admin-layout.css', array(), $this->version, 'all');
+            wp_enqueue_script('lknWCGatewayCieloCreditClearButtonScript', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-clear-logs-button.js', array('jquery'), $this->version, false);
+            wp_localize_script('lknWCGatewayCieloCreditClearButtonScript', 'lknWcCieloTranslations', array(
+                'clearLogs' => __('Limpar Logs', 'lkn-wc-gateway-cielo'),
+                'alertText' => __('Deseja realmente deletar todos logs dos pedidos?', 'lkn-wc-gateway-cielo')
+            ));
         }
     }
 
@@ -279,6 +285,21 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
                 'default' => 'no',
             )
         );
+
+        if ( $this->get_option('debug') == 'yes' ) {
+            $this->form_fields['show_order_logs'] =  array(
+                'title' => __('Visualizar Log no Pedido', 'lkn-wc-gateway-cielo'),
+                'type' => 'checkbox',
+                'label' => sprintf('Habilita visualização do log da transação dentro do pedido.', 'lkn-wc-gateway-cielo'),
+                'default' => 'no',
+            );
+            $this->form_fields['clear_order_records'] =  array(
+                'title' => __('Limpar logs nos Pedidos', 'lkn-wc-gateway-cielo'),
+                'type' => 'button',
+                'id' => 'validateLicense',
+                'class' => 'woocommerce-save-button components-button is-primary'
+            );
+        }
 
         $customConfigs = apply_filters('lkn_wc_cielo_get_custom_configs', array(), $this->id);
 
@@ -639,6 +660,30 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
             throw new Exception(esc_attr($message));
         }
         $responseDecoded = json_decode($response['body']);
+
+        if ($this->get_option('debug') === 'yes') {
+            $lknWcCieloHelper = new LknWcCieloHelper();
+
+            $orderLogsArray = array(
+                'url' => $url . '1/sales',
+                'headers' => array(
+                    'Content-Type' => $args['headers']['Content-Type'],
+                    'MerchantId' => $lknWcCieloHelper->censorString($args['headers']['MerchantId'], 10),
+                    'MerchantKey' => $lknWcCieloHelper->censorString($args['headers']['MerchantKey'], 10)
+                ),
+                'body' => json_decode($args['body'], true), // Decodificar como array associativo
+                'response' => json_decode(json_encode($responseDecoded), true) // Certificar que responseDecoded é um array associativo
+            );
+        
+            // Censurar o número do cartão de crédito
+            $orderLogsArray['body']['Payment']['CreditCard']['CardNumber'] = substr($orderLogsArray['body']['Payment']['CreditCard']['CardNumber'], 0, 6) . '******' . substr($orderLogsArray['body']['Payment']['CreditCard']['CardNumber'], -4);
+        
+            // Remover a parte de "Links"
+            unset($orderLogsArray['response']['Payment']['Links']);
+        
+            $orderLogs = json_encode($orderLogsArray);
+            $order->update_meta_data('lknWcCieloOrderLogs', $orderLogs);
+        }
 
         if (isset($responseDecoded->Payment) && (1 == $responseDecoded->Payment->Status || 2 == $responseDecoded->Payment->Status)) {
             $order->payment_complete($responseDecoded->Payment->PaymentId);

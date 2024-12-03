@@ -118,6 +118,11 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
         if ( 'wc-settings' === $page && 'checkout' === $tab && $section == $this->id) {
             wp_enqueue_script('lknWCGatewayCieloDebitSettingsLayoutScript', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-wc-gateway-admin-layout.js', array('jquery'), $this->version, false);
             wp_enqueue_style('lkn-admin-layout', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-admin-layout.css', array(), $this->version, 'all');
+            wp_enqueue_script('lknWCGatewayCieloDebitClearButtonScript', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-clear-logs-button.js', array('jquery'), $this->version, false);
+            wp_localize_script('lknWCGatewayCieloCreditClearButtonScript', 'lknWcCieloTranslations', array(
+                'clearLogs' => __('Limpar Logs', 'lkn-wc-gateway-cielo'),
+                'alertText' => __('Deseja realmente deletar todos logs dos pedidos?', 'lkn-wc-gateway-cielo')
+            ));
         }
     }
 
@@ -333,6 +338,21 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
                 'default' => 'no',
             )
         );
+
+        if ( $this->get_option('debug') == 'yes' ) {
+            $this->form_fields['show_order_logs'] =  array(
+                'title' => __('Visualizar Log no Pedido', 'lkn-wc-gateway-cielo'),
+                'type' => 'checkbox',
+                'label' => sprintf('Habilita visualização do log da transação dentro do pedido.', 'lkn-wc-gateway-cielo'),
+                'default' => 'no',
+            );
+            $this->form_fields['clear_order_records'] =  array(
+                'title' => __('Limpar logs nos Pedidos', 'lkn-wc-gateway-cielo'),
+                'type' => 'button',
+                'id' => 'validateLicense',
+                'class' => 'woocommerce-save-button components-button is-primary'
+            );
+        }
 
         $customConfigs = apply_filters('lkn_wc_cielo_get_custom_configs', array(), $this->id);
 

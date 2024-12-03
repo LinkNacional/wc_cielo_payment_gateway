@@ -1,0 +1,20 @@
+#lknWcCieloOrderLogs pre{
+    padding: 10px;
+    background-color: #D9D9D9 !important;
+    width: fit-content;
+    border-radius: 4px;
+    margin: 0;
+    white-space: pre-wrap
+}
+
+#lknWcCieloOrderLogs h3{
+    color: #333;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+#lknWcCieloOrderLogs div{
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
