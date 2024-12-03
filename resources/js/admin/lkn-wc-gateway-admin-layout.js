@@ -113,21 +113,6 @@
                     });
                     
                 }
-        
-                // Corrige bug de layout quando alguma mensagem é exibida
-                var divToMove = document.getElementById('lknWcCieloCreditBlocksSettingsLayoutMenu');
-
-                if (divToMove) {
-                    var lknWcCieloCreditBlocksSettingsLayoutDiv = document.getElementById('lknWcCieloCreditBlocksSettingsLayoutDiv');
-
-                    if (lknWcCieloCreditBlocksSettingsLayoutDiv) {
-                        var fifthElement = lknWcCieloCreditBlocksSettingsLayoutDiv.children[3];
-
-                        if (fifthElement) {
-                            lknWcCieloCreditBlocksSettingsLayoutDiv.insertBefore(divToMove, fifthElement.nextSibling);
-                        }
-                    }
-                }
 
                 //Caso o formulário tenha um campo inválido, força o click no menu em que o campo inválido está
                 mainForm.addEventListener('invalid', function (event) {

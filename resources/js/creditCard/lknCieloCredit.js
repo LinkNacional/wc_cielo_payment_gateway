@@ -187,7 +187,7 @@ const lknCCContentCielo = props => {
       unsubscribe();
     };
   }, [creditObject, emitResponse.responseTypes.ERROR, emitResponse.responseTypes.SUCCESS, onPaymentSetup]);
-  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h4", null, "Pagamento processado pela Cielo API 3.0")), /*#__PURE__*/React.createElement(wcComponents.TextInput, {
+  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", null, "Pagamento processado pela Cielo API 3.0")), /*#__PURE__*/React.createElement(wcComponents.TextInput, {
     id: "lkn_cc_cardholder_name",
     label: lknCCTranslationsCielo.cardHolder,
     value: creditObject.lkn_cc_cardholder_name,

@@ -208,7 +208,7 @@ const lknCCContentCielo = (props) => {
   return (
     <>
       <div>
-        <h4>Pagamento processado pela Cielo API 3.0</h4>
+        <p>Pagamento processado pela Cielo API 3.0</p>
       </div>
 
       <wcComponents.TextInput
