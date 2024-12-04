@@ -1,3 +1,8 @@
+# 1.14.0 - 04/12/2024
+* Adição de compatibilidade com botão para capturar pedido;
+* Adição de configurações para adicionar logs no pedido;
+* Correção em script de layout.
+
 # 1.13.2 - 02/12/2024
 * Correção de hook de limitação de parcelamento;
 * Correção de evento de consulta bin formulário legado.
