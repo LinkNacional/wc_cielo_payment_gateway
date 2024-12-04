@@ -7,8 +7,9 @@ final class LknWcCieloHelper {
     public function showOrderLogs() {
         $order = wc_get_order( $_GET['id'] );
         $orderLogs = $order->get_meta('lknWcCieloOrderLogs');
-
-        if($orderLogs){
+        $payment_method_id = $order->get_payment_method();
+        $options = get_option('woocommerce_'.$payment_method_id.'_settings');
+        if($orderLogs && $options['show_order_logs'] === 'yes') {
             //carregar css
             wp_enqueue_style( 'lkn-wc-cielo-order-logs', plugin_dir_url( __FILE__ ) . '../resources/css/frontend/lkn-admin-order-logs.css', array(), LKN_WC_CIELO_VERSION, 'all' );
 
@@ -17,18 +18,17 @@ final class LknWcCieloHelper {
                 : 'shop_order';
         
             add_meta_box(
-                'custom',
-                'Custom Meta Box',
-                [$this, 'custom_metabox_content'],
+                'showOrderLogs',
+                'Logs das transações',
+                [$this, 'showLogsContent'],
                 $screen,
                 'advanced',
-                '' // Ajuste a prioridade aqui
             );
         }
     }
     
     // Metabox content
-    public function custom_metabox_content( $object ) {
+    public function showLogsContent( $object ) {
         // Obter o objeto WC_Order
         $order = is_a( $object, 'WP_Post' ) ? wc_get_order( $object->ID ) : $object;
         $orderLogs = $order->get_meta('lknWcCieloOrderLogs');
@@ -61,9 +61,6 @@ final class LknWcCieloHelper {
                 <pre class="wc-pre"><?php echo esc_html($response); ?></pre>
             </div>
             <?php
-        } else {
-            // Caso os logs sejam inválidos ou estejam vazios
-            echo '<p>' . esc_html__('No valid logs found.', 'my-plugin-textdomain') . '</p>';
         }
     }
     

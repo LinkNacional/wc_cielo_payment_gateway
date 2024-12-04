@@ -1,9 +1,10 @@
 <?php
 
 namespace Lkn\WCCieloPaymentGateway\Includes;
-
 use DateTime;
+
 use Exception;
+use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloHelper;
 use WC_Logger;
 use WC_Payment_Gateway;
 
@@ -119,7 +120,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
             wp_enqueue_script('lknWCGatewayCieloDebitSettingsLayoutScript', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-wc-gateway-admin-layout.js', array('jquery'), $this->version, false);
             wp_enqueue_style('lkn-admin-layout', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-admin-layout.css', array(), $this->version, 'all');
             wp_enqueue_script('lknWCGatewayCieloDebitClearButtonScript', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-clear-logs-button.js', array('jquery'), $this->version, false);
-            wp_localize_script('lknWCGatewayCieloCreditClearButtonScript', 'lknWcCieloTranslations', array(
+            wp_localize_script('lknWCGatewayCieloDebitClearButtonScript', 'lknWcCieloTranslations', array(
                 'clearLogs' => __('Limpar Logs', 'lkn-wc-gateway-cielo'),
                 'alertText' => __('Deseja realmente deletar todos logs dos pedidos?', 'lkn-wc-gateway-cielo')
             ));
@@ -1232,6 +1233,29 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
             throw new Exception(esc_attr($message));
         }
         $responseDecoded = json_decode($response['body']);
+        if ($this->get_option('debug') === 'yes') {
+            $lknWcCieloHelper = new LknWcCieloHelper();
+
+            $orderLogsArray = array(
+                'url' => $url . '1/sales',
+                'headers' => array(
+                    'Content-Type' => $args['headers']['Content-Type'],
+                    'MerchantId' => $lknWcCieloHelper->censorString($args['headers']['MerchantId'], 10),
+                    'MerchantKey' => $lknWcCieloHelper->censorString($args['headers']['MerchantKey'], 10)
+                ),
+                'body' => json_decode($args['body'], true), // Decodificar como array associativo
+                'response' => json_decode(json_encode($responseDecoded), true) // Certificar que responseDecoded é um array associativo
+            );
+        
+            // Censurar o número do cartão de crédito
+            $orderLogsArray['body']['Payment']['CreditCard']['CardNumber'] = substr($orderLogsArray['body']['Payment']['CreditCard']['CardNumber'], 0, 6) . '******' . substr($orderLogsArray['body']['Payment']['CreditCard']['CardNumber'], -4);
+        
+            // Remover a parte de "Links"
+            unset($orderLogsArray['response']['Payment']['Links']);
+        
+            $orderLogs = json_encode($orderLogsArray);
+            $order->update_meta_data('lknWcCieloOrderLogs', $orderLogs);
+        }
 
         if (isset($responseDecoded->Payment) && (1 == $responseDecoded->Payment->Status || 2 == $responseDecoded->Payment->Status)) {
             $order->payment_complete($responseDecoded->Payment->PaymentId);

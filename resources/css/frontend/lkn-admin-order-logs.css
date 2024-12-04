@@ -2,9 +2,11 @@
     padding: 10px;
     background-color: #D9D9D9 !important;
     width: fit-content;
+    max-width: 96%;
     border-radius: 4px;
     margin: 0;
-    white-space: pre-wrap
+    white-space: pre-wrap;
+    overflow-x: auto;
 }
 
 #lknWcCieloOrderLogs h3{
