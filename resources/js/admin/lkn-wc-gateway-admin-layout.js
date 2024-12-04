@@ -64,10 +64,12 @@
                 
                 aElements[0].className = 'nav-tab nav-tab-active';
 
-                // Inserir a div após o segundo <p>
-                const secondP = mainForm.querySelectorAll('p')[2];
-                if (secondP) {
-                    secondP.parentNode.insertBefore(divElement, secondP.nextSibling);
+                // Inserir a div após o segundo ou primeiro <p>
+                const pElements = mainForm.querySelectorAll('p:not([class])');
+                let nodeArray = Array.from(pElements);
+                let lastNode = nodeArray[nodeArray.length - 1];
+                if(lastNode){
+                    lastNode.parentNode.insertBefore(divElement, lastNode.nextSibling);
                 }
         
                 tables.forEach((table, index) => {
@@ -112,21 +114,6 @@
                         }
                     });
                     
-                }
-        
-                // Corrige bug de layout quando alguma mensagem é exibida
-                var divToMove = document.getElementById('lknWcCieloCreditBlocksSettingsLayoutMenu');
-
-                if (divToMove) {
-                    var lknWcCieloCreditBlocksSettingsLayoutDiv = document.getElementById('lknWcCieloCreditBlocksSettingsLayoutDiv');
-
-                    if (lknWcCieloCreditBlocksSettingsLayoutDiv) {
-                        var fifthElement = lknWcCieloCreditBlocksSettingsLayoutDiv.children[3];
-
-                        if (fifthElement) {
-                            lknWcCieloCreditBlocksSettingsLayoutDiv.insertBefore(divToMove, fifthElement.nextSibling);
-                        }
-                    }
                 }
 
                 //Caso o formulário tenha um campo inválido, força o click no menu em que o campo inválido está

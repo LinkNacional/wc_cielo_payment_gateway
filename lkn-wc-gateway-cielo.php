@@ -17,6 +17,7 @@
 use Lkn\WCCieloPaymentGateway\Includes\LknWCGatewayCieloCredit;
 use Lkn\WCCieloPaymentGateway\Includes\LknWCGatewayCieloDebit;
 use Lkn\WCCieloPaymentGateway\Includes\LknWCGatewayCieloEndpoint;
+use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloHelper;
 use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloCreditBlocks;
 use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloDebitBlocks;
 
@@ -102,6 +103,8 @@ final class LknWCCieloPayment {
         add_action('woocommerce_order_details_after_order_table', array(__CLASS__, 'order_details_after_order_table'), 10, 1);
 
         add_action('rest_api_init', array(new LknWCGatewayCieloEndpoint(), 'registerOrderCaptureEndPoint'));
+        
+        add_action('add_meta_boxes', array(new LknWcCieloHelper(), 'showOrderLogs'));
     }
 
     public static function wcEditorBlocksActive(): void {

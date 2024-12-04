@@ -352,3 +352,12 @@ msgstr ""
 
 msgid "Order successfully captured!"
 msgstr ""
+
+msgid "After the purchase is completed, the PIX will be generated and made available for payment!"
+msgstr ""
+
+msgid "Transaction capture is set to manual. Therefore, after the completion of an authorized order, the administrator needs to capture the payment within the order details by clicking the capture button. Otherwise, the payment will be refunded to the buyer's card after 6 days from the order date. If preferred, change it to"
+msgstr ""
+
+msgid "Automatic capture."
+msgstr ""

@@ -352,3 +352,12 @@ msgstr "Pedido capturado"
 
 msgid "Order successfully captured!"
 msgstr "Pedido capturado com sucesso!"
+
+msgid "After the purchase is completed, the PIX will be generated and made available for payment!"
+msgstr "Após a finalização da compra o PIX será gerado e disponibilizado para o pagamento!"
+
+msgid "Transaction capture is set to manual. Therefore, after the completion of an authorized order, the administrator needs to capture the payment within the order details by clicking the capture button. Otherwise, the payment will be refunded to the buyer's card after 6 days from the order date. If preferred, change it to"
+msgstr "A captura das transações esta configurada em manual. Portanto após a conclusão do pedido autorizado, o administrador precisa capturar o pagamento dentro dos detalhes do pedido no botão de captura. Caso contrário o pagamento será devolvido para o cartão do comprador após 6 dias da data do pedido. Se preferir altere para"
+
+msgid "Automatic capture."
+msgstr "Captura automática."
