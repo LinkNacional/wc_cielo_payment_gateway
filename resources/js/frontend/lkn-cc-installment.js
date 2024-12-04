@@ -42,10 +42,14 @@
             const installmentObj = lknInstallmentInterest[t]
             // Verify if it is the right installment
             if (installmentObj.id === i) {
-              const interest = (amount + (amount * (installmentObj.interest / 100))) / i // installment + (installment * (installmentObj.interest / 100));
-              const formatedInterest = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(interest)
+              if(installmentObj.label) {
+                text = document.createTextNode(installmentObj.label)
+              }else{
+                const interest = (amount + (amount * (installmentObj.interest / 100))) / i // installment + (installment * (installmentObj.interest / 100));
+                const formatedInterest = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(interest)
 
-              text = document.createTextNode(i + 'x ' + formatedInterest)
+                text = document.createTextNode(i + 'x ' + formatedInterest)
+              }
             }
           }
         }
