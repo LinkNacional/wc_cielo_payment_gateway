@@ -44,3 +44,51 @@ Sim, [clique aqui](https://wordpress.org/plugins/lkn-wc-gateway-cielo/) para ir 
 6) Salve as configurações.
 
 Nota: As credenciais para ambientes de produção e teste são diferentes, ao alternar entre ambientes lembre-se de alterar as credenciais da API.
+
+## Hooks
+
+# lkn_wc_cielo_set_installment_limit
+
+| Tipo            | Descrição                               | Parametros                                                 |
+|-----------------|-----------------------------------------|------------------------------------------------------------|
+| `apply_filters` | Define o número limite de parcelamento. | `string $limit = '12', AbstractPaymentMethodType $gateway` |
+
+> **$limit**: Por padrão, o limite é definido como 12, permitindo que o responsável pelo gerenciamento do plugin defina um limite de parcelamento customizado.
+
+> **$gateway**: Informações sobre o pagamento, como `merchant_id`, `merchant_key`, tipo de pagamento e outros dados necessários para o processo de validação. Essas informações são obtidas pela instanciação da classe `LknWCGatewayCieloCredit()` ou `LknWCGatewayCieloDebit()` na função: `initialize()`.
+
+> **Exemplo**:
+```php
+    add_filter('lkn_wc_cielo_set_installment_limit', function($limit, $gateway) {
+        $limit = 20;
+
+        return $limit;
+    })
+
+    apply_filters('lkn_wc_cielo_set_installment_limit', $limit, $gateway);
+```
+
+# lkn_wc_cielo_set_installments
+
+| Tipo            | Descrição                               | Parametros                                                     |
+|-----------------|-----------------------------------------|----------------------------------------------------------------|
+| `apply_filters` | Define o nome da label nas opções.      | `Array $installments = [], AbstractPaymentMethodType $gateway` |
+
+
+> **$installments**: Array contendo a lista de opções disponíveis no momento do pagamento.
+
+> **$gateway**: Informações sobre o pagamento, como `merchant_id`, `merchant_key`, tipo de pagamento e outros dados necessários para o processo de validação. Essas informações são obtidas pela instanciação da classe `LknWCGatewayCieloCredit()` ou `LknWCGatewayCieloDebit()` na função: `initialize()`.
+
+> **Exemplo**:
+```php
+add_filter('lkn_wc_cielo_set_installments', function() {
+    $installments[] = array('id' => '1', 'label' => $index . 'x de ' . $fomartedNumber);
+
+    return $installments;
+})
+
+apply_filters('lkn_wc_cielo_set_installments', $installments, $gateway);
+```
+> **OBS**: Caso o usuário não defina nenhum valor, o resultado será um array vazio.
+
+

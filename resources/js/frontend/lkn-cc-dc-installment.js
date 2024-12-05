@@ -9,12 +9,12 @@
 
   lknWCCieloLoadInstallments()
   $('body').on('updated_checkout', lknWCCieloLoadInstallments)
-  
-  function lknWCCieloShowInstallments () {
+
+  function lknWCCieloShowInstallments() {
     const installmentShow = $('#lkn_cielo_3ds_installment_show')
     const installmentRow = $('#lkn-cc-dc-installment-row')
 
-    if(installmentShow && installmentRow) {
+    if (installmentShow && installmentRow) {
       if (installmentShow.length && installmentShow.val() === 'no') {
         if (installmentRow.length) {
           installmentRow.show()
@@ -27,10 +27,9 @@
         }
       }
     }
-
   }
 
-  function lknWCCieloLoadInstallments () {
+  function lknWCCieloLoadInstallments() {
     const typeCard = $('#lkn_cc_type')
     const lknInstallmentSelect = document.getElementById('lkn_cc_dc_installments')
     const lknTotal = document.getElementById('lkn_cc_dc_installment_total')

@@ -1,8 +1,8 @@
 <?php
 namespace Lkn\WCCieloPaymentGateway\Includes;
 use Lkn\WCCieloPaymentGateway\Includes\LknWCGatewayCieloDebit;
-use WP_Error;
 use WC_Logger;
+use WP_Error;
 use WP_REST_Response;
 
 final class LknWCGatewayCieloEndpoint {
@@ -10,6 +10,12 @@ final class LknWCGatewayCieloEndpoint {
         register_rest_route('lknWCGatewayCielo', '/checkCard', array(
             'methods' => 'GET',
             'callback' => array($this, 'orderCapture'),
+            'permission_callback' => '__return_true',
+        ));
+
+        register_rest_route('lknWCGatewayCielo', '/clearOrderLogs', array(
+            'methods' => 'DELETE',
+            'callback' => array($this, 'clearOrderLogs'),
             'permission_callback' => '__return_true',
         ));
     }
@@ -63,5 +69,23 @@ final class LknWCGatewayCieloEndpoint {
         }
 
         return new WP_REST_Response($data, 200);
+    }
+
+    public function clearOrderLogs($request) {
+
+        $args = array(
+            'limit' => -1, // Sem limite, pega todas as ordens
+            'meta_key' => 'lknWcCieloOrderLogs', // Meta key específica
+            'meta_compare' => 'EXISTS', // Verifica se a meta key existe
+        );
+        
+        $orders = wc_get_orders($args);
+
+        foreach ($orders as $order) {
+            $order->delete_meta_data('lknWcCieloOrderLogs');
+            $order->save();
+        }
+        
+        return new WP_REST_Response($orders, 200);
     }
 }

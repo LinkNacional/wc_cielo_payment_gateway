@@ -10,7 +10,7 @@
   lknWCCieloLoadInstallments()
   $('body').on('updated_checkout', lknWCCieloLoadInstallments)
 
-  function lknWCCieloLoadInstallments () {
+  function lknWCCieloLoadInstallments() {
     const lknInstallmentSelect = document.getElementById('lkn_cc_installments')
     const lknTotal = document.getElementById('lkn_cc_installment_total')
     let lknInstallmentLimit = document.getElementById('lkn_cc_installment_limit')
@@ -42,10 +42,14 @@
             const installmentObj = lknInstallmentInterest[t]
             // Verify if it is the right installment
             if (installmentObj.id === i) {
-              const interest = (amount + (amount * (installmentObj.interest / 100))) / i // installment + (installment * (installmentObj.interest / 100));
-              const formatedInterest = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(interest)
+              if (installmentObj.label) {
+                text = document.createTextNode(installmentObj.label)
+              } else {
+                const interest = (amount + (amount * (installmentObj.interest / 100))) / i // installment + (installment * (installmentObj.interest / 100));
+                const formatedInterest = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(interest)
 
-              text = document.createTextNode(i + 'x ' + formatedInterest)
+                text = document.createTextNode(i + 'x ' + formatedInterest)
+              }
             }
           }
         }
