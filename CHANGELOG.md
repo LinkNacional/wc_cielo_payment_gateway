@@ -1,4 +1,4 @@
-# 1.14.0 - 04/12/2024
+# 1.14.0 - 05/12/2024
 * Adição de compatibilidade com botão para capturar pedido;
 * Adição de configurações para adicionar logs no pedido;
 * Correção em script de layout.

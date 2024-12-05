@@ -94,7 +94,7 @@ Payment Gateway for Cielo API on WooCommerce plugin is dependent on WooCommerce 
 
 == Changelog ==
 = 1.14.0 =
-**04/12/2024**
+**05/12/2024**
 * Add compatibility with button to capture order;
 * Add settings to include logs in the order;
 * Fix layout script.
