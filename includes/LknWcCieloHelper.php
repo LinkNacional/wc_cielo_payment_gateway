@@ -6,7 +6,7 @@ use WC_Order;
 final class LknWcCieloHelper {
     public function showOrderLogs(): void {
         $order = wc_get_order( $_GET['id'] );
-        // TODO verify if is WooCommerce order
+
         if ($order && $order instanceof WC_Order) {
             $orderLogs = $order->get_meta('lknWcCieloOrderLogs');
             $payment_method_id = $order->get_payment_method();

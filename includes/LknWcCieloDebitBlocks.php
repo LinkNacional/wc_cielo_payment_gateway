@@ -42,7 +42,7 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType {
 
     private function get_client_ip() {
         $ip_address = '';
-    
+
         if ( ! empty($_SERVER['HTTP_CLIENT_IP'])) {
             $ip_address = $_SERVER['HTTP_CLIENT_IP'];
         } elseif ( ! empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
@@ -54,7 +54,7 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType {
         } else {
             $ip_address = $_SERVER['REMOTE_ADDR'];
         }
-    
+
         return $ip_address;
     }
 
@@ -67,7 +67,7 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType {
 
         $installmentLimit = $this->gateway->get_option('installment_limit', 12);
         $installments = array();
-        
+
         $installmentLimit = apply_filters('lkn_wc_cielo_set_installment_limit', $installmentLimit, $this->gateway);
 
         $installments = apply_filters('lkn_wc_cielo_set_installments', $installments, $this->gateway);
