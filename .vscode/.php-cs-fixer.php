@@ -98,4 +98,5 @@ return (new PhpCsFixer\Config())
     ))
     ->setIndent('    ')
     ->setLineEnding("\n")
-    ->setRiskyAllowed(true);
+    ->setRiskyAllowed(true)
+;

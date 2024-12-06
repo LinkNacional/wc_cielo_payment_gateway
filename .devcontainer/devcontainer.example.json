@@ -2,14 +2,7 @@
 {
     "name": "PHP",
     // https: //github.com/devcontainers/images/tree/main/src/php
-    "image": "mcr.microsoft.com/vscode/devcontainers/php:8.1",
-    "mounts": [
-        {
-            "source": "/path/to/your/wordpress-stubs",
-            "target": "/home/vscode/_wordpress",
-            "type": "bind"
-        }
-    ],
+    "image": "mcr.microsoft.com/vscode/devcontainers/php:7.4",
     "features": {
         // https://github.com/devcontainers/features/tree/main/src/node
         "ghcr.io/devcontainers/features/node:1": {
@@ -17,6 +10,13 @@
             "nvmVersion": "0.39.3"
         }
     },
+    "mounts": [
+        {
+            "source": "/home/{yourusername}/wordpress",
+            "target": "/home/vscode/_wordpress",
+            "type": "bind"
+        }
+    ],
     "postCreateCommand": "npm install",
     "customizations": {
         "vscode": {
@@ -24,7 +24,11 @@
                 "junstyle.php-cs-fixer",
                 "bmewburn.vscode-intelephense-client",
                 "neilbrayfield.php-docblocker",
-                "dbaeumer.vscode-eslint"
+                "dbaeumer.vscode-eslint",
+                "jkiviluoto.tws",
+                "lacroixdavid1.vscode-format-context-menu",
+                "Gruntfuggly.todo-tree",
+                "Natizyskunk.sftp"
             ],
             "settings": {
                 "[html]": {
@@ -34,7 +38,6 @@
                     "editor.tabSize": 4
                 },
                 "[javascript]": {
-                    "editor.defaultFormatter": "junstyle.php-cs-fixer",
                     "editor.rulers": [
                         80,
                         120
@@ -64,12 +67,8 @@
                 "html.format.wrapAttributes": "force-expand-multiline",
                 "html.format.wrapAttributesIndentSize": 4,
                 "html.format.wrapLineLength": 120,
-                "intelephense.completion.maxItems": 10,
                 "intelephense.environment.documentRoot": "src",
                 "intelephense.environment.phpVersion": "8.1",
-                "intelephense.environment.includePaths": [
-                    "/home/vscode/wordpress"
-                ],
                 "intelephense.files.associations": [
                     "*.php"
                 ],
