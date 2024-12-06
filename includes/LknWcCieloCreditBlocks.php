@@ -5,24 +5,20 @@ namespace Lkn\WCCieloPaymentGateway\Includes;
 use Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType;
 use Lkn\WCCieloPaymentGateway\Includes\LknWCGatewayCieloCredit;
 
-final class LknWcCieloCreditBlocks extends AbstractPaymentMethodType
-{
+final class LknWcCieloCreditBlocks extends AbstractPaymentMethodType {
     private $gateway;
     protected $name = 'lkn_cielo_credit';
 
-    public function initialize(): void
-    {
+    public function initialize(): void {
         $this->settings = get_option('woocommerce_lkn_cielo_credit_settings', array());
         $this->gateway = new LknWCGatewayCieloCredit();
     }
 
-    public function is_active()
-    {
+    public function is_active() {
         return $this->gateway->is_available();
     }
 
-    public function get_payment_method_script_handles()
-    {
+    public function get_payment_method_script_handles() {
         wp_register_script(
             'lkn_cielo_credit-blocks-integration',
             plugin_dir_url(__FILE__) . '../resources/js/creditCard/lknCieloCredit.js',
@@ -44,18 +40,17 @@ final class LknWcCieloCreditBlocks extends AbstractPaymentMethodType
         return array('lkn_cielo_credit-blocks-integration');
     }
 
-    public function get_payment_method_data()
-    {
+    public function get_payment_method_data() {
         $installmentLimit = $this->gateway->get_option('installment_limit', 12);
         $installments = array();
 
         $installmentLimit = apply_filters('lkn_wc_cielo_set_installment_limit', $installmentLimit, $this->gateway);
 
         for ($i = 1; $i <= 12; $i++) {
-            $installments[] = [
-                'index' => (string)$i,
+            $installments[] = array(
+                'index' => (string) $i,
                 'label' => "teste $i"
-            ];
+            );
         }
         /**
          * @param $installments array

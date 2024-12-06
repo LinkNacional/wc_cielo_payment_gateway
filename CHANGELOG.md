@@ -1,3 +1,6 @@
+# 1.14.1 - 06/12/2024
+* Correção de bug para a função de mostrar logs no pedido.
+
 # 1.14.0 - 05/12/2024
 * Adição de compatibilidade com botão para capturar pedido;
 * Adição de configurações para adicionar logs no pedido;

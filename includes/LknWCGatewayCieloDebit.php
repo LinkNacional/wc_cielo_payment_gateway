@@ -2,7 +2,6 @@
 
 namespace Lkn\WCCieloPaymentGateway\Includes;
 use DateTime;
-
 use Exception;
 use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloHelper;
 use WC_Logger;
@@ -341,13 +340,13 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
         );
 
         if ( $this->get_option('debug') == 'yes' ) {
-            $this->form_fields['show_order_logs'] =  array(
+            $this->form_fields['show_order_logs'] = array(
                 'title' => __('Visualizar Log no Pedido', 'lkn-wc-gateway-cielo'),
                 'type' => 'checkbox',
                 'label' => sprintf('Habilita visualização do log da transação dentro do pedido.', 'lkn-wc-gateway-cielo'),
                 'default' => 'no',
             );
-            $this->form_fields['clear_order_records'] =  array(
+            $this->form_fields['clear_order_records'] = array(
                 'title' => __('Limpar logs nos Pedidos', 'lkn-wc-gateway-cielo'),
                 'type' => 'button',
                 'id' => 'validateLicense',
@@ -1246,13 +1245,13 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
                 'body' => json_decode($args['body'], true), // Decodificar como array associativo
                 'response' => json_decode(json_encode($responseDecoded), true) // Certificar que responseDecoded é um array associativo
             );
-        
+
             // Censurar o número do cartão de crédito
             $orderLogsArray['body']['Payment']['CreditCard']['CardNumber'] = substr($orderLogsArray['body']['Payment']['CreditCard']['CardNumber'], 0, 6) . '******' . substr($orderLogsArray['body']['Payment']['CreditCard']['CardNumber'], -4);
-        
+
             // Remover a parte de "Links"
             unset($orderLogsArray['response']['Payment']['Links']);
-        
+
             $orderLogs = json_encode($orderLogsArray);
             $order->update_meta_data('lknWcCieloOrderLogs', $orderLogs);
         }
