@@ -49,7 +49,7 @@ Nota: As credenciais para ambientes de produção e teste são diferentes, ao al
 
 # lkn_wc_cielo_set_installment_limit
 
-| Tipo            | Descrição                               | Parametros                                                 |
+| Tipo            | Descrição                               | Parâmetros                                                 |
 |-----------------|-----------------------------------------|------------------------------------------------------------|
 | `apply_filters` | Define o número limite de parcelamento. | `string $limit = '12', AbstractPaymentMethodType $gateway` |
 
@@ -70,7 +70,7 @@ Nota: As credenciais para ambientes de produção e teste são diferentes, ao al
 
 # lkn_wc_cielo_set_installments
 
-| Tipo            | Descrição                               | Parametros                                                     |
+| Tipo            | Descrição                               | Parâmetros                                                     |
 |-----------------|-----------------------------------------|----------------------------------------------------------------|
 | `apply_filters` | Define o nome da label nas opções.      | `Array $installments = [], AbstractPaymentMethodType $gateway` |
 
