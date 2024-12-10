@@ -21,7 +21,7 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType {
     public function get_payment_method_script_handles() {
         wp_register_script(
             'lkn_cielo_debit-blocks-integration',
-            plugin_dir_url( __FILE__ ) . '../resources/js/debitCard/lknCieloDebit.js',
+            plugin_dir_url( __FILE__ ) . '../resources/js/debitCard/lknCieloDebitCompiled.js',
             array(
                 'wc-blocks-registry',
                 'wc-settings',

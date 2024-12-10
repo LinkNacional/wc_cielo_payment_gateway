@@ -21,7 +21,7 @@ final class LknWcCieloCreditBlocks extends AbstractPaymentMethodType {
     public function get_payment_method_script_handles() {
         wp_register_script(
             'lkn_cielo_credit-blocks-integration',
-            plugin_dir_url(__FILE__) . '../resources/js/creditCard/lknCieloCredit.js',
+            plugin_dir_url(__FILE__) . '../resources/js/creditCard/lknCieloCreditCompiled.js',
             array(
                 'wc-blocks-registry',
                 'wc-settings',

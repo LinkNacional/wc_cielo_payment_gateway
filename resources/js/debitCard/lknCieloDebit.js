@@ -1,3 +1,6 @@
+import React from 'react';
+import Cards from 'react-credit-cards';
+import 'react-credit-cards/es/styles-compiled.css';
 const lknDCsettingsCielo = window.wc.wcSettings.getSetting('lkn_cielo_debit_data', {});
 const lknDCLabelCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.title);
 const lknDCAccessTokenCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.accessToken);
@@ -75,6 +78,7 @@ const lknDCContentCielo = props => {
     // Definir padrão como 1 parcela
     lkn_cc_type: 'Credit'
   });
+  const [focus, setFocus] = window.wp.element.useState('');
   const formatDebitCardNumber = value => {
     if (value?.length > 24) return debitObject.lkn_dcno;
     // Remove caracteres não numéricos
@@ -346,14 +350,30 @@ const lknDCContentCielo = props => {
       }
     }, 500);
   }, []);
-  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", null, "Pagamento processado pela Cielo API 3.0")), /*#__PURE__*/React.createElement(wcComponents.TextInput, {
+  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", null, "Pagamento processado pela Cielo API 3.0")), /*#__PURE__*/React.createElement(Cards, {
+    number: debitObject.lkn_dcno,
+    name: debitObject.lkn_dc_cardholder_name,
+    expiry: debitObject.lkn_dc_expdate.replace(/\s+/g, ''),
+    cvc: debitObject.lkn_dc_cvc,
+    placeholders: {
+      name: 'NOME',
+      expiry: 'MM/ANO',
+      cvc: 'CVC',
+      number: '•••• •••• •••• ••••'
+    },
+    locale: {
+      valid: 'VÁLIDO ATÉ'
+    },
+    focused: focus
+  }), /*#__PURE__*/React.createElement(wcComponents.TextInput, {
     id: "lkn_dc_cardholder_name",
     label: lknDCTranslationsDebitCielo.cardHolder,
     value: debitObject.lkn_dc_cardholder_name,
     onChange: value => {
       updatedebitObject('lkn_dc_cardholder_name', value);
     },
-    required: true
+    required: true,
+    onFocus: () => setFocus('name')
   }), /*#__PURE__*/React.createElement(wcComponents.TextInput, {
     id: "lkn_dcno",
     label: lknDCTranslationsDebitCielo.cardNumber,
@@ -361,7 +381,8 @@ const lknDCContentCielo = props => {
     onChange: value => {
       updatedebitObject('lkn_dcno', formatDebitCardNumber(value));
     },
-    required: true
+    required: true,
+    onFocus: () => setFocus('number')
   }), /*#__PURE__*/React.createElement(wcComponents.TextInput, {
     id: "lkn_dc_expdate",
     label: lknDCTranslationsDebitCielo.cardExpiryDate,
@@ -369,7 +390,8 @@ const lknDCContentCielo = props => {
     onChange: value => {
       updatedebitObject('lkn_dc_expdate', value);
     },
-    required: true
+    required: true,
+    onFocus: () => setFocus('expiry')
   }), /*#__PURE__*/React.createElement(wcComponents.TextInput, {
     id: "lkn_dc_cvc",
     label: lknDCTranslationsDebitCielo.securityCode,
@@ -377,7 +399,8 @@ const lknDCContentCielo = props => {
     onChange: value => {
       updatedebitObject('lkn_dc_cvc', value);
     },
-    required: true
+    required: true,
+    onFocus: () => setFocus('cvc')
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       marginBottom: '30px'
