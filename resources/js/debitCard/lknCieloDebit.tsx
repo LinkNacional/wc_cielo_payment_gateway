@@ -1,6 +1,7 @@
 const lknDCsettingsCielo = window.wc.wcSettings.getSetting('lkn_cielo_debit_data', {})
 const lknDCLabelCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.title)
 const lknDCAccessTokenCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.accessToken)
+const lknDCAccessTokenExpiration = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.accessTokenExpiration)
 const lknDCActiveInstallmentCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.activeInstallment)
 const lknDCUrlCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.url)
 const lknDCTotalCartCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.totalCart)
@@ -459,6 +460,7 @@ const lknDCContentCielo = (props) => {
         <input type="hidden" name="lkn_auth_enabled_notifyonly" className="bpmpi_auth_notifyonly" value="true" />
         <input type="hidden" name="lkn_auth_suppresschallenge" className="bpmpi_auth_suppresschallenge" value="false" />
         <input type="hidden" name="lkn_access_token" className="bpmpi_accesstoken" value={lknDCAccessTokenCielo} />
+        <input type="hidden" name="lkn_expires_in" id="expires_in" value={lknDCAccessTokenExpiration} />
         <input type="hidden" size="50" name="lkn_order_number" className="bpmpi_ordernumber" value={lknDCOrderNumberCielo} />
         <input type="hidden" name="lkn_currency" className="bpmpi_currency" value="BRL" />
         <input type="hidden" size="50" id="lkn_cielo_3ds_value" name="lkn_amount" className="bpmpi_totalamount" value={lknDCTotalCartCielo} />

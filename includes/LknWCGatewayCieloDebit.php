@@ -86,7 +86,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
         $post = get_post();
         if ($post && has_shortcode($post->post_content, 'woocommerce_checkout')) {
             wp_enqueue_script('lkn-fix-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-dc-script-fix.js', array('wp-i18n', 'jquery'), $this->version, false);
-            wp_localize_script('lkn-fix-script', 'lknWcCieloPaymentGatewayToken', $this->accessToken);
+            wp_localize_script('lkn-fix-script', 'lknWcCieloPaymentGatewayToken', $this->accessToken['access_token']);
         }
 
         // Actions.
@@ -168,6 +168,8 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
         wp_enqueue_style('lkn-dc-style', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-dc-style.css', array(), $this->version, 'all');
 
         wp_enqueue_style('lkn-mask', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-mask.css', array(), $this->version, 'all');
+        
+        wp_enqueue_script('lkn-fix-token-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-fix-token-script.js', array('jquery'), $this->version, false);
     }
 
     /**
@@ -403,7 +405,10 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
             $responseDecoded = json_decode($response['body']);
 
             if (isset($responseDecoded->access_token)) {
-                return $responseDecoded->access_token;
+                return array(
+                    'access_token' => $responseDecoded->access_token,
+                    'expires_in' => $responseDecoded->expires_in,
+                );
             }
         } catch ( Exception $e ) {
             $this->add_error( $e->getMessage() );
@@ -559,7 +564,13 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
         type="hidden"
         name="lkn_access_token"
         class="bpmpi_accesstoken"
-        value="<?php echo esc_attr($accessToken); ?>"
+        value="<?php echo esc_attr($accessToken['access_token']); ?>"
+    />
+    <input
+        type="hidden"
+        name="lkn_expires_in"
+        id="expires_in"
+        value="<?php echo esc_attr($accessToken['expires_in']); ?>"
     />
     <input
         type="hidden"
@@ -1221,7 +1232,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
         }
 
         $response = wp_remote_post($url . '1/sales', $args);
-
+       /*  throw new Exception(json_encode($args)); */
         if (is_wp_error($response)) {
             if ('yes' === $debug) {
                 $this->log->log('error', var_export($response->get_error_messages(), true), array('source' => 'woocommerce-cielo-debit'));

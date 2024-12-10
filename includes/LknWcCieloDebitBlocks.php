@@ -82,11 +82,13 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType {
                 $billingDocument = '';
             }
         }
+        $acessToken = $this->gateway->generate_debit_auth_token();
 
         return array(
             'title' => $this->gateway->title,
             'description' => $this->gateway->description,
-            'accessToken' => $this->gateway->generate_debit_auth_token(),
+            'accessToken' => $acessToken['access_token'],
+            'accessTokenExpiration' => $acessToken['expires_in'],
             'url' => get_page_link(),
             'orderNumber' => uniqid(),
             'activeInstallment' => $this->gateway->get_option('installment_payment'),

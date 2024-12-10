@@ -18,6 +18,12 @@ final class LknWCGatewayCieloEndpoint {
             'callback' => array($this, 'clearOrderLogs'),
             'permission_callback' => '__return_true',
         ));
+
+        register_rest_route('lknWCGatewayCielo', '/getAcessToken', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'getAcessToken'),
+            'permission_callback' => '__return_true',
+        ));
     }
 
     public function orderCapture($request) {
@@ -86,5 +92,12 @@ final class LknWCGatewayCieloEndpoint {
         }
 
         return new WP_REST_Response($orders, 200);
+    }
+    
+    public function getAcessToken() {
+        $LknWCGatewayCieloDebitClass = new LknWCGatewayCieloDebit();
+        $acessToken = $LknWCGatewayCieloDebitClass->generate_debit_auth_token();
+
+        return new WP_REST_Response($acessToken, 200);
     }
 }
