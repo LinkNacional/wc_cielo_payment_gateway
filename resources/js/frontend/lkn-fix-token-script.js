@@ -3,7 +3,6 @@
         const lknWcGatewayCieloRenewToken = () => {
             const expiresInput = document.querySelector('#expires_in');
             const tokenInput = document.querySelector('.bpmpi_accesstoken');
-            console.log(expiresInput)
             if (expiresInput && tokenInput) {
                 let expiresInSeconds = parseInt(expiresInput.value);
                 setTimeout(() => {

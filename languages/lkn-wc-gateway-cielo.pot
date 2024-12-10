@@ -5,7 +5,7 @@ msgstr ""
 msgid "Adds the Cielo API 3.0 Payments gateway to your WooCommerce website."
 msgstr ""
 
-msgid "Cielo - Credit card"
+msgid "Cielo - Credit Card Legacy"
 msgstr ""
 
 msgid "Please contact Cielo for further assistance."
