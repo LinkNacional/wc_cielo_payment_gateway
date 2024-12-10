@@ -40,7 +40,7 @@
                     // Criar um novo elemento <a> e adicionar o elemento <p> a ele
                     let aElement = document.createElement('a');
                     aElement.textContent = subTitle.textContent;
-                    aElement.href = '#';
+                    aElement.href = '#' + subTitle.textContent;
                     aElement.className = 'nav-tab';
                     aElement.onclick = (event) => {
                         lknWcCieloCreditBlocksSettingsLayoutMenuVar = index + 1;
@@ -130,6 +130,14 @@
                         }
                     }
                 }, true);
+
+                const urlHash = window.location.hash;
+                if (urlHash) {
+                    const targetElement = aElements.find(a => a.href.endsWith(urlHash));
+                    if (targetElement) {
+                        targetElement.click();
+                    }
+                }
             }
 
             let hrElement = document.createElement('hr');
