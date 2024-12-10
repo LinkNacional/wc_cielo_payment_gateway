@@ -338,23 +338,20 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
                     __('View logs', 'lkn-wc-gateway-cielo')
                 ),
                 'default' => 'no',
-            )
-        );
-
-        if ( $this->get_option('debug') == 'yes' ) {
-            $this->form_fields['show_order_logs'] = array(
+            ),
+            'show_order_logs' => array(
                 'title' => __('Visualizar Log no Pedido', 'lkn-wc-gateway-cielo'),
                 'type' => 'checkbox',
                 'label' => sprintf('Habilita visualização do log da transação dentro do pedido.', 'lkn-wc-gateway-cielo'),
                 'default' => 'no',
-            );
-            $this->form_fields['clear_order_records'] = array(
+            ),
+            'clear_order_records' => array(
                 'title' => __('Limpar logs nos Pedidos', 'lkn-wc-gateway-cielo'),
                 'type' => 'button',
                 'id' => 'validateLicense',
                 'class' => 'woocommerce-save-button components-button is-primary'
-            );
-        }
+            )
+        );
 
         $customConfigs = apply_filters('lkn_wc_cielo_get_custom_configs', array(), $this->id);
 

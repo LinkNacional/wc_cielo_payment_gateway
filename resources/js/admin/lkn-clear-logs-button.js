@@ -6,6 +6,27 @@ const lknWcCieloSection = lknWcCieloUrlParams.get('section')
 
 document.addEventListener('DOMContentLoaded', function () { 
   const lknWcCieloValidateButton = document.querySelector(`#woocommerce_${lknWcCieloSection}_clear_order_records`)
+  const lknWcCieloShowOrderLogs = document.querySelector(`#woocommerce_${lknWcCieloSection}_show_order_logs`)
+  const lknWcCieloDebug = document.querySelector(`#woocommerce_${lknWcCieloSection}_debug`)
+
+  function changeShowOrderLogs() {
+    if(!lknWcCieloDebug.checked) {
+      lknWcCieloShowOrderLogs.checked = false
+      lknWcCieloShowOrderLogs.disabled = true
+    }
+    else{
+      lknWcCieloShowOrderLogs.disabled = false
+    }
+  }
+
+  if(lknWcCieloDebug && lknWcCieloShowOrderLogs) {
+    changeShowOrderLogs()
+    lknWcCieloDebug.onchange = () => {
+      changeShowOrderLogs()
+    }
+  }
+
+
   const lknWcCieloForValidateButton = document.querySelector(`label[for="woocommerce_${lknWcCieloSection}_clear_order_records"]`)
   if (lknWcCieloForValidateButton) {
     lknWcCieloForValidateButton.removeAttribute('for')
