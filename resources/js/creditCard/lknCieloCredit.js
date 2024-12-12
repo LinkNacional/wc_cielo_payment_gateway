@@ -5,6 +5,7 @@ const lknCCSettingsCielo = window.wc.wcSettings.getSetting('lkn_cielo_credit_dat
 const lknCCLabelCielo = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.title);
 const lknCCActiveInstallmentCielo = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.activeInstallment);
 const lknCCTotalCartCielo = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.totalCart);
+const lknCCShowCard = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.showCard);
 const lknCCInstallmentLimitCielo = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.installmentLimit);
 const lknCCinstallmentsCielo = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.installments);
 const lknCCTranslationsCielo = lknCCSettingsCielo.translations;
@@ -191,7 +192,7 @@ const lknCCContentCielo = props => {
       unsubscribe();
     };
   }, [creditObject, emitResponse.responseTypes.ERROR, emitResponse.responseTypes.SUCCESS, onPaymentSetup]);
-  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", null, "Pagamento processado pela Cielo API 3.0")), /*#__PURE__*/React.createElement(Cards, {
+  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", null, "Pagamento processado pela Cielo API 3.0")), lknCCShowCard !== 'no' && /*#__PURE__*/React.createElement(Cards, {
     number: creditObject.lkn_ccno,
     name: creditObject.lkn_cc_cardholder_name,
     expiry: creditObject.lkn_cc_expdate.replace(/\s+/g, ''),

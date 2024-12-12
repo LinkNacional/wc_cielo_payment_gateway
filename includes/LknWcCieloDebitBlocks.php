@@ -102,6 +102,7 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType {
             'client_ip' => $this->get_client_ip(),
             'user_guest' => ! is_user_logged_in(),
             'authentication_method' => is_user_logged_in() ? '02' : '01',
+            'showCard' => $this->gateway->get_option('show_card_animation'),
             'client' => array(
                 'name' => $user->display_name,
                 'email' => $user->user_email,

@@ -269,6 +269,13 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
                 'default' => 'no',
                 'desc_tip' => true,
             ),
+            'show_card_animation' => array(
+                'title' => __('Exibir cartão animado', 'lkn-wc-gateway-cielo'),
+                'type' => 'checkbox',
+                'label' => __('Exibir cartão animado durante o checkout', 'lkn-wc-gateway-cielo'),
+                'description' => __('Exibe um cartão com animações durante o checkout de pagamento do pedido.', 'lkn-wc-gateway-cielo'),
+                'default' => 'yes',
+            ),
             'developer' => array(
                 'title' => esc_attr__('Developer', 'lkn-wc-gateway-cielo'),
                 'type' => 'title',

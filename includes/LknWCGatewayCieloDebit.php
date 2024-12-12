@@ -324,6 +324,13 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
                 'description' => __('Para cartões inelegíveis seguir com a transação sem autenticação, menos seguro mas maior conversão.', 'lkn-wc-gateway-cielo'),
                 'default' => 'no',
             ),
+            'show_card_animation' => array(
+                'title' => __('Exibir cartão animado', 'lkn-wc-gateway-cielo'),
+                'type' => 'checkbox',
+                'label' => __('Exibir cartão animado durante o checkout', 'lkn-wc-gateway-cielo'),
+                'description' => __('Exibe um cartão com animações durante o checkout de pagamento do pedido.', 'lkn-wc-gateway-cielo'),
+                'default' => 'yes',
+            ),
             'developer' => array(
                 'title' => esc_attr__( 'Developer', 'lkn-wc-gateway-cielo' ),
                 'type' => 'title',

@@ -6,6 +6,7 @@ const lknDCsettingsCielo = window.wc.wcSettings.getSetting('lkn_cielo_debit_data
 const lknDCLabelCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.title)
 const lknDCAccessTokenCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.accessToken)
 const lknDCAccessTokenExpiration = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.accessTokenExpiration)
+const lknDCshowCard = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.showCard)
 const lknDCActiveInstallmentCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.activeInstallment)
 const lknDCUrlCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.url)
 const lknDCTotalCartCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.totalCart)
@@ -382,20 +383,22 @@ const lknDCContentCielo = (props) => {
         <p>Pagamento processado pela Cielo API 3.0</p>
       </div>
 
-      <Cards
-        number={debitObject.lkn_dcno}
-        name={debitObject.lkn_dc_cardholder_name}
-        expiry={(debitObject.lkn_dc_expdate).replace(/\s+/g, '')}
-        cvc={debitObject.lkn_dc_cvc}
-        placeholders={{
-          name: 'NOME', 
-          expiry: 'MM/ANO',
-          cvc: 'CVC',
-          number: '•••• •••• •••• ••••'
-        }}
-        locale={{ valid: 'VÁLIDO ATÉ' }}
-        focused={focus}
-      />
+      {lknDCshowCard !== 'no' && (
+        <Cards
+          number={debitObject.lkn_dcno}
+          name={debitObject.lkn_dc_cardholder_name}
+          expiry={(debitObject.lkn_dc_expdate).replace(/\s+/g, '')}
+          cvc={debitObject.lkn_dc_cvc}
+          placeholders={{
+            name: 'NOME', 
+            expiry: 'MM/ANO',
+            cvc: 'CVC',
+            number: '•••• •••• •••• ••••'
+          }}
+          locale={{ valid: 'VÁLIDO ATÉ' }}
+          focused={focus}
+        />
+      )}
 
       <wcComponents.TextInput
         id="lkn_dc_cardholder_name"

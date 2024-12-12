@@ -5,6 +5,7 @@ const lknDCsettingsCielo = window.wc.wcSettings.getSetting('lkn_cielo_debit_data
 const lknDCLabelCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.title);
 const lknDCAccessTokenCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.accessToken);
 const lknDCAccessTokenExpiration = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.accessTokenExpiration);
+const lknDCshowCard = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.showCard);
 const lknDCActiveInstallmentCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.activeInstallment);
 const lknDCUrlCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.url);
 const lknDCTotalCartCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.totalCart);
@@ -350,7 +351,7 @@ const lknDCContentCielo = props => {
       }
     }, 500);
   }, []);
-  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", null, "Pagamento processado pela Cielo API 3.0")), /*#__PURE__*/React.createElement(Cards, {
+  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", null, "Pagamento processado pela Cielo API 3.0")), lknDCshowCard !== 'no' && /*#__PURE__*/React.createElement(Cards, {
     number: debitObject.lkn_dcno,
     name: debitObject.lkn_dc_cardholder_name,
     expiry: debitObject.lkn_dc_expdate.replace(/\s+/g, ''),
