@@ -1,3 +1,12 @@
+# 1.15.0 - 20/12/2024
+* Adição de função para renovar token;
+* Adição de configuração para exibir logs de transação no pedido;
+* Adição de cartão animado no checkout do editor por blocos;
+* Adição de configuração para exibir e ocultar cartão animado;
+* Adição de seleção automática das abas quando a página configurações é recarregada.
+* Alteração de label do método de pagamento de crédito;
+* Alteração em urls de endpoints.
+
 # 1.14.1 - 06/12/2024
 * Correção de bug para a função de mostrar logs no pedido.
 
