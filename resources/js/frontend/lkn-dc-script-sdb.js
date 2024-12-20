@@ -46,7 +46,7 @@ const { __ } = wp.i18n;
 
       lknWcCieloCcDcNo.onchange = (e) => {
         const cardBin = e.target.value.substring(0, 6)
-        const url = window.location.origin + '/wp-json/lknWCGatewayCielo/checkCard?cardbin=' + cardBin
+        const url = wpApiSettings.root + 'lknWCGatewayCielo/checkCard?cardbin=' + cardBin
         $.ajax({
           url,
           type: 'GET',

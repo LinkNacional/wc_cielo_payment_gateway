@@ -21,7 +21,7 @@ final class LknWcCieloCreditBlocks extends AbstractPaymentMethodType {
     public function get_payment_method_script_handles() {
         wp_register_script(
             'lkn_cielo_credit-blocks-integration',
-            plugin_dir_url(__FILE__) . '../resources/js/creditCard/lknCieloCredit.js',
+            plugin_dir_url(__FILE__) . '../resources/js/creditCard/lknCieloCreditCompiled.js',
             array(
                 'wc-blocks-registry',
                 'wc-settings',
@@ -66,6 +66,7 @@ final class LknWcCieloCreditBlocks extends AbstractPaymentMethodType {
             'installmentLimit' => $installmentLimit,
             'installments' => $installments,
             'totalCart' => $this->gateway->lknGetCartTotal(),
+            'showCard' => $this->gateway->get_option('show_card_animation'),
             'nonceCieloCredit' => wp_create_nonce('nonce_lkn_cielo_credit'),
             'translations' => array(
                 'cardNumber' => __('Card Number', 'lkn-wc-gateway-cielo'),

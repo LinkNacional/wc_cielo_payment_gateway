@@ -4,7 +4,7 @@ Donate link: https://www.linknacional.com.br/wordpress/woocommerce/cielo/
 Tags: woocommerce, payment, paymethod, card, credit
 Requires at least: 5.7
 Tested up to: 6.7
-Stable tag: 1.14.1
+Stable tag: 1.15.0
 Requires PHP: 7.2
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -93,6 +93,16 @@ Payment Gateway for Cielo API on WooCommerce plugin is dependent on WooCommerce 
 7. Debit card front page with payment fields.
 
 == Changelog ==
+= 1.15.0 =
+**20/12/2024**
+* Add function to renew token;
+* Add configuration to display transaction logs in the order;
+* Add animated card in the block editor checkout;
+* Add configuration to show and hide animated card;
+* Add automatic tab selection when the settings page is reloaded;
+* Change credit payment method label;
+* Change endpoint URLs.
+
 = 1.14.1 =
 **06/12/2024**
 * Fix bug on show detailed logs on order.
