@@ -28,6 +28,7 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType {
                 'wp-element',
                 'wp-html-entities',
                 'wp-i18n',
+                'wp-api'
             ),
             '1.0.0',
             true

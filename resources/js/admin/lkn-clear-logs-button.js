@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function () {
       if (confirm(lknWcCieloTranslations.alertText)) {
         jQuery.ajax({
           type: 'DELETE',
-          url: window.location.origin + '/wp-json/lknWCGatewayCielo/clearOrderLogs',
+          url: wpApiSettings.root + 'lknWCGatewayCielo/clearOrderLogs',
           contentType: 'application/json',
           success: function (status) {
             lknWcCieloValidateButton.disabled = false

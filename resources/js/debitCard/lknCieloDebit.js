@@ -124,7 +124,7 @@ const lknDCContentCielo = props => {
       case 'lkn_dcno':
         if (value.length > 7) {
           var cardBin = value.replace(' ', '').substring(0, 6);
-          var url = window.location.origin + '/wp-json/lknWCGatewayCielo/checkCard?cardbin=' + cardBin;
+          var url = wpApiSettings.root + 'lknWCGatewayCielo/checkCard?cardbin=' + cardBin;
           if (cardBin !== cardBinState) {
             setCardBinState(cardBin); // Mova o setCardBinState para antes da requisição
 

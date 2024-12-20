@@ -7,7 +7,7 @@
                 let expiresInSeconds = parseInt(expiresInput.value);
                 setTimeout(() => {
                     $.ajax({
-                        url: '/wp-json/lknWCGatewayCielo/getAcessToken',
+                        url: wpApiSettings.root + 'lknWCGatewayCielo/getAcessToken',
                         contentType: 'application/json',
                         method: 'GET',
                         success: function(response) {

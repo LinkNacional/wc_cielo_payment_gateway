@@ -361,3 +361,15 @@ msgstr "A captura das transações esta configurada em manual. Portanto após a 
 
 msgid "Automatic capture."
 msgstr "Captura automática."
+
+msgid "Allows pix payment with Cielo API 3.0."
+msgstr "Permite pagamento via pix com a API 3.0 da Cielo."
+
+msgid "Before using Pix in production, make sure that Pix is enabled in your registration. To confirm, just access the"
+msgstr "Antes de usar o Pix em produção, certifique-se de que o pix está liberado em seu cadastro. Para confirmar basta acessar o"
+
+msgid "portal Cielo"
+msgstr "Cielo portal"
+
+msgid "na área logada em Meu Cadastro > Autorizações > PIX"
+msgstr "in the logged-in area under My Registration > Authorizations > PIX"
