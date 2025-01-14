@@ -94,12 +94,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
 
         // Action hook to load admin JavaScript
         if (function_exists('get_plugins')) {
-            // Only load if pro plugin doesn't exist
-            $activeProPlugin = is_plugin_active('lkn-cielo-api-pro/lkn-cielo-api-pro.php');
-
-            if (false == $activeProPlugin) {
-                add_action('admin_enqueue_scripts', array($this, 'admin_load_script'));
-            }
+            add_action('admin_enqueue_scripts', array($this, 'admin_load_script'));
         }
     }
 
