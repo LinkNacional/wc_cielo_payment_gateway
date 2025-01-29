@@ -81,7 +81,10 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
         $this->description = $this->get_option('description');
         $this->instructions = $this->get_option('instructions', $this->description);
         $this->log = new WC_Logger();
-        $this->accessToken = $this->generate_debit_auth_token();
+        $gateway_enabled = get_option('woocommerce_' . $this->id . '_settings');
+        if($gateway_enabled['enabled'] === 'yes'){
+            $this->accessToken = $this->generate_debit_auth_token();
+        }
 
         $post = get_post();
         if ($post && has_shortcode($post->post_content, 'woocommerce_checkout')) {
