@@ -81,12 +81,15 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
         $this->description = $this->get_option('description');
         $this->instructions = $this->get_option('instructions', $this->description);
         $this->log = new WC_Logger();
-        $this->accessToken = $this->generate_debit_auth_token();
+        $gateway_enabled = get_option('woocommerce_' . $this->id . '_settings');
+        if($gateway_enabled['enabled'] === 'yes'){
+            $this->accessToken = $this->generate_debit_auth_token();
+        }
 
         $post = get_post();
         if ($post && has_shortcode($post->post_content, 'woocommerce_checkout')) {
             wp_enqueue_script('lkn-fix-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-dc-script-fix.js', array('wp-i18n', 'jquery'), $this->version, false);
-            wp_localize_script('lkn-fix-script', 'lknWcCieloPaymentGatewayToken', $this->accessToken);
+            wp_localize_script('lkn-fix-script', 'lknWcCieloPaymentGatewayToken', $this->accessToken['access_token']);
         }
 
         // Actions.
@@ -96,12 +99,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
 
         // Action hook to load admin JavaScript
         if (function_exists('get_plugins')) {
-            // Only load if pro plugin doesn't exist
-            $activeProPlugin = is_plugin_active('lkn-cielo-api-pro/lkn-cielo-api-pro.php');
-
-            if (false == $activeProPlugin) {
-                add_action('admin_enqueue_scripts', array($this, 'admin_load_script'));
-            }
+            add_action('admin_enqueue_scripts', array($this, 'admin_load_script'));
         }
     }
 
@@ -118,7 +116,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
         if ( 'wc-settings' === $page && 'checkout' === $tab && $section == $this->id) {
             wp_enqueue_script('lknWCGatewayCieloDebitSettingsLayoutScript', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-wc-gateway-admin-layout.js', array('jquery'), $this->version, false);
             wp_enqueue_style('lkn-admin-layout', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-admin-layout.css', array(), $this->version, 'all');
-            wp_enqueue_script('lknWCGatewayCieloDebitClearButtonScript', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-clear-logs-button.js', array('jquery'), $this->version, false);
+            wp_enqueue_script('lknWCGatewayCieloDebitClearButtonScript', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-clear-logs-button.js', array('jquery', 'wp-api'), $this->version, false);
             wp_localize_script('lknWCGatewayCieloDebitClearButtonScript', 'lknWcCieloTranslations', array(
                 'clearLogs' => __('Limpar Logs', 'lkn-wc-gateway-cielo'),
                 'alertText' => __('Deseja realmente deletar todos logs dos pedidos?', 'lkn-wc-gateway-cielo')
@@ -151,10 +149,10 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
         $installmentArgs = apply_filters('lkn_wc_cielo_js_credit_args', array('installment_min' => '5'));
 
         if ('production' === $env) {
-            wp_enqueue_script('lkn-dc-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-dc-script-prd.js', array('wp-i18n', 'jquery'), $this->version, false);
+            wp_enqueue_script('lkn-dc-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-dc-script-prd.js', array('wp-i18n', 'jquery', 'wp-api'), $this->version, false);
             wp_set_script_translations('lkn-dc-script', 'lkn-wc-gateway-cielo', LKN_WC_CIELO_TRANSLATION_PATH);
         } else {
-            wp_enqueue_script('lkn-dc-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-dc-script-sdb.js', array('wp-i18n', 'jquery'), $this->version, false);
+            wp_enqueue_script('lkn-dc-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-dc-script-sdb.js', array('wp-i18n', 'jquery', 'wp-api'), $this->version, false);
             wp_set_script_translations('lkn-dc-script', 'lkn-wc-gateway-cielo', LKN_WC_CIELO_TRANSLATION_PATH);
         }
         wp_localize_script('lkn-dc-script', 'lknDCDirScript3DSCieloShortCode', LKN_WC_GATEWAY_CIELO_URL . 'resources/js/debitCard/BP.Mpi.3ds20.min.js');
@@ -168,6 +166,8 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
         wp_enqueue_style('lkn-dc-style', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-dc-style.css', array(), $this->version, 'all');
 
         wp_enqueue_style('lkn-mask', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-mask.css', array(), $this->version, 'all');
+        
+        wp_enqueue_script('lkn-fix-token-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-fix-token-script.js', array('jquery', 'wp-api'), $this->version, false);
     }
 
     /**
@@ -322,6 +322,13 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
                 'description' => __('Para cartões inelegíveis seguir com a transação sem autenticação, menos seguro mas maior conversão.', 'lkn-wc-gateway-cielo'),
                 'default' => 'no',
             ),
+            'show_card_animation' => array(
+                'title' => __('Exibir cartão animado', 'lkn-wc-gateway-cielo'),
+                'type' => 'checkbox',
+                'label' => __('Exibir cartão animado durante o checkout', 'lkn-wc-gateway-cielo'),
+                'description' => __('Exibe um cartão com animações durante o checkout de pagamento do pedido.', 'lkn-wc-gateway-cielo'),
+                'default' => 'yes',
+            ),
             'developer' => array(
                 'title' => esc_attr__( 'Developer', 'lkn-wc-gateway-cielo' ),
                 'type' => 'title',
@@ -336,23 +343,20 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
                     __('View logs', 'lkn-wc-gateway-cielo')
                 ),
                 'default' => 'no',
-            )
-        );
-
-        if ( $this->get_option('debug') == 'yes' ) {
-            $this->form_fields['show_order_logs'] = array(
+            ),
+            'show_order_logs' => array(
                 'title' => __('Visualizar Log no Pedido', 'lkn-wc-gateway-cielo'),
                 'type' => 'checkbox',
                 'label' => sprintf('Habilita visualização do log da transação dentro do pedido.', 'lkn-wc-gateway-cielo'),
                 'default' => 'no',
-            );
-            $this->form_fields['clear_order_records'] = array(
+            ),
+            'clear_order_records' => array(
                 'title' => __('Limpar logs nos Pedidos', 'lkn-wc-gateway-cielo'),
                 'type' => 'button',
                 'id' => 'validateLicense',
                 'class' => 'woocommerce-save-button components-button is-primary'
-            );
-        }
+            )
+        );
 
         $customConfigs = apply_filters('lkn_wc_cielo_get_custom_configs', array(), $this->id);
 
@@ -403,7 +407,10 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
             $responseDecoded = json_decode($response['body']);
 
             if (isset($responseDecoded->access_token)) {
-                return $responseDecoded->access_token;
+                return array(
+                    'access_token' => $responseDecoded->access_token,
+                    'expires_in' => $responseDecoded->expires_in,
+                );
             }
         } catch ( Exception $e ) {
             $this->add_error( $e->getMessage() );
@@ -559,7 +566,13 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
         type="hidden"
         name="lkn_access_token"
         class="bpmpi_accesstoken"
-        value="<?php echo esc_attr($accessToken); ?>"
+        value="<?php echo esc_attr($accessToken['access_token']); ?>"
+    />
+    <input
+        type="hidden"
+        name="lkn_expires_in"
+        id="expires_in"
+        value="<?php echo esc_attr($accessToken['expires_in']); ?>"
     />
     <input
         type="hidden"
@@ -1221,7 +1234,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
         }
 
         $response = wp_remote_post($url . '1/sales', $args);
-
+       /*  throw new Exception(json_encode($args)); */
         if (is_wp_error($response)) {
             if ('yes' === $debug) {
                 $this->log->log('error', var_export($response->get_error_messages(), true), array('source' => 'woocommerce-cielo-debit'));

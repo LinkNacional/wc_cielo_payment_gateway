@@ -1,7 +1,12 @@
+import React from 'react';
+import Cards from 'react-credit-cards';
+import 'react-credit-cards/es/styles-compiled.css';
+
 const lknCCSettingsCielo = window.wc.wcSettings.getSetting('lkn_cielo_credit_data', {})
 const lknCCLabelCielo = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.title)
 const lknCCActiveInstallmentCielo = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.activeInstallment)
 const lknCCTotalCartCielo = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.totalCart)
+const lknCCShowCard = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.showCard)
 const lknCCInstallmentLimitCielo = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.installmentLimit);
 const lknCCinstallmentsCielo = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.installments);
 const lknCCTranslationsCielo = lknCCSettingsCielo.translations
@@ -20,6 +25,7 @@ const lknCCContentCielo = (props) => {
     lkn_cc_cvc: '',
     lkn_cc_installments: '1', // Definir padrão como 1 parcela
   })
+  const [focus, setFocus] = window.wp.element.useState('')
 
   const formatCreditCardNumber = value => {
     if (value?.length > 24) return creditObject.lkn_ccno
@@ -211,6 +217,23 @@ const lknCCContentCielo = (props) => {
         <p>Pagamento processado pela Cielo API 3.0</p>
       </div>
 
+      {lknCCShowCard !== 'no' && (
+        <Cards
+          number={creditObject.lkn_ccno}
+          name={creditObject.lkn_cc_cardholder_name}
+          expiry={(creditObject.lkn_cc_expdate).replace(/\s+/g, '')}
+          cvc={creditObject.lkn_cc_cvc}
+          placeholders={{
+            name: 'NOME', 
+            expiry: 'MM/ANO',
+            cvc: 'CVC',
+            number: '•••• •••• •••• ••••'
+          }}
+          locale={{ valid: 'VÁLIDO ATÉ' }}
+          focused={focus}
+        />
+      )}
+
       <wcComponents.TextInput
         id="lkn_cc_cardholder_name"
         label={lknCCTranslationsCielo.cardHolder}
@@ -219,6 +242,7 @@ const lknCCContentCielo = (props) => {
           updateCreditObject('lkn_cc_cardholder_name', value)
         }}
         required
+        onFocus={() => setFocus('name')}
       />
 
       <wcComponents.TextInput
@@ -229,6 +253,7 @@ const lknCCContentCielo = (props) => {
           updateCreditObject('lkn_ccno', formatCreditCardNumber(value))
         }}
         required
+        onFocus={() => setFocus('number')}
       />
 
       <wcComponents.TextInput
@@ -239,6 +264,7 @@ const lknCCContentCielo = (props) => {
           updateCreditObject('lkn_cc_expdate', value)
         }}
         required
+        onFocus={() => setFocus('expiry')}
       />
 
       <wcComponents.TextInput
@@ -249,6 +275,7 @@ const lknCCContentCielo = (props) => {
           updateCreditObject('lkn_cc_cvc', value)
         }}
         required
+        onFocus={() => setFocus('cvc')}
       />
 
       <div style={{ marginBottom: '20px' }}></div>

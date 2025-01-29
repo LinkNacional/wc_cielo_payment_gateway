@@ -1,6 +1,12 @@
+import React from 'react';
+import Cards from 'react-credit-cards';
+import 'react-credit-cards/es/styles-compiled.css';
+
 const lknDCsettingsCielo = window.wc.wcSettings.getSetting('lkn_cielo_debit_data', {})
 const lknDCLabelCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.title)
 const lknDCAccessTokenCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.accessToken)
+const lknDCAccessTokenExpiration = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.accessTokenExpiration)
+const lknDCshowCard = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.showCard)
 const lknDCActiveInstallmentCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.activeInstallment)
 const lknDCUrlCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.url)
 const lknDCTotalCartCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.totalCart)
@@ -71,6 +77,7 @@ const lknDCContentCielo = (props) => {
     lkn_cc_installments: '1', // Definir padrão como 1 parcela
     lkn_cc_type: 'Credit',
   })
+  const [focus, setFocus] = window.wp.element.useState('')
 
   const formatDebitCardNumber = value => {
     if (value?.length > 24) return debitObject.lkn_dcno
@@ -119,7 +126,7 @@ const lknDCContentCielo = (props) => {
       case 'lkn_dcno':
         if (value.length > 7) {
           var cardBin = value.replace(' ', '').substring(0, 6);
-          var url = window.location.origin + '/wp-json/lknWCGatewayCielo/checkCard?cardbin=' + cardBin;
+          var url = wpApiSettings.root + 'lknWCGatewayCielo/checkCard?cardbin=' + cardBin;
 
           if (cardBin !== cardBinState) {
             setCardBinState(cardBin);  // Mova o setCardBinState para antes da requisição
@@ -376,6 +383,23 @@ const lknDCContentCielo = (props) => {
         <p>Pagamento processado pela Cielo API 3.0</p>
       </div>
 
+      {lknDCshowCard !== 'no' && (
+        <Cards
+          number={debitObject.lkn_dcno}
+          name={debitObject.lkn_dc_cardholder_name}
+          expiry={(debitObject.lkn_dc_expdate).replace(/\s+/g, '')}
+          cvc={debitObject.lkn_dc_cvc}
+          placeholders={{
+            name: 'NOME', 
+            expiry: 'MM/ANO',
+            cvc: 'CVC',
+            number: '•••• •••• •••• ••••'
+          }}
+          locale={{ valid: 'VÁLIDO ATÉ' }}
+          focused={focus}
+        />
+      )}
+
       <wcComponents.TextInput
         id="lkn_dc_cardholder_name"
         label={lknDCTranslationsDebitCielo.cardHolder}
@@ -384,6 +408,7 @@ const lknDCContentCielo = (props) => {
           updatedebitObject('lkn_dc_cardholder_name', value)
         }}
         required
+        onFocus={() => setFocus('name')}
       />
 
       <wcComponents.TextInput
@@ -394,6 +419,7 @@ const lknDCContentCielo = (props) => {
           updatedebitObject('lkn_dcno', formatDebitCardNumber(value))
         }}
         required
+        onFocus={() => setFocus('number')}
       />
 
       <wcComponents.TextInput
@@ -404,6 +430,7 @@ const lknDCContentCielo = (props) => {
           updatedebitObject('lkn_dc_expdate', value)
         }}
         required
+        onFocus={() => setFocus('expiry')}
       />
 
       <wcComponents.TextInput
@@ -414,6 +441,7 @@ const lknDCContentCielo = (props) => {
           updatedebitObject('lkn_dc_cvc', value)
         }}
         required
+        onFocus={() => setFocus('cvc')}
       />
       <div style={{ marginBottom: '30px' }}></div>
 
@@ -459,6 +487,7 @@ const lknDCContentCielo = (props) => {
         <input type="hidden" name="lkn_auth_enabled_notifyonly" className="bpmpi_auth_notifyonly" value="true" />
         <input type="hidden" name="lkn_auth_suppresschallenge" className="bpmpi_auth_suppresschallenge" value="false" />
         <input type="hidden" name="lkn_access_token" className="bpmpi_accesstoken" value={lknDCAccessTokenCielo} />
+        <input type="hidden" name="lkn_expires_in" id="expires_in" value={lknDCAccessTokenExpiration} />
         <input type="hidden" size="50" name="lkn_order_number" className="bpmpi_ordernumber" value={lknDCOrderNumberCielo} />
         <input type="hidden" name="lkn_currency" className="bpmpi_currency" value="BRL" />
         <input type="hidden" size="50" id="lkn_cielo_3ds_value" name="lkn_amount" className="bpmpi_totalamount" value={lknDCTotalCartCielo} />

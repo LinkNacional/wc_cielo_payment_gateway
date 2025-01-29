@@ -5,7 +5,7 @@ msgstr ""
 msgid "Adds the Cielo API 3.0 Payments gateway to your WooCommerce website."
 msgstr ""
 
-msgid "Cielo - Credit card"
+msgid "Cielo - Credit Card Legacy"
 msgstr ""
 
 msgid "Please contact Cielo for further assistance."
@@ -360,4 +360,16 @@ msgid "Transaction capture is set to manual. Therefore, after the completion of 
 msgstr ""
 
 msgid "Automatic capture."
+msgstr ""
+
+msgid "Allows pix payment with Cielo API 3.0."
+msgstr ""
+
+msgid "Before using Pix in production, make sure that Pix is enabled in your registration. To confirm, just access the"
+msgstr ""
+
+msgid "portal Cielo"
+msgstr ""
+
+msgid "na área logada em Meu Cadastro > Autorizações > PIX"
 msgstr ""

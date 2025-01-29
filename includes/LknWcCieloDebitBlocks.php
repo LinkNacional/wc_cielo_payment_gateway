@@ -21,13 +21,14 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType {
     public function get_payment_method_script_handles() {
         wp_register_script(
             'lkn_cielo_debit-blocks-integration',
-            plugin_dir_url( __FILE__ ) . '../resources/js/debitCard/lknCieloDebit.js',
+            plugin_dir_url( __FILE__ ) . '../resources/js/debitCard/lknCieloDebitCompiled.js',
             array(
                 'wc-blocks-registry',
                 'wc-settings',
                 'wp-element',
                 'wp-html-entities',
                 'wp-i18n',
+                'wp-api'
             ),
             '1.0.0',
             true
@@ -82,11 +83,13 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType {
                 $billingDocument = '';
             }
         }
+        $acessToken = $this->gateway->generate_debit_auth_token();
 
         return array(
             'title' => $this->gateway->title,
             'description' => $this->gateway->description,
-            'accessToken' => $this->gateway->generate_debit_auth_token(),
+            'accessToken' => $acessToken['access_token'],
+            'accessTokenExpiration' => $acessToken['expires_in'],
             'url' => get_page_link(),
             'orderNumber' => uniqid(),
             'activeInstallment' => $this->gateway->get_option('installment_payment'),
@@ -100,6 +103,7 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType {
             'client_ip' => $this->get_client_ip(),
             'user_guest' => ! is_user_logged_in(),
             'authentication_method' => is_user_logged_in() ? '02' : '01',
+            'showCard' => $this->gateway->get_option('show_card_animation'),
             'client' => array(
                 'name' => $user->display_name,
                 'email' => $user->user_email,

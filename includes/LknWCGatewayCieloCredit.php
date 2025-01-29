@@ -70,7 +70,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
 
         $this->supports = apply_filters('lkn_wc_cielo_credit_add_support', $this->supports);
 
-        $this->method_title = __('Cielo - Credit card', 'lkn-wc-gateway-cielo');
+        $this->method_title = __('Cielo - Credit Card Legacy', 'lkn-wc-gateway-cielo');
         $this->method_description = __('Allows credit card payment with Cielo API 3.0.', 'lkn-wc-gateway-cielo');
 
         // Load the settings.
@@ -94,12 +94,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
 
         // Action hook to load admin JavaScript
         if (function_exists('get_plugins')) {
-            // Only load if pro plugin doesn't exist
-            $activeProPlugin = is_plugin_active('lkn-cielo-api-pro/lkn-cielo-api-pro.php');
-
-            if (false == $activeProPlugin) {
-                add_action('admin_enqueue_scripts', array($this, 'admin_load_script'));
-            }
+            add_action('admin_enqueue_scripts', array($this, 'admin_load_script'));
         }
     }
 
@@ -127,7 +122,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
         if ('wc-settings' === $page && 'checkout' === $tab && $section == $this->id) {
             wp_enqueue_script('lknWCGatewayCieloCreditSettingsLayoutScript', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-wc-gateway-admin-layout.js', array('jquery'), $this->version, false);
             wp_enqueue_style('lkn-admin-layout', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-admin-layout.css', array(), $this->version, 'all');
-            wp_enqueue_script('lknWCGatewayCieloCreditClearButtonScript', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-clear-logs-button.js', array('jquery'), $this->version, false);
+            wp_enqueue_script('lknWCGatewayCieloCreditClearButtonScript', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-clear-logs-button.js', array('jquery', 'wp-api'), $this->version, false);
             wp_localize_script('lknWCGatewayCieloCreditClearButtonScript', 'lknWcCieloTranslations', array(
                 'clearLogs' => __('Limpar Logs', 'lkn-wc-gateway-cielo'),
                 'alertText' => __('Deseja realmente deletar todos logs dos pedidos?', 'lkn-wc-gateway-cielo')
@@ -269,6 +264,13 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
                 'default' => 'no',
                 'desc_tip' => true,
             ),
+            'show_card_animation' => array(
+                'title' => __('Exibir cartão animado', 'lkn-wc-gateway-cielo'),
+                'type' => 'checkbox',
+                'label' => __('Exibir cartão animado durante o checkout', 'lkn-wc-gateway-cielo'),
+                'description' => __('Exibe um cartão com animações durante o checkout de pagamento do pedido.', 'lkn-wc-gateway-cielo'),
+                'default' => 'yes',
+            ),
             'developer' => array(
                 'title' => esc_attr__('Developer', 'lkn-wc-gateway-cielo'),
                 'type' => 'title',
@@ -283,23 +285,20 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
                     __('View logs', 'lkn-wc-gateway-cielo')
                 ),
                 'default' => 'no',
-            )
-        );
-
-        if ($this->get_option('debug') == 'yes') {
-            $this->form_fields['show_order_logs'] = array(
+            ),
+            'show_order_logs' => array(
                 'title' => __('Visualizar Log no Pedido', 'lkn-wc-gateway-cielo'),
                 'type' => 'checkbox',
                 'label' => sprintf('Habilita visualização do log da transação dentro do pedido.', 'lkn-wc-gateway-cielo'),
                 'default' => 'no',
-            );
-            $this->form_fields['clear_order_records'] = array(
+            ),
+            'clear_order_records' => array(
                 'title' => __('Limpar logs nos Pedidos', 'lkn-wc-gateway-cielo'),
                 'type' => 'button',
                 'id' => 'validateLicense',
                 'class' => 'woocommerce-save-button components-button is-primary'
-            );
-        }
+            )
+        );
 
         $customConfigs = apply_filters('lkn_wc_cielo_get_custom_configs', array(), $this->id);
 
