@@ -1,3 +1,7 @@
+# 1.16.0 - 31/01/2025
+* Adição do notice de donwloado do plugin: fraud-detection-for-woocommerce.
+* Adição de mensagem de avaliação do plugin no footer.
+
 # 1.15.0 - 20/12/2024
 * Adição de função para renovar token;
 * Adição de configuração para exibir logs de transação no pedido;

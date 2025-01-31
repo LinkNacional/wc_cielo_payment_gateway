@@ -373,3 +373,6 @@ msgstr ""
 
 msgid "na área logada em Meu Cadastro > Autorizações > PIX"
 msgstr ""
+
+msgid "Failed to retrieve card type"
+msgstr ""

@@ -5,31 +5,33 @@ use WC_Order;
 
 final class LknWcCieloHelper {
     public function showOrderLogs(): void {
-        if(isset($_GET['id']) || isset($_GET['post'])) {
-            $order_id = $_GET['id'] ?? $_GET['post'] ?? null;
-            if ($order_id) {
-                $order = wc_get_order( $order_id );
-        
-                if ($order && $order instanceof WC_Order) {
-                    $orderLogs = $order->get_meta('lknWcCieloOrderLogs');
-                    $payment_method_id = $order->get_payment_method();
-                    $options = get_option('woocommerce_' . $payment_method_id . '_settings');
-                    if ($orderLogs && 'yes' === $options['show_order_logs']) {
-                        //carregar css
-                        wp_enqueue_style( 'lkn-wc-cielo-order-logs', plugin_dir_url( __FILE__ ) . '../resources/css/frontend/lkn-admin-order-logs.css', array(), LKN_WC_CIELO_VERSION, 'all' );
-        
-                        $screen = class_exists( '\Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController' ) && wc_get_container()->get( 'Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController' )->custom_orders_table_usage_is_enabled()
-                            ? wc_get_page_screen_id( 'shop-order' )
-                            : 'shop_order';
-        
-                        add_meta_box(
-                            'showOrderLogs',
-                            'Logs das transações',
-                            array($this, 'showLogsContent'),
-                            $screen,
-                            'advanced',
-                        );
-                    }
+        $id = isset($_GET['id']) ? sanitize_text_field(wp_unslash($_GET['id'])) : '';
+        if(empty($id)) {
+            $id = isset($_GET['post']) ? sanitize_text_field(wp_unslash($_GET['post'])) : '';
+        }
+        if(!empty($id)) {
+            $order_id = $id;
+            $order = wc_get_order( $order_id );
+    
+            if ($order && $order instanceof WC_Order) {
+                $orderLogs = $order->get_meta('lknWcCieloOrderLogs');
+                $payment_method_id = $order->get_payment_method();
+                $options = get_option('woocommerce_' . $payment_method_id . '_settings');
+                if ($orderLogs && 'yes' === $options['show_order_logs']) {
+                    //carregar css
+                    wp_enqueue_style( 'lkn-wc-cielo-order-logs', plugin_dir_url( __FILE__ ) . '../resources/css/frontend/lkn-admin-order-logs.css', array(), LKN_WC_CIELO_VERSION, 'all' );
+    
+                    $screen = class_exists( '\Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController' ) && wc_get_container()->get( 'Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController' )->custom_orders_table_usage_is_enabled()
+                        ? wc_get_page_screen_id( 'shop-order' )
+                        : 'shop_order';
+    
+                    add_meta_box(
+                        'showOrderLogs',
+                        'Logs das transações',
+                        array($this, 'showLogsContent'),
+                        $screen,
+                        'advanced',
+                    );
                 }
             }
         }
