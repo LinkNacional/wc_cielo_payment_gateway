@@ -43,17 +43,21 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType {
 
     private function get_client_ip() {
         $ip_address = '';
+        $client_ip = isset($_SERVER['HTTP_CLIENT_IP']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_CLIENT_IP'])) : '';
+        $forwarded_ip = isset($_SERVER['HTTP_X_FORWARDED_FOR']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_X_FORWARDED_FOR'])) : '';
+        $real_ip = isset($_SERVER['HTTP_X_REAL_IP']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_X_REAL_IP'])) : '';
+        $remote_ip = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '';
 
-        if ( ! empty($_SERVER['HTTP_CLIENT_IP'])) {
-            $ip_address = $_SERVER['HTTP_CLIENT_IP'];
-        } elseif ( ! empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        if ( ! empty($client_ip)) {
+            $ip_address = $client_ip;
+        } elseif ( ! empty($forwarded_ip)) {
             // Se estiver atrás de um proxy, `HTTP_X_FORWARDED_FOR` pode conter uma lista de IPs.
-            $ip_list = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+            $ip_list = explode(',', $forwarded_ip);
             $ip_address = trim($ip_list[0]); // Pega o primeiro IP da lista
-        } elseif ( ! empty($_SERVER['HTTP_X_REAL_IP'])) {
-            $ip_address = $_SERVER['HTTP_X_REAL_IP'];
+        } elseif ( ! empty($real_ip)) {
+            $ip_address = $real_ip;
         } else {
-            $ip_address = $_SERVER['REMOTE_ADDR'];
+            $ip_address = $remote_ip;
         }
 
         return $ip_address;

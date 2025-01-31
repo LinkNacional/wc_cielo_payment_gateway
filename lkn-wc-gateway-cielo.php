@@ -82,9 +82,6 @@ final class LknWCCieloPayment
      */
     public static function init(): void
     {
-        // Load text domains
-        add_action('init', array(__CLASS__, 'lkn_wc_gateway_cielo_load_textdomain'));
-
         add_action('beforewoocommerce_init', array(__CLASS__, 'wcEditorBlocksActive'));
         add_action('woocommerce_blocks_payment_method_type_registration', array(__CLASS__, 'wcEditorBlocksAddPaymentMethod'));
 
@@ -204,14 +201,6 @@ final class LknWCCieloPayment
         }
 
         return true;
-    }
-
-    /**
-     * Load the plugin text domain.
-     */
-    public static function lkn_wc_gateway_cielo_load_textdomain(): void
-    {
-        load_plugin_textdomain('lkn-wc-gateway-cielo', false, dirname(plugin_basename(__FILE__)) . '/languages');
     }
 
     /**

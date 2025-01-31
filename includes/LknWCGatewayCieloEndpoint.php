@@ -63,7 +63,7 @@ final class LknWCGatewayCieloEndpoint {
 
         // Verifica se houve algum erro na requisição
         if (is_wp_error($response)) {
-            return new WP_Error('request_failed', __('Failed to retrieve card type', 'your-text-domain'), array('status' => 500));
+            return new WP_Error('request_failed', __('Failed to retrieve card type', 'lkn-wc-gateway-cielo'), array('status' => 500));
         }
 
         // Obtém o corpo da resposta

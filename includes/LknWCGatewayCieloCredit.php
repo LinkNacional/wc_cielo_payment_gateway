@@ -334,7 +334,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
     {
         $activeInstallment = $this->get_option('installment_payment');
         $total_cart = number_format($this->get_order_total(), 2, '.', '');
-        $noLoginCheckout = isset($_GET['pay_for_order']) ? sanitize_text_field($_GET['pay_for_order']) : 'false';
+        $noLoginCheckout = isset($_GET['pay_for_order']) ? sanitize_text_field(wp_unslash($_GET['pay_for_order'])) : 'false';
         $installmentLimit = $this->get_option('installment_limit', 12);
         $installments = array();
         $nonce = wp_create_nonce('nonce_lkn_cielo_credit');
@@ -356,7 +356,8 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
 
         if ('yes' === $activeInstallment) {
             if (isset($_GET['pay_for_order'])) {
-                $order_id = wc_get_order_id_by_order_key(sanitize_text_field($_GET['key']));
+                $key = isset($_GET['key']) ? sanitize_text_field(wp_unslash($_GET['key'])) : '';
+                $order_id = wc_get_order_id_by_order_key($key);
                 $order = wc_get_order($order_id);
                 $total_cart = number_format($order->get_total(), 2, '.', '');
             }
@@ -500,15 +501,17 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
     public function validate_fields()
     {
         $validateCompatMode = $this->get_option('input_validation_compatibility', 'no');
-        if (! wp_verify_nonce($_POST['nonce_lkn_cielo_credit'], 'nonce_lkn_cielo_credit')) {
-            $this->log->log('error', 'Nonce verification failed. Nonce: ' . var_export($_POST['nonce_lkn_cielo_credit'], true), array('source' => 'woocommerce-cielo-credit'));
+        $nonce = isset($_POST['nonce_lkn_cielo_credit']) ? sanitize_text_field(wp_unslash($_POST['nonce_lkn_cielo_credit'])) : '';
+
+        if (! wp_verify_nonce($nonce, 'nonce_lkn_cielo_credit')) {
+            $this->log->log('error', 'Nonce verification failed. Nonce: ' . var_export($nonce, true), array('source' => 'woocommerce-cielo-credit'));
             $this->add_notice_once(__('Nonce verification failed, try reloading the page', 'lkn-wc-gateway-cielo'), 'error');
             return false;
         }
         if ('no' === $validateCompatMode) {
-            $ccnum = sanitize_text_field($_POST['lkn_ccno']);
-            $expDate = sanitize_text_field($_POST['lkn_cc_expdate']);
-            $cvv = sanitize_text_field($_POST['lkn_cc_cvc']);
+            $ccnum = isset($_POST['lkn_ccno']) ? sanitize_text_field(wp_unslash($_POST['lkn_ccno'])) : '';
+            $expDate = isset($_POST['lkn_cc_expdate']) ? sanitize_text_field(wp_unslash($_POST['lkn_cc_expdate'])) : '';
+            $cvv = isset($_POST['lkn_cc_cvc']) ? sanitize_text_field(wp_unslash($_POST['lkn_cc_cvc'])) : '';
 
             $validCcNumber = $this->validate_card_number($ccnum, true);
             $validExpDate = $this->validate_exp_date($expDate, true);
@@ -534,9 +537,10 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
     public function process_payment($order_id)
     {
         $nonceInactive = $this->get_option('nonce_compatibility', 'no');
+        $nonce = isset($_POST['nonce_lkn_cielo_credit']) ? sanitize_text_field(wp_unslash($_POST['nonce_lkn_cielo_credit'])) : '';
 
-        if (! wp_verify_nonce($_POST['nonce_lkn_cielo_credit'], 'nonce_lkn_cielo_credit') && 'no' === $nonceInactive) {
-            $this->log->log('error', 'Nonce verification failed. Nonce: ' . var_export($_POST['nonce_lkn_cielo_credit'], true), array('source' => 'woocommerce-cielo-credit'));
+        if (! wp_verify_nonce($nonce, 'nonce_lkn_cielo_credit') && 'no' === $nonceInactive) {
+            $this->log->log('error', 'Nonce verification failed. Nonce: ' . var_export($nonce, true), array('source' => 'woocommerce-cielo-credit'));
             $this->add_notice_once(__('Nonce verification failed, try reloading the page', 'lkn-wc-gateway-cielo'), 'error');
             throw new Exception(esc_attr(__('Nonce verification failed, try reloading the page', 'lkn-wc-gateway-cielo')));
         }
@@ -544,12 +548,12 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         $order = wc_get_order($order_id);
 
         // Card parameters
-        $cardNum = preg_replace('/\s/', '', sanitize_text_field($_POST['lkn_ccno']));
-        $cardExpSplit = explode('/', preg_replace('/\s/', '', sanitize_text_field($_POST['lkn_cc_expdate'])));
+        $cardNum = preg_replace('/\s/', '', isset($_POST['lkn_ccno']) ? sanitize_text_field(wp_unslash($_POST['lkn_ccno'])) : '');
+        $cardExpSplit = explode('/', preg_replace('/\s/', '', isset($_POST['lkn_cc_expdate']) ? sanitize_text_field(wp_unslash($_POST['lkn_cc_expdate'])) : ''));
         $cardExp = $cardExpSplit[0] . '/20' . $cardExpSplit[1];
         $cardExpShort = $cardExpSplit[0] . '/' . $cardExpSplit[1];
-        $cardCvv = sanitize_text_field($_POST['lkn_cc_cvc']);
-        $cardName = sanitize_text_field($_POST['lkn_cc_cardholder_name']);
+        $cardCvv = isset($_POST['lkn_cc_cvc']) ? sanitize_text_field(wp_unslash($_POST['lkn_cc_cvc'])) : '';
+        $cardName = isset($_POST['lkn_cc_cardholder_name']) ? sanitize_text_field(wp_unslash($_POST['lkn_cc_cardholder_name'])) : '';
         $cardName = apply_filters('lkn_wc_cielo_get_cardholder_name', $cardName, $this, $order);
         $installments = 1;
 
@@ -615,7 +619,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
 
         // If installments option is active verify $_POST attribute
         if ('yes' === $activeInstallment) {
-            $installments = (int) sanitize_text_field($_POST['lkn_cc_installments']);
+            $installments = (int) isset($_POST['lkn_cc_installments']) ? sanitize_text_field(wp_unslash($_POST['lkn_cc_installments'])) : 1;
 
             if ($installments > 12) {
                 if (
