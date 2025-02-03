@@ -6,8 +6,9 @@ use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloHelper;
 use DateTime;
 use Exception;
 use WC_Logger;
-use WC_Payment_Gateway;
 use WC_Subscriptions_Order;
+use WC_Payment_Gateway;
+use WC_Subscription;
 
 /**
  * Lkn_WC_Gateway_Cielo_Credit class.
@@ -666,11 +667,14 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
                     'SecurityCode' => $cardCvv,
                     'SaveCard' => $subscriptionSaveCard,
                     'Brand' => $provider,
+                    'CardOnFile' => array(
+                        'Usage' => 'First'
+                    )
                 ),
             ),
         );
 
-        $body = apply_filters('lkn_wc_cielo_process_body', $body, $_POST, $order_id);
+        do_action('lkn_wc_cielo_zero_auth', $body, $args['headers'], $this);
 
         $args['body'] = wp_json_encode($body);
 
@@ -730,11 +734,20 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
                     'brand' => $provider,
                 );
 
-                // Codificar os dados do cartão de pagamento em base64
-                $paymentOptions = array('payment' => base64_encode(json_encode($cardPayment)));
+                $cardsArray = get_user_meta($user_id, 'card_array', true);
+                $cardsArray = is_array($cardsArray) ? $cardsArray : [];
+                $lastFourDigits = substr($responseDecoded->Payment->CreditCard->CardNumber, -4);
 
-                // Atualizar o user meta com os dados codificados em base64
-                update_user_meta($user_id, 'cielo_card_token', $paymentOptions['payment']);
+                // Adiciona o novo cartão à lista
+                $cardsArray[] = array(
+                    'cardToken' => $cardPayment['cardToken'],
+                    'brand' => $provider,
+                    'lastFourDigits' => $lastFourDigits,
+                );
+
+                // Atualiza os metadados do usuário
+                update_user_meta($user_id, 'card_array', $cardsArray);
+                update_user_meta($user_id, 'default_card', array_key_last($cardsArray));
             }
 
             // Remove cart
