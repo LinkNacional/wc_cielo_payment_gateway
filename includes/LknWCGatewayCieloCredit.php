@@ -93,7 +93,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         // Action hook to load custom JavaScript
         add_action('wp_enqueue_scripts', array($this, 'payment_gateway_scripts'));
 
-        add_action('woocommerce_scheduled_subscription_payment_' . $this->id, array($this, 'process_subscription_payment'), 10, 2);
+        add_action('woocommerce_scheduled_subscription_payment_' . $this->id, array($this, 'process_subscription_payment'), 10, 3);
 
         // Action hook to load admin JavaScript
         if (function_exists('get_plugins')) {
@@ -108,9 +108,9 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
      * @param  WC_Order  $order
      * @return void
      */
-    public function process_subscription_payment($amount, $order): void
+    public function process_subscription_payment($amount, $order, $isRetry = false): void
     {
-        do_action('lkn_wc_cielo_scheduled_subscription_payment', $amount, $order);
+        do_action('lkn_wc_cielo_scheduled_subscription_payment', $amount, $order, $isRetry);
     }
 
     /**
