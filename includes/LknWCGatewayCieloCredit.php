@@ -6,8 +6,9 @@ use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloHelper;
 use DateTime;
 use Exception;
 use WC_Logger;
-use WC_Payment_Gateway;
 use WC_Subscriptions_Order;
+use WC_Payment_Gateway;
+use WC_Subscription;
 
 /**
  * Lkn_WC_Gateway_Cielo_Credit class.
@@ -92,7 +93,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         // Action hook to load custom JavaScript
         add_action('wp_enqueue_scripts', array($this, 'payment_gateway_scripts'));
 
-        add_action('woocommerce_scheduled_subscription_payment_' . $this->id, array($this, 'process_subscription_payment'), 10, 2);
+        add_action('woocommerce_scheduled_subscription_payment_' . $this->id, array($this, 'process_subscription_payment'), 10, 3);
 
         // Action hook to load admin JavaScript
         if (function_exists('get_plugins')) {
@@ -107,9 +108,9 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
      * @param  WC_Order  $order
      * @return void
      */
-    public function process_subscription_payment($amount, $order): void
+    public function process_subscription_payment($amount, $order, $isRetry = false): void
     {
-        do_action('lkn_wc_cielo_scheduled_subscription_payment', $amount, $order);
+        do_action('lkn_wc_cielo_scheduled_subscription_payment', $amount, $order, $isRetry);
     }
 
     /**
@@ -564,6 +565,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         $merchantOrderId = uniqid('invoice_');
         $amount = $order->get_total();
         $capture = ($this->get_option('capture', 'yes') == 'yes') ? true : false;
+        $saveCard = ($this->get_option('save_card_token', 'yes') == 'yes') ? true : false;
         $description = sanitize_text_field($this->get_option('invoiceDesc'));
         $description = preg_replace('/[^a-zA-Z\s]+/', '', $description);
         $description = preg_replace('/\s+/', ' ', $description);
@@ -571,7 +573,6 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         $debug = $this->get_option('debug');
         $currency = $order->get_currency();
         $activeInstallment = $this->get_option('installment_payment');
-        $subscriptionSaveCard = false;
 
         if ($this->validate_card_holder_name($cardName, false) === false) {
             $message = __('Card Holder Name is required!', 'lkn-wc-gateway-cielo');
@@ -607,7 +608,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         // Adicione esta linha para processar o pagamento recorrente se o pedido contiver uma assinatura
         if (class_exists('WC_Subscriptions_Order') && WC_Subscriptions_Order::order_contains_subscription($order_id)) {
             $order = apply_filters('lkn_wc_cielo_process_recurring_payment', $order);
-            $subscriptionSaveCard = true;
+            $saveCard = true;
         }
 
         // Convert the amount to equivalent in BRL
@@ -664,13 +665,16 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
                     'CardNumber' => $cardNum,
                     'ExpirationDate' => $cardExp,
                     'SecurityCode' => $cardCvv,
-                    'SaveCard' => $subscriptionSaveCard,
+                    'SaveCard' => $saveCard,
                     'Brand' => $provider,
+                    'CardOnFile' => array(
+                        'Usage' => 'First'
+                    )
                 ),
             ),
         );
 
-        $body = apply_filters('lkn_wc_cielo_process_body', $body, $_POST, $order_id);
+        do_action('lkn_wc_cielo_zero_auth', $body, $args['headers'], $this);
 
         $args['body'] = wp_json_encode($body);
 
@@ -716,7 +720,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
             $order->add_meta_data('paymentId', $responseDecoded->Payment->PaymentId, true);
             do_action("lkn_wc_cielo_change_order_status", $order, $this, $capture);
 
-            if (class_exists('WC_Subscriptions_Order') && WC_Subscriptions_Order::order_contains_subscription($order_id)) {
+            if ($saveCard || (class_exists('WC_Subscriptions_Order') && WC_Subscriptions_Order::order_contains_subscription($order_id))) {
                 // Salvar o token e a bandeira do cartão no meta do pedido
                 $user_id = $order->get_user_id();
 
@@ -730,11 +734,22 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
                     'brand' => $provider,
                 );
 
-                // Codificar os dados do cartão de pagamento em base64
-                $paymentOptions = array('payment' => base64_encode(json_encode($cardPayment)));
+                $cardsArray = get_user_meta($user_id, 'card_array', true);
+                $cardsArray = is_array($cardsArray) ? $cardsArray : [];
+                $lastFourDigits = $responseDecoded->Payment->CreditCard->CardNumber;
+                $expirationDate = $responseDecoded->Payment->CreditCard->ExpirationDate;
 
-                // Atualizar o user meta com os dados codificados em base64
-                update_user_meta($user_id, 'cielo_card_token', $paymentOptions['payment']);
+                // Adiciona o novo cartão à lista
+                $cardsArray[] = array(
+                    'cardToken' => $cardPayment['cardToken'],
+                    'brand' => $provider,
+                    'cardDigits' => $lastFourDigits,
+                    'expirationDate' => $expirationDate,
+                );
+
+                // Atualiza os metadados do usuário
+                update_user_meta($user_id, 'card_array', $cardsArray);
+                update_user_meta($user_id, 'default_card', array_key_last($cardsArray));
             }
 
             // Remove cart
