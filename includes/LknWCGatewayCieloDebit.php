@@ -1528,7 +1528,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
      */
     private function get_card_provider($cardNumber) {
         $brand = '';
-        $brand = apply_filters('lkn_wc_cielo_get_card_brand', $brand, $cardNumber);
+        $brand = apply_filters('lkn_wc_cielo_get_card_brand', $brand, $cardNumber, $this->id);
 
         if (empty($brand)) {
             // Stores regex for Card Bin Tests
