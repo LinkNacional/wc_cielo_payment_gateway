@@ -6,10 +6,10 @@ use WC_Order;
 final class LknWcCieloHelper {
     public function showOrderLogs(): void {
         $id = isset($_GET['id']) ? sanitize_text_field(wp_unslash($_GET['id'])) : '';
-        if(empty($id)) {
+        if (empty($id)) {
             $id = isset($_GET['post']) ? sanitize_text_field(wp_unslash($_GET['post'])) : '';
         }
-        if(!empty($id)) {
+        if ( ! empty($id)) {
             $order_id = $id;
             $order = wc_get_order( $order_id );
     
