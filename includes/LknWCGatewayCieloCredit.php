@@ -336,6 +336,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
         $placeholderEnabled = false;
 
         $installmentLimit = apply_filters('lkn_wc_cielo_set_installment_limit', $installmentLimit, $this);
+        $installmentMin = preg_replace('/,/', '.', $this->get_option('installment_min', '5,00'));
 
         if ('yes' === $placeholder) {
             $placeholderEnabled = true;
@@ -453,6 +454,11 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway {
         id="lkn_cc_installment_limit"
         type="hidden"
         value="<?php echo esc_attr($installmentLimit); ?>"
+    >
+    <input
+        id="lkn_cc_installment_min"
+        type="hidden"
+        value="<?php echo esc_attr($installmentMin); ?>"
     >
     <input
         id="lkn_cc_installment_interest"

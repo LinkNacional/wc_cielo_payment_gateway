@@ -161,7 +161,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
 
         $env = $this->get_option('env');
         $installmentArgs = array();
-        $installmentArgs = apply_filters('lkn_wc_cielo_js_credit_args', array('installment_min' => '5'));
+        $installmentArgs = apply_filters('lkn_wc_cielo_js_3ds_args', array('installment_min' => '5'));
 
         if ('production' === $env) {
             wp_enqueue_script('lkn-dc-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-dc-script-prd.js', array('wp-i18n', 'jquery', 'wp-api'), $this->version, false);
@@ -176,7 +176,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
         wp_enqueue_script('lkn-mask-script-load', plugin_dir_url(__FILE__) . '../resources/js/frontend/define-mask.js', array('lkn-mask-script', 'jquery'), $this->version, false);
 
         wp_enqueue_script('lkn-cc-dc-installment-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-cc-dc-installment.js', array('jquery'), $this->version, false);
-        wp_localize_script('lkn-cc-dc-installment-script', 'lknWCCieloCredit', $installmentArgs);
+        wp_localize_script('lkn-cc-dc-installment-script', 'lknWCCielo3ds', $installmentArgs);
 
         wp_enqueue_style('lkn-dc-style', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-dc-style.css', array(), $this->version, 'all');
 
@@ -501,6 +501,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
         $installmentLimit = $this->get_option('installment_limit', 12);
         $installments = array();
         $installmentsTotal = number_format($this->get_order_total(), 2, '.', '');
+        $installmentMin = preg_replace('/,/', '.', $this->get_option('installment_min', '5,00'));
 
         $installmentLimit = apply_filters('lkn_wc_cielo_set_installment_limit', $installmentLimit, $this);
 
@@ -936,6 +937,11 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
         id="lkn_cc_dc_installment_limit"
         type="hidden"
         value="<?php echo esc_attr($installmentLimit); ?>"
+    >
+    <input
+        id="lkn_cc_dc_installment_min"
+        type="hidden"
+        value="<?php echo esc_attr($installmentMin); ?>"
     >
     <input
         id="lkn_cc_dc_installment_interest"

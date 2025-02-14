@@ -15,6 +15,7 @@
     const lknTotal = document.getElementById('lkn_cc_installment_total')
     let lknInstallmentLimit = document.getElementById('lkn_cc_installment_limit')
     let lknInstallmentInterest = document.getElementById('lkn_cc_installment_interest')
+    let lknInstallmentMin = document.getElementById('lkn_cc_installment_min')
 
     if (lknInstallmentLimit) {
       lknInstallmentLimit = lknInstallmentLimit.value
@@ -22,6 +23,10 @@
 
     if (lknInstallmentInterest) {
       lknInstallmentInterest = JSON.parse(lknInstallmentInterest.value)
+    }
+
+    if (lknInstallmentMin) {
+      lknInstallmentMin = parseFloat(lknInstallmentMin.value)
     }
 
     // Remove installment options and repopulate installments
@@ -56,7 +61,7 @@
         option.value = i
         option.appendChild(text)
         lknInstallmentSelect.appendChild(option)
-        if ((amount / (i + 1)) < lknWCCieloCredit.installment_min) {
+        if ((amount / (i + 1)) < lknInstallmentMin) {
           break
         }
       }
