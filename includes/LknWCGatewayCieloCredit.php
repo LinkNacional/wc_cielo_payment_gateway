@@ -734,22 +734,24 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
                     'brand' => $provider,
                 );
 
-                $cardsArray = get_user_meta($user_id, 'card_array', true);
-                $cardsArray = is_array($cardsArray) ? $cardsArray : [];
-                $lastFourDigits = $responseDecoded->Payment->CreditCard->CardNumber;
-                $expirationDate = $responseDecoded->Payment->CreditCard->ExpirationDate;
-
-                // Adiciona o novo cartão à lista
-                $cardsArray[] = array(
-                    'cardToken' => $cardPayment['cardToken'],
-                    'brand' => $provider,
-                    'cardDigits' => $lastFourDigits,
-                    'expirationDate' => $expirationDate,
-                );
-
-                // Atualiza os metadados do usuário
-                update_user_meta($user_id, 'card_array', $cardsArray);
-                update_user_meta($user_id, 'default_card', array_key_last($cardsArray));
+                if($user_id != 0){
+                    $cardsArray = get_user_meta($user_id, 'card_array', true);
+                    $cardsArray = is_array($cardsArray) ? $cardsArray : [];
+                    $lastFourDigits = $responseDecoded->Payment->CreditCard->CardNumber;
+                    $expirationDate = $responseDecoded->Payment->CreditCard->ExpirationDate;
+    
+                    // Adiciona o novo cartão à lista
+                    $cardsArray[] = array(
+                        'cardToken' => $cardPayment['cardToken'],
+                        'brand' => $provider,
+                        'cardDigits' => $lastFourDigits,
+                        'expirationDate' => $expirationDate,
+                    );
+    
+                    // Atualiza os metadados do usuário
+                    update_user_meta($user_id, 'card_array', $cardsArray);
+                    update_user_meta($user_id, 'default_card', array_key_last($cardsArray));
+                }
             }
 
             // Remove cart
