@@ -13,6 +13,7 @@ const lknDCTotalCartCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsC
 const lknDCOrderNumberCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.orderNumber)
 const lknDCDirScript3DSCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.dirScript3DS)
 const lknDCInstallmentLimitCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.installmentLimit)
+const lknDCInstallmentMinAmount = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.installmentMinAmount)
 const lknCC3DSinstallmentsCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.installments)
 const lknDCDirScriptConfig3DSCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.dirScriptConfig3DS)
 const lknDCTranslationsDebitCielo = lknDCsettingsCielo.translations
@@ -285,7 +286,7 @@ const lknDCContentCielo = (props) => {
   ]);
 
   const calculateInstallments = (lknDCTotalCartCielo) => {
-    const installmentMin = 5;
+    const installmentMin = parseFloat(lknDCInstallmentMinAmount);
     // Verifica se 'lknCCActiveInstallmentCielo' é 'yes' e o valor total é maior que 10
     if (lknDCActiveInstallmentCielo === 'yes' && lknDCTotalCartCielo > 10) {
       const maxInstallments = lknDCInstallmentLimitCielo; // Limita o parcelamento até 12 vezes, deixei fixo para teste
@@ -296,7 +297,7 @@ const lknDCContentCielo = (props) => {
           maximumFractionDigits: 2
         });
 
-        let nextInstallmentAmount = lknDCTotalCartCielo / index
+        let nextInstallmentAmount = parseFloat(lknDCTotalCartCielo) / index
 
         if (nextInstallmentAmount < installmentMin) {
           break;
@@ -390,7 +391,7 @@ const lknDCContentCielo = (props) => {
           expiry={(debitObject.lkn_dc_expdate).replace(/\s+/g, '')}
           cvc={debitObject.lkn_dc_cvc}
           placeholders={{
-            name: 'NOME', 
+            name: 'NOME',
             expiry: 'MM/ANO',
             cvc: 'CVC',
             number: '•••• •••• •••• ••••'

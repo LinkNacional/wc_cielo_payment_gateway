@@ -70,6 +70,9 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType {
             $dirScriptConfig3DS = LKN_WC_GATEWAY_CIELO_URL . 'resources/js/debitCard/lkn-dc-script-prd.js';
         }
 
+        $installmentMinAmount = apply_filters('lkn_wc_cielo_set_installment_min_amount', '5,00', $this->gateway);
+        $installmentMinAmount = preg_replace('/,/', '.', $installmentMinAmount);
+
         $installmentLimit = $this->gateway->get_option('installment_limit', 12);
         $installments = array();
 
@@ -103,6 +106,7 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType {
             'nonceCieloDebit' => wp_create_nonce( 'nonce_lkn_cielo_debit' ),
             'installmentLimit' => $installmentLimit,
             'installments' => $installments,
+            'installmentMinAmount' => $installmentMinAmount,
             'bec' => $this->gateway->get_option('establishment_code'),
             'client_ip' => $this->get_client_ip(),
             'user_guest' => ! is_user_logged_in(),

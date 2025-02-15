@@ -8,6 +8,7 @@ const lknCCActiveInstallmentCielo = window.wp.htmlEntities.decodeEntities(lknCCS
 const lknCCTotalCartCielo = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.totalCart)
 const lknCCShowCard = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.showCard)
 const lknCCInstallmentLimitCielo = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.installmentLimit);
+const lknCCInstallmentMinAmount = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.installmentMinAmount);
 const lknCCinstallmentsCielo = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.installments);
 const lknCCTranslationsCielo = lknCCSettingsCielo.translations
 const lknCCNonceCieloCredit = lknCCSettingsCielo.nonceCieloCredit;
@@ -83,7 +84,7 @@ const lknCCContentCielo = (props) => {
   const wcComponents = window.wc.blocksComponents
 
   const calculateInstallments = (lknCCTotalCartCielo) => {
-    const installmentMin = 5
+    const installmentMin = parseFloat(lknCCInstallmentMinAmount);
     if (lknCCActiveInstallmentCielo === 'yes' && lknCCTotalCartCielo > 10) {
       const maxInstallments = lknCCInstallmentLimitCielo
 
@@ -129,11 +130,11 @@ const lknCCContentCielo = (props) => {
 
   window.wp.element.useEffect(() => {
     calculateInstallments(lknCCTotalCartCielo);
-    
+
     const intervalId = setInterval(() => {
       var targetNode = document.querySelector('.wc-block-formatted-money-amount.wc-block-components-formatted-money-amount.wc-block-components-totals-footer-item-tax-value');
       // Configuração do observer: quais mudanças serão observadas
-      if(targetNode){
+      if (targetNode) {
         var config = { childList: true, subtree: true, characterData: true };
 
         var changeValue = () => {
@@ -151,16 +152,16 @@ const lknCCContentCielo = (props) => {
         }
 
         changeValue()
-  
+
         // Função de callback que será executada quando ocorrerem mudanças
-        var callback = function(mutationsList, observer) {
-            for(var mutation of mutationsList) {
-              if (mutation.type === 'childList' || mutation.type === 'characterData') {
-                changeValue()
-              }
+        var callback = function (mutationsList, observer) {
+          for (var mutation of mutationsList) {
+            if (mutation.type === 'childList' || mutation.type === 'characterData') {
+              changeValue()
             }
+          }
         };
-  
+
         // Cria uma instância do observer e o conecta ao nó alvo
         var observer = new MutationObserver(callback);
         observer.observe(targetNode, config);
@@ -209,7 +210,7 @@ const lknCCContentCielo = (props) => {
     emitResponse.responseTypes.ERROR,
     emitResponse.responseTypes.SUCCESS,
     onPaymentSetup
-  ]); 
+  ]);
 
   return (
     <>
@@ -224,7 +225,7 @@ const lknCCContentCielo = (props) => {
           expiry={(creditObject.lkn_cc_expdate).replace(/\s+/g, '')}
           cvc={creditObject.lkn_cc_cvc}
           placeholders={{
-            name: 'NOME', 
+            name: 'NOME',
             expiry: 'MM/ANO',
             cvc: 'CVC',
             number: '•••• •••• •••• ••••'
