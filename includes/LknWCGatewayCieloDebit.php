@@ -1103,7 +1103,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
         }
 
         if ('BRL' !== $currency) {
-            $amount = apply_filters('lkn_wc_cielo_convert_amount', $amount, $currency);
+            $amount = apply_filters('lkn_wc_cielo_convert_amount', $amount, $currency, $this);
 
             $order->add_meta_data('amount_converted', $amount, true);
         }
@@ -1131,7 +1131,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
 
             if ($this->get_option('installment_interest') === 'yes') {
                 $interest = $this->get_option($installments . 'x', 0);
-                $amount = apply_filters('lkn_wc_cielo_calculate_interest', $amount, $interest, $order);
+                $amount = apply_filters('lkn_wc_cielo_calculate_interest', $amount, $interest, $order, $this);
             }
         }
 
@@ -1306,7 +1306,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway {
 
             // Remove cart
             WC()->cart->empty_cart();
-            do_action("lkn_wc_cielo_update_order", $order_id);
+            do_action("lkn_wc_cielo_update_order", $order_id, $this);
             $order->update_meta_data('lkn_nsu', $responseDecoded->Payment->ProofOfSale);
             $order->add_order_note(
                 __('Payment completed successfully. Payment id:', 'lkn-wc-gateway-cielo') .
