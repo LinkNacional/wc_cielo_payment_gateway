@@ -3,8 +3,8 @@ Contributors: linknacional
 Donate link: https://www.linknacional.com.br/wordpress/woocommerce/cielo/
 Tags: woocommerce, payment, paymethod, card, credit
 Requires at least: 5.7
-Tested up to: 6.7.1
-Stable tag: 1.17.0
+Tested up to: 6.7
+Stable tag: 1.17.1
 Requires PHP: 7.2
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -38,6 +38,11 @@ With the [PRO version](https://www.linknacional.com.br/wordpress/woocommerce/cie
 **Dependencies**
 
 Payment Gateway for Cielo API on WooCommerce plugin is dependent on WooCommerce plugin, please make sure WooCommerce is installed and properly configured before starting Payment Gateway for Cielo API on WooCommerce installation.
+
+This plugin uses the Cielo API 3.0 to process payments. [terms of service](https://www.cielo.com.br/termos-condicoes-de-uso/) and [privacy policy](https://ri.cielo.com.br/estatuto-social-e-politicas-old/politica-de-privacidade-de-dados/).
+
+JS Libraries used
+This plugin uses the [React Credit Cards](https://github.com/amaroteam/react-credit-cards#readme) library to render an animated card in the checkout page.
 
 **User instructions**
 
@@ -93,6 +98,12 @@ Payment Gateway for Cielo API on WooCommerce plugin is dependent on WooCommerce 
 7. Debit card front page with payment fields.
 
 == Changelog ==
+= 1.17.1 =
+**17/02/2025**
+* Correction of reference for minimum value of installments;
+* Update hooks reference to avoid collisions;
+* Correction of nonce validation when configuration is disabled.
+
 = 1.17.0 =
 **06/02/2025**
 * Added compatibility with retry settings for subscriptions.

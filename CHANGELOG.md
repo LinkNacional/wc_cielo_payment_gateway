@@ -1,4 +1,9 @@
-# 1.17.0 - 06/12/2024
+# 1.17.1 - 17/02/2025
+* Correção de referência de valor mínimo das parcelas;
+* Atualização de referência de hooks para evitar colisões;
+* Correção de validação de nonce quando configuração estiver como desabilitada.
+
+# 1.17.0 - 06/02/2024
 * Adição de compatibilidade com configurações de retentativas para assinaturas.
 
 # 1.16.0 - 31/01/2025

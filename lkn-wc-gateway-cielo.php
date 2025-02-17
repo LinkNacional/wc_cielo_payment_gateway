@@ -3,13 +3,13 @@
  * Plugin Name: Payment Gateway for Cielo API on WooCommerce
  * Plugin URI: https://www.linknacional.com.br/wordpress/woocommerce/cielo/
  * Description: Adds the Cielo API 3.0 Payments gateway to your WooCommerce website.
- * Version: 1.17.0
+ * Version: 1.17.1
  * Author: Link Nacional
  * Author URI: https://linknacional.com.br
  * Text Domain: lkn-wc-gateway-cielo
  * Domain Path: /languages/
  * Requires Plugins: woocommerce
- * Copyright: © 2024 Link Nacional.
+ * Copyright: © 2025 Link Nacional.
  * License: GNU General Public License v3.0
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
  */
@@ -22,7 +22,7 @@ use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloCreditBlocks;
 use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloDebitBlocks;
 
 // Exit if accessed directly.
-if (! defined('ABSPATH')) {
+if ( ! defined('ABSPATH')) {
     exit;
 }
 
@@ -33,15 +33,13 @@ require_once __DIR__ . '/vendor/autoload.php';
  *
  * @class Lkn_WC_Cielo_Payment
  */
-final class LknWCCieloPayment
-{
+final class LknWCCieloPayment {
     /**
      * Show plugin dependency notice.
      *
      * @since
      */
-    public static function __lkn_wc_gateway_cielo_dependency_notice(): void
-    {
+    public static function __lkn_wc_gateway_cielo_dependency_notice(): void {
         // Admin notice.
         $message = sprintf(
             '<strong>%1$s</strong> %2$s <a href="%3$s" target="_blank">%4$s</a>  %5$s %6$s+ %7$s.',
@@ -62,8 +60,7 @@ final class LknWCCieloPayment
      *
      * @since
      */
-    public static function __lkn_wc_gateway_cielo_inactive_notice(): void
-    {
+    public static function __lkn_wc_gateway_cielo_inactive_notice(): void {
         // Admin notice.
         $message = sprintf(
             '<div class="notice notice-error"><p><strong>%1$s</strong> %2$s <a href="%3$s" target="_blank">%4$s</a> %5$s.</p></div>',
@@ -80,8 +77,7 @@ final class LknWCCieloPayment
     /**
      * Plugin bootstrapping.
      */
-    public static function init(): void
-    {
+    public static function init(): void {
         add_action('beforewoocommerce_init', array(__CLASS__, 'wcEditorBlocksActive'));
         add_action('woocommerce_blocks_payment_method_type_registration', array(__CLASS__, 'wcEditorBlocksAddPaymentMethod'));
 
@@ -110,15 +106,13 @@ final class LknWCCieloPayment
         add_action('admin_notices', array(__CLASS__, 'lkn_admin_notice'));
     }
 
-    public static function lkn_admin_notice()
-    {
-        if (!file_exists(WP_PLUGIN_DIR . '/fraud-detection-for-woocommerce/fraud-detection-for-woocommerce.php') && !is_plugin_active('integration-rede-for-woocommerce/integration-rede-for-woocommerce.php')) {
+    public static function lkn_admin_notice(): void {
+        if ( ! file_exists(WP_PLUGIN_DIR . '/fraud-detection-for-woocommerce/fraud-detection-for-woocommerce.php') && ! is_plugin_active('integration-rede-for-woocommerce/integration-rede-for-woocommerce.php')) {
             require LKN_WC_GATEWAY_CIELO_DIR . 'includes/views/notices/LknWcCieloDownloadNotice.php';
         }
     }
 
-    public static function wcEditorBlocksActive(): void
-    {
+    public static function wcEditorBlocksActive(): void {
         if (class_exists('\Automattic\WooCommerce\Utilities\FeaturesUtil')) {
             Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility(
                 'cart_checkout_blocks',
@@ -128,9 +122,8 @@ final class LknWCCieloPayment
         }
     }
 
-    public static function wcEditorBlocksAddPaymentMethod(Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry): void
-    {
-        if (! class_exists('Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType')) {
+    public static function wcEditorBlocksAddPaymentMethod(Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry): void {
+        if ( ! class_exists('Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType')) {
             return;
         }
 
@@ -145,15 +138,14 @@ final class LknWCCieloPayment
      *
      * @since
      */
-    public static function check_environment()
-    {
+    public static function check_environment() {
         // Is not admin
-        if (! is_admin() || ! current_user_can('activate_plugins')) {
+        if ( ! is_admin() || ! current_user_can('activate_plugins')) {
             return null;
         }
 
         // Load plugin helper functions.
-        if (! function_exists('deactivate_plugins') || ! function_exists('is_plugin_active')) {
+        if ( ! function_exists('deactivate_plugins') || ! function_exists('is_plugin_active')) {
             require_once ABSPATH . '/wp-admin/includes/plugin.php';
         }
 
@@ -172,14 +164,14 @@ final class LknWCCieloPayment
                     $is_installed = ! empty($all_plugins['woocommerce/woocommerce.php']);
                 }
 
-                if (! $is_installed) {
+                if ( ! $is_installed) {
                     add_action('admin_notices', array(__CLASS__, '__lkn_wc_gateway_cielo_dependency_notice'));
                 }
 
                 // Check for if give plugin activate or not.
                 $is_wc_active = class_exists('WooCommerce');
 
-                if (! $is_wc_active) {
+                if ( ! $is_wc_active) {
                     add_action('admin_notices', array(__CLASS__, '__lkn_wc_gateway_cielo_inactive_notice'));
 
                     $is_deactivate_plugin = true;
@@ -209,8 +201,7 @@ final class LknWCCieloPayment
      * @param array
      * @param mixed $gateways
      */
-    public static function add_gateway($gateways)
-    {
+    public static function add_gateway($gateways) {
         $gateways[] = new LknWCGatewayCieloCredit();
         $gateways[] = new LknWCGatewayCieloDebit();
 
@@ -220,8 +211,7 @@ final class LknWCCieloPayment
     /**
      * Plugin includes.
      */
-    public static function includes(): void
-    {
+    public static function includes(): void {
         LknWCCieloPayment::setup_constants();
         LknWCCieloPayment::check_environment();
     }
@@ -231,8 +221,7 @@ final class LknWCCieloPayment
      *
      * @return string
      */
-    public static function plugin_url()
-    {
+    public static function plugin_url() {
         return untrailingslashit(plugins_url('/', __FILE__));
     }
 
@@ -241,8 +230,7 @@ final class LknWCCieloPayment
      *
      * @return string
      */
-    public static function plugin_abspath()
-    {
+    public static function plugin_abspath() {
         return trailingslashit(plugin_dir_path(__FILE__));
     }
 
@@ -256,8 +244,7 @@ final class LknWCCieloPayment
      *
      * @return array
      */
-    public static function lkn_wc_cielo_plugin_row_meta($plugin_meta, $plugin_file)
-    {
+    public static function lkn_wc_cielo_plugin_row_meta($plugin_meta, $plugin_file) {
         $new_meta_links['setting'] = sprintf(
             '<a href="%1$s">%2$s</a>',
             admin_url('admin.php?page=wc-settings&tab=checkout'),
@@ -267,8 +254,7 @@ final class LknWCCieloPayment
         return array_merge($plugin_meta, $new_meta_links);
     }
 
-    public static function lkn_wc_cielo_plugin_row_meta_pro($plugin_meta, $plugin_file)
-    {
+    public static function lkn_wc_cielo_plugin_row_meta_pro($plugin_meta, $plugin_file) {
         // Defina o URL e o texto do link
         $url = 'https://www.linknacional.com.br/wordpress/woocommerce/cielo/';
         $link_text = sprintf(
@@ -290,8 +276,7 @@ final class LknWCCieloPayment
      *
      * @param WC_Order $order
      */
-    public static function order_details_after_order_table($order): void
-    {
+    public static function order_details_after_order_table($order): void {
         $installment = $order->get_meta('installments');
 
         if ($installment && $installment > 1) {
@@ -306,8 +291,7 @@ final class LknWCCieloPayment
      * @param bool     $sent_to_admin
      * @param WC_Order $order
      */
-    public static function email_order_meta_fields($fields, $sent_to_admin, $order)
-    {
+    public static function email_order_meta_fields($fields, $sent_to_admin, $order) {
         $installment = $order->get_meta('installments');
         if ($installment && $installment > 1) {
             $fields['installment'] = array(
@@ -322,25 +306,24 @@ final class LknWCCieloPayment
     /**
      * Setup plugin constants for ease of use.
      */
-    private static function setup_constants(): void
-    {
+    private static function setup_constants(): void {
         // Defines addon version number for easy reference.
-        if (! defined('LKN_WC_CIELO_VERSION')) {
-            define('LKN_WC_CIELO_VERSION', '1.17.0');
+        if ( ! defined('LKN_WC_CIELO_VERSION')) {
+            define('LKN_WC_CIELO_VERSION', '1.17.1');
         }
-        if (! defined('LKN_WC_CIELO_TRANSLATION_PATH')) {
+        if ( ! defined('LKN_WC_CIELO_TRANSLATION_PATH')) {
             define('LKN_WC_CIELO_TRANSLATION_PATH', plugin_dir_path(__FILE__) . 'languages/');
         }
-        if (! defined('LKN_WC_GATEWAY_CIELO_BASENAME')) {
+        if ( ! defined('LKN_WC_GATEWAY_CIELO_BASENAME')) {
             define('LKN_WC_GATEWAY_CIELO_BASENAME', plugin_basename(__FILE__));
         }
-        if (! defined('LKN_WC_GATEWAY_CIELO_DIR')) {
+        if ( ! defined('LKN_WC_GATEWAY_CIELO_DIR')) {
             define('LKN_WC_GATEWAY_CIELO_DIR', plugin_dir_path(__FILE__));
         }
-        if (! defined('LKN_WC_GATEWAY_CIELO_URL')) {
+        if ( ! defined('LKN_WC_GATEWAY_CIELO_URL')) {
             define('LKN_WC_GATEWAY_CIELO_URL', plugin_dir_url(__FILE__));
         }
-        if (! defined('LKN_WC_GATEWAY_CIELO_MIN_WC_VERSION')) {
+        if ( ! defined('LKN_WC_GATEWAY_CIELO_MIN_WC_VERSION')) {
             define('LKN_WC_GATEWAY_CIELO_MIN_WC_VERSION', '5.0.0');
         }
     }

@@ -44,6 +44,9 @@ final class LknWcCieloCreditBlocks extends AbstractPaymentMethodType {
         $installmentLimit = $this->gateway->get_option('installment_limit', 12);
         $installments = array();
 
+        $installmentMinAmount = apply_filters('lkn_wc_cielo_set_installment_min_amount', '5,00', $this->gateway);
+        $installmentMinAmount = preg_replace('/,/', '.', $installmentMinAmount);
+
         $installmentLimit = apply_filters('lkn_wc_cielo_set_installment_limit', $installmentLimit, $this->gateway);
 
         for ($i = 1; $i <= 12; $i++) {
@@ -65,6 +68,7 @@ final class LknWcCieloCreditBlocks extends AbstractPaymentMethodType {
             'activeInstallment' => $this->gateway->get_option('installment_payment'),
             'installmentLimit' => $installmentLimit,
             'installments' => $installments,
+            'installmentMinAmount' => $installmentMinAmount,
             'totalCart' => $this->gateway->lknGetCartTotal(),
             'showCard' => $this->gateway->get_option('show_card_animation'),
             'nonceCieloCredit' => wp_create_nonce('nonce_lkn_cielo_credit'),
