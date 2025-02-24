@@ -1282,7 +1282,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
             if ('yes' === $debug) {
                 $this->log->log('error', var_export($jsonResponse[0]->Message, true), array('source' => 'woocommerce-cielo-debit'));
             }
-            $message = __("Bin Query is not enabled and is not linked to the merchant's registration.", 'lkn-wc-gateway-cielo');
+            $message = __("Bin query is not enabled for this merchant.", 'lkn-wc-gateway-cielo');
 
             throw new Exception(esc_attr($message));
         }
