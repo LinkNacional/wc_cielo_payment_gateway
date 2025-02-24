@@ -1278,7 +1278,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
 
         $jsonResponse = json_decode($response['body']);
 
-        if (isset($jsonResponse[0]->Code) && $jsonResponse[0]->Code === 323) {
+        if (is_array($jsonResponse) && isset($jsonResponse[0]) && isset($jsonResponse[0]->Code) && $jsonResponse[0]->Code === 323) {
             if ('yes' === $debug) {
                 $this->log->log('error', var_export($jsonResponse[0]->Message, true), array('source' => 'woocommerce-cielo-debit'));
             }
