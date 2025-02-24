@@ -1,3 +1,6 @@
+# 1.17.2 - 24/02/2025
+* Validação da opção de cartão online no momento do pagamento.
+
 # 1.17.1 - 17/02/2025
 * Correção de referência de valor mínimo das parcelas;
 * Atualização de referência de hooks para evitar colisões;
