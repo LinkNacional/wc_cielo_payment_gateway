@@ -1077,6 +1077,17 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         $debug = $this->get_option('debug');
         $currency = $order->get_currency();
         $activeInstallment = $this->get_option('installment_payment');
+
+        if (empty($provider)) {
+            $message = __("Bin query is not enabled for this merchant.", 'lkn-wc-gateway-cielo');
+
+            if ('yes' === $debug) {
+                $this->log->log('error', var_export($message, true), array('source' => 'woocommerce-cielo-debit'));
+            }
+
+            throw new Exception(esc_attr($message));
+        }
+
         if ($this->validate_card_holder_name($cardName, false) === false) {
             $message = __('Card Holder Name is required!', 'lkn-wc-gateway-cielo');
 
@@ -1275,17 +1286,6 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         }
 
         $response = wp_remote_post($url . '1/sales', $args);
-
-        $jsonResponse = json_decode($response['body']);
-
-        if (is_array($jsonResponse) && isset($jsonResponse[0]) && isset($jsonResponse[0]->Code) && $jsonResponse[0]->Code === 323) {
-            if ('yes' === $debug) {
-                $this->log->log('error', var_export($jsonResponse[0]->Message, true), array('source' => 'woocommerce-cielo-debit'));
-            }
-            $message = __("Bin query is not enabled for this merchant.", 'lkn-wc-gateway-cielo');
-
-            throw new Exception(esc_attr($message));
-        }
 
         /*  throw new Exception(json_encode($args)); */
         if (is_wp_error($response)) {
