@@ -100,7 +100,8 @@ This plugin uses the [React Credit Cards](https://github.com/amaroteam/react-cre
 == Changelog ==
 = 1.17.2 =
 **24/02/2025**
-* Validation of the online card option at the time of payment.
+* Validation of the online card option at the time of payment;
+* Fix currency display in installments.
 
 = 1.17.1 =
 **17/02/2025**

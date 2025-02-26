@@ -172,6 +172,16 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
 
         $installmentArgs = array();
         $installmentArgs = apply_filters('lkn_wc_cielo_js_credit_args', array('installment_min' => '5'));
+        $order_id = absint(get_query_var('order-pay'));
+        $order = wc_get_order($order_id);
+
+        if ($order) {
+            $currency = $order->get_currency();
+        } else {
+            $currency = get_woocommerce_currency();
+        }
+
+        $installmentArgs['currency'] = $currency;
 
         wp_enqueue_script('lkn-mask-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/formatter.js', array('jquery'), $this->version, false);
         wp_enqueue_script('lkn-mask-script-load', plugin_dir_url(__FILE__) . '../resources/js/frontend/define-mask.js', array('lkn-mask-script', 'jquery'), $this->version, false);
