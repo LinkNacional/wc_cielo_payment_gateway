@@ -73,7 +73,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
 
         $this->supports = apply_filters('lkn_wc_cielo_credit_add_support', $this->supports);
 
-        $this->method_title = __('Cielo - Credit Card Legacy', 'lkn-wc-gateway-cielo');
+        $this->method_title = __('Cielo - Credit Card', 'lkn-wc-gateway-cielo');
         $this->method_description = __('Allows credit card payment with Cielo API 3.0.', 'lkn-wc-gateway-cielo');
 
         // Load the settings.
