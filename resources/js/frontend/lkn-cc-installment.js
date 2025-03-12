@@ -39,7 +39,7 @@
 
       for (let i = 1; i <= lknInstallmentLimit; i++) {
         const installment = amount / i
-        const formatedInstallment = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(installment)
+        const formatedInstallment = new Intl.NumberFormat('pt-br', { style: 'currency', currency: lknWCCieloCredit.currency }).format(installment)
         const option = document.createElement('option')
         let text = document.createTextNode(i + 'x ' + formatedInstallment + ' sem juros')
         if (lknWCCieloCredit.licenseResult) {
@@ -51,7 +51,7 @@
                 text = document.createTextNode(installmentObj.label)
               } else {
                 const interest = (amount + (amount * (installmentObj.interest / 100))) / i // installment + (installment * (installmentObj.interest / 100));
-                const formatedInterest = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(interest)
+                const formatedInterest = new Intl.NumberFormat('pt-br', { style: 'currency', currency: lknWCCieloCredit.currency }).format(interest)
 
                 text = document.createTextNode(i + 'x ' + formatedInterest)
               }
