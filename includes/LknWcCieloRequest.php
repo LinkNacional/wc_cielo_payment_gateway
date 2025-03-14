@@ -30,17 +30,12 @@ final class LknWcCieloRequest
         // Format the amount to not have decimal separator
         $amount = (int) number_format($amount, 2, '', '');
 
-        $description = sanitize_text_field($options['invoiceDesc']);
-        $description = preg_replace('/[^a-zA-Z\s]+/', '', $description);
-        $description = preg_replace('/\s+/', ' ', $description);
-
         $body = array(
             'MerchantOrderId' => wp_unique_id('lkn_'),
             'Customer' => array(
                 'Name' => $name,
                 'Identity' => $this->maskSensitiveData($billingCpfCpnj['Identity']),
                 'IdentityType' => $billingCpfCpnj['IdentityType'],
-                'SoftDescriptor' => $description,
             ),
             'Payment' => array(
                 'Type' => 'Pix',

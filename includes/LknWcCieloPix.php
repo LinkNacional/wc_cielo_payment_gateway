@@ -78,6 +78,10 @@ final class LknWcCieloPix extends WC_Payment_Gateway
                 'clearLogs' => __('Limpar Logs', 'lkn-wc-gateway-cielo'),
                 'alertText' => __('Deseja realmente deletar todos logs dos pedidos?', 'lkn-wc-gateway-cielo')
             ));
+
+            if (isset($_GET['section']) && sanitize_text_field(wp_unslash($_GET['section'])) === 'lkn_wc_cielo_pix') {
+                wp_enqueue_script('LknCieloPixSettingsPix', LKN_WC_GATEWAY_CIELO_URL . 'resources/js/admin/lkn-settings-pix.js', array(), $this->version, false);
+            }
         }
     }
 
@@ -114,6 +118,17 @@ final class LknWcCieloPix extends WC_Payment_Gateway
                     'required' => 'required'
                 )
             ),
+            'env' => array(
+                'title' => __('Environment', 'lkn-wc-gateway-cielo'),
+                'description' => __('Cielo API 3.0 environment.', 'lkn-wc-gateway-cielo'),
+                'type' => 'select',
+                'options' => array(
+                    'production' => __('Production', 'lkn-wc-gateway-cielo'),
+                    'sandbox' => __('Development', 'lkn-wc-gateway-cielo'),
+                ),
+                'default' => 'production',
+                'desc_tip' => true,
+            ),
             'merchant_id' => array(
                 'title' => __('Merchant Id', 'lkn-wc-gateway-cielo'),
                 'type' => 'password',
@@ -132,22 +147,9 @@ final class LknWcCieloPix extends WC_Payment_Gateway
                     'required' => 'required'
                 )
             ),
-            'invoiceDesc' => array(
-                'title' => __('Invoice Description', 'lkn-wc-gateway-cielo'),
-                'type' => 'text',
-                'default' => __('order', 'lkn-wc-gateway-cielo'),
-                'description' => __('Invoice description that the customer will see on your checkout (special characters are not accepted).', 'lkn-wc-gateway-cielo'),
-                'desc_tip' => true,
-                'custom_attributes' => array(
-                    'maxlength' => 50, // Tamanho máximo permitido
-                    'pattern' => '[a-zA-Z]+( [a-zA-Z]+)*', // não pode conter espaços, traços, caracteres especiais ou números, apenas letras
-                    'required' => 'required'
-                )
-            ),
             'payment_complete_status' => array(
                 'title' => esc_attr__('Payment Complete Status', 'lkn-wc-gateway-cielo'),
                 'type' => 'select',
-                'class' => 'wc-enhanced-select',
                 'desc_tip' => true,
                 'description' => esc_attr__('Option to automatically set the order status after payment confirmation through this gateway.', 'lkn-wc-gateway-cielo'),
                 'options' => array(
@@ -157,16 +159,27 @@ final class LknWcCieloPix extends WC_Payment_Gateway
                 ),
                 'default' => 'processing'
             ),
-            'env' => array(
-                'title' => __('Environment', 'lkn-wc-gateway-cielo'),
-                'description' => __('Cielo API 3.0 environment.', 'lkn-wc-gateway-cielo'),
+            'pix_layout' => array(
+                'title' => __('PIX Layout', 'lkn-wc-gateway-cielo'),
                 'type' => 'select',
-                'options' => array(
-                    'production' => __('Production', 'lkn-wc-gateway-cielo'),
-                    'sandbox' => __('Development', 'lkn-wc-gateway-cielo'),
-                ),
-                'default' => 'production',
+                'default' => 'standard',
+                'description' => __('Select the PIX layout the customer will see on checkout.', 'lkn-wc-gateway-cielo'),
                 'desc_tip' => true,
+                'options' => array(
+                    'standard' => __('Standard', 'lkn-wc-gateway-cielo'),
+                    'new' => __('New', 'lkn-wc-gateway-cielo')
+                )
+            ),
+            'layout_location' => array(
+                'title' => __('Layout Location', 'lkn-wc-gateway-cielo'),
+                'type' => 'select',
+                'default' => 'top',
+                'description' => __('Select the location where the PIX layout will be displayed on the checkout page.', 'lkn-wc-gateway-cielo'),
+                'desc_tip' => true,
+                'options' => array(
+                    'top' => __('Top', 'lkn-wc-gateway-cielo'),
+                    'bottom' => __('Bottom', 'lkn-wc-gateway-cielo')
+                )
             ),
             'developer' => array(
                 'title' => esc_attr__('Developer', 'lkn-wc-gateway-cielo'),
@@ -495,6 +508,89 @@ final class LknWcCieloPix extends WC_Payment_Gateway
                 'currentTheme' => wp_get_theme()->get('Name') ?? ''
             ));
         }
+    }
+
+    public function process_admin_options()
+    {
+        static $already_saved = false;
+
+        if ($already_saved) {
+            $already_saved = false;
+            return false; // Impede a execução múltipla
+        }
+
+        $already_saved = true;
+
+        // Obtém o valor antigo diretamente da opção no banco de dados
+        $options = get_option('woocommerce_lkn_wc_cielo_pix_settings');
+        $old_description = $options['description'] ?? '';
+        $old_payment_complete_status = $options['payment_complete_status'] ?? '';
+        $old_pix_layout = $options['pix_layout'] ?? '';
+        $old_layout_location = $options['layout_location'] ?? '';
+
+        $saved = parent::process_admin_options();
+
+        if ($saved) {
+
+            $new_description = $this->get_option('description');
+            if ($new_description !== $old_description && !empty($old_description) && !empty($new_description)) {
+                $this->update_option('description', $old_description);
+
+                // Mostra a mensagem de erro
+                add_action('admin_notices', function () {
+                    echo '<div class="notice notice-error is-dismissible">
+                            <p>' . __('You are not allowed to modify this field (Description).', 'lkn-wc-gateway-cielo') . '</p>
+                          </div>';
+                });
+            } else {
+                $this->update_option('description', 'After the purchase is completed, the PIX will be generated and made available for payment!');
+            }
+
+            $new_payment_complete_status = $this->get_option('payment_complete_status');
+            if ($new_payment_complete_status !== $old_payment_complete_status && !empty($old_payment_complete_status) && !empty($new_payment_complete_status)) {
+                $this->update_option('payment_complete_status', $old_payment_complete_status);
+
+                // Mostra a mensagem de erro
+                add_action('admin_notices', function () {
+                    echo '<div class="notice notice-error is-dismissible">
+                            <p>' . __('You are not allowed to modify this field (Payment Complete Status).', 'lkn-wc-gateway-cielo') . '</p>
+                          </div>';
+                });
+            } else {
+                $this->update_option('payment_complete_status', 'processing');
+            }
+
+            $new_pix_layout = $this->get_option('pix_layout');
+            if ($new_pix_layout !== $old_pix_layout && !empty($old_pix_layout) && !empty($new_pix_layout)) {
+                $this->update_option('pix_layout', $old_pix_layout);
+
+                // Mostra a mensagem de erro
+                add_action('admin_notices', function () {
+                    echo '<div class="notice notice-error is-dismissible">
+                            <p>' . __('You are not allowed to modify this field (Pix Layout).', 'lkn-wc-gateway-cielo') . '</p>
+                          </div>';
+                });
+            } else {
+                $this->update_option('pix_layout', 'standard');
+            }
+
+            $new_layout_location = $this->get_option('layout_location');
+
+            if ($new_layout_location !== $old_layout_location && !empty($old_layout_location) && !empty($new_layout_location)) {
+                $this->update_option('layout_location', $old_layout_location);
+
+                // Mostra a mensagem de erro
+                add_action('admin_notices', function () {
+                    echo '<div class="notice notice-error is-dismissible">
+                            <p>' . __('You are not allowed to modify this field (Layout Location).', 'lkn-wc-gateway-cielo') . '</p>
+                          </div>';
+                });
+            } else {
+                $this->update_option('layout_location', 'top');
+            }
+        }
+
+        return $saved;
     }
 }
 ?>
