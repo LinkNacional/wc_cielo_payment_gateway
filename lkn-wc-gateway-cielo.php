@@ -21,6 +21,8 @@ use Lkn\WCCieloPaymentGateway\Includes\LknWCGatewayCieloEndpoint;
 use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloHelper;
 use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloCreditBlocks;
 use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloDebitBlocks;
+use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloPix;
+use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloPixBlocks;
 
 // Exit if accessed directly.
 if (! defined('ABSPATH')) {
@@ -109,6 +111,8 @@ final class LknWCCieloPayment
         add_action('add_meta_boxes', array(new LknWcCieloHelper(), 'showOrderLogs'));
 
         add_action('admin_notices', array(__CLASS__, 'lkn_admin_notice'));
+
+        add_action('woocommerce_order_details_after_order_table', array('Lkn\WCCieloPaymentGateway\Includes\LknWcCieloPix', 'showPix'));
     }
 
     public static function lkn_admin_notice(): void
@@ -137,6 +141,7 @@ final class LknWCCieloPayment
 
         $payment_method_registry->register(new LknWcCieloCreditBlocks());
         $payment_method_registry->register(new LknWcCieloDebitBlocks());
+        $payment_method_registry->register(new LknWcCieloPixBlocks());
     }
 
     /**
@@ -214,6 +219,7 @@ final class LknWCCieloPayment
     {
         $gateways[] = new LknWCGatewayCieloCredit();
         $gateways[] = new LknWCGatewayCieloDebit();
+        $gateways[] = new LknWcCieloPix();
 
         return $gateways;
     }
