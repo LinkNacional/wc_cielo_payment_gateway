@@ -1,3 +1,6 @@
+# 1.18.0 - 17/03/2025
+* Método de pagamento pix.
+
 # 1.17.2 - 12/03/2025
 * Validação da opção de cartão online no momento do pagamento;
 * Correção de exibição de moeda nas parcelas.
