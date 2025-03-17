@@ -31,7 +31,7 @@ final class LknWcCieloRequest
         $amount = (int) number_format($amount, 2, '', '');
 
         $body = array(
-            'MerchantOrderId' => wp_unique_id('lkn_'),
+            'MerchantOrderId' => wp_unique_id('lkn_free_cielo_'),
             'Customer' => array(
                 'Name' => $name,
                 'Identity' => $this->maskSensitiveData($billingCpfCpnj['Identity']),
