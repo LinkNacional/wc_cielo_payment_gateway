@@ -64,6 +64,13 @@ final class LknWcCieloRequest
 
         $response = json_decode($response['body'], true);
 
+        if (isset($response['Payment']['ReturnCode']) && $response['Payment']['ReturnCode'] === '422') {
+            return array(
+                'sucess' => false,
+                'response' => 'Error on merchantResponse integration.'
+            );
+        }
+
         if (
             $response == null ||
             (is_array($response) && isset($response[0]) && isset($response[0]['Code']) &&
