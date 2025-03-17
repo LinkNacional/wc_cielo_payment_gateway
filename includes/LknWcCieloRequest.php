@@ -52,7 +52,7 @@ final class LknWcCieloRequest
         $response = wp_remote_post($postUrl . '/1/sales/', array(
             'body' => wp_json_encode($body),
             'headers' => $header,
-            'timeout' => 10,
+            'timeout' => 60,
         ));
 
         if (is_wp_error($response)) {
