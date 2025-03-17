@@ -173,7 +173,7 @@ final class LknWcCieloPix extends WC_Payment_Gateway
             'layout_location' => array(
                 'title' => __('Layout Location', 'lkn-wc-gateway-cielo'),
                 'type' => 'select',
-                'default' => 'top',
+                'default' => 'bottom',
                 'description' => __('Select the location where the PIX layout will be displayed on the checkout page.', 'lkn-wc-gateway-cielo'),
                 'desc_tip' => true,
                 'options' => array(
@@ -586,7 +586,7 @@ final class LknWcCieloPix extends WC_Payment_Gateway
                           </div>';
                 });
             } else {
-                $this->update_option('layout_location', 'top');
+                $this->update_option('layout_location', 'bottom');
             }
         }
 
