@@ -19,8 +19,8 @@ if (lknCieloAdminPage && (lknCieloAdminPage === 'lkn_cielo_credit' || lknCieloAd
   lknCieloNoticeDiv.setAttribute('id', 'lkn-cielo-pro-notice')
 
   lknCieloNoticeDiv.innerHTML = '<div style="font-size: 21px;padding: 6px 0px 10px 0px;">Obtenha novas funcionalidades com Cielo API Pro</div>' +
-  '<a href="https://www.linknacional.com.br/wordpress/woocommerce/cielo/" target="_blank">Conheça e compre o plugin PRO</a>' +
-  '<ul style="margin: 10px 28px;list-style: disclosure-closed;">' +
+    '<a href="https://www.linknacional.com.br/wordpress/woocommerce/cielo/" target="_blank">Conheça e compre o plugin PRO</a>' +
+    '<ul style="margin: 10px 28px;list-style: disclosure-closed;">' +
     '<li>Integração com PIX Cielo</li>' +
     '<li>Captura manual da transação/pedido</li>' +
     '<li>Ferramenta de reembolso total ou parcial</li>' +
@@ -29,12 +29,12 @@ if (lknCieloAdminPage && (lknCieloAdminPage === 'lkn_cielo_credit' || lknCieloAd
     '<li>Habilita o parcelamento em até 18x (Visa, Elo, Amex, Hipercard, Mastercard)</li>' +
     '<li>Configuração de quantidade máxima de parcelas</li>' +
     '<li>Compatibilidade com a opção de Checkout do Elementor para WooCommerce</li>' +
-  '</ul>'
+    '</ul>'
 
   lknCieloWCForm.append(lknCieloNoticeDiv)
 }
 
-function lknCieloFindGetParameter (parameterName) {
+function lknCieloFindGetParameter(parameterName) {
   let result = null
   let tmp = []
   location.search

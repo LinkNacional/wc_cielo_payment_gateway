@@ -1,10 +1,10 @@
-#lknWcCieloCreditBlocksSettingsLayoutDiv{
+#lknWcCieloCreditBlocksSettingsLayoutDiv {
     padding: 10px 24px;
     background-color: #FFFFFF;
     border-radius: 10px;
 }
 
-#lknWcCieloCreditBlocksSettingsLayoutMenu{
+#lknWcCieloCreditBlocksSettingsLayoutMenu {
     height: 27px;
 }
 
@@ -28,21 +28,10 @@
     color: black;
 }
 
-#woocommerce_lkn_cielo_credit_clear_order_records {
-    display: flex;
-    justify-content: center;
-    width: fit-content;
-    padding: 0px 20px 0px 20px;
-}
-
-#woocommerce_lkn_cielo_debit_clear_order_records {
-    display: flex;
-    justify-content: center;
-    width: fit-content;
-    padding: 0px 20px 0px 20px;
-}
-
-#woocommerce_lkn_cielo_pix_clear_order_records {
+#woocommerce_lkn_cielo_pix_clear_order_records,
+#woocommerce_lkn_wc_cielo_pix_clear_order_records,
+#woocommerce_lkn_cielo_debit_clear_order_records, 
+#woocommerce_lkn_cielo_credit_clear_order_records{
     display: flex;
     justify-content: center;
     width: fit-content;

@@ -4,7 +4,7 @@
  * Plugin Name: Payment Gateway for Cielo API on WooCommerce
  * Plugin URI: https://www.linknacional.com.br/wordpress/woocommerce/cielo/
  * Description: Adds the Cielo API 3.0 Payments gateway to your WooCommerce website.
- * Version: 1.17.2
+ * Version: 1.18.0
  * Author: Link Nacional
  * Author URI: https://linknacional.com.br
  * Text Domain: lkn-wc-gateway-cielo
@@ -21,6 +21,8 @@ use Lkn\WCCieloPaymentGateway\Includes\LknWCGatewayCieloEndpoint;
 use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloHelper;
 use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloCreditBlocks;
 use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloDebitBlocks;
+use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloPix;
+use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloPixBlocks;
 
 // Exit if accessed directly.
 if (! defined('ABSPATH')) {
@@ -109,6 +111,8 @@ final class LknWCCieloPayment
         add_action('add_meta_boxes', array(new LknWcCieloHelper(), 'showOrderLogs'));
 
         add_action('admin_notices', array(__CLASS__, 'lkn_admin_notice'));
+
+        add_action('woocommerce_order_details_after_order_table', array('Lkn\WCCieloPaymentGateway\Includes\LknWcCieloPix', 'showPix'));
     }
 
     public static function lkn_admin_notice(): void
@@ -137,6 +141,7 @@ final class LknWCCieloPayment
 
         $payment_method_registry->register(new LknWcCieloCreditBlocks());
         $payment_method_registry->register(new LknWcCieloDebitBlocks());
+        $payment_method_registry->register(new LknWcCieloPixBlocks());
     }
 
     /**
@@ -214,6 +219,7 @@ final class LknWCCieloPayment
     {
         $gateways[] = new LknWCGatewayCieloCredit();
         $gateways[] = new LknWCGatewayCieloDebit();
+        $gateways[] = new LknWcCieloPix();
 
         return $gateways;
     }
@@ -327,7 +333,7 @@ final class LknWCCieloPayment
     {
         // Defines addon version number for easy reference.
         if (! defined('LKN_WC_CIELO_VERSION')) {
-            define('LKN_WC_CIELO_VERSION', '1.17.2');
+            define('LKN_WC_CIELO_VERSION', '1.18.0');
         }
         if (! defined('LKN_WC_CIELO_TRANSLATION_PATH')) {
             define('LKN_WC_CIELO_TRANSLATION_PATH', plugin_dir_path(__FILE__) . 'languages/');
