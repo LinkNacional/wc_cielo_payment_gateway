@@ -134,19 +134,6 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
             ));
         }
 
-        $allowed_sections = array(
-            'lkn_cielo_credit',
-        );
-
-        if (isset($_GET['section']) && in_array($_GET['section'], $allowed_sections, true)) {
-            wp_enqueue_script(
-                'lkn-wc-gateway-cielo-plugin-rate',
-                plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-wc-gateway-plugin-rate.js',
-                array('jquery'),
-                $this->version,
-                false
-            );
-        }
     }
 
     /**
