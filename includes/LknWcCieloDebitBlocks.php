@@ -13,7 +13,9 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
     public function initialize(): void
     {
         $this->settings = get_option('woocommerce_lkn_cielo_debit_settings', array());
-        $this->gateway = new LknWCGatewayCieloDebit();
+        $lknWcGateWayCieloDebit = new LknWCGatewayCieloDebit();
+        $lknWcGateWayCieloDebit->initialize_payment_gateway_scripts();
+        $this->gateway = $lknWcGateWayCieloDebit;
     }
 
     public function is_active()

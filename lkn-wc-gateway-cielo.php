@@ -217,14 +217,8 @@ final class LknWCCieloPayment
      */
     public static function add_gateway($gateways)
     {
-        $lknWcGateWayCieloCredit = new LknWCGatewayCieloCredit();
-        $lknWcGateWayCieloCredit->initialize_payment_gateway_scripts();
-        $gateways[] = $lknWcGateWayCieloCredit;
-
-        $lknWcGateWayCieloDebit = new LknWCGatewayCieloDebit();
-        $lknWcGateWayCieloDebit->initialize_payment_gateway_scripts();
-        $gateways[] = $lknWcGateWayCieloDebit;
-
+        $gateways[] = new LknWCGatewayCieloCredit();
+        $gateways[] = new LknWCGatewayCieloDebit();
         $gateways[] = new LknWcCieloPix();
 
         return $gateways;
