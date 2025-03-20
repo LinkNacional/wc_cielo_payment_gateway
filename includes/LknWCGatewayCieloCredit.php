@@ -90,9 +90,6 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         // Actions.
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
 
-        // Action hook to load custom JavaScript
-        add_action('wp_enqueue_scripts', array($this, 'payment_gateway_scripts'));
-
         add_action('woocommerce_scheduled_subscription_payment_' . $this->id, array($this, 'process_subscription_payment'), 10, 3);
 
         // Action hook to load admin JavaScript
@@ -134,6 +131,12 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
             ));
         }
 
+    }
+
+    public function initialize_payment_gateway_scripts()
+    {
+        // Aqui você pode adicionar o hook manualmente dentro da função
+        add_action('wp_enqueue_scripts', [$this, 'payment_gateway_scripts']);
     }
 
     /**
