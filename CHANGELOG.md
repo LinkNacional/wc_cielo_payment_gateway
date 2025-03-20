@@ -1,3 +1,7 @@
+# 1.19.0 - 20/03/2025
+* Adição de mensagem para informar quando as credenciais estão erradas;
+* Correção de scripts duplicados.
+
 # 1.18.0 - 17/03/2025
 * Método de pagamento pix.
 

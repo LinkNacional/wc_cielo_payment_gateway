@@ -139,6 +139,7 @@
 
       const hrElement = document.createElement('hr')
       divElement.parentElement.insertBefore(hrElement, divElement.nextSibling)
+      lknWcCieloValidateMerchantInputs()
     }
 
     const message = $('<p id="footer-left" class="alignleft"></p>')
@@ -158,4 +159,46 @@
       $('#footer-left').html('Obrigado :)').css('text-align', 'center')
     })
   })
+
+  function lknWcCieloValidateMerchantInputs() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const sectionParam = urlParams.get("section");
+
+    if(sectionParam){
+      const merchantIdInput = document.querySelector(`#woocommerce_${sectionParam}_merchant_id`);
+      const merchantKeyInput = document.querySelector(`#woocommerce_${sectionParam}_merchant_key`);
+      
+      if(merchantIdInput && merchantKeyInput){
+        function validateInput(input, expectedLength, message) {
+            const parent = input.parentElement;
+            let errorMsg = parent.querySelector(".validation-error");
+    
+            if (input.value.length !== expectedLength) {
+                if (!errorMsg) {
+                    errorMsg = document.createElement("p");
+                    errorMsg.className = "validation-error";
+                    errorMsg.style.color = "red";
+                    errorMsg.style.fontWeight = "500";
+                    errorMsg.style.marginTop = "5px";
+                    errorMsg.style.fontSize = "small";
+                    parent.appendChild(errorMsg);
+                }
+                errorMsg.textContent = message;
+            } else {
+                if (errorMsg) errorMsg.remove();
+            }
+        }
+    
+        function validateFields() {
+            validateInput(merchantIdInput, 36, "O Merchant ID deve ter 36 caracteres.");
+            validateInput(merchantKeyInput, 40, "A Merchant Key deve ter 40 caracteres.");
+        }
+    
+        merchantIdInput.addEventListener("input", validateFields);
+        merchantKeyInput.addEventListener("input", validateFields);
+    
+        validateFields(); // Valida ao carregar a página
+      }
+    }
+  }
 })(jQuery)
