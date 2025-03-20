@@ -38,8 +38,12 @@ final class LknWcCieloRequest
                 'IdentityType' => $billingCpfCpnj['IdentityType'],
             ),
             'Payment' => array(
-                'Type' => 'Pix',
-                'Amount' => $amount
+                'Type' => 'qrcode',
+                'Amount' => $amount,
+                'Provider' => 'Cielo',
+                'Installments' => 1,
+                'Modality' => 'Pix',
+                'Capture' => false
             )
         );
 
