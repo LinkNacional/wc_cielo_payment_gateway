@@ -1291,6 +1291,11 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
             throw new Exception(esc_attr($message));
         }
         $responseDecoded = json_decode($response['body']);
+
+        if (isset($responseDecoded->Code) && isset($responseDecoded->Message)) {
+            throw new Exception(esc_attr($responseDecoded->Message));
+        }
+
         if ($this->get_option('debug') === 'yes') {
             $lknWcCieloHelper = new LknWcCieloHelper();
 
