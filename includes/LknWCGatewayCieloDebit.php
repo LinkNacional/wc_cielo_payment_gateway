@@ -98,13 +98,13 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         // Actions.
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
 
-        add_action('wp_enqueue_scripts', array($this, 'payment_gateway_scripts'));
-
         // Action hook to load admin JavaScript
         if (function_exists('get_plugins')) {
             add_action('admin_enqueue_scripts', array($this, 'admin_load_script'));
         }
     }
+
+
 
     /**
      * Load admin JavaScript for the admin page.
@@ -127,6 +127,12 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
             ));
         }
 
+    }
+
+    public function initialize_payment_gateway_scripts()
+    {
+        // Aqui você pode adicionar o hook manualmente dentro da função
+        add_action('wp_enqueue_scripts', [$this, 'payment_gateway_scripts']);
     }
 
     /**
@@ -1285,6 +1291,11 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
             throw new Exception(esc_attr($message));
         }
         $responseDecoded = json_decode($response['body']);
+
+        if (isset($responseDecoded->Code) && isset($responseDecoded->Message)) {
+            throw new Exception(esc_attr($responseDecoded->Message));
+        }
+
         if ($this->get_option('debug') === 'yes') {
             $lknWcCieloHelper = new LknWcCieloHelper();
 

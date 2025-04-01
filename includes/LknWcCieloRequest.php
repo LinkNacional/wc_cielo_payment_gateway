@@ -55,19 +55,6 @@ final class LknWcCieloRequest
             'timeout' => 60,
         ));
 
-        // Registrar o log completo com os dados mascarados
-        if ('yes' == $instance->debug) {
-            $this->log->log('info', 'pixRequest', array(
-                'request' => array(
-                    'url' => $postUrl . '/1/sales/',
-                    'current_time' => current_time('mysql'),
-                    'body' => $body,
-                    'header' => $header,
-                ),
-                'response' => $response
-            ));
-        }
-
         if (is_wp_error($response)) {
             return array(
                 'sucess' => false,
@@ -120,6 +107,19 @@ final class LknWcCieloRequest
         // Da mesma forma, mascarar os campos sensíveis do header
         $header['MerchantId'] = $this->maskSensitiveData($header['MerchantId']);
         $header['MerchantKey'] = $this->maskSensitiveData($header['MerchantKey']);
+
+        // Registrar o log completo com os dados mascarados
+        if ('yes' == $instance->debug) {
+            $this->log->log('info', 'pixRequest', array(
+                'request' => array(
+                    'url' => $postUrl . '/1/sales/',
+                    'current_time' => current_time('mysql'),
+                    'body' => $body,
+                    'header' => $header,
+                ),
+                'response' => $response
+            ));
+        }
 
         return array(
             'sucess' => true,

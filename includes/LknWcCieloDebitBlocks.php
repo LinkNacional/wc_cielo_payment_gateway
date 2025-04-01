@@ -5,23 +5,29 @@ namespace Lkn\WCCieloPaymentGateway\Includes;
 use Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType;
 use Lkn\WCCieloPaymentGateway\Includes\LknWCGatewayCieloDebit;
 
-final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType {
+final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
+{
     private $gateway;
     protected $name = 'lkn_cielo_debit';
 
-    public function initialize(): void {
-        $this->settings = get_option( 'woocommerce_lkn_cielo_debit_settings', array() );
-        $this->gateway = new LknWCGatewayCieloDebit();
+    public function initialize(): void
+    {
+        $this->settings = get_option('woocommerce_lkn_cielo_debit_settings', array());
+        $lknWcGateWayCieloDebit = new LknWCGatewayCieloDebit();
+        $lknWcGateWayCieloDebit->initialize_payment_gateway_scripts();
+        $this->gateway = $lknWcGateWayCieloDebit;
     }
 
-    public function is_active() {
+    public function is_active()
+    {
         return $this->gateway->is_available();
     }
 
-    public function get_payment_method_script_handles() {
+    public function get_payment_method_script_handles()
+    {
         wp_register_script(
             'lkn_cielo_debit-blocks-integration',
-            plugin_dir_url( __FILE__ ) . '../resources/js/debitCard/lknCieloDebitCompiled.js',
+            plugin_dir_url(__FILE__) . '../resources/js/debitCard/lknCieloDebitCompiled.js',
             array(
                 'wc-blocks-registry',
                 'wc-settings',
@@ -33,28 +39,29 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType {
             '1.0.0',
             true
         );
-        if ( function_exists( 'wp_set_script_translations' ) ) {
-            wp_set_script_translations( 'lkn_cielo_debit-blocks-integration');
+        if (function_exists('wp_set_script_translations')) {
+            wp_set_script_translations('lkn_cielo_debit-blocks-integration');
         }
 
         do_action('lkn_wc_cielo_remove_cardholder_name_3ds', $this->gateway);
         return array('lkn_cielo_debit-blocks-integration');
     }
 
-    private function get_client_ip() {
+    private function get_client_ip()
+    {
         $ip_address = '';
         $client_ip = isset($_SERVER['HTTP_CLIENT_IP']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_CLIENT_IP'])) : '';
         $forwarded_ip = isset($_SERVER['HTTP_X_FORWARDED_FOR']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_X_FORWARDED_FOR'])) : '';
         $real_ip = isset($_SERVER['HTTP_X_REAL_IP']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_X_REAL_IP'])) : '';
         $remote_ip = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '';
 
-        if ( ! empty($client_ip)) {
+        if (! empty($client_ip)) {
             $ip_address = $client_ip;
-        } elseif ( ! empty($forwarded_ip)) {
+        } elseif (! empty($forwarded_ip)) {
             // Se estiver atrás de um proxy, `HTTP_X_FORWARDED_FOR` pode conter uma lista de IPs.
             $ip_list = explode(',', $forwarded_ip);
             $ip_address = trim($ip_list[0]); // Pega o primeiro IP da lista
-        } elseif ( ! empty($real_ip)) {
+        } elseif (! empty($real_ip)) {
             $ip_address = $real_ip;
         } else {
             $ip_address = $remote_ip;
@@ -63,7 +70,8 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType {
         return $ip_address;
     }
 
-    public function get_payment_method_data() {
+    public function get_payment_method_data()
+    {
         if ($this->gateway->get_option('env') == 'sandbox') {
             $dirScriptConfig3DS = LKN_WC_GATEWAY_CIELO_URL . 'resources/js/debitCard/lkn-dc-script-sdb.js';
         } else {
@@ -95,15 +103,15 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType {
         return array(
             'title' => $this->gateway->title,
             'description' => $this->gateway->description,
-            'accessToken' => $acessToken['access_token'],
-            'accessTokenExpiration' => $acessToken['expires_in'],
+            'accessToken' => isset($acessToken['access_token']) ? $acessToken['access_token'] : '',
+            'accessTokenExpiration' => isset($acessToken['expires_in']) ? $acessToken['expires_in'] : '',
             'url' => get_page_link(),
             'orderNumber' => uniqid(),
             'activeInstallment' => $this->gateway->get_option('installment_payment'),
             'dirScript3DS' => LKN_WC_GATEWAY_CIELO_URL . 'resources/js/debitCard/BP.Mpi.3ds20.min.js',
             'dirScriptConfig3DS' => $dirScriptConfig3DS,
             'totalCart' => $this->gateway->lknGetCartTotal(),
-            'nonceCieloDebit' => wp_create_nonce( 'nonce_lkn_cielo_debit' ),
+            'nonceCieloDebit' => wp_create_nonce('nonce_lkn_cielo_debit'),
             'installmentLimit' => $installmentLimit,
             'installments' => $installments,
             'installmentMinAmount' => $installmentMinAmount,
