@@ -73,7 +73,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         $this->supports = apply_filters('lkn_wc_cielo_debit_add_support', $this->supports);
 
         $this->method_title = __('Cielo - Debit and credit card', 'lkn-wc-gateway-cielo');
-        $this->method_description = __('Allows debit and credit card payment with Cielo API 3.0.', 'lkn-wc-gateway-cielo') . '<a href="https://www.linknacional.com.br/wordpress/woocommerce/cielo/#cartao-debito-cielo-configurar" target="_blank">' . __('Learn more how to configure.', 'lkn-wc-gateway-cielo') . '</a>' . '<br><br>' . '<p>' . __('To use the 3DS functionality it is necessary to register for 3DS 2.2 (request to eCommerce Support).', 'lkn-wc-gateway-cielo') . '<a href="https://www.cielo.com.br/atendimento/" target="_blank">' . __('Learn more how to configure.', 'lkn-wc-gateway-cielo') . '</a>' . '<p>';
+        $this->method_description = __('Allows debit and credit card payment with Cielo API 3.0.', 'lkn-wc-gateway-cielo') . ' ' . '<a href="https://www.linknacional.com.br/wordpress/woocommerce/cielo/doc/" target="_blank">' . __('Learn more how to configure.', 'lkn-wc-gateway-cielo') . '</a>';
 
         // Load the settings.
         $this->init_form_fields();

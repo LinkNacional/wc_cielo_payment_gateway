@@ -4,7 +4,7 @@ Donate link: https://www.linknacional.com.br/wordpress/woocommerce/cielo/
 Tags: woocommerce, payment, paymethod, card, credit
 Requires at least: 5.7
 Tested up to: 6.7
-Stable tag: 1.19.0
+Stable tag: 1.19.1
 Requires PHP: 7.2
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -34,6 +34,8 @@ In addition to the free version's features, the **Cielo API Payment Gateway for 
 - Configuration of the **maximum number of installments** and **minimum installment amount**, providing greater flexibility in offering payment terms.
 
 With the [PRO version](https://www.linknacional.com.br/wordpress/woocommerce/cielo/), you'll have access to a robust and complete solution to manage all types of transactions, providing a more convenient and personalized shopping experience for your customers.
+
+[youtube https://www.youtube.com/watch?v=5mYIEC9V254]
 
 **Dependencies**
 
@@ -98,7 +100,11 @@ This plugin uses the [React Credit Cards](https://github.com/amaroteam/react-cre
 7. Debit card front page with payment fields.
 
 == Changelog ==
-= 1.18.1 =
+= 1.19.1 =
+**07/04/2025**
+* Update descriptions of payment methods.
+
+= 1.19.0 =
 **20/03/2025**
 * Add message to inform when credentials are incorrect;
 * Duplicate scripts.

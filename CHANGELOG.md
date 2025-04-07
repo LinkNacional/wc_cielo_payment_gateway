@@ -1,3 +1,6 @@
+# 1.19.1 - 07/04/2025
+* Alteração em descrições dos métodos de pagamentos.
+
 # 1.19.0 - 20/03/2025
 * Adição de mensagem para informar quando as credenciais estão erradas;
 * Correção de scripts duplicados.
