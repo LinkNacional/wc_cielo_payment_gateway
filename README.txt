@@ -35,6 +35,8 @@ In addition to the free version's features, the **Cielo API Payment Gateway for 
 
 With the [PRO version](https://www.linknacional.com.br/wordpress/woocommerce/cielo/), you'll have access to a robust and complete solution to manage all types of transactions, providing a more convenient and personalized shopping experience for your customers.
 
+[youtube https://www.youtube.com/watch?v=5mYIEC9V254]
+
 **Dependencies**
 
 Payment Gateway for Cielo API on WooCommerce plugin is dependent on WooCommerce plugin, please make sure WooCommerce is installed and properly configured before starting Payment Gateway for Cielo API on WooCommerce installation.

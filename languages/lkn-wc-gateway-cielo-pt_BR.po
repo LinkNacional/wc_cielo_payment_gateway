@@ -376,3 +376,18 @@ msgstr "in the logged-in area under My Registration > Authorizations > PIX"
 
 msgid "Failed to retrieve card type"
 msgstr "Falha ao recuperar o tipo de cartão"
+
+msgid "Check with Cielo if the PIX payment method is activated."
+msgstr "Verifique na Cielo se o método de pagamento via PIX está ativado."
+
+msgid "Watch the tutorial"
+msgstr "Assista ao tutorial"
+
+msgid "or"
+msgstr "ou"
+
+msgid "check the documentation"
+msgstr "consulte a documentação"
+
+msgid "for more information."
+msgstr "para mais informações."

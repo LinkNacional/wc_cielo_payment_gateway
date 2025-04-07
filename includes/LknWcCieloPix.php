@@ -35,10 +35,14 @@ final class LknWcCieloPix extends WC_Payment_Gateway
         $this->version = LKN_WC_CIELO_VERSION;
 
         $this->method_title = __('Cielo Free - Pix', 'lkn-wc-gateway-cielo');
-        $this->method_description = __('Allows pix payment with Cielo API 3.0.', 'lkn-wc-gateway-cielo') . ' ' .
-        __('Before using Pix in production, make sure that Pix is enabled in your registration. To confirm, just access the', 'lkn-wc-gateway-cielo') . ' ' .
-        '<a href="https://www.cielo.com.br/" target="_blank">' .
-        __('Cielo portal', 'lkn-wc-gateway-cielo') . '</a>' . ' ' . __('in the logged-in area under My Registration > Authorizations > PIX', 'lkn-wc-gateway-cielo');
+        $this->method_description = __('Check with Cielo if the PIX payment method is activated.', 'lkn-wc-gateway-cielo') . ' ' .
+            '<a href="https://www.youtube.com/watch?v=5mYIEC9V254&t=993s" target="_blank">' .
+            __('Watch the tutorial', 'lkn-wc-gateway-cielo') . '</a>' . ' ' .
+            __('or', 'lkn-wc-gateway-cielo') . ' ' .
+            '<a href="https://linknacional.com.br/wordpress/woocommerce/cielo/doc/#woocommerce-pix-cielo" target="_blank">' .
+            __('check the documentation', 'lkn-wc-gateway-cielo') . '</a>' .
+            __(' for more information.', 'lkn-wc-gateway-cielo');
+
 
         $this->supports = array(
             'products',
