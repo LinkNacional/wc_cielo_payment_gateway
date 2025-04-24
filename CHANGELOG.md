@@ -1,3 +1,6 @@
+# 1.19.2 - 24/04/2025
+* Correção no envio de parcelas dos métodos de pagamentos.
+
 # 1.19.1 - 07/04/2025
 * Alteração em descrições dos métodos de pagamentos.
 
