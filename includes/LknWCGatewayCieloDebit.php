@@ -961,7 +961,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         </label>
         <select
             id="lkn_cc_dc_installments"
-            name="lkn_cc_installments"
+            name="lkn_cc_dc_installments"
         >
             <option
                 value="1"
@@ -1125,7 +1125,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
 
         // If installments option is active verify $_POST attribute
         if ('yes' === $activeInstallment && 'Credit' == $cardType) {
-            $installments = (int) isset($_POST['lkn_cc_installments']) ? sanitize_text_field(wp_unslash($_POST['lkn_cc_installments'])) : 1;
+            $installments = (int) isset($_POST['lkn_cc_dc_installments']) ? sanitize_text_field(wp_unslash($_POST['lkn_cc_dc_installments'])) : 1;
 
             if ($installments > 12) {
                 if (

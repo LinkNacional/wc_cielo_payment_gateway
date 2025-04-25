@@ -75,7 +75,7 @@ const lknDCContentCielo = (props) => {
     lkn_dcno: '',
     lkn_dc_expdate: '',
     lkn_dc_cvc: '',
-    lkn_cc_installments: '1', // Definir padrão como 1 parcela
+    lkn_cc_dc_installments: '1', // Definir padrão como 1 parcela
     lkn_cc_type: 'Credit',
   })
   const [focus, setFocus] = window.wp.element.useState('')
@@ -267,7 +267,7 @@ const lknDCContentCielo = (props) => {
             lkn_cielo_3ds_ref_id: paymentReferenceId,
             lkn_cielo_3ds_version: paymentVersion,
             lkn_cielo_3ds_xid: paymentXid,
-            lkn_cc_installments: debitObject.lkn_cc_installments,
+            lkn_cc_dc_installments: debitObject.lkn_cc_dc_installments,
             lkn_cc_type: debitObject.lkn_cc_type,
           },
         },
@@ -460,11 +460,11 @@ const lknDCContentCielo = (props) => {
 
       {(lknDCActiveInstallmentCielo === 'yes' && debitObject.lkn_cc_type == 'Credit') && (
         <wcComponents.SortSelect
-          id="lkn_cc_installments"
+          id="lkn_cc_dc_installments"
           label={lknDCTranslationsCielo.cardType}
-          value={debitObject.lkn_cc_installments}
+          value={debitObject.lkn_cc_dc_installments}
           onChange={(event) => {
-            updatedebitObject('lkn_cc_installments', event.target.value)
+            updatedebitObject('lkn_cc_dc_installments', event.target.value)
           }}
           options={options}
         />
