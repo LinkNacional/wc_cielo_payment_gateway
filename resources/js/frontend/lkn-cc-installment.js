@@ -42,6 +42,9 @@
         const formatedInstallment = new Intl.NumberFormat('pt-br', { style: 'currency', currency: lknWCCieloCredit.currency }).format(installment)
         const option = document.createElement('option')
         let text = document.createTextNode(i + 'x ' + formatedInstallment + ' sem juros')
+        if(lknWCCieloCreditDiscount == 'yes'){
+          text = document.createTextNode(i + 'x ' + formatedInstallment)
+        }
         if (lknWCCieloCredit.licenseResult) {
           for (let t = 0; t < lknInstallmentInterest.length; t++) {
             const installmentObj = lknInstallmentInterest[t]
@@ -49,11 +52,17 @@
             if (installmentObj.id === i) {
               if (installmentObj.label) {
                 text = document.createTextNode(installmentObj.label)
-              } else {
+              } else if(installmentObj.interest) {
                 const interest = (amount + (amount * (installmentObj.interest / 100))) / i // installment + (installment * (installmentObj.interest / 100));
                 const formatedInterest = new Intl.NumberFormat('pt-br', { style: 'currency', currency: lknWCCieloCredit.currency }).format(interest)
-
+                
                 text = document.createTextNode(i + 'x ' + formatedInterest)
+              } else if(installmentObj.discount) {
+                const discount = (amount - (amount * (installmentObj.discount / 100))) / i
+                const formatedDiscount = new Intl.NumberFormat('pt-br', { style: 'currency', currency: lknWCCieloCredit.currency }).format(discount)
+                console.log(installmentObj.discount)
+                
+                text = document.createTextNode(i + 'x ' + formatedDiscount)
               }
             }
           }
