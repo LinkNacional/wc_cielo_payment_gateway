@@ -60,7 +60,6 @@
               } else if(installmentObj.discount) {
                 const discount = (amount - (amount * (installmentObj.discount / 100))) / i
                 const formatedDiscount = new Intl.NumberFormat('pt-br', { style: 'currency', currency: lknWCCieloCredit.currency }).format(discount)
-                console.log(installmentObj.discount)
                 
                 text = document.createTextNode(i + 'x ' + formatedDiscount)
               }
