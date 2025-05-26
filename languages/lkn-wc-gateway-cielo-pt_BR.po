@@ -391,3 +391,6 @@ msgstr "consulte a documentação"
 
 msgid "for more information."
 msgstr "para mais informações."
+
+msgid "Debit card"
+msgstr "Cartão de débito"
