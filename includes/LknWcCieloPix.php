@@ -34,7 +34,7 @@ final class LknWcCieloPix extends WC_Payment_Gateway
         self::$request = new LknWcCieloRequest();
         $this->version = LKN_WC_CIELO_VERSION;
 
-        $this->method_title = __('Cielo Free - Pix', 'lkn-wc-gateway-cielo');
+        $this->method_title = __('Cielo PIX Free', 'lkn-wc-gateway-cielo');
         $this->method_description = __('Check with Cielo if the PIX payment method is activated.', 'lkn-wc-gateway-cielo') . ' ' .
             '<a href="https://www.youtube.com/watch?v=5mYIEC9V254&t=993s" target="_blank">' .
             __('Watch the tutorial', 'lkn-wc-gateway-cielo') . '</a>' . ' ' .
