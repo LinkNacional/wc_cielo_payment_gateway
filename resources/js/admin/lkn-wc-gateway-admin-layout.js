@@ -7,36 +7,10 @@
     const submitP = mainForm.querySelector('p.submit')
     const tables = mainForm.querySelectorAll('table')
 
-    const descriptionElement = document.querySelector('#woocommerce_lkn_cielo_credit_description')
-    if (descriptionElement) {
-      descriptionElement.style.width = '400px'
-    }
-
-    if (mainForm && fistH1 && submitP && tables) {
+    if (mainform && fistH1 && submitP && tables) {
       // Criar uma nova div
       const newDiv = document.createElement('div')
       newDiv.id = 'lknWcCieloCreditBlocksSettingsLayoutDiv'
-
-      const parentFlexDiv = document.createElement('div')
-      parentFlexDiv.id = 'lknWcCieloCreditBlocksSettingsFlexContainer'
-      parentFlexDiv.style.display = 'flex'
-      parentFlexDiv.style.flexDirection = 'row' // opcional: padrão
-      parentFlexDiv.style.gap = '20px'
-      parentFlexDiv.style.flexWrap = 'wrap'
-      parentFlexDiv.style.position = 'relative'
-
-      const logoDiv = document.createElement('div')
-      logoDiv.id = 'lknWcCieloCreditBlocksSettingsLogo'
-      logoDiv.style.minWidth = '30%'
-      logoDiv.style.height = '100%'
-      logoDiv.style.display = 'flex'
-      logoDiv.style.justifyContent = 'center'
-      logoDiv.style.alignItems = 'start'
-      logoDiv.style.backgroundColor = 'transparent'
-      logoDiv.style.borderRadius = '10px'
-      logoDiv.style.padding = '30px 24px'
-      logoDiv.style.position = 'sticky'
-      logoDiv.style.top = '110px'
 
       // Acessar o próximo elemento após fistH1
       let currentElement = fistH1 // Começar com fistH1
@@ -51,12 +25,8 @@
       // Mover submitP para a nova div
       newDiv.appendChild(submitP)
 
-      // Mover a div existente para dentro da nova div pai
-      parentFlexDiv.appendChild(newDiv)
-      parentFlexDiv.appendChild(logoDiv)
-
-      // Adicionar a nova estrutura flex ao formulário
-      mainForm.appendChild(parentFlexDiv)
+      // Adicionar a nova div ao mainForm
+      mainForm.appendChild(newDiv)
 
       const subTitles = mainForm.querySelectorAll('.wc-settings-sub-title')
       const descriptionElement = mainForm.querySelector('p')
@@ -191,43 +161,43 @@
   })
 
   function lknWcCieloValidateMerchantInputs() {
-    const urlParams = new URLSearchParams(window.location.search)
-    const sectionParam = urlParams.get('section')
+    const urlParams = new URLSearchParams(window.location.search);
+    const sectionParam = urlParams.get("section");
 
-    if (sectionParam) {
-      const merchantIdInput = document.querySelector(`#woocommerce_${sectionParam}_merchant_id`)
-      const merchantKeyInput = document.querySelector(`#woocommerce_${sectionParam}_merchant_key`)
-
-      if (merchantIdInput && merchantKeyInput) {
+    if(sectionParam){
+      const merchantIdInput = document.querySelector(`#woocommerce_${sectionParam}_merchant_id`);
+      const merchantKeyInput = document.querySelector(`#woocommerce_${sectionParam}_merchant_key`);
+      
+      if(merchantIdInput && merchantKeyInput){
         function validateInput(input, expectedLength, message) {
-          const parent = input.parentElement
-          let errorMsg = parent.querySelector('.validation-error')
-
-          if (input.value.length !== expectedLength) {
-            if (!errorMsg) {
-              errorMsg = document.createElement('p')
-              errorMsg.className = 'validation-error'
-              errorMsg.style.color = 'red'
-              errorMsg.style.fontWeight = '500'
-              errorMsg.style.marginTop = '5px'
-              errorMsg.style.fontSize = 'small'
-              parent.appendChild(errorMsg)
+            const parent = input.parentElement;
+            let errorMsg = parent.querySelector(".validation-error");
+    
+            if (input.value.length !== expectedLength) {
+                if (!errorMsg) {
+                    errorMsg = document.createElement("p");
+                    errorMsg.className = "validation-error";
+                    errorMsg.style.color = "red";
+                    errorMsg.style.fontWeight = "500";
+                    errorMsg.style.marginTop = "5px";
+                    errorMsg.style.fontSize = "small";
+                    parent.appendChild(errorMsg);
+                }
+                errorMsg.textContent = message;
+            } else {
+                if (errorMsg) errorMsg.remove();
             }
-            errorMsg.textContent = message
-          } else {
-            if (errorMsg) errorMsg.remove()
-          }
         }
-
+    
         function validateFields() {
-          validateInput(merchantIdInput, 36, 'O Merchant ID deve ter 36 caracteres.')
-          validateInput(merchantKeyInput, 40, 'A Merchant Key deve ter 40 caracteres.')
+            validateInput(merchantIdInput, 36, "O Merchant ID deve ter 36 caracteres.");
+            validateInput(merchantKeyInput, 40, "A Merchant Key deve ter 40 caracteres.");
         }
-
-        merchantIdInput.addEventListener('input', validateFields)
-        merchantKeyInput.addEventListener('input', validateFields)
-
-        validateFields() // Valida ao carregar a página
+    
+        merchantIdInput.addEventListener("input", validateFields);
+        merchantKeyInput.addEventListener("input", validateFields);
+    
+        validateFields(); // Valida ao carregar a página
       }
     }
   }
