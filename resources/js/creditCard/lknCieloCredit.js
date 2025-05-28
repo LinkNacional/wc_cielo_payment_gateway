@@ -1,6 +1,7 @@
 import React from 'react'
 import Cards from 'react-credit-cards'
 import 'react-credit-cards/es/styles-compiled.css'
+import { jsx as _jsx, Fragment as _Fragment, jsxs as _jsxs } from 'react/jsx-runtime'
 const lknCCSettingsCielo = window.wc.wcSettings.getSetting('lkn_cielo_credit_data', {})
 const lknCCLabelCielo = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.title)
 const lknCCActiveInstallmentCielo = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.activeInstallment)
@@ -27,7 +28,6 @@ const lknCCContentCielo = props => {
     lkn_cc_cvc: '',
     lkn_cc_installments: '1' // Definir padrão como 1 parcela
   })
-
   const [focus, setFocus] = window.wp.element.useState('')
   const formatCreditCardNumber = value => {
     if (value?.length > 24) return creditObject.lkn_ccno
@@ -96,7 +96,13 @@ const lknCCContentCielo = props => {
         let formatedInterest = false
         for (let t = 0; t < lknCCinstallmentsCielo.length; t++) {
           const installmentObj = lknCCinstallmentsCielo[t]
-          if (installmentObj.id === index) {
+          if (installmentObj.isDiscount == true && installmentObj.id === index) {
+            nextInstallmentAmount = (lknCCTotalCartCielo - lknCCTotalCartCielo * (parseFloat(installmentObj.interest) / 100)) / index
+            formatedInterest = new Intl.NumberFormat('pt-br', {
+              style: 'currency',
+              currency: 'BRL'
+            }).format(nextInstallmentAmount)
+          } else if (installmentObj.id === index) {
             nextInstallmentAmount = (lknCCTotalCartCielo + lknCCTotalCartCielo * (parseFloat(installmentObj.interest) / 100)) / index
             formatedInterest = new Intl.NumberFormat('pt-br', {
               style: 'currency',
@@ -108,6 +114,11 @@ const lknCCContentCielo = props => {
           setOptions(prevOptions => [...prevOptions, {
             key: index,
             label: `${index}x de ${formatedInterest}`
+          }])
+        } else if (lknCCSettingsCielo.activeDiscount == 'yes') {
+          setOptions(prevOptions => [...prevOptions, {
+            key: index,
+            label: `${index}x de R$ ${installmentAmount}`
           }])
         } else {
           setOptions(prevOptions => [...prevOptions, {
@@ -194,70 +205,76 @@ const lknCCContentCielo = props => {
       unsubscribe()
     }
   }, [creditObject, emitResponse.responseTypes.ERROR, emitResponse.responseTypes.SUCCESS, onPaymentSetup])
-  return /* #__PURE__ */React.createElement(React.Fragment, null, /* #__PURE__ */React.createElement('div', null, /* #__PURE__ */React.createElement('p', null, 'Pagamento processado pela Cielo API 3.0')), lknCCShowCard !== 'no' && /* #__PURE__ */React.createElement(Cards, {
-    number: creditObject.lkn_ccno,
-    name: creditObject.lkn_cc_cardholder_name,
-    expiry: creditObject.lkn_cc_expdate.replace(/\s+/g, ''),
-    cvc: creditObject.lkn_cc_cvc,
-    placeholders: {
-      name: 'NOME',
-      expiry: 'MM/ANO',
-      cvc: 'CVC',
-      number: '•••• •••• •••• ••••'
-    },
-    locale: {
-      valid: 'VÁLIDO ATÉ'
-    },
-    focused: focus
-  }), /* #__PURE__ */React.createElement(wcComponents.TextInput, {
-    id: 'lkn_cc_cardholder_name',
-    label: lknCCTranslationsCielo.cardHolder,
-    value: creditObject.lkn_cc_cardholder_name,
-    onChange: value => {
-      updateCreditObject('lkn_cc_cardholder_name', value)
-    },
-    required: true,
-    onFocus: () => setFocus('name')
-  }), /* #__PURE__ */React.createElement(wcComponents.TextInput, {
-    id: 'lkn_ccno',
-    label: lknCCTranslationsCielo.cardNumber,
-    value: creditObject.lkn_ccno,
-    onChange: value => {
-      updateCreditObject('lkn_ccno', formatCreditCardNumber(value))
-    },
-    required: true,
-    onFocus: () => setFocus('number')
-  }), /* #__PURE__ */React.createElement(wcComponents.TextInput, {
-    id: 'lkn_cc_expdate',
-    label: lknCCTranslationsCielo.cardExpiryDate,
-    value: creditObject.lkn_cc_expdate,
-    onChange: value => {
-      updateCreditObject('lkn_cc_expdate', value)
-    },
-    required: true,
-    onFocus: () => setFocus('expiry')
-  }), /* #__PURE__ */React.createElement(wcComponents.TextInput, {
-    id: 'lkn_cc_cvc',
-    label: lknCCTranslationsCielo.securityCode,
-    value: creditObject.lkn_cc_cvc,
-    onChange: value => {
-      updateCreditObject('lkn_cc_cvc', value)
-    },
-    required: true,
-    onFocus: () => setFocus('cvc')
-  }), /* #__PURE__ */React.createElement('div', {
-    style: {
-      marginBottom: '20px'
-    }
-  }), lknCCActiveInstallmentCielo === 'yes' && /* #__PURE__ */React.createElement(wcComponents.SortSelect, {
-    id: 'lkn_cc_installments',
-    label: lknCCTranslationsCielo.installments,
-    value: creditObject.lkn_cc_installments,
-    onChange: event => {
-      updateCreditObject('lkn_cc_installments', event.target.value)
-    },
-    options
-  }))
+  return /* #__PURE__ */_jsxs(_Fragment, {
+    children: [/* #__PURE__ */_jsx('div', {
+      children: /* #__PURE__ */_jsx('p', {
+        children: 'Pagamento processado pela Cielo API 3.0'
+      })
+    }), lknCCShowCard !== 'no' && /* #__PURE__ */_jsx(Cards, {
+      number: creditObject.lkn_ccno,
+      name: creditObject.lkn_cc_cardholder_name,
+      expiry: creditObject.lkn_cc_expdate.replace(/\s+/g, ''),
+      cvc: creditObject.lkn_cc_cvc,
+      placeholders: {
+        name: 'NOME',
+        expiry: 'MM/ANO',
+        cvc: 'CVC',
+        number: '•••• •••• •••• ••••'
+      },
+      locale: {
+        valid: 'VÁLIDO ATÉ'
+      },
+      focused: focus
+    }), /* #__PURE__ */_jsx(wcComponents.TextInput, {
+      id: 'lkn_cc_cardholder_name',
+      label: lknCCTranslationsCielo.cardHolder,
+      value: creditObject.lkn_cc_cardholder_name,
+      onChange: value => {
+        updateCreditObject('lkn_cc_cardholder_name', value)
+      },
+      required: true,
+      onFocus: () => setFocus('name')
+    }), /* #__PURE__ */_jsx(wcComponents.TextInput, {
+      id: 'lkn_ccno',
+      label: lknCCTranslationsCielo.cardNumber,
+      value: creditObject.lkn_ccno,
+      onChange: value => {
+        updateCreditObject('lkn_ccno', formatCreditCardNumber(value))
+      },
+      required: true,
+      onFocus: () => setFocus('number')
+    }), /* #__PURE__ */_jsx(wcComponents.TextInput, {
+      id: 'lkn_cc_expdate',
+      label: lknCCTranslationsCielo.cardExpiryDate,
+      value: creditObject.lkn_cc_expdate,
+      onChange: value => {
+        updateCreditObject('lkn_cc_expdate', value)
+      },
+      required: true,
+      onFocus: () => setFocus('expiry')
+    }), /* #__PURE__ */_jsx(wcComponents.TextInput, {
+      id: 'lkn_cc_cvc',
+      label: lknCCTranslationsCielo.securityCode,
+      value: creditObject.lkn_cc_cvc,
+      onChange: value => {
+        updateCreditObject('lkn_cc_cvc', value)
+      },
+      required: true,
+      onFocus: () => setFocus('cvc')
+    }), /* #__PURE__ */_jsx('div', {
+      style: {
+        marginBottom: '20px'
+      }
+    }), lknCCActiveInstallmentCielo === 'yes' && /* #__PURE__ */_jsx(wcComponents.SortSelect, {
+      id: 'lkn_cc_installments',
+      label: lknCCTranslationsCielo.installments,
+      value: creditObject.lkn_cc_installments,
+      onChange: event => {
+        updateCreditObject('lkn_cc_installments', event.target.value)
+      },
+      options
+    })]
+  })
 }
 const Lkn_CC_Block_Gateway_Cielo = {
   name: 'lkn_cielo_credit',

@@ -67,15 +67,26 @@
         const formatedInstallment = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(installment)
         const option = document.createElement('option')
         let text = document.createTextNode(i + 'x ' + formatedInstallment + ' sem juros')
-
+        if(lknWCCielo3dsDiscount == 'yes'){
+          text = document.createTextNode(i + 'x ' + formatedInstallment)
+        }
         for (let t = 0; t < lknInstallmentInterest.length; t++) {
           const installmentObj = lknInstallmentInterest[t]
           // Verify if it is the right installment
           if (installmentObj.id === i) {
-            const interest = (amount + (amount * (installmentObj.interest / 100))) / i // installment + (installment * (installmentObj.interest / 100));
-            const formatedInterest = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(interest)
+            if (installmentObj.label) {
+              text = document.createTextNode(installmentObj.label)
+            } else if(installmentObj.interest) {
+              const interest = (amount + (amount * (installmentObj.interest / 100))) / i
+              const formatedInterest = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(interest)
 
-            text = document.createTextNode(i + 'x ' + formatedInterest)
+              text = document.createTextNode(i + 'x ' + formatedInterest)
+            } else if(installmentObj.discount) {
+              const discount = (amount - (amount * (installmentObj.discount / 100))) / i
+              const formatedDiscount = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(discount)
+
+              text = document.createTextNode(i + 'x ' + formatedDiscount)
+            }
           }
         }
 

@@ -7,36 +7,12 @@
     const submitP = mainForm.querySelector('p.submit')
     const tables = mainForm.querySelectorAll('table')
 
-    const descriptionElement = document.querySelector('#woocommerce_lkn_cielo_credit_description')
-    if (descriptionElement) {
-      descriptionElement.style.width = '400px'
-    }
+    console.log(mainForm)
 
     if (mainForm && fistH1 && submitP && tables) {
       // Criar uma nova div
       const newDiv = document.createElement('div')
       newDiv.id = 'lknWcCieloCreditBlocksSettingsLayoutDiv'
-
-      const parentFlexDiv = document.createElement('div')
-      parentFlexDiv.id = 'lknWcCieloCreditBlocksSettingsFlexContainer'
-      parentFlexDiv.style.display = 'flex'
-      parentFlexDiv.style.flexDirection = 'row' // opcional: padrão
-      parentFlexDiv.style.gap = '20px'
-      parentFlexDiv.style.flexWrap = 'wrap'
-      parentFlexDiv.style.position = 'relative'
-
-      const logoDiv = document.createElement('div')
-      logoDiv.id = 'lknWcCieloCreditBlocksSettingsLogo'
-      logoDiv.style.minWidth = '30%'
-      logoDiv.style.height = '100%'
-      logoDiv.style.display = 'flex'
-      logoDiv.style.justifyContent = 'center'
-      logoDiv.style.alignItems = 'start'
-      logoDiv.style.backgroundColor = 'transparent'
-      logoDiv.style.borderRadius = '10px'
-      logoDiv.style.padding = '30px 24px'
-      logoDiv.style.position = 'sticky'
-      logoDiv.style.top = '110px'
 
       // Acessar o próximo elemento após fistH1
       let currentElement = fistH1 // Começar com fistH1
@@ -51,12 +27,8 @@
       // Mover submitP para a nova div
       newDiv.appendChild(submitP)
 
-      // Mover a div existente para dentro da nova div pai
-      parentFlexDiv.appendChild(newDiv)
-      parentFlexDiv.appendChild(logoDiv)
-
-      // Adicionar a nova estrutura flex ao formulário
-      mainForm.appendChild(parentFlexDiv)
+      // Adicionar a nova div ao mainForm
+      mainForm.appendChild(newDiv)
 
       const subTitles = mainForm.querySelectorAll('.wc-settings-sub-title')
       const descriptionElement = mainForm.querySelector('p')

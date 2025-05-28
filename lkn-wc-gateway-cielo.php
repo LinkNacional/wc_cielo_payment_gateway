@@ -4,7 +4,7 @@
  * Plugin Name: Payment Gateway for Cielo API on WooCommerce
  * Plugin URI: https://www.linknacional.com.br/wordpress/woocommerce/cielo/
  * Description: Adds the Cielo API 3.0 Payments gateway to your WooCommerce website.
- * Version: 1.19.2
+ * Version: 1.20.0
  * Author: Link Nacional
  * Author URI: https://linknacional.com.br
  * Text Domain: lkn-wc-gateway-cielo
@@ -113,6 +113,44 @@ final class LknWCCieloPayment
         add_action('admin_notices', array(__CLASS__, 'lkn_admin_notice'));
 
         add_action('woocommerce_order_details_after_order_table', array('Lkn\WCCieloPaymentGateway\Includes\LknWcCieloPix', 'showPix'));
+
+        $page    = isset($_GET['page']) ? sanitize_text_field(wp_unslash($_GET['page'])) : '';
+        $tab     = isset($_GET['tab']) ? sanitize_text_field(wp_unslash($_GET['tab'])) : '';
+        $section = isset($_GET['section']) ? sanitize_text_field(wp_unslash($_GET['section'])) : '';
+
+        $sections = [
+            'lkn_cielo_credit',
+            'lkn_cielo_debit',
+            'lkn_wc_cielo_pix',
+            'lkn_cielo_pix',
+            'lkn_cielo_boleto'
+        ];
+
+        if (
+            $page === 'wc-settings' &&
+            $tab === 'checkout' &&
+            in_array($section, $sections, true)
+        ) {
+            add_action('woocommerce_init', function () {
+                wp_enqueue_script('lknCieloForWoocommerceCard', plugin_dir_url(__FILE__) . 'resources/js/admin/lkn-woocommerce-admin-card.js', array('jquery'), '1.0.0', false);
+                wp_enqueue_style('lknCieloForWoocommerceCard', plugin_dir_url(__FILE__) . 'resources/css/frontend/lkn-woocommerce-admin-card.css', array(), '1.0.0', 'all');
+                wc_get_template(
+                    'adminSettingsCard.php',
+                    array(
+                        'backgrounds' => array(
+                            'right' => plugin_dir_url(__FILE__) . 'resources/img/backgroundCardRight.svg',
+                            'left' => plugin_dir_url(__FILE__) . 'resources/img/backgroundCardLeft.svg'
+                        ),
+                        'logo' => plugin_dir_url(__FILE__) . 'resources/img/linkNacionalLogo.webp',
+                        'stars' => plugin_dir_url(__FILE__) . 'resources/img/stars.svg',
+                        'versions' => 'test | test'
+
+                    ),
+                    'woocommerce/adminSettingsCard/',
+                    plugin_dir_path(__FILE__) . '/includes/templates/'
+                );
+            });
+        }
     }
 
     public static function lkn_admin_notice(): void
@@ -333,7 +371,7 @@ final class LknWCCieloPayment
     {
         // Defines addon version number for easy reference.
         if (! defined('LKN_WC_CIELO_VERSION')) {
-            define('LKN_WC_CIELO_VERSION', '1.19.2');
+            define('LKN_WC_CIELO_VERSION', '1.20.0');
         }
         if (! defined('LKN_WC_CIELO_TRANSLATION_PATH')) {
             define('LKN_WC_CIELO_TRANSLATION_PATH', plugin_dir_path(__FILE__) . 'languages/');

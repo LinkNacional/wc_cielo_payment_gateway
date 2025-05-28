@@ -178,6 +178,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
 
         wp_enqueue_script('lkn-installment-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-cc-installment.js', array('jquery'), $this->version, false);
         wp_localize_script('lkn-installment-script', 'lknWCCieloCredit', $installmentArgs);
+        wp_localize_script('lkn-installment-script', 'lknWCCieloCreditDiscount', $this->get_option('installment_discount'));
 
         wp_enqueue_style('lkn-cc-style', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-cc-style.css', array(), $this->version, 'all');
 
@@ -353,6 +354,11 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
             $interest = $this->get_option($c . 'x', 0);
             if ($interest > 0) {
                 $installments[] = array('id' => $c, 'interest' => $interest);
+            }else if($this->get_option('installment_discount') == 'yes'){
+                $discount = $this->get_option($c . 'x_discount', 0);
+                if ($discount > 0) {
+                    $installments[] = array('id' => $c, 'discount' => $discount);
+                }
             }
         }
 
@@ -645,9 +651,9 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
             $order->add_order_note(__('Installments quantity', 'lkn-wc-gateway-cielo') . ' ' . $installments);
             $order->add_meta_data('installments', $installments, true);
 
-            if ($this->get_option('installment_interest') === 'yes') {
+            if ($this->get_option('installment_interest') === 'yes' || $this->get_option('installment_discount') === 'yes') {
                 $interest = $this->get_option($installments . 'x', 0);
-                $amount = apply_filters('lkn_wc_cielo_calculate_interest', $amount, $interest, $order, $this);
+                $amount = apply_filters('lkn_wc_cielo_calculate_interest', $amount, $interest, $order, $this, $installments);
             }
         }
 

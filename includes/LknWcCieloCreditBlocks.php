@@ -73,6 +73,7 @@ final class LknWcCieloCreditBlocks extends AbstractPaymentMethodType
             'description' => $this->gateway->description,
             'supports' => $this->gateway->supports,
             'activeInstallment' => $this->gateway->get_option('installment_payment'),
+            'activeDiscount' => $this->gateway->get_option('installment_discount', 'no'),
             'installmentLimit' => $installmentLimit,
             'installments' => $installments,
             'installmentMinAmount' => $installmentMinAmount,

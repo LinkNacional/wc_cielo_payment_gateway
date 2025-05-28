@@ -306,24 +306,35 @@ const lknDCContentCielo = (props) => {
         let formatedInterest = false
         for (let t = 0; t < lknCC3DSinstallmentsCielo.length; t++) {
           const installmentObj = lknCC3DSinstallmentsCielo[t]
-          if (installmentObj.id === index) {
-            nextInstallmentAmount = (lknDCTotalCartCielo + lknDCTotalCartCielo * (parseFloat(installmentObj.interest) / 100)) / index
+          if (installmentObj.isDiscount == true && installmentObj.id === index) {
+            nextInstallmentAmount = (lknDCTotalCartCielo - lknDCTotalCartCielo * (parseFloat(installmentObj.interest) / 100)) / index;
             formatedInterest = new Intl.NumberFormat('pt-br', {
               style: 'currency',
               currency: 'BRL'
-            }).format(nextInstallmentAmount)
+            }).format(nextInstallmentAmount);
+          } else if (installmentObj.id === index) {
+            nextInstallmentAmount = (lknDCTotalCartCielo + lknDCTotalCartCielo * (parseFloat(installmentObj.interest) / 100)) / index;
+            formatedInterest = new Intl.NumberFormat('pt-br', {
+              style: 'currency',
+              currency: 'BRL'
+            }).format(nextInstallmentAmount);
           }
         }
         if (formatedInterest) {
           setOptions(prevOptions => [...prevOptions, {
             key: index,
             label: `${index}x de ${formatedInterest}`
-          }])
-        } else {
+          }]);
+        } else if (lknDCsettingsCielo.activeDiscount == 'yes') {
+          setOptions(prevOptions => [...prevOptions, {
+            key: index,
+            label: `${index}x de R$ ${installmentAmount}`
+          }]);
+        }else {
           setOptions(prevOptions => [...prevOptions, {
             key: index,
             label: `${index}x de R$ ${installmentAmount} sem juros`
-          }])
+          }]);
         }
       }
     } else {

@@ -108,6 +108,7 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
             'url' => get_page_link(),
             'orderNumber' => uniqid(),
             'activeInstallment' => $this->gateway->get_option('installment_payment'),
+            'activeDiscount' => $this->gateway->get_option('installment_discount', 'no'),
             'dirScript3DS' => LKN_WC_GATEWAY_CIELO_URL . 'resources/js/debitCard/BP.Mpi.3ds20.min.js',
             'dirScriptConfig3DS' => $dirScriptConfig3DS,
             'totalCart' => $this->gateway->lknGetCartTotal(),
