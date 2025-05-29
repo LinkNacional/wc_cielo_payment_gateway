@@ -2,6 +2,7 @@
     padding: 10px 24px;
     background-color: transparent;
     border-radius: 10px;
+    flex: 1;
 }
 
 #lknWcCieloCreditBlocksSettingsLayoutMenu {
@@ -35,8 +36,8 @@
 
 #woocommerce_lkn_cielo_pix_clear_order_records,
 #woocommerce_lkn_wc_cielo_pix_clear_order_records,
-#woocommerce_lkn_cielo_debit_clear_order_records, 
-#woocommerce_lkn_cielo_credit_clear_order_records{
+#woocommerce_lkn_cielo_debit_clear_order_records,
+#woocommerce_lkn_cielo_credit_clear_order_records {
     display: flex;
     justify-content: center;
     width: fit-content;
@@ -50,4 +51,14 @@
     border-radius: 4px;
     margin: 0;
     white-space: pre-wrap
+}
+
+.description-title {
+    padding-left: 4px;
+}
+
+@media (max-width: 1300px) {
+    #lknWcCieloCreditBlocksSettingsLogo {
+        width: 100%;
+    }
 }
