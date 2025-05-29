@@ -76,15 +76,31 @@ final class LknWcCieloPix extends WC_Payment_Gateway
 
         if ('wc-settings' === $page && 'checkout' === $tab && $section == $this->id) {
             wp_enqueue_script('LknCieloPixSettingsLayoutScript', LKN_WC_GATEWAY_CIELO_URL . 'resources/js/admin/lkn-wc-gateway-admin-layout.js', array('jquery'), $this->version, false);
+            wp_localize_script('LknCieloPixSettingsLayoutScript', 'lknWcCieloTranslationsInput', array(
+                'enable' => __('Enable', 'lkn-wc-gateway-cielo'),
+                'disable' => __('Disable', 'lkn-wc-gateway-cielo'),
+            ));
             wp_enqueue_style('lkn-admin-cielo-layout', LKN_WC_GATEWAY_CIELO_URL . 'resources/css/frontend/lkn-admin-layout.css', array(), $this->version, 'all');
             wp_enqueue_script('LknCieloPixClearButtonScript', LKN_WC_GATEWAY_CIELO_URL . '/resources/js/admin/lkn-clear-logs-button.js', array('jquery'), $this->version, false);
             wp_localize_script('LknCieloPixClearButtonScript', 'lknWcCieloTranslations', array(
                 'clearLogs' => __('Limpar Logs', 'lkn-wc-gateway-cielo'),
-                'alertText' => __('Deseja realmente deletar todos logs dos pedidos?', 'lkn-wc-gateway-cielo')
+                'alertText' => __('Deseja realmente deletar todos logs dos pedidos?', 'lkn-wc-gateway-cielo'),
+                'production' => __('Use this in the live store to charge real payments.', 'lkn-wc-gateway-cielo'),
+                'sandbox' => __('Use this for testing purposes in the Cielo sandbox environment.', 'lkn-wc-gateway-cielo'),
+                'enable' => __('Enable', 'lkn-wc-gateway-cielo'),
+                'disable' => __('Disable', 'lkn-wc-gateway-cielo'),
             ));
 
             if (isset($_GET['section']) && sanitize_text_field(wp_unslash($_GET['section'])) === 'lkn_wc_cielo_pix') {
                 wp_enqueue_script('LknCieloPixSettingsPix', LKN_WC_GATEWAY_CIELO_URL . 'resources/js/admin/lkn-settings-pix.js', array(), $this->version, false);
+
+                wp_localize_script(
+                    'LknCieloPixSettingsPix',
+                    'lknCieloProSettingsVars',
+                    array(
+                        'proOnly' => __('Available only in PRO', 'lkn-wc-gateway-cielo'),
+                    )
+                );
             }
         }
     }
@@ -97,123 +113,159 @@ final class LknWcCieloPix extends WC_Payment_Gateway
                 'type' => 'title',
             ),
             'enabled' => array(
-                'title' => __('Enable/Disable', 'lkn-wc-gateway-cielo'),
-                'type' => 'checkbox',
-                'label' => __('Enable Pix Payments', 'lkn-wc-gateway-cielo'),
-                'default' => 'no',
+                'title'       => __('Enable/Disable', 'lkn-wc-gateway-cielo'),
+                'type'        => 'checkbox',
+                'label'       => __('Enable Pix Payments', 'lkn-wc-gateway-cielo'),
+                'default'     => 'no',
+                'description' => __('Enable this option to allow Pix payments at checkout.', 'lkn-wc-gateway-cielo'),
+                'desc_tip'    => __('Select this option to enable Pix payment method.', 'lkn-wc-gateway-cielo'),
+                'custom_attributes' => array(
+                    'data-title-description' => __('Enable this option to allow Pix payments at checkout.', 'lkn-wc-gateway-cielo'),
+                ),
             ),
             'title' => array(
-                'title' => __('Title', 'lkn-wc-gateway-cielo'),
-                'type' => 'text',
+                'title'       => __('Title', 'lkn-wc-gateway-cielo'),
+                'type'        => 'text',
+                'default'     => __('Pix', 'lkn-wc-gateway-cielo'),
                 'description' => __('This controls the title which the user sees during checkout.', 'lkn-wc-gateway-cielo'),
-                'default' => __('Pix', 'lkn-wc-gateway-cielo'),
-                'desc_tip' => true,
+                'desc_tip'    => __('Displayed name for this payment method at checkout.', 'lkn-wc-gateway-cielo'),
                 'custom_attributes' => array(
-                    'required' => 'required'
-                )
+                    'required' => 'required',
+                    'data-title-description' => __('Displayed name for this payment method at checkout.', 'lkn-wc-gateway-cielo'),
+                ),
             ),
             'description' => array(
-                'title' => __('Description', 'lkn-wc-gateway-cielo'),
-                'type' => 'textarea',
-                'default' => __('After the purchase is completed, the PIX will be generated and made available for payment!', 'lkn-wc-gateway-cielo'),
+                'title'       => __('Description', 'lkn-wc-gateway-cielo'),
+                'type'        => 'textarea',
+                'default'     => __('After the purchase is completed, the PIX will be generated and made available for payment!', 'lkn-wc-gateway-cielo'),
                 'description' => __('Payment method description that the customer will see on your checkout.', 'lkn-wc-gateway-cielo'),
-                'desc_tip' => true,
+                'desc_tip'    => __('Additional info shown next to the payment method.', 'lkn-wc-gateway-cielo'),
                 'custom_attributes' => array(
-                    'required' => 'required'
-                )
+                    'required' => 'required',
+                    'data-title-description' => __('Additional info shown next to the payment method.', 'lkn-wc-gateway-cielo'),
+                ),
             ),
             'env' => array(
-                'title' => __('Environment', 'lkn-wc-gateway-cielo'),
-                'description' => __('Cielo API 3.0 environment.', 'lkn-wc-gateway-cielo'),
-                'type' => 'select',
-                'options' => array(
+                'title'       => __('Environment', 'lkn-wc-gateway-cielo'),
+                'type'        => 'select',
+                'options'     => array(
                     'production' => __('Production', 'lkn-wc-gateway-cielo'),
-                    'sandbox' => __('Development', 'lkn-wc-gateway-cielo'),
+                    'sandbox'    => __('Development', 'lkn-wc-gateway-cielo'),
                 ),
-                'default' => 'production',
-                'desc_tip' => true,
+                'default'     => 'production',
+                'desc_tip'    => __('Choose "Production" for live payments or "Development" for sandbox testing.', 'lkn-wc-gateway-cielo'),
+                'custom_attributes' => array(
+                    'data-title-description' => __('Select the Cielo API 3.0 environment.', 'lkn-wc-gateway-cielo'),
+                ),
             ),
             'merchant_id' => array(
-                'title' => __('Merchant Id', 'lkn-wc-gateway-cielo'),
-                'type' => 'password',
-                'description' => __('Cielo API 3.0 credentials.', 'lkn-wc-gateway-cielo'),
-                'desc_tip' => true,
+                'title'       => __('Merchant Id', 'lkn-wc-gateway-cielo'),
+                'type'        => 'password',
+                'description' => __('Cielo credentials.', 'lkn-wc-gateway-cielo'),
+                'desc_tip'    => __('Enter your Merchant ID from Cielo API 3.0.', 'lkn-wc-gateway-cielo'),
                 'custom_attributes' => array(
-                    'required' => 'required'
-                )
+                    'required' => 'required',
+                    'data-title-description' => __('Enter your Merchant ID from Cielo API 3.0.', 'lkn-wc-gateway-cielo'),
+                ),
             ),
             'merchant_key' => array(
-                'title' => __('Merchant Key', 'lkn-wc-gateway-cielo'),
-                'type' => 'password',
-                'description' => __('Cielo API 3.0 credentials.', 'lkn-wc-gateway-cielo'),
-                'desc_tip' => true,
+                'title'       => __('Merchant Key', 'lkn-wc-gateway-cielo'),
+                'type'        => 'password',
+                'description' => __('Cielo credentials.', 'lkn-wc-gateway-cielo'),
+                'desc_tip'    => __('Enter your Merchant Key from Cielo API 3.0.', 'lkn-wc-gateway-cielo'),
                 'custom_attributes' => array(
-                    'required' => 'required'
-                )
+                    'required' => 'required',
+                    'data-title-description' => __('Enter your Merchant Key from Cielo API 3.0.', 'lkn-wc-gateway-cielo'),
+                ),
             ),
             'payment_complete_status' => array(
-                'title' => esc_attr__('Payment Complete Status', 'lkn-wc-gateway-cielo'),
-                'type' => 'select',
-                'desc_tip' => true,
-                'description' => esc_attr__('Option to automatically set the order status after payment confirmation through this gateway.', 'lkn-wc-gateway-cielo'),
-                'options' => array(
+                'title'       => esc_attr__('Payment Complete Status', 'lkn-wc-gateway-cielo'),
+                'type'        => 'select',
+                'options'     => array(
                     'processing' => _x('Processing', 'Order status', 'woocommerce'),
-                    'on-hold' => _x('On hold', 'Order status', 'woocommerce'),
-                    'completed' => _x('Completed', 'Order status', 'woocommerce'),
+                    'on-hold'    => _x('On hold', 'Order status', 'woocommerce'),
+                    'completed'  => _x('Completed', 'Order status', 'woocommerce'),
                 ),
-                'default' => 'processing'
+                'default'     => 'processing',
+                'description' => esc_attr__('Opção para definir automaticamente o status do pedido após confirmação do pagamento por este gateway.', 'lkn-wc-gateway-cielo'),
+                'desc_tip'    => esc_attr__('Escolha o status que será atribuído automaticamente após a confirmação do pagamento.', 'lkn-wc-gateway-cielo'),
+                'custom_attributes' => array(
+                    'data-title-description' => esc_attr__('Define automaticamente o status do pedido após pagamento.', 'lkn-wc-gateway-cielo'),
+                ),
             ),
             'pix_layout' => array(
-                'title' => __('PIX Layout', 'lkn-wc-gateway-cielo'),
-                'type' => 'select',
-                'default' => 'standard',
-                'description' => __('Select the PIX layout the customer will see on checkout.', 'lkn-wc-gateway-cielo'),
-                'desc_tip' => true,
-                'options' => array(
+                'title'       => __('PIX Layout', 'lkn-wc-gateway-cielo'),
+                'type'        => 'select',
+                'default'     => 'standard',
+                'options'     => array(
                     'standard' => __('Standard', 'lkn-wc-gateway-cielo'),
-                    'new' => __('New', 'lkn-wc-gateway-cielo')
-                )
+                    'new'      => __('New', 'lkn-wc-gateway-cielo'),
+                ),
+                'description' => __('Selecione o layout do PIX que o cliente verá no checkout.', 'lkn-wc-gateway-cielo'),
+                'desc_tip'    => __('Escolha entre o layout padrão ou o novo layout para o PIX.', 'lkn-wc-gateway-cielo'),
+                'custom_attributes' => array(
+                    'data-title-description' => __('Layout do PIX mostrado para o cliente no checkout.', 'lkn-wc-gateway-cielo'),
+                ),
             ),
             'layout_location' => array(
-                'title' => __('Layout Location', 'lkn-wc-gateway-cielo'),
-                'type' => 'select',
-                'default' => 'bottom',
-                'description' => __('Select the location where the PIX layout will be displayed on the checkout page.', 'lkn-wc-gateway-cielo'),
-                'desc_tip' => true,
-                'options' => array(
-                    'top' => __('Top', 'lkn-wc-gateway-cielo'),
-                    'bottom' => __('Bottom', 'lkn-wc-gateway-cielo')
-                )
+                'title'       => __('Layout Location', 'lkn-wc-gateway-cielo'),
+                'type'        => 'select',
+                'default'     => 'bottom',
+                'options'     => array(
+                    'top'    => __('Top', 'lkn-wc-gateway-cielo'),
+                    'bottom' => __('Bottom', 'lkn-wc-gateway-cielo'),
+                ),
+                'description' => __('Selecione a posição onde o layout PIX será exibido na página de checkout.', 'lkn-wc-gateway-cielo'),
+                'desc_tip'    => __('Defina se o layout PIX aparece no topo ou rodapé do checkout.', 'lkn-wc-gateway-cielo'),
+                'custom_attributes' => array(
+                    'data-title-description' => __('Posição do layout PIX na página de checkout.', 'lkn-wc-gateway-cielo'),
+                ),
             ),
             'developer' => array(
                 'title' => esc_attr__('Developer', 'lkn-wc-gateway-cielo'),
                 'type' => 'title',
             ),
             'debug' => array(
-                'title' => __('Debug', 'lkn-wc-gateway-cielo'),
-                'type' => 'checkbox',
-                'label' => sprintf(
-                    '%1$s. <a href="%2$s">%3$s</a>',
+                'title'       => __('Debug', 'lkn-wc-gateway-cielo'),
+                'type'        => 'checkbox',
+                'label'       => sprintf(
+                    '%1$s. <a href="%2$s" target="_blank" rel="noopener noreferrer">%3$s</a>',
                     __('Enable log capture for payments', 'lkn-wc-gateway-cielo'),
                     admin_url('admin.php?page=wc-status&tab=logs'),
                     __('View logs', 'lkn-wc-gateway-cielo')
                 ),
-                'default' => 'no',
+                'default'     => 'no',
+                'description' => __('Enable capturing logs for payments made via Cielo.', 'lkn-wc-gateway-cielo'),
+                'desc_tip'    => __('Save changes to enable detailed logging for debugging.', 'lkn-wc-gateway-cielo'),
+                'custom_attributes' => array(
+                    'data-title-description' => __('Enables log recording to help with analysis and troubleshooting.', 'lkn-wc-gateway-cielo'),
+                ),
             ),
         );
 
         if ($this->get_option('debug') == 'yes') {
-            $this->form_fields['show_order_logs'] =  array(
-                'title' => __('Visualizar Log no Pedido', 'lkn-wc-gateway-cielo'),
-                'type' => 'checkbox',
-                'label' => sprintf('Habilita visualização do log da transação dentro do pedido.', 'lkn-wc-gateway-cielo'),
-                'default' => 'no',
+            $this->form_fields['show_order_logs'] = array(
+                'title'       => __('Show Order Logs', 'lkn-wc-gateway-cielo'),
+                'type'        => 'checkbox',
+                'label'       => __('Enable viewing transaction logs within the order page.', 'lkn-wc-gateway-cielo'),
+                'default'     => 'no',
+                'description' => __('Allows the administrator to view transaction logs directly on the order page.', 'lkn-wc-gateway-cielo'),
+                'desc_tip'    => __('Enable to help monitor and troubleshoot transaction issues.', 'lkn-wc-gateway-cielo'),
+                'custom_attributes' => array(
+                    'data-title-description' => __('Displays log entries associated with the order for analysis.', 'lkn-wc-gateway-cielo'),
+                ),
             );
-            $this->form_fields['clear_order_records'] =  array(
-                'title' => __('Limpar logs nos Pedidos', 'lkn-wc-gateway-cielo'),
-                'type' => 'button',
-                'id' => 'validateLicense',
-                'class' => 'woocommerce-save-button components-button is-primary'
+
+            $this->form_fields['clear_order_records'] = array(
+                'title'       => __('Clear Order Logs', 'lkn-wc-gateway-cielo'),
+                'type'        => 'button',
+                'id'          => 'validateLicense',
+                'class'       => 'woocommerce-save-button components-button is-primary',
+                'description' => __('Clears all logs stored on order pages to free up space or reset data.', 'lkn-wc-gateway-cielo'),
+                'desc_tip'    => __('Use with caution, as this action is irreversible.', 'lkn-wc-gateway-cielo'),
+                'custom_attributes' => array(
+                    'data-title-description' => __('Button to permanently remove all logs related to orders.', 'lkn-wc-gateway-cielo'),
+                ),
             );
         }
 

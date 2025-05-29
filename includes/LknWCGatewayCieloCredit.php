@@ -123,11 +123,19 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
 
         if ('wc-settings' === $page && 'checkout' === $tab && $section == $this->id) {
             wp_enqueue_script('lknWCGatewayCieloCreditSettingsLayoutScript', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-wc-gateway-admin-layout.js', array('jquery'), $this->version, false);
+            wp_localize_script('lknWCGatewayCieloCreditSettingsLayoutScript', 'lknWcCieloTranslationsInput', array(
+                'enable' => __('Enable', 'lkn-wc-gateway-cielo'),
+                'disable' => __('Disable', 'lkn-wc-gateway-cielo'),
+            ));
             wp_enqueue_style('lkn-admin-layout', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-admin-layout.css', array(), $this->version, 'all');
             wp_enqueue_script('lknWCGatewayCieloCreditClearButtonScript', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-clear-logs-button.js', array('jquery', 'wp-api'), $this->version, false);
             wp_localize_script('lknWCGatewayCieloCreditClearButtonScript', 'lknWcCieloTranslations', array(
                 'clearLogs' => __('Limpar Logs', 'lkn-wc-gateway-cielo'),
-                'alertText' => __('Deseja realmente deletar todos logs dos pedidos?', 'lkn-wc-gateway-cielo')
+                'alertText' => __('Deseja realmente deletar todos logs dos pedidos?', 'lkn-wc-gateway-cielo'),
+                'production' => __('Use this in the live store to charge real payments.', 'lkn-wc-gateway-cielo'),
+                'sandbox' => __('Use this for testing purposes in the Cielo sandbox environment.', 'lkn-wc-gateway-cielo'),
+                'enable' => __('Enable', 'lkn-wc-gateway-cielo'),
+                'disable' => __('Disable', 'lkn-wc-gateway-cielo'),
             ));
         }
 
@@ -200,127 +208,217 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
                 'type' => 'checkbox',
                 'label' => __('Enable Credit Card Payments', 'lkn-wc-gateway-cielo'),
                 'default' => 'no',
+                'description' => __('Enable or disable the credit card payment method.', 'lkn-wc-gateway-cielo'),
+                'desc_tip'    => __('Check this box and save to enable credit card settings.', 'lkn-wc-gateway-cielo'),
+                'custom_attributes' => array(
+                    'data-title-description' => __('Enable this option to allow customers to pay with credit cards using Cielo API 3.0.', 'lkn-wc-gateway-cielo')
+                )
             ),
             'title' => array(
-                'title' => __('Title', 'lkn-wc-gateway-cielo'),
-                'type' => 'text',
+                'title'       => __('Title', 'lkn-wc-gateway-cielo'),
+                'type'        => 'text',
+                'default'     => __('Credit card', 'lkn-wc-gateway-cielo'),
                 'description' => __('This controls the title which the user sees during checkout.', 'lkn-wc-gateway-cielo'),
-                'default' => __('Credit card', 'lkn-wc-gateway-cielo'),
-                'desc_tip' => true,
+                'desc_tip'    => __('Enter the title that will be shown to customers during the checkout process.', 'lkn-wc-gateway-cielo'),
                 'custom_attributes' => array(
-                    'required' => 'required'
+                    'required' => 'required',
+                    'data-title-description' => __('This text will appear as the payment method title during checkout. Choose something your customers will easily understand, like “Pay with credit card (Cielo)”.', 'lkn-wc-gateway-cielo')
                 )
             ),
             'description' => array(
-                'title' => __('Description', 'lkn-wc-gateway-cielo'),
-                'type' => 'textarea',
-                'default' => __('Payment processed by Cielo API 3.0', 'lkn-wc-gateway-cielo'),
+                'title'       => __('Description', 'lkn-wc-gateway-cielo'),
+                'type'        => 'textarea',
+                'default'     => __('Payment processed by Cielo API 3.0', 'lkn-wc-gateway-cielo'),
                 'description' => __('Payment method description that the customer will see on your checkout.', 'lkn-wc-gateway-cielo'),
-                'desc_tip' => true,
+                'desc_tip'    => __('This description appears below the payment method title at checkout. Use it to inform your customers about the payment processing details.', 'lkn-wc-gateway-cielo'),
                 'custom_attributes' => array(
-                    'required' => 'required'
+                    'required' => 'required',
+                    'data-title-description' => __('Provide a brief message that informs the customer how the payment will be processed. For example: “Your payment will be securely processed by Cielo.”', 'lkn-wc-gateway-cielo')
                 )
             ),
             'merchant_id' => array(
-                'title' => __('Merchant Id', 'lkn-wc-gateway-cielo'),
-                'type' => 'password',
-                'description' => __('Cielo API 3.0 credentials.', 'lkn-wc-gateway-cielo'),
-                'desc_tip' => true,
+                'title'       => __('Merchant Id', 'lkn-wc-gateway-cielo'),
+                'type'        => 'password',
+                'description' => __('Cielo credentials.', 'lkn-wc-gateway-cielo'),
+                'desc_tip'    => __('Enter the Merchant ID provided by Cielo for API integration.', 'lkn-wc-gateway-cielo'),
                 'custom_attributes' => array(
-                    'required' => 'required'
+                    'required' => 'required',
+                    'data-title-description' => __('This is your Cielo Merchant ID used to authenticate API requests. You can find it in your Cielo dashboard.', 'lkn-wc-gateway-cielo')
                 )
             ),
             'merchant_key' => array(
-                'title' => __('Merchant Key', 'lkn-wc-gateway-cielo'),
-                'type' => 'password',
-                'description' => __('Cielo API 3.0 credentials.', 'lkn-wc-gateway-cielo'),
-                'desc_tip' => true,
+                'title'       => __('Merchant Key', 'lkn-wc-gateway-cielo'),
+                'type'        => 'password',
+                'description' => __('Cielo credentials.', 'lkn-wc-gateway-cielo'),
+                'desc_tip'    => __('Enter the Merchant Key provided by Cielo for secure requests.', 'lkn-wc-gateway-cielo'),
                 'custom_attributes' => array(
-                    'required' => 'required'
+                    'required' => 'required',
+                    'data-title-description' => __('This is your secret Merchant Key used to sign transactions with Cielo API. Keep it safe and do not share.', 'lkn-wc-gateway-cielo')
                 )
             ),
             'invoiceDesc' => array(
-                'title' => __('Invoice Description', 'lkn-wc-gateway-cielo'),
-                'type' => 'text',
-                'default' => __('order', 'lkn-wc-gateway-cielo'),
+                'title'       => __('Invoice Description', 'lkn-wc-gateway-cielo'),
+                'type'        => 'text',
+                'default'     => __('order', 'lkn-wc-gateway-cielo'),
                 'description' => __('Invoice description that the customer will see on your checkout (special characters are not accepted).', 'lkn-wc-gateway-cielo'),
-                'desc_tip' => true,
+                'desc_tip'    => __('Enter a brief description that will appear on the customer invoice.', 'lkn-wc-gateway-cielo'),
                 'custom_attributes' => array(
-                    'maxlength' => 50, // Tamanho máximo permitido
-                    'pattern' => '[a-zA-Z]+( [a-zA-Z]+)*', // não pode conter espaços, traços, caracteres especiais ou números, apenas letras
-                    'required' => 'required'
+                    'maxlength' => 50,
+                    'pattern'   => '[a-zA-Z]+( [a-zA-Z]+)*',
+                    'required'  => 'required',
+                    'data-title-description' => __('This description will be used on the transaction invoice. It should be readable and not contain special characters or numbers.', 'lkn-wc-gateway-cielo')
                 )
             ),
             'env' => array(
-                'title' => __('Environment', 'lkn-wc-gateway-cielo'),
-                'description' => __('Cielo API 3.0 environment.', 'lkn-wc-gateway-cielo'),
-                'type' => 'select',
-                'options' => array(
+                'title'       => __('Environment', 'lkn-wc-gateway-cielo'),
+                'type'        => 'select',
+                'options'     => array(
                     'production' => __('Production', 'lkn-wc-gateway-cielo'),
-                    'sandbox' => __('Development', 'lkn-wc-gateway-cielo'),
+                    'sandbox'    => __('Development', 'lkn-wc-gateway-cielo'),
                 ),
-                'default' => 'production',
-                'desc_tip' => true,
+                'default'   => 'production',
+                'desc_tip'  => __('Choose between production or development mode for Cielo API.', 'lkn-wc-gateway-cielo'),
+                'custom_attributes' => array(
+                    'data-title-description' => __('Select "Development" to test transactions in sandbox mode. Use "Production" for real transactions.', 'lkn-wc-gateway-cielo')
+                )
             ),
             'credit_card' => array(
-                'title' => esc_attr__('Credit Card', 'lkn-wc-gateway-cielo'),
-                'type' => 'title',
+                'title' => esc_attr__('Card', 'lkn-wc-gateway-cielo'),
+                'type'  => 'title',
             ),
             'installment_payment' => array(
-                'title' => __('Installment payments', 'lkn-wc-gateway-cielo'),
-                'type' => 'checkbox',
-                'label' => __('Enables installment payments for amounts greater than 10,00 R$', 'lkn-wc-gateway-cielo'),
+                'title'   => __('Installment payments', 'lkn-wc-gateway-cielo'),
+                'type'    => 'checkbox',
+                'label'   => __('Enables installment payments for amounts greater than 10,00 R$', 'lkn-wc-gateway-cielo'),
                 'default' => 'no',
+                'description' => __('When enabled and using the PRO version of the plugin, an additional tab will appear for advanced installment configuration.', 'lkn-wc-gateway-cielo'),
+                'desc_tip' => __('Enable this to allow payment in installments.', 'lkn-wc-gateway-cielo'),
+                'custom_attributes' => array(
+                    'data-title-description' => __('When enabled, customers can split payments in installments for orders above R$10. Useful for improving conversion.', 'lkn-wc-gateway-cielo')
+                )
             ),
             'placeholder' => array(
-                'title' => __('Input placeholders', 'lkn-wc-gateway-cielo'),
-                'type' => 'checkbox',
-                'label' => __('Enables input placeholders for debit/credit card fields for classic checkout', 'lkn-wc-gateway-cielo'),
+                'title'   => __('Input placeholders', 'lkn-wc-gateway-cielo'),
+                'type'    => 'checkbox',
+                'label'   => __('Enables input placeholders for debit/credit card fields for classic checkout', 'lkn-wc-gateway-cielo'),
                 'default' => 'no',
+                'description' => __('Displays placeholder text in card input fields to guide users during checkout.', 'lkn-wc-gateway-cielo'),
+                'desc_tip' => __('Enable to show example placeholders in credit/debit card fields.', 'lkn-wc-gateway-cielo'),
+                'custom_attributes' => array(
+                    'data-title-description' => __('Adds sample text in the card fields to help users understand what information is expected.', 'lkn-wc-gateway-cielo')
+                )
             ),
             'nonce_compatibility' => array(
-                'title' => __('Nonce verification compatibility mode', 'lkn-wc-gateway-cielo'),
+                'title'       => __('Nonce verification compatibility mode', 'lkn-wc-gateway-cielo'),
                 'description' => __('Enable only if your checkout page is facing nonce verification issue', 'lkn-wc-gateway-cielo'),
-                'label' => __('Enable for checkout page validation compatibility', 'lkn-wc-gateway-cielo'),
-                'type' => 'checkbox',
-                'default' => 'no',
-                'desc_tip' => true,
+                'label'       => __('Enable for checkout page validation compatibility', 'lkn-wc-gateway-cielo'),
+                'type'        => 'checkbox',
+                'default'     => 'no',
+                'desc_tip'    => __('Only enable if your site has issues validating nonce during checkout.', 'lkn-wc-gateway-cielo'),
+                'custom_attributes' => array(
+                    'data-title-description' => __('Use this option if your checkout process fails due to nonce validation errors. Only enable if you know what you are doing.', 'lkn-wc-gateway-cielo')
+                )
             ),
             'show_card_animation' => array(
-                'title' => __('Exibir cartão animado', 'lkn-wc-gateway-cielo'),
-                'type' => 'checkbox',
-                'label' => __('Exibir cartão animado durante o checkout', 'lkn-wc-gateway-cielo'),
+                'title'       => __('Exibir cartão animado', 'lkn-wc-gateway-cielo'),
+                'type'        => 'checkbox',
+                'label'       => __('Exibir cartão animado durante o checkout', 'lkn-wc-gateway-cielo'),
                 'description' => __('Exibe um cartão com animações durante o checkout de pagamento do pedido.', 'lkn-wc-gateway-cielo'),
-                'default' => 'yes',
+                'default'     => 'yes',
+                'desc_tip'    => __('Displays an animated credit card in the checkout form.', 'lkn-wc-gateway-cielo'),
+                'custom_attributes' => array(
+                    'data-title-description' => __('Enhance user experience by showing a dynamic card preview while filling out card details.', 'lkn-wc-gateway-cielo')
+                )
             ),
             'developer' => array(
                 'title' => esc_attr__('Developer', 'lkn-wc-gateway-cielo'),
-                'type' => 'title',
+                'type'  => 'title',
             ),
             'debug' => array(
-                'title' => __('Debug', 'lkn-wc-gateway-cielo'),
-                'type' => 'checkbox',
-                'label' => sprintf(
+                'title'   => __('Debug', 'lkn-wc-gateway-cielo'),
+                'type'    => 'checkbox',
+                'label'   => sprintf(
                     '%1$s. <a href="%2$s">%3$s</a>',
                     __('Enable log capture for payments', 'lkn-wc-gateway-cielo'),
                     admin_url('admin.php?page=wc-status&tab=logs'),
                     __('View logs', 'lkn-wc-gateway-cielo')
                 ),
-                'default' => 'no',
+                'default'  => 'no',
+                'description' => __('Enable this option to log payment requests and responses for troubleshooting purposes.', 'lkn-wc-gateway-cielo'),
+                'desc_tip' => __('Useful for identifying errors in payment requests or responses during development or support.', 'lkn-wc-gateway-cielo'),
+                'custom_attributes' => array(
+                    'data-title-description' => __('When enabled, all Cielo transactions will be logged. You can access logs via WooCommerce > Status > Logs.', 'lkn-wc-gateway-cielo')
+                )
             ),
             'show_order_logs' => array(
-                'title' => __('Visualizar Log no Pedido', 'lkn-wc-gateway-cielo'),
-                'type' => 'checkbox',
-                'label' => sprintf('Habilita visualização do log da transação dentro do pedido.', 'lkn-wc-gateway-cielo'),
+                'title'   => __('Visualizar Log no Pedido', 'lkn-wc-gateway-cielo'),
+                'type'    => 'checkbox',
+                'label'   => __('Habilita visualização do log da transação dentro do pedido.', 'lkn-wc-gateway-cielo'),
                 'default' => 'no',
+                'description' => __('Displays Cielo transaction logs inside WooCommerce order details.', 'lkn-wc-gateway-cielo'),
+                'desc_tip' => __('Useful for quickly viewing payment log data without accessing the system log files.', 'lkn-wc-gateway-cielo'),
+                'custom_attributes' => array(
+                    'data-title-description' => __('Enable this to show the transaction details for Cielo payments directly in each order’s admin panel.', 'lkn-wc-gateway-cielo')
+                )
             ),
             'clear_order_records' => array(
                 'title' => __('Limpar logs nos Pedidos', 'lkn-wc-gateway-cielo'),
-                'type' => 'button',
-                'id' => 'validateLicense',
-                'class' => 'woocommerce-save-button components-button is-primary'
-            )
+                'type'  => 'button',
+                'id'    => 'validateLicense',
+                'class' => 'woocommerce-save-button components-button is-primary',
+                'description' => __('Click this button to delete all Cielo log data stored in orders.', 'lkn-wc-gateway-cielo'),
+                'desc_tip' => __('Use only if you no longer need the Cielo transaction logs for past orders.', 'lkn-wc-gateway-cielo'),
+                'custom_attributes' => array(
+                    'data-title-description' => __('This will permanently remove all stored logs from WooCommerce orders. Ideal after resolving issues or for privacy.', 'lkn-wc-gateway-cielo')
+                )
+            ),
         );
+
+        if (
+            ! file_exists(WP_PLUGIN_DIR . '/lkn-cielo-api-pro/lkn-cielo-api-pro.php') ||
+            ! (function_exists('is_plugin_active') && is_plugin_active('lkn-cielo-api-pro/lkn-cielo-api-pro.php'))
+        ) {
+            $this->form_fields['pro'] = array(
+                'title' => esc_attr__('PRO', 'lkn-wc-gateway-cielo'),
+                'type'  => 'title',
+            );
+
+            $this->form_fields['fake_license_field'] = array(
+                'title'       => __('License', 'lkn-wc-gateway-cielo'),
+                'type'        => 'text',
+                'description' => __('Enter your license key here. This field is disabled for editing.', 'lkn-wc-gateway-cielo'),
+                'desc_tip'    => __('Enter your Link nacional license key to activate PRO features.', 'lkn-wc-gateway-cielo'),
+                'id'          => 'fake_license_field',
+                'custom_attributes' => array(
+                    'readonly' => 'readonly',
+                    'data-title-description' => __('This field displays your current license key. Editing is disabled.', 'lkn-wc-gateway-cielo'),
+                ),
+            );
+
+            $this->form_fields['fake_cardholder_field'] = array(
+                'title'       => __('Cardholder Name', 'lkn-wc-gateway-cielo'),
+                'type'        => 'text',
+                'description' => __('Enter the cardholder name. This field is not editable.', 'lkn-wc-gateway-cielo'),
+                'desc_tip'    => __('This cardholder name field is read-only for security reasons.', 'lkn-wc-gateway-cielo'),
+                'id'          => 'fake_cardholder_field',
+                'custom_attributes' => array(
+                    'readonly' => 'readonly',
+                    'data-title-description' => __('This field displays the cardholder name but is disabled for editing.', 'lkn-wc-gateway-cielo'),
+                ),
+            );
+
+            $this->form_fields['fake_and_more_field'] = array(
+                'title'       => __('And much more...', 'lkn-wc-gateway-cielo'),
+                'type'        => 'text',
+                'description' => __('Discover all PRO features by activating your license.', 'lkn-wc-gateway-cielo'),
+                'desc_tip'    => __('Unlock advanced features and enhancements with the PRO version.', 'lkn-wc-gateway-cielo'),
+                'id'          => 'fake_and_more_field',
+                'custom_attributes' => array(
+                    'readonly' => 'readonly',
+                    'data-title-description' => __('This is just a sample field to highlight more PRO features.', 'lkn-wc-gateway-cielo'),
+                ),
+            );
+        }
 
         $customConfigs = apply_filters('lkn_wc_cielo_get_custom_configs', array(), $this->id);
 
@@ -354,7 +452,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
             $interest = $this->get_option($c . 'x', 0);
             if ($interest > 0) {
                 $installments[] = array('id' => $c, 'interest' => $interest);
-            }else if($this->get_option('installment_discount') == 'yes'){
+            } elseif ($this->get_option('installment_discount') == 'yes') {
                 $discount = $this->get_option($c . 'x_discount', 0);
                 if ($discount > 0) {
                     $installments[] = array('id' => $c, 'discount' => $discount);

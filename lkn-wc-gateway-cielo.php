@@ -132,8 +132,20 @@ final class LknWCCieloPayment
             in_array($section, $sections, true)
         ) {
             add_action('woocommerce_init', function () {
-                wp_enqueue_script('lknCieloForWoocommerceCard', plugin_dir_url(__FILE__) . 'resources/js/admin/lkn-woocommerce-admin-card.js', array('jquery'), '1.0.0', false);
-                wp_enqueue_style('lknCieloForWoocommerceCard', plugin_dir_url(__FILE__) . 'resources/css/frontend/lkn-woocommerce-admin-card.css', array(), '1.0.0', 'all');
+                $versions = 'Plugin Cielo v' . LKN_WC_CIELO_VERSION . ' | WooCommerce v' . WC()->version;
+
+                wp_enqueue_script('lknCieloForWoocommerceCard', plugin_dir_url(__FILE__) . 'resources/js/admin/lkn-woocommerce-admin-card.js', array('jquery'), LKN_WC_CIELO_VERSION, false);
+                wp_enqueue_style('lknCieloForWoocommerceCard', plugin_dir_url(__FILE__) . 'resources/css/frontend/lkn-woocommerce-admin-card.css', array(), LKN_WC_CIELO_VERSION, 'all');
+                wp_enqueue_script('lknCieloForWoocommerceProSettings', plugin_dir_url(__FILE__) . 'resources/js/admin/lkn-settings-pro-fields.js', array(), LKN_WC_CIELO_VERSION, false);
+
+                wp_localize_script(
+                    'lknCieloForWoocommerceProSettings',
+                    'lknCieloProSettingsVars',
+                    array(
+                        'proOnly' => __('Available only in PRO', 'lkn-wc-gateway-cielo'),
+                    )
+                );
+
                 wc_get_template(
                     'adminSettingsCard.php',
                     array(
@@ -143,7 +155,7 @@ final class LknWCCieloPayment
                         ),
                         'logo' => plugin_dir_url(__FILE__) . 'resources/img/linkNacionalLogo.webp',
                         'stars' => plugin_dir_url(__FILE__) . 'resources/img/stars.svg',
-                        'versions' => 'test | test'
+                        'versions' => $versions
 
                     ),
                     'woocommerce/adminSettingsCard/',

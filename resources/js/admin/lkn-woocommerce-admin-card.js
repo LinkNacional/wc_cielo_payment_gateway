@@ -1,9 +1,8 @@
 (function ($) {
-  console.log('LKN WooCommerce Admin Card JS loaded')
   let wcFromFound = false
   const observer = new MutationObserver(() => {
     const wcForm = document.querySelector('#lknWcCieloCreditBlocksSettingsLogo')
-    const cardDiv = document.querySelector('#lknIntegrationRedeForWoocommerceSettingsCard')
+    const cardDiv = document.querySelector('#lknCieloWoocommerceSettingsCard')
 
     if (!wcForm) {
       wcFromFound = false

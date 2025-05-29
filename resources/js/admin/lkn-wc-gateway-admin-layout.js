@@ -7,9 +7,11 @@
     const submitP = mainForm.querySelector('p.submit')
     const tables = mainForm.querySelectorAll('table')
 
-    const descriptionElement = document.querySelector('#woocommerce_lkn_cielo_credit_description')
-    if (descriptionElement) {
-      descriptionElement.style.width = '400px'
+    const textareaElements = document.querySelectorAll('textarea')
+    if (textareaElements.length > 0) {
+      textareaElements.forEach(function (textarea) {
+        textarea.style.maxWidth = '400px'
+      })
     }
 
     if (mainForm && fistH1 && submitP && tables) {
@@ -64,7 +66,7 @@
       if (subTitles && descriptionElement) {
         // Criar a div que irá conter os novos elementos <p>
         divElement.id = 'lknWcCieloCreditBlocksSettingsLayoutMenu'
-        aElements = []
+        const aElements = []
         subTitles.forEach((subTitle, index) => {
           // Criar um novo elemento <a> e adicionar o elemento <p> a ele
           const aElement = document.createElement('a')
@@ -113,34 +115,274 @@
             switch (lknWcCieloCreditBlocksSettingsLayoutMenuVar) {
               case 1:
                 if (index == 0 || index == 1) {
-                  table.style.display = 'block'
+                  table.style.display = 'table'
                 } else {
                   table.style.display = 'none'
                 }
                 break
               case 2:
                 if (index == 2) {
-                  table.style.display = 'block'
+                  table.style.display = 'table'
                 } else {
                   table.style.display = 'none'
                 }
                 break
               case 3:
                 if (index == 3) {
-                  table.style.display = 'block'
+                  table.style.display = 'table'
                 } else {
                   table.style.display = 'none'
                 }
                 break
               case 4:
                 if (index == 4) {
-                  table.style.display = 'block'
+                  table.style.display = 'table'
+                } else {
+                  table.style.display = 'none'
+                }
+                break
+              case 5:
+                if (index == 5) {
+                  table.style.display = 'table'
+                } else {
+                  table.style.display = 'none'
+                }
+                break
+              case 6:
+                if (index == 6) {
+                  table.style.display = 'table'
                 } else {
                   table.style.display = 'none'
                 }
                 break
             }
           })
+        }
+
+        const select = document.querySelector('select[name^="woocommerce_lkn_"][name$="_env"]')
+        console.log(select)
+        if (select) {
+          const desc = document.createElement('p')
+          desc.classList.add('description')
+          desc.style.marginTop = '8px'
+          select.parentNode.appendChild(desc)
+
+          function updateDesc() {
+            const val = select.value
+            desc.textContent = lknWcCieloTranslations[val] || ''
+          }
+
+          select.addEventListener('change', updateDesc)
+          updateDesc()
+        }
+
+        document.querySelectorAll('.form-table > tbody > tr').forEach(tr => {
+          const label = tr.querySelector('th label')
+          const helpTip = tr.querySelector('.woocommerce-help-tip')
+          const forminp = tr.querySelector('.forminp')
+          const legend = tr.querySelector('.forminp legend')
+          const fieldset = tr.querySelector('.forminp fieldset')
+          const titledesc = tr.querySelector('.titledesc')
+
+          if (titledesc && label) {
+            label.style.fontSize = '20px'
+            label.style.color = '#121519'
+
+            titledesc.style.paddingTop = '44px'
+          }
+
+          if (label && helpTip && titledesc) {
+            const helpText = helpTip.getAttribute('aria-label')
+            if (helpText) {
+              const p = document.createElement('p')
+              p.textContent = helpText
+              p.style.margin = '5px 0 10px'
+              p.style.fontSize = '13px'
+              p.style.color = '#343B45'
+              label.after(p)
+            }
+
+            helpTip.remove()
+          }
+
+          if (forminp && legend && label && fieldset) {
+            fieldset.style.display = 'flex'
+            fieldset.style.flexDirection = 'column'
+            fieldset.style.width = '100%'
+            fieldset.style.flex = '1'
+
+            const titleText = label.textContent.trim()
+
+            // Cria divs para header e body
+            const headerDiv = document.createElement('div')
+            headerDiv.className = 'lkn-header-cart'
+            headerDiv.style.minHeight = '44px'
+
+            const bodyDiv = document.createElement('div')
+            bodyDiv.className = 'lkn-body-cart'
+            bodyDiv.style.display = 'flex'
+            bodyDiv.style.flexDirection = 'column'
+            bodyDiv.style.alignItems = 'start'
+            bodyDiv.style.justifyContent = 'center'
+            bodyDiv.style.minHeight = '136px'
+            bodyDiv.style.color = '#2C3338'
+
+            // Cria título interno
+            const titleInside = document.createElement('div')
+            titleInside.textContent = titleText
+            titleInside.style.fontWeight = 'bold'
+            titleInside.style.fontSize = '16px'
+            titleInside.style.margin = '6px 4px'
+
+            // Cria descrição vazia
+            const descBlock = document.createElement('div')
+            descBlock.className = 'description-title'
+
+            // Cria linha divisória
+            const divider = document.createElement('div')
+            divider.style.borderTop = '1px solid #ccc'
+            divider.style.margin = '8px 0'
+            divider.style.width = '100%'
+
+            // Move o legend para o header
+            headerDiv.appendChild(legend)
+            headerDiv.appendChild(titleInside)
+            headerDiv.appendChild(descBlock)
+            headerDiv.appendChild(divider)
+
+            // Move os demais elementos do fieldset para body (exceto o legend que já foi removido)
+            const childrenToMove = []
+            fieldset.childNodes.forEach(node => {
+              if (node !== legend) {
+                childrenToMove.push(node)
+              }
+            })
+
+            childrenToMove.forEach(node => bodyDiv.appendChild(node))
+            const brElement = bodyDiv.querySelector('br')
+            if (brElement) {
+              brElement.remove()
+            }
+
+            const pElement = bodyDiv.querySelector('p')
+            if (!pElement) {
+              const p = document.createElement('p')
+              p.classList.add('description')
+              p.style.marginTop = '8px'
+              bodyDiv.appendChild(p)
+            }
+
+            const inputElement = bodyDiv.querySelector('input, select, textarea')
+            if (inputElement) {
+              const titleText = inputElement.getAttribute('data-title-description')
+              if (titleText) {
+                descBlock.textContent = titleText
+              }
+            }
+
+            const checkboxLabel = bodyDiv.querySelector('label')
+
+            if (checkboxLabel) {
+              const input = checkboxLabel.querySelector('input')
+              const nameAttr = input?.getAttribute('name')
+              const checked = input?.checked
+
+              // Oculta o checkbox original
+              if (input) {
+                input.style.display = 'none'
+                checkboxLabel.style.display = 'none'
+
+                // Cria os rádios
+                const radioYes = document.createElement('label')
+                radioYes.innerHTML = `
+                <input type="radio" name="${nameAttr}-control" value="1" ${checked ? 'checked' : ''}>
+                  ${lknWcCieloTranslationsInput.enable}
+                `
+
+                const radioNo = document.createElement('label')
+                radioNo.innerHTML = `
+                <input type="radio" name="${nameAttr}-control" value="0" ${!checked ? 'checked' : ''}>
+                  ${lknWcCieloTranslationsInput.disable}
+                `
+
+                const radioYesInput = radioYes.querySelector('input')
+                const radioNoInput = radioNo.querySelector('input')
+
+                // Vincula os eventos para controlar o checkbox oculto
+                radioYesInput.addEventListener('change', () => {
+                  if (radioYesInput.checked) input.checked = true
+                })
+
+                radioNoInput.addEventListener('change', () => {
+                  if (radioNoInput.checked) input.checked = false
+                })
+
+                // Adiciona os radios
+                bodyDiv.insertBefore(radioNo, bodyDiv.firstChild)
+                bodyDiv.insertBefore(radioYes, bodyDiv.firstChild)
+              }
+            }
+
+            // Limpa o fieldset e insere os novos containers
+            fieldset.innerHTML = ''
+            fieldset.appendChild(headerDiv)
+            fieldset.appendChild(bodyDiv)
+
+            // Estiliza o forminp
+            forminp.style.display = 'flex'
+            forminp.style.flexDirection = 'column'
+            forminp.style.alignItems = 'flex-start'
+            forminp.style.backgroundColor = 'white'
+            forminp.style.padding = '10px 30px'
+            forminp.style.borderRadius = '4px'
+            forminp.style.minHeight = '200px'
+            forminp.style.boxSizing = 'border-box'
+            forminp.style.width = '100%'
+          }
+        })
+        const installmentSelect = document.querySelector('select[id$="interest_or_discount"]')
+        let installmentValue = 'interest'
+        let installInput = ''
+        if (installmentSelect) {
+          installmentValue = installmentSelect.value
+        }
+
+        if (installmentValue === 'interest') {
+          installInput = document.querySelector('input[id$="installment_interest"]')
+        } else if (installmentValue === 'discount') {
+          installInput = document.querySelector('input[id$="installment_discount"]')
+        }
+
+        if (installInput && installInput.checked) {
+          const discountBlocks = document.querySelectorAll(`input[name^="woocommerce_lkn_cielo_"][name$="${installmentValue}"]`)
+
+          const lknBody = installInput.closest('.lkn-body-cart')
+          if (lknBody) {
+            const pInstallments = lknBody.querySelector('.description')
+
+            if (pInstallments) {
+              pInstallments.style.marginBottom = '40px'
+            }
+          }
+
+          if (discountBlocks.length > 0) {
+            discountBlocks.forEach(discountBlock => {
+              const trComponent = discountBlock.closest('tr')
+              if (!trComponent) return
+
+              const fieldset = trComponent.querySelector('fieldset')
+              if (!fieldset) return
+
+              const lknBody = installInput.closest('.lkn-body-cart')
+              if (!lknBody) return
+
+              // Evita o erro se fieldset contém o lknBody (estrutura cíclica)
+              if (!fieldset.contains(lknBody)) {
+                lknBody.appendChild(fieldset)
+                trComponent.remove()
+              }
+            })
+          }
         }
 
         // Caso o formulário tenha um campo inválido, força o click no menu em que o campo inválido está
@@ -168,6 +410,8 @@
       }
 
       const hrElement = document.createElement('hr')
+      hrElement.style.margin = '2px 0 40px'
+      hrElement.style.width = '100%'
       divElement.parentElement.insertBefore(hrElement, divElement.nextSibling)
       lknWcCieloValidateMerchantInputs()
     }
@@ -183,7 +427,7 @@
       color: '#666'
     })
 
-    $('#lknWcCieloCreditBlocksSettingsLayoutDiv').append(message).css('display', 'block')
+    $('#lknWcCieloCreditBlocksSettingsLayoutDiv').append(message).css('display', 'table')
 
     $('.give-rating-link').on('click', function (e) {
       $('#footer-left').html('Obrigado :)').css('text-align', 'center')
