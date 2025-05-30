@@ -38,6 +38,7 @@ jobs:
           WordPress.Security.NonceVerification.Recommended
           WordPress.DB.SlowDBQuery.slow_db_query_meta_key
           WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+          WordPress.PHP.DevelopmentFunctions.error_log_var_export
           trademarked_term
           textdomain_mismatch
           hidden_files

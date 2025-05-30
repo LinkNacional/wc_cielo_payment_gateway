@@ -367,12 +367,12 @@ final class LknWcCieloPix extends WC_Payment_Gateway
             if (empty($fullName)) {
                 throw new Exception('Nome não informado');
             }
-            if ('' === $_POST['billing_cpf']) {
-                $_POST['billing_cpf'] = $_POST['billing_cnpj'];
+            if (isset($_POST['billing_cpf']) && '' === $_POST['billing_cpf']) {
+                $_POST['billing_cpf'] = isset($_POST['billing_cnpj']) ? sanitize_text_field(wp_unslash($_POST['billing_cnpj'])) : '';
             }
             $billingCpfCpnj = array(
-                'Identity' => sanitize_text_field($_POST['billing_cpf']),
-                'IdentityType' => strlen($_POST['billing_cpf']) === 14 ? 'CPF' : 'CNPJ'
+                'Identity' => isset($_POST['billing_cnpj']) ? sanitize_text_field(wp_unslash($_POST['billing_cnpj'])) : '',
+                'IdentityType' => isset($_POST['billing_cnpj']) && strlen(sanitize_text_field(wp_unslash($_POST['billing_cnpj']))) === 14 ? 'CPF' : 'CNPJ'
             );
             if ('' === $billingCpfCpnj['Identity'] || ! $this->validateCpfCnpj($billingCpfCpnj['Identity'])) {
                 throw new Exception(__('Please enter a valid CPF or CNPJ.', 'lkn-wc-gateway-cielo'));
@@ -595,8 +595,8 @@ final class LknWcCieloPix extends WC_Payment_Gateway
                 // Mostra a mensagem de erro
                 add_action('admin_notices', function () {
                     echo '<div class="notice notice-error is-dismissible">
-                            <p>' . __('You are not allowed to modify this field (Description).', 'lkn-wc-gateway-cielo') . '</p>
-                          </div>';
+                            <p>' . esc_html__('You are not allowed to modify this field (Description).', 'lkn-wc-gateway-cielo') . '</p>
+                        </div>';
                 });
             } else {
                 $this->update_option('description', 'After the purchase is completed, the PIX will be generated and made available for payment!');
@@ -609,8 +609,8 @@ final class LknWcCieloPix extends WC_Payment_Gateway
                 // Mostra a mensagem de erro
                 add_action('admin_notices', function () {
                     echo '<div class="notice notice-error is-dismissible">
-                            <p>' . __('You are not allowed to modify this field (Payment Complete Status).', 'lkn-wc-gateway-cielo') . '</p>
-                          </div>';
+                            <p>' . esc_html__('You are not allowed to modify this field (Payment Complete Status).', 'lkn-wc-gateway-cielo') . '</p>
+                        </div>';
                 });
             } else {
                 $this->update_option('payment_complete_status', 'processing');
@@ -623,8 +623,8 @@ final class LknWcCieloPix extends WC_Payment_Gateway
                 // Mostra a mensagem de erro
                 add_action('admin_notices', function () {
                     echo '<div class="notice notice-error is-dismissible">
-                            <p>' . __('You are not allowed to modify this field (Pix Layout).', 'lkn-wc-gateway-cielo') . '</p>
-                          </div>';
+                            <p>' . esc_html__('You are not allowed to modify this field (Pix Layout).', 'lkn-wc-gateway-cielo') . '</p>
+                        </div>';
                 });
             } else {
                 $this->update_option('pix_layout', 'standard');
@@ -638,8 +638,8 @@ final class LknWcCieloPix extends WC_Payment_Gateway
                 // Mostra a mensagem de erro
                 add_action('admin_notices', function () {
                     echo '<div class="notice notice-error is-dismissible">
-                            <p>' . __('You are not allowed to modify this field (Layout Location).', 'lkn-wc-gateway-cielo') . '</p>
-                          </div>';
+                            <p>' . esc_html__('You are not allowed to modify this field (Layout Location).', 'lkn-wc-gateway-cielo') . '</p>
+                        </div>';
                 });
             } else {
                 $this->update_option('layout_location', 'bottom');
