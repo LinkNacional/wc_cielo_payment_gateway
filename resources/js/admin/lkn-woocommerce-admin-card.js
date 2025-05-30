@@ -1,7 +1,7 @@
 (function ($) {
   let wcFromFound = false
   const observer = new MutationObserver(() => {
-    const wcForm = document.querySelector('#lknWcCieloCreditBlocksSettingsLogo')
+    const wcForm = document.querySelector('#lknBlocksSettingsLogo')
     const cardDiv = document.querySelector('#lknCieloWoocommerceSettingsCard')
 
     if (!wcForm) {

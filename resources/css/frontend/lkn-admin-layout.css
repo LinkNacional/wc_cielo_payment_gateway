@@ -58,7 +58,17 @@
 }
 
 @media (max-width: 1300px) {
-    #lknWcCieloCreditBlocksSettingsLogo {
+    #lknBlocksSettingsLogo {
         width: 100%;
+    }
+}
+
+@media (max-width: 782px) {
+    .titledesc {
+        padding-top: 40px !important;
+    }
+
+    .lkn-wc-cielo-hr {
+        margin: 2px 0px 0px !important;
     }
 }

@@ -7,10 +7,47 @@
     const submitP = mainForm.querySelector('p.submit')
     const tables = mainForm.querySelectorAll('table')
 
-    if (mainform && fistH1 && submitP && tables) {
+    const textareaElements = document.querySelectorAll('textarea')
+    if (textareaElements.length > 0) {
+      textareaElements.forEach(function (textarea) {
+        textarea.style.maxWidth = '400px'
+      })
+    }
+
+    const selectElements = document.querySelectorAll('.select2')
+    if (selectElements.length > 0) {
+      selectElements.forEach(function (select) {
+        select.style.width = 'auto'
+        select.style.maxWidth = '400px'
+      })
+    }
+
+    if (mainForm && fistH1 && submitP && tables) {
       // Criar uma nova div
       const newDiv = document.createElement('div')
       newDiv.id = 'lknWcCieloCreditBlocksSettingsLayoutDiv'
+
+      const parentFlexDiv = document.createElement('div')
+      parentFlexDiv.id = 'lknWcCieloCreditBlocksSettingsFlexContainer'
+      parentFlexDiv.style.display = 'flex'
+      parentFlexDiv.style.flexDirection = 'row' // opcional: padrão
+      parentFlexDiv.style.gap = '20px'
+      parentFlexDiv.style.flexWrap = 'wrap'
+      parentFlexDiv.style.position = 'relative'
+
+      const logoDiv = document.createElement('div')
+      logoDiv.id = 'lknBlocksSettingsLogo'
+      logoDiv.style.minWidth = '30%'
+      logoDiv.style.height = '100%'
+      logoDiv.style.display = 'flex'
+      logoDiv.style.flexDirection = 'column'
+      logoDiv.style.justifyContent = 'start'
+      logoDiv.style.alignItems = 'center'
+      logoDiv.style.backgroundColor = 'transparent'
+      logoDiv.style.borderRadius = '10px'
+      logoDiv.style.padding = '30px 24px'
+      logoDiv.style.position = 'sticky'
+      logoDiv.style.top = '110px'
 
       // Acessar o próximo elemento após fistH1
       let currentElement = fistH1 // Começar com fistH1
@@ -25,8 +62,12 @@
       // Mover submitP para a nova div
       newDiv.appendChild(submitP)
 
-      // Adicionar a nova div ao mainForm
-      mainForm.appendChild(newDiv)
+      // Mover a div existente para dentro da nova div pai
+      parentFlexDiv.appendChild(newDiv)
+      parentFlexDiv.appendChild(logoDiv)
+
+      // Adicionar a nova estrutura flex ao formulário
+      mainForm.appendChild(parentFlexDiv)
 
       const subTitles = mainForm.querySelectorAll('.wc-settings-sub-title')
       const descriptionElement = mainForm.querySelector('p')
@@ -128,7 +169,6 @@
         }
 
         const select = document.querySelector('select[name^="woocommerce_lkn_"][name$="_env"]')
-        console.log(select)
         if (select) {
           const desc = document.createElement('p')
           desc.classList.add('description')
@@ -156,7 +196,7 @@
             label.style.fontSize = '20px'
             label.style.color = '#121519'
 
-            titledesc.style.paddingTop = '44px'
+            titledesc.style.paddingTop = '68px'
           }
 
           if (label && helpTip && titledesc) {
@@ -380,66 +420,63 @@
       const hrElement = document.createElement('hr')
       hrElement.style.margin = '2px 0 40px'
       hrElement.style.width = '100%'
+      hrElement.classList.add('lkn-wc-cielo-hr')
       divElement.parentElement.insertBefore(hrElement, divElement.nextSibling)
       lknWcCieloValidateMerchantInputs()
     }
 
     const message = $('<p id="footer-left" class="alignleft"></p>')
 
-    message.html('Se você gosta do plugin <strong>lkn-wc-gateway-cielo</strong>, deixe-nos uma classificação de <a href="https://wordpress.org/support/plugin/lkn-wc-gateway-cielo/reviews/?filter=5#postform" target="_blank" class="give-rating-link" style="text-decoration:none;" data-rated="Obrigado :)">★★★★★</a>. Leva um minuto e nos ajuda muito. Obrigado antecipadamente!')
+    message.html('Saiba mais sobre nossos plugins, suporte e manutenção 24h para WordPress na <a href="https://www.linknacional.com.br/wordpress/plugins/" target="_blank">Link Nacional</a> | Avaliar esse plugin <a href="https://wordpress.org/support/plugin/lkn-wc-gateway-cielo/reviews/?filter=5#postform" target="_blank" class="give-rating-link" style="text-decoration:none;" data-rated="Obrigado :)">★★★★★</a>')
 
     message.css({
       'text-align': 'center',
-      padding: '10px',
+      padding: '10px 0px',
       'font-size': '13px',
       color: '#666'
     })
 
     $('#lknWcCieloCreditBlocksSettingsLayoutDiv').append(message).css('display', 'table')
-
-    $('.give-rating-link').on('click', function (e) {
-      $('#footer-left').html('Obrigado :)').css('text-align', 'center')
-    })
   })
 
   function lknWcCieloValidateMerchantInputs() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const sectionParam = urlParams.get("section");
+    const urlParams = new URLSearchParams(window.location.search)
+    const sectionParam = urlParams.get('section')
 
-    if(sectionParam){
-      const merchantIdInput = document.querySelector(`#woocommerce_${sectionParam}_merchant_id`);
-      const merchantKeyInput = document.querySelector(`#woocommerce_${sectionParam}_merchant_key`);
-      
-      if(merchantIdInput && merchantKeyInput){
+    if (sectionParam) {
+      const merchantIdInput = document.querySelector(`#woocommerce_${sectionParam}_merchant_id`)
+      const merchantKeyInput = document.querySelector(`#woocommerce_${sectionParam}_merchant_key`)
+
+      if (merchantIdInput && merchantKeyInput) {
         function validateInput(input, expectedLength, message) {
-            const parent = input.parentElement;
-            let errorMsg = parent.querySelector(".validation-error");
-    
-            if (input.value.length !== expectedLength) {
-                if (!errorMsg) {
-                    errorMsg = document.createElement("p");
-                    errorMsg.className = "validation-error";
-                    errorMsg.style.color = "red";
-                    errorMsg.style.fontWeight = "500";
-                    errorMsg.style.marginTop = "5px";
-                    errorMsg.style.fontSize = "small";
-                    parent.appendChild(errorMsg);
-                }
-                errorMsg.textContent = message;
-            } else {
-                if (errorMsg) errorMsg.remove();
+          const parent = input.parentElement
+          let errorMsg = parent.querySelector('.validation-error')
+
+          if (input.value.length !== expectedLength) {
+            if (!errorMsg) {
+              errorMsg = document.createElement('p')
+              errorMsg.className = 'validation-error'
+              errorMsg.style.color = 'red'
+              errorMsg.style.fontWeight = '500'
+              errorMsg.style.marginTop = '5px'
+              errorMsg.style.fontSize = 'small'
+              parent.appendChild(errorMsg)
             }
+            errorMsg.textContent = message
+          } else {
+            if (errorMsg) errorMsg.remove()
+          }
         }
-    
+
         function validateFields() {
-            validateInput(merchantIdInput, 36, "O Merchant ID deve ter 36 caracteres.");
-            validateInput(merchantKeyInput, 40, "A Merchant Key deve ter 40 caracteres.");
+          validateInput(merchantIdInput, 36, 'O Merchant ID deve ter 36 caracteres.')
+          validateInput(merchantKeyInput, 40, 'A Merchant Key deve ter 40 caracteres.')
         }
-    
-        merchantIdInput.addEventListener("input", validateFields);
-        merchantKeyInput.addEventListener("input", validateFields);
-    
-        validateFields(); // Valida ao carregar a página
+
+        merchantIdInput.addEventListener('input', validateFields)
+        merchantKeyInput.addEventListener('input', validateFields)
+
+        validateFields() // Valida ao carregar a página
       }
     }
   }

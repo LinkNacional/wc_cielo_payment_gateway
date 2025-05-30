@@ -132,7 +132,12 @@ final class LknWCCieloPayment
             in_array($section, $sections, true)
         ) {
             add_action('woocommerce_init', function () {
-                $versions = 'Plugin Cielo v' . LKN_WC_CIELO_VERSION . ' | WooCommerce v' . WC()->version;
+                $versions = 'Plugin Cielo v' . LKN_WC_CIELO_VERSION;
+                if (defined('LKN_CIELO_API_PRO_VERSION')) {
+                    $versions .= ' | Cielo Pro v' . LKN_CIELO_API_PRO_VERSION;
+                } else {
+                    $versions .= ' | WooCommerce v' . WC()->version;
+                }
 
                 wp_enqueue_script('lknCieloForWoocommerceCard', plugin_dir_url(__FILE__) . 'resources/js/admin/lkn-woocommerce-admin-card.js', array('jquery'), LKN_WC_CIELO_VERSION, false);
                 wp_enqueue_style('lknCieloForWoocommerceCard', plugin_dir_url(__FILE__) . 'resources/css/frontend/lkn-woocommerce-admin-card.css', array(), LKN_WC_CIELO_VERSION, 'all');
