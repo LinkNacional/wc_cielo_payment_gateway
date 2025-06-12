@@ -12,14 +12,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // Pegar o componente pai
     const parentElement = pixDescription.parentElement
     if (parentElement) {
-      parentElement.style.display = 'flex'
-      parentElement.style.alignItems = 'center'
-      parentElement.style.flexWrap = 'wrap'
-      parentElement.style.gap = '6px'
-
       // Criar o texto informativo
       const proText = document.createElement('span')
-      proText.textContent = 'Disponível apenas no PRO'
+      proText.textContent = lknCieloProSettingsVars.proOnly
       proText.style.color = 'red'
       proText.style.fontWeight = 'bold'
 
@@ -39,14 +34,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // Pegar o componente pai
     const parentElement = pixPaymentStatus.parentElement
     if (parentElement) {
-      parentElement.style.display = 'flex'
-      parentElement.style.alignItems = 'center'
-      parentElement.style.flexWrap = 'wrap'
-      parentElement.style.gap = '6px'
-
       // Criar o texto informativo
       const proText = document.createElement('span')
-      proText.textContent = 'Disponível apenas no PRO'
+      proText.textContent = lknCieloProSettingsVars.proOnly
       proText.style.color = 'red'
       proText.style.fontWeight = 'bold'
 
@@ -66,14 +56,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // Pegar o componente pai
     const parentElement = pixLayout.parentElement
     if (parentElement) {
-      parentElement.style.display = 'flex'
-      parentElement.style.alignItems = 'center'
-      parentElement.style.flexWrap = 'wrap'
-      parentElement.style.gap = '6px'
-
       // Criar o texto informativo
       const proText = document.createElement('span')
-      proText.textContent = 'Disponível apenas no PRO'
+      proText.textContent = lknCieloProSettingsVars.proOnly
       proText.style.color = 'red'
       proText.style.fontWeight = 'bold'
 
@@ -93,14 +78,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // Pegar o componente pai
     const parentElement = pixLocation.parentElement
     if (parentElement) {
-      parentElement.style.display = 'flex'
-      parentElement.style.alignItems = 'center'
-      parentElement.style.flexWrap = 'wrap'
-      parentElement.style.gap = '6px'
-
       // Criar o texto informativo
       const proText = document.createElement('span')
-      proText.textContent = 'Disponível apenas no PRO'
+      proText.textContent = lknCieloProSettingsVars.proOnly
       proText.style.color = 'red'
       proText.style.fontWeight = 'bold'
 
