@@ -159,7 +159,8 @@ final class LknWCCieloPayment
                             'left' => plugin_dir_url(__FILE__) . 'resources/img/backgroundCardLeft.svg'
                         ),
                         'logo' => plugin_dir_url(__FILE__) . 'resources/img/linkNacionalLogo.webp',
-                        'stars' => plugin_dir_url(__FILE__) . 'resources/img/stars.svg',
+                        'whatsapp' => plugin_dir_url(__FILE__) . 'resources/img/whatsapp-icon.svg',
+                        'telegram' => plugin_dir_url(__FILE__) . 'resources/img/telegram-icon.svg',
                         'versions' => $versions
 
                     ),

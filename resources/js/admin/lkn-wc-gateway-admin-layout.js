@@ -78,6 +78,7 @@
         const aElements = []
         subTitles.forEach((subTitle, index) => {
           // Criar um novo elemento <a> e adicionar o elemento <p> a ele
+          console.log(subTitle.textContent)
           const aElement = document.createElement('a')
           aElement.textContent = subTitle.textContent
           aElement.href = '#' + subTitle.textContent

@@ -24,23 +24,39 @@ if (!defined('ABSPATH')) {
                 </a>
             </div>
             <div>
-                <a target="_blank" href=<?php echo esc_url('https://t.me/wpprobr'); ?>>
-                    <b>•</b><?php echo esc_attr_e('Support via Telegram', 'lkn-wc-gateway-cielo'); ?>
+                <a target="_blank" href=<?php echo esc_url('https://www.linknacional.com.br/wordpress/suporte/'); ?>>
+                    <b>•</b><?php echo esc_attr_e('Suporte WP', 'woo-better-shipping-calculator-for-brazil'); ?>
                 </a>
                 <a target="_blank" href=<?php echo esc_url('https://cliente.linknacional.com.br/solicitar/wordpress-woo-gratis/?utm=plugin'); ?>>
                     <b>•</b><?php echo esc_attr_e('WP Hosting', 'lkn-wc-gateway-cielo'); ?>
                 </a>
             </div>
         </div>
-        <div id="lknCieloWoocommerStarsDiv">
-            <a target="_blank" href=<?php echo esc_url('https://wordpress.org/support/plugin/lkn-wc-gateway-cielo/reviews/#new-post'); ?>>
-                <p><?php echo esc_attr_e('Rate Plugin', 'lkn-wc-gateway-cielo'); ?></p>
-                <div>
+        <div class="LknWcCieloSupportLinks">
+            <div id="lknWcCieloStarsDiv">
+                <a target="_blank" href=<?php echo esc_url('https://br.wordpress.org/plugins/woo-better-shipping-calculator-for-brazil/#reviews'); ?>>
+                    <p><?php echo esc_attr_e('Rate plugin', 'lkn-wc-gateway-cielo'); ?></p>
+                    <div class="LknWcCieloStars">
+                        <span class="dashicons dashicons-star-filled lkn-stars"></span>
+                        <span class="dashicons dashicons-star-filled lkn-stars"></span>
+                        <span class="dashicons dashicons-star-filled lkn-stars"></span>
+                        <span class="dashicons dashicons-star-filled lkn-stars"></span>
+                        <span class="dashicons dashicons-star-filled lkn-stars"></span>
+                    </div>
+                </a>
+            </div>
+            <div class="LknWcCieloContactLinks">
+                <a href=<?php echo esc_url('https://chat.whatsapp.com/IjzHhDXwmzGLDnBfOibJKO'); ?> target="_blank">
                     <?php //phpcs:disable PluginCheck.CodeAnalysis.ImageFunctions.NonEnqueuedImage ?>
-                    <img src=<?php echo esc_url($stars); ?> alt="Logo">
+                    <img src="<?php echo esc_url($whatsapp); ?>" alt="Whatsapp Icon" class="LknWcCieloContactIcon">
                     <?php //phpcs:enable ?>
-                </div>
-            </a>
+                </a>
+                <a href=<?php echo esc_url('https://t.me/wpprobr'); ?> target="_blank">
+                    <?php //phpcs:disable PluginCheck.CodeAnalysis.ImageFunctions.NonEnqueuedImage ?>
+                    <img src="<?php echo esc_url($telegram); ?>" alt="Telegram Icon" class="LknWcCieloContactIcon">
+                    <?php //phpcs:enable ?>
+                </a>
+            </div>
         </div>
     </div>
 </div>
