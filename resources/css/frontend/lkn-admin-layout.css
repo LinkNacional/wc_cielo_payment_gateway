@@ -58,8 +58,13 @@
 }
 
 @media (max-width: 1300px) {
+    #lknWcCieloCreditBlocksSettingsLayoutDiv {
+        padding: 0px;
+    }
+
     #lknBlocksSettingsLogo {
         width: 100%;
+        padding: 0px !important;
     }
 }
 

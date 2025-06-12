@@ -7,33 +7,19 @@
     const submitP = mainForm.querySelector('p.submit')
     const tables = mainForm.querySelectorAll('table')
 
-    const textareaElements = document.querySelectorAll('textarea')
-    if (textareaElements.length > 0) {
-      textareaElements.forEach(function (textarea) {
-        textarea.style.maxWidth = '400px'
-      })
-    }
-
-    const selectElements = document.querySelectorAll('.select2')
-    if (selectElements.length > 0) {
-      selectElements.forEach(function (select) {
-        select.style.width = 'auto'
-        select.style.maxWidth = '400px'
-      })
-    }
-
     if (mainForm && fistH1 && submitP && tables) {
       // Criar uma nova div
       const newDiv = document.createElement('div')
       newDiv.id = 'lknWcCieloCreditBlocksSettingsLayoutDiv'
 
       const parentFlexDiv = document.createElement('div')
-      parentFlexDiv.id = 'lknWcCieloCreditBlocksSettingsFlexContainer'
+      parentFlexDiv.id = 'lknWcCieloBlocksSettingsFlexContainer'
       parentFlexDiv.style.display = 'flex'
       parentFlexDiv.style.flexDirection = 'row' // opcional: padrão
       parentFlexDiv.style.gap = '20px'
       parentFlexDiv.style.flexWrap = 'wrap'
       parentFlexDiv.style.position = 'relative'
+      parentFlexDiv.style.justifyContent = 'center'
 
       const logoDiv = document.createElement('div')
       logoDiv.id = 'lknBlocksSettingsLogo'
@@ -78,7 +64,6 @@
         const aElements = []
         subTitles.forEach((subTitle, index) => {
           // Criar um novo elemento <a> e adicionar o elemento <p> a ele
-          console.log(subTitle.textContent)
           const aElement = document.createElement('a')
           aElement.textContent = subTitle.textContent
           aElement.href = '#' + subTitle.textContent
@@ -233,7 +218,8 @@
             bodyDiv.style.flexDirection = 'column'
             bodyDiv.style.alignItems = 'start'
             bodyDiv.style.justifyContent = 'center'
-            bodyDiv.style.minHeight = '136px'
+            bodyDiv.style.minHeight = '100px'
+            bodyDiv.style.paddingLeft = '4px'
             bodyDiv.style.color = '#2C3338'
 
             // Cria título interno
@@ -281,8 +267,11 @@
               bodyDiv.appendChild(p)
             }
 
-            const inputElement = bodyDiv.querySelector('input, select, textarea')
+            const inputElement = bodyDiv.querySelector('input[type="text"], input[type="number"], input[type="password"], select, textarea')
             if (inputElement) {
+              inputElement.style.minWidth = '200px'
+              inputElement.style.width = '100%'
+              inputElement.style.maxWidth = '400px'
               const titleText = inputElement.getAttribute('data-title-description')
               if (titleText) {
                 descBlock.textContent = titleText
@@ -346,6 +335,7 @@
             forminp.style.borderRadius = '4px'
             forminp.style.minHeight = '200px'
             forminp.style.boxSizing = 'border-box'
+            forminp.style.border = '1px solid #DFDFDF'
             forminp.style.width = '100%'
           }
         })
@@ -387,12 +377,32 @@
 
               // Evita o erro se fieldset contém o lknBody (estrutura cíclica)
               if (!fieldset.contains(lknBody)) {
+                fieldset.style.marginLeft = '-4px'
                 lknBody.appendChild(fieldset)
                 trComponent.remove()
               }
             })
           }
         }
+
+        const observer = new MutationObserver(function () {
+          const selects = document.querySelectorAll('.select2.select2-container')
+          if (selects.length > 0) {
+            selects.forEach(select => {
+              select.style.setProperty('min-width', '200px', 'important')
+              select.style.width = '100%'
+              select.style.maxWidth = '400px'
+            })
+
+            // Aqui você pode executar qualquer lógica necessária com o elemento encontrado
+
+            // Para o observer
+            observer.disconnect()
+          }
+        })
+
+        // Configura o observer para observar mudanças no document.body
+        observer.observe(document.body, { childList: true, subtree: true })
 
         // Caso o formulário tenha um campo inválido, força o click no menu em que o campo inválido está
         mainForm.addEventListener('invalid', function (event) {
