@@ -8,7 +8,7 @@ on:
 env:
   PLUGIN_NAME: lkn-wc-gateway-cielo
   PHP_VERSION: "7.4"
-  DEPLOY_TAG: "1.21.1"
+  DEPLOY_TAG: "1.21.2"
 
 jobs:
   release-build:
@@ -27,28 +27,28 @@ jobs:
         command: install
         dev: no
 
-    # - name: Executar Plugin Check com configurações personalizadas
-    #   uses: wordpress/plugin-check-action@v1
-    #   with:
-    #     build-dir: './'
-    #     exclude-directories: 'node_modules,vendor,.eslintrc'
-    #     ignore-codes: |
-    #       WordPress.WP.I18n.TextDomainMismatch
-    #       WordPress.Security.NonceVerification.Missing
-    #       WordPress.Security.NonceVerification.Recommended
-    #       WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-    #       WordPress.DB.SlowDBQuery.slow_db_query_meta_value
-    #       WordPress.PHP.DevelopmentFunctions.error_log_var_export
-    #       trademarked_term
-    #       textdomain_mismatch
-    #       hidden_files
-    #     categories: |
-    #       performance
-    #       accessibility
-    #       general
-    #       plugin_repo
-    #       security
-    #     strict: true
+    - name: Executar Plugin Check com configurações personalizadas
+      uses: wordpress/plugin-check-action@v1
+      with:
+        build-dir: './'
+        exclude-directories: 'node_modules,vendor,.eslintrc'
+        ignore-codes: |
+          WordPress.WP.I18n.TextDomainMismatch
+          WordPress.Security.NonceVerification.Missing
+          WordPress.Security.NonceVerification.Recommended
+          WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+          WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+          WordPress.PHP.DevelopmentFunctions.error_log_var_export
+          trademarked_term
+          textdomain_mismatch
+          hidden_files
+        categories: |
+          performance
+          accessibility
+          general
+          plugin_repo
+          security
+        strict: true
 
     # Add plugin files to a root directory
     - name: Prepare plugin folder
@@ -73,16 +73,6 @@ jobs:
     - name: Move .zip to custom location
       run: |
         mv ./build/${{ env.PLUGIN_NAME }}.zip ./dist/
-
-    - name: Deploy para WordPress.org
-      uses: 10up/action-wordpress-plugin-deploy@stable
-      env:
-        VERSION: ${{ env.DEPLOY_TAG }}
-        SLUG: lkn-wc-gateway-cielo
-        SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
-        SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
-        ASSETS_DIR: .wordpress-org
-        BUILD_DIR: build/${{ env.PLUGIN_NAME }}
 
     # Update version tag
     - name: Bump version and push tag
