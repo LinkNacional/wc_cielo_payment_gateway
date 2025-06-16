@@ -1,6 +1,3 @@
-# 1.21.0 - 30/05/2025
-* Adição de novo layout para página de configuração.
-
 # 1.20.0 - 23/05/2025
 * Adição de compatibilidade com configuração PRO para adicionar desconto na parcela.
 * Adição de compatibilidade com configuração PRO para definir o valor mínimo para parcelas sem juros.

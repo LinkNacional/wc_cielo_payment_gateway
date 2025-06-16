@@ -1,8 +1,7 @@
 #lknWcCieloCreditBlocksSettingsLayoutDiv {
     padding: 10px 24px;
-    background-color: transparent;
+    background-color: #FFFFFF;
     border-radius: 10px;
-    flex: 1;
 }
 
 #lknWcCieloCreditBlocksSettingsLayoutMenu {
@@ -21,23 +20,18 @@
 }
 
 #lknWcCieloCreditBlocksSettingsLayoutMenu a:hover {
-    background-color: #f3f3f3;
-}
-
-#lknWcCieloCreditBlocksSettingsLayoutMenu a.nav-tab {
-    padding: 7px 30px;
+    color: black;
 }
 
 #lknWcCieloCreditBlocksSettingsLayoutMenu a.nav-tab.nav-tab-active {
-    background-color: #FFFFFF;
+    margin-top: 1.5px !important;
     color: black;
-    outline: none;
 }
 
 #woocommerce_lkn_cielo_pix_clear_order_records,
 #woocommerce_lkn_wc_cielo_pix_clear_order_records,
-#woocommerce_lkn_cielo_debit_clear_order_records,
-#woocommerce_lkn_cielo_credit_clear_order_records {
+#woocommerce_lkn_cielo_debit_clear_order_records, 
+#woocommerce_lkn_cielo_credit_clear_order_records{
     display: flex;
     justify-content: center;
     width: fit-content;
@@ -51,31 +45,4 @@
     border-radius: 4px;
     margin: 0;
     white-space: pre-wrap
-}
-
-.description-title {
-    padding-left: 4px;
-}
-
-@media (max-width: 1300px) {
-    #lknWcCieloCreditBlocksSettingsLayoutDiv {
-        padding: 0px;
-    }
-
-    #lknBlocksSettingsLogo {
-        width: 100%;
-        padding: 0px !important;
-        align-items: start !important;
-        margin-bottom: 20px;
-    }
-}
-
-@media (max-width: 782px) {
-    .titledesc {
-        padding-top: 40px !important;
-    }
-
-    .lkn-wc-cielo-hr {
-        margin: 2px 0px 0px !important;
-    }
 }

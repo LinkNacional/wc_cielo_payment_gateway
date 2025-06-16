@@ -11,10 +11,10 @@ $telegramIconContent = file_get_contents($telegramIconPath);
 <div class="lknCieloApiProPixFieldsWrapper">
     <div>
         <img
-            src="data:image/jpeg;base64,<?php echo esc_attr($base64Image); ?>"
+            src="data:image/jpeg;base64,<?= $base64Image ?>"
             alt=""
             width="320px"
-        />
+        >
     </div>
 </div>
 <div id="lknCieloShareModal">
@@ -58,10 +58,7 @@ $telegramIconContent = file_get_contents($telegramIconPath);
                         class="button alt wp-element-button lknCieloApiProShareButton"
                     >
                         <div class="lknCieloShareButtonIcon dashicons">
-                            <?php
-                            // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Safe SVG, bundled with the plugin, not user-supplied.
-                            echo $telegramIconContent;
-                            ?>
+                            <?php echo $telegramIconContent; ?>
                         </div>
                     </button>
                 </a>
@@ -89,7 +86,7 @@ $telegramIconContent = file_get_contents($telegramIconPath);
             class="input-text"
             id="lknCieloPixCodeInput"
             readonly
-            value="<?php echo esc_attr($pixString); ?>"
+            value="<?= $pixString ?>"
         >
         <button
             class="button alt wp-element-button"

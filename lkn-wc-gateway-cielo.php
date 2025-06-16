@@ -4,7 +4,7 @@
  * Plugin Name: Payment Gateway for Cielo API on WooCommerce
  * Plugin URI: https://www.linknacional.com.br/wordpress/woocommerce/cielo/
  * Description: Adds the Cielo API 3.0 Payments gateway to your WooCommerce website.
- * Version: 1.21.0
+ * Version: 1.20.0
  * Author: Link Nacional
  * Author URI: https://linknacional.com.br
  * Text Domain: lkn-wc-gateway-cielo
@@ -113,67 +113,11 @@ final class LknWCCieloPayment
         add_action('admin_notices', array(__CLASS__, 'lkn_admin_notice'));
 
         add_action('woocommerce_order_details_after_order_table', array('Lkn\WCCieloPaymentGateway\Includes\LknWcCieloPix', 'showPix'));
-
-        $page    = isset($_GET['page']) ? sanitize_text_field(wp_unslash($_GET['page'])) : '';
-        $tab     = isset($_GET['tab']) ? sanitize_text_field(wp_unslash($_GET['tab'])) : '';
-        $section = isset($_GET['section']) ? sanitize_text_field(wp_unslash($_GET['section'])) : '';
-
-        $sections = [
-            'lkn_cielo_credit',
-            'lkn_cielo_debit',
-            'lkn_wc_cielo_pix',
-            'lkn_cielo_pix',
-            'lkn_cielo_boleto'
-        ];
-
-        if (
-            $page === 'wc-settings' &&
-            $tab === 'checkout' &&
-            in_array($section, $sections, true)
-        ) {
-            add_action('woocommerce_init', function () {
-                $versions = 'Plugin Cielo v' . LKN_WC_CIELO_VERSION;
-                if (defined('LKN_CIELO_API_PRO_VERSION')) {
-                    $versions .= ' | Cielo Pro v' . LKN_CIELO_API_PRO_VERSION;
-                } else {
-                    $versions .= ' | WooCommerce v' . WC()->version;
-                }
-
-                wp_enqueue_script('lknCieloForWoocommerceCard', plugin_dir_url(__FILE__) . 'resources/js/admin/lkn-woocommerce-admin-card.js', array('jquery'), LKN_WC_CIELO_VERSION, false);
-                wp_enqueue_style('lknCieloForWoocommerceCard', plugin_dir_url(__FILE__) . 'resources/css/frontend/lkn-woocommerce-admin-card.css', array(), LKN_WC_CIELO_VERSION, 'all');
-                wp_enqueue_script('lknCieloForWoocommerceProSettings', plugin_dir_url(__FILE__) . 'resources/js/admin/lkn-settings-pro-fields.js', array(), LKN_WC_CIELO_VERSION, false);
-
-                wp_localize_script(
-                    'lknCieloForWoocommerceProSettings',
-                    'lknCieloProSettingsVars',
-                    array(
-                        'proOnly' => __('Available only in PRO', 'lkn-wc-gateway-cielo'),
-                    )
-                );
-
-                wc_get_template(
-                    'adminSettingsCard.php',
-                    array(
-                        'backgrounds' => array(
-                            'right' => plugin_dir_url(__FILE__) . 'resources/img/backgroundCardRight.svg',
-                            'left' => plugin_dir_url(__FILE__) . 'resources/img/backgroundCardLeft.svg'
-                        ),
-                        'logo' => plugin_dir_url(__FILE__) . 'resources/img/linkNacionalLogo.webp',
-                        'whatsapp' => plugin_dir_url(__FILE__) . 'resources/img/whatsapp-icon.svg',
-                        'telegram' => plugin_dir_url(__FILE__) . 'resources/img/telegram-icon.svg',
-                        'versions' => $versions
-
-                    ),
-                    'woocommerce/adminSettingsCard/',
-                    plugin_dir_path(__FILE__) . '/includes/templates/'
-                );
-            });
-        }
     }
 
     public static function lkn_admin_notice(): void
     {
-        if (!file_exists(WP_PLUGIN_DIR . '/fraud-detection-for-woocommerce/fraud-detection-for-woocommerce.php') && (!is_plugin_active('integration-rede-for-woocommerce/integration-rede-for-woocommerce.php') && !is_plugin_active('woo-rede/integration-rede-for-woocommerce.php'))) {
+        if (! file_exists(WP_PLUGIN_DIR . '/fraud-detection-for-woocommerce/fraud-detection-for-woocommerce.php') && ! is_plugin_active('integration-rede-for-woocommerce/integration-rede-for-woocommerce.php')) {
             require LKN_WC_GATEWAY_CIELO_DIR . 'includes/views/notices/LknWcCieloDownloadNotice.php';
         }
     }
@@ -389,7 +333,7 @@ final class LknWCCieloPayment
     {
         // Defines addon version number for easy reference.
         if (! defined('LKN_WC_CIELO_VERSION')) {
-            define('LKN_WC_CIELO_VERSION', '1.21.0');
+            define('LKN_WC_CIELO_VERSION', '1.20.0');
         }
         if (! defined('LKN_WC_CIELO_TRANSLATION_PATH')) {
             define('LKN_WC_CIELO_TRANSLATION_PATH', plugin_dir_path(__FILE__) . 'languages/');
