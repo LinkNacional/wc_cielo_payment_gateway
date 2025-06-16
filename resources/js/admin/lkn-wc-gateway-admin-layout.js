@@ -333,7 +333,6 @@
             forminp.style.backgroundColor = 'white'
             forminp.style.padding = '10px 30px'
             forminp.style.borderRadius = '4px'
-            forminp.style.minHeight = '200px'
             forminp.style.boxSizing = 'border-box'
             forminp.style.border = '1px solid #DFDFDF'
             forminp.style.width = '100%'
