@@ -173,7 +173,7 @@ final class LknWCCieloPayment
 
     public static function lkn_admin_notice(): void
     {
-        if (! file_exists(WP_PLUGIN_DIR . '/fraud-detection-for-woocommerce/fraud-detection-for-woocommerce.php') && ! is_plugin_active('integration-rede-for-woocommerce/integration-rede-for-woocommerce.php')) {
+        if (!file_exists(WP_PLUGIN_DIR . '/fraud-detection-for-woocommerce/fraud-detection-for-woocommerce.php') && (!is_plugin_active('integration-rede-for-woocommerce/integration-rede-for-woocommerce.php') && !is_plugin_active('woo-rede/integration-rede-for-woocommerce.php'))) {
             require LKN_WC_GATEWAY_CIELO_DIR . 'includes/views/notices/LknWcCieloDownloadNotice.php';
         }
     }
