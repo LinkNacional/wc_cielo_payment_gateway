@@ -4,7 +4,7 @@ Donate link: https://www.linknacional.com.br/wordpress/woocommerce/cielo/
 Tags: woocommerce, payment, paymethod, card, credit
 Requires at least: 5.7
 Tested up to: 6.8
-Stable tag: 1.21.1
+Stable tag: 1.21.2
 Requires PHP: 7.2
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -100,8 +100,12 @@ This plugin uses the [React Credit Cards](https://github.com/amaroteam/react-cre
 7. Debit card front page with payment fields.
 
 == Changelog ==
+= 1.21.2 =
+** 16/06/2025**
+* Addition of new layout for the settings page(new version).
+
 = 1.21.1 =
-**16/06/2025**
+** 16/06/2025**
 * Old version.
 
 = 1.21.0 =
