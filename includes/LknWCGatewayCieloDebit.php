@@ -514,6 +514,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                 'MerchantName' => $merchantName,
                 'MCC' => $mcc,
             ));
+            $args['timeout'] = 120;
 
             $response = wp_remote_post($url, $args);
 
@@ -1390,6 +1391,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                 $args['body'] = wp_json_encode($body);
             }
         }
+        $args['timeout'] = 120;
 
         $response = wp_remote_post($url . '1/sales', $args);
 

@@ -787,6 +787,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         do_action('lkn_wc_cielo_zero_auth', $body, $args['headers'], $this);
 
         $args['body'] = wp_json_encode($body);
+        $args['timeout'] = 120;
 
         $response = wp_remote_post($url . '1/sales', $args);
 
