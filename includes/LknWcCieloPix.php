@@ -75,6 +75,16 @@ final class LknWcCieloPix extends WC_Payment_Gateway
         $section = isset($_GET['section']) ? sanitize_text_field(wp_unslash($_GET['section'])) : '';
 
         if ('wc-settings' === $page && 'checkout' === $tab && $section == $this->id) {
+
+            wp_enqueue_script('lkn-wc-gateway-admin', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-wc-gateway-admin.js', array('wp-i18n'), $this->version, 'all');
+
+            $pro_plugin_exists = file_exists(WP_PLUGIN_DIR . '/lkn-cielo-api-pro/lkn-cielo-api-pro.php');
+            $pro_plugin_active = function_exists('is_plugin_active') && is_plugin_active('lkn-cielo-api-pro/lkn-cielo-api-pro.php');
+
+            wp_localize_script('lkn-wc-gateway-admin', 'lknCieloProStatus', array(
+                'isProActive' => $pro_plugin_exists && $pro_plugin_active ? true : false,
+            ));
+
             wp_enqueue_script('LknCieloPixSettingsLayoutScript', LKN_WC_GATEWAY_CIELO_URL . 'resources/js/admin/lkn-wc-gateway-admin-layout.js', array('jquery'), $this->version, false);
             wp_localize_script('LknCieloPixSettingsLayoutScript', 'lknWcCieloTranslationsInput', array(
                 'enable' => __('Enable', 'lkn-wc-gateway-cielo'),
