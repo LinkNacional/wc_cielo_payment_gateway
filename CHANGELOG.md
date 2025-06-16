@@ -1,3 +1,6 @@
+# 1.21.1 - 16/06/2025
+* Versão antiga.
+
 # 1.21.0 - 30/05/2025
 * Adição de novo layout para página de configuração.
 

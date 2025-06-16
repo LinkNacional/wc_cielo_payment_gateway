@@ -52,8 +52,7 @@ final class LknWCGatewayCieloEndpoint {
 
         // Faz a requisição utilizando wp_remote_get
         $response = wp_remote_get($url, array(
-            'headers' => $headers,
-            'timeout' => 120
+            'headers' => $headers
         ));
 
         if ('yes' === $debitOption['debug']) {
