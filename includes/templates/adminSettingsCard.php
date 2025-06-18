@@ -25,7 +25,7 @@ if (!defined('ABSPATH')) {
             </div>
             <div>
                 <a target="_blank" href=<?php echo esc_url('https://www.linknacional.com.br/wordpress/suporte/'); ?>>
-                    <b>•</b><?php echo esc_attr_e('Suporte WP', 'woo-better-shipping-calculator-for-brazil'); ?>
+                    <b>•</b><?php echo esc_attr_e('Suporte WP', 'lkn-wc-gateway-cielo'); ?>
                 </a>
                 <a target="_blank" href=<?php echo esc_url('https://cliente.linknacional.com.br/solicitar/wordpress-woo-gratis/?utm=plugin'); ?>>
                     <b>•</b><?php echo esc_attr_e('WP Hosting', 'lkn-wc-gateway-cielo'); ?>
@@ -34,7 +34,7 @@ if (!defined('ABSPATH')) {
         </div>
         <div class="LknWcCieloSupportLinks">
             <div id="lknWcCieloStarsDiv">
-                <a target="_blank" href=<?php echo esc_url('https://br.wordpress.org/plugins/woo-better-shipping-calculator-for-brazil/#reviews'); ?>>
+                <a target="_blank" href=<?php echo esc_url('https://br.wordpress.org/plugins/lkn-wc-gateway-cielo/#reviews'); ?>>
                     <p><?php echo esc_attr_e('Rate plugin', 'lkn-wc-gateway-cielo'); ?></p>
                     <div class="LknWcCieloStars">
                         <span class="dashicons dashicons-star-filled lkn-stars"></span>
