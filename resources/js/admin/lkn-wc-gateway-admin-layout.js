@@ -182,7 +182,7 @@
             label.style.fontSize = '20px'
             label.style.color = '#121519'
 
-            titledesc.style.paddingTop = '68px'
+            titledesc.style.verticalAlign = 'middle'
           }
 
           if (label && helpTip && titledesc) {
@@ -218,7 +218,7 @@
             bodyDiv.style.flexDirection = 'column'
             bodyDiv.style.alignItems = 'start'
             bodyDiv.style.justifyContent = 'center'
-            bodyDiv.style.minHeight = '100px'
+            bodyDiv.style.minHeight = '120px'
             bodyDiv.style.paddingLeft = '4px'
             bodyDiv.style.color = '#2C3338'
 

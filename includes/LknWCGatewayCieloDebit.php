@@ -281,6 +281,19 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                     'data-title-description' => __('Merchant Key credential for API authentication.', 'lkn-wc-gateway-cielo'),
                 )
             ),
+            'env' => array(
+                'title'       => __('Environment', 'lkn-wc-gateway-cielo'),
+                'type'        => 'select',
+                'options'     => array(
+                    'production' => __('Production', 'lkn-wc-gateway-cielo'),
+                    'sandbox'    => __('Development', 'lkn-wc-gateway-cielo'),
+                ),
+                'default'     => 'production',
+                'desc_tip'    => __('Choose between Production or Sandbox environment for the Cielo API.', 'lkn-wc-gateway-cielo'),
+                'custom_attributes' => array(
+                    'data-title-description' => __('Choose between Production or Sandbox environment for the Cielo API.', 'lkn-wc-gateway-cielo'),
+                ),
+            ),
             'establishment_code' => array(
                 'title' => __('Establishment Code', 'lkn-wc-gateway-cielo'),
                 'type' => 'text',
@@ -323,19 +336,6 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                     'required' => 'required',
                     'data-title-description' => __('Text shown on invoice, must not contain special characters or numbers.', 'lkn-wc-gateway-cielo'),
                 )
-            ),
-            'env' => array(
-                'title'       => __('Environment', 'lkn-wc-gateway-cielo'),
-                'type'        => 'select',
-                'options'     => array(
-                    'production' => __('Production', 'lkn-wc-gateway-cielo'),
-                    'sandbox'    => __('Development', 'lkn-wc-gateway-cielo'),
-                ),
-                'default'     => 'production',
-                'desc_tip'    => __('Choose between Production or Sandbox environment for the Cielo API.', 'lkn-wc-gateway-cielo'),
-                'custom_attributes' => array(
-                    'data-title-description' => __('Choose between Production or Sandbox environment for the Cielo API.', 'lkn-wc-gateway-cielo'),
-                ),
             ),
             'card' => array(
                 'title' => esc_attr__('Card', 'lkn-wc-gateway-cielo'),
