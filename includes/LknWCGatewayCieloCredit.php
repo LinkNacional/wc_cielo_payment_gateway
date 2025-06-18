@@ -263,19 +263,6 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
                     'data-title-description' => __('This is your secret Merchant Key used to sign transactions with Cielo API. Keep it safe and do not share.', 'lkn-wc-gateway-cielo')
                 )
             ),
-            'invoiceDesc' => array(
-                'title'       => __('Invoice Description', 'lkn-wc-gateway-cielo'),
-                'type'        => 'text',
-                'default'     => __('order', 'lkn-wc-gateway-cielo'),
-                'description' => __('Invoice description that the customer will see on your checkout (special characters are not accepted).', 'lkn-wc-gateway-cielo'),
-                'desc_tip'    => __('Enter a brief description that will appear on the customer invoice.', 'lkn-wc-gateway-cielo'),
-                'custom_attributes' => array(
-                    'maxlength' => 50,
-                    'pattern'   => '[a-zA-Z]+( [a-zA-Z]+)*',
-                    'required'  => 'required',
-                    'data-title-description' => __('This description will be used on the transaction invoice. It should be readable and not contain special characters or numbers.', 'lkn-wc-gateway-cielo')
-                )
-            ),
             'env' => array(
                 'title'       => __('Environment', 'lkn-wc-gateway-cielo'),
                 'type'        => 'select',
@@ -287,6 +274,19 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
                 'desc_tip'  => __('Choose between production or development mode for Cielo API.', 'lkn-wc-gateway-cielo'),
                 'custom_attributes' => array(
                     'data-title-description' => __('Select "Development" to test transactions in sandbox mode. Use "Production" for real transactions.', 'lkn-wc-gateway-cielo')
+                )
+            ),
+            'invoiceDesc' => array(
+                'title'       => __('Invoice Description', 'lkn-wc-gateway-cielo'),
+                'type'        => 'text',
+                'default'     => __('order', 'lkn-wc-gateway-cielo'),
+                'description' => __('Invoice description that the customer will see on your checkout (special characters are not accepted).', 'lkn-wc-gateway-cielo'),
+                'desc_tip'    => __('Enter a brief description that will appear on the customer invoice.', 'lkn-wc-gateway-cielo'),
+                'custom_attributes' => array(
+                    'maxlength' => 50,
+                    'pattern'   => '[a-zA-Z]+( [a-zA-Z]+)*',
+                    'required'  => 'required',
+                    'data-title-description' => __('This description will be used on the transaction invoice. It should be readable and not contain special characters or numbers.', 'lkn-wc-gateway-cielo')
                 )
             ),
             'credit_card' => array(
