@@ -100,6 +100,10 @@ This plugin uses the [React Credit Cards](https://github.com/amaroteam/react-cre
 7. Debit card front page with payment fields.
 
 == Changelog ==
+= 1.21.3 =
+** 18/06/2025**
+* Fix final adjustments.
+
 = 1.21.2 =
 ** 16/06/2025**
 * Addition of new layout for the settings page(new version).
