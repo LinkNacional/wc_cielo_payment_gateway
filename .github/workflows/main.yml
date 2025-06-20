@@ -8,7 +8,7 @@ on:
 env:
   PLUGIN_NAME: lkn-wc-gateway-cielo
   PHP_VERSION: "7.4"
-  DEPLOY_TAG: "1.21.3"
+  DEPLOY_TAG: "1.21.4"
 
 jobs:
   release-build:

@@ -265,6 +265,7 @@ function lknDCProccessButton () {
 
     bpmpi_authenticate()
   } catch (error) {
+    console.log(error)
     alert(__('Authentication failed check the card information and try again', 'lkn-wc-gateway-cielo'))
   }
 }
