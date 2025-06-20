@@ -1,3 +1,5 @@
+# 1.21.4 - 20/06/2025
+* Correção em lógica de processar pagamento.
 
 # 1.21.3 - 18/06/2025
 * Correção ajustes finais.

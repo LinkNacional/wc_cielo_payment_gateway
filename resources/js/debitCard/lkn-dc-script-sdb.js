@@ -76,9 +76,17 @@ function lknDCProccessButton () {
     if (cardHolder) {
       document.getElementById('lkn_bpmpi_billto_contactname').value = cardHolder.value
     } else {
-      const firstName = document.getElementById('billing_first_name').value
-      const lastName = document.getElementById('billing_last_name').value
-      document.getElementById('lkn_bpmpi_billto_contactname').value = firstName + ' ' + lastName
+      const firstNameElement = document.getElementById('billing_first_name')
+      const lastNameElement = document.getElementById('billing_last_name')
+
+      if(firstNameElement && lastNameElement) {
+        firstName = firstNameElement.value
+        lastName = lastNameElement.value
+        document.getElementById('lkn_bpmpi_billto_contactname').value = firstName + ' ' + lastName
+      }else{
+        nameElement = document.querySelector('.wc-block-components-address-card__address-section')
+        document.getElementById('lkn_bpmpi_billto_contactname').value = nameElement.valeu
+      }
     }
 
     const phoneNumber = document.getElementById('billing-phone') ? document.getElementById('billing-phone').value : ''
@@ -118,6 +126,7 @@ function lknDCProccessButton () {
 
     bpmpi_authenticate()
   } catch (error) {
+    console.log(error)
     alert(__('Authentication failed check the card information and try again', 'lkn-wc-gateway-cielo'))
   }
 }
