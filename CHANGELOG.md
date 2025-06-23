@@ -1,3 +1,6 @@
+# 1.21.5 - 23/06/2025
+* Correção de exibição de pix.
+
 # 1.21.4 - 20/06/2025
 * Correção em lógica de processar pagamento.
 
