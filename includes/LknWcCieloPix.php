@@ -381,8 +381,8 @@ final class LknWcCieloPix extends WC_Payment_Gateway
                 $_POST['billing_cpf'] = isset($_POST['billing_cnpj']) ? sanitize_text_field(wp_unslash($_POST['billing_cnpj'])) : '';
             }
             $billingCpfCpnj = array(
-                'Identity' => isset($_POST['billing_cnpj']) ? sanitize_text_field(wp_unslash($_POST['billing_cnpj'])) : '',
-                'IdentityType' => isset($_POST['billing_cnpj']) && strlen(sanitize_text_field(wp_unslash($_POST['billing_cnpj']))) === 14 ? 'CPF' : 'CNPJ'
+                'Identity' => isset($_POST['billing_cpf']) ? sanitize_text_field(wp_unslash($_POST['billing_cpf'])) : '',
+                'IdentityType' => isset($_POST['billing_cpf']) && strlen(sanitize_text_field(wp_unslash($_POST['billing_cpf']))) === 14 ? 'CPF' : 'CNPJ'
             );
             if ('' === $billingCpfCpnj['Identity'] || ! $this->validateCpfCnpj($billingCpfCpnj['Identity'])) {
                 throw new Exception(__('Please enter a valid CPF or CNPJ.', 'lkn-wc-gateway-cielo'));
@@ -556,7 +556,7 @@ final class LknWcCieloPix extends WC_Payment_Gateway
         $order = wc_get_order($order_id);
         $paymentMethod = $order->get_payment_method();
 
-        if ('lkn_wc_cielo_pix' === $paymentMethod) {
+        if ('lkn_wc_cielo_pix' === $paymentMethod && $order->get_total() > 0) {
             $paymentId = $order->get_meta('_wc_cielo_qrcode_payment_id');
             $bas64Image = $order->get_meta('_wc_cielo_qrcode_image');
             $pixString = $order->get_meta('_wc_cielo_qrcode_string');
