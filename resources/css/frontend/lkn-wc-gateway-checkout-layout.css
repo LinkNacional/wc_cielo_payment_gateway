@@ -1,0 +1,47 @@
+.lkn-cielo-card-icons {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    width: 100%;
+    height: 100%;
+}
+
+.lkn-cielo-header-label {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-around !important;
+    gap: 10px !important;
+    position: relative !important;
+    padding-top: 1em !important;
+    padding-bottom: 1em !important;
+    padding-left: 3.5em !important;
+    padding-right: .75em !important;
+}
+
+.lkn-cielo-custom-input {
+    border: 1px solid #ccc !important;
+    height: 50px !important;
+    background-color: transparent !important;
+    border-radius: 4px !important;
+    width: 100% !important;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+.lkn-cielo-custom-input:focus {
+    border-color: #0073aa !important;
+    box-shadow: 0 0 5px rgba(0, 115, 170, 0.5) !important;
+    outline: none !important;
+}
+
+.lkn-cielo-content-container {
+    display: flex !important;
+    flex-wrap: wrap;
+    width: 100% !important;
+    gap: 4% !important;
+    justify-content: space-between !important;
+}
+
+.lkn-cielo-select-input {
+    padding: 6px !important;
+}

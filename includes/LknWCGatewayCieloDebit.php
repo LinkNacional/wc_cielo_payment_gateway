@@ -102,9 +102,8 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         if (function_exists('get_plugins')) {
             add_action('admin_enqueue_scripts', array($this, 'admin_load_script'));
         }
+
     }
-
-
 
     /**
      * Load admin JavaScript for the admin page.
@@ -141,7 +140,6 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                 'disable' => __('Disable', 'lkn-wc-gateway-cielo'),
             ));
         }
-
     }
 
     public function initialize_payment_gateway_scripts()
@@ -963,7 +961,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
 
     <div class="form-row form-row-wide">
         <label
-            for="lkn_dc_cardholder_name"><?php esc_html_e('Card Holder Name', 'lkn-wc-gateway-cielo'); ?>
+            for="lkn_dc_cardholder_name"><?php esc_html_e('Card Holder Nameee', 'lkn-wc-gateway-cielo'); ?>
             <span class="required">*</span></label>
         <input
             id="lkn_dc_cardholder_name"
@@ -971,7 +969,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
             type="text"
             autocomplete="cc-name"
             required
-            placeholder="<?php echo $placeholderEnabled ? esc_attr('John Doe') : ''; ?>"
+            placeholder="<?php echo $placeholderEnabled ? esc_attr('John Doeeee') : ''; ?>"
             data-placeholder="<?php echo $placeholderEnabled ? esc_attr('John Doe') : ''; ?>"
         >
     </div>
