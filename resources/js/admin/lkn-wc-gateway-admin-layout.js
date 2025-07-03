@@ -278,6 +278,14 @@
               }
             }
 
+            const checkboxInput = bodyDiv.querySelector('input[type="checkbox"]')
+            if (checkboxInput) {
+              const titleText = checkboxInput.getAttribute('data-title-description')
+              if (titleText) {
+                descBlock.textContent = titleText
+              }
+            }
+
             const checkboxLabel = bodyDiv.querySelector('label')
 
             if (checkboxLabel) {
@@ -294,13 +302,13 @@
                 const radioYes = document.createElement('label')
                 radioYes.innerHTML = `
                 <input type="radio" name="${nameAttr}-control" value="1" ${checked ? 'checked' : ''}>
-                  ${lknWcCieloTranslationsInput.enable}
+                  ${checkboxInput.id === 'woocommerce_lkn_cielo_debit_layout' ? lknWcCieloTranslationsInput.modern : lknWcCieloTranslationsInput.enable}
                 `
 
                 const radioNo = document.createElement('label')
                 radioNo.innerHTML = `
                 <input type="radio" name="${nameAttr}-control" value="0" ${!checked ? 'checked' : ''}>
-                  ${lknWcCieloTranslationsInput.disable}
+                  ${checkboxInput.id === 'woocommerce_lkn_cielo_debit_layout' ? lknWcCieloTranslationsInput.standard : lknWcCieloTranslationsInput.disable}
                 `
 
                 const radioYesInput = radioYes.querySelector('input')

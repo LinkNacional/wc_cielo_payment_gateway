@@ -43,15 +43,18 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
             wp_set_script_translations('lkn_cielo_debit-blocks-integration');
         }
 
-        wp_enqueue_script('lkn-wc-gateway-checkout-layout', plugin_dir_url(__FILE__) . '../resources/js/lkn-wc-gateway-checkout-layout.js', array(), LKN_WC_CIELO_VERSION, false);
-        wp_localize_script('lkn-wc-gateway-checkout-layout', 'lknCieloCardIcons', array(
-            'visa'       => plugin_dir_url(__FILE__) . '../resources/img/visa-icon.svg',
-            'mastercard' => plugin_dir_url(__FILE__) . '../resources/img/mastercard-icon.svg',
-            'amex'       => plugin_dir_url(__FILE__) . '../resources/img/amex-icon.svg',
-            'elo'        => plugin_dir_url(__FILE__) . '../resources/img/elo-icon.svg',
-        ));
+        $custom_layout = isset($this->settings['layout']) ? $this->settings['layout'] : 'yes';
 
-        wp_enqueue_style('lkn-wc-gateway-checkout-layout', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-wc-gateway-checkout-layout.css', array(), LKN_WC_CIELO_VERSION, 'all');
+        if ($custom_layout === 'yes') {
+            wp_enqueue_script('lkn-wc-gateway-checkout-layout', plugin_dir_url(__FILE__) . '../resources/js/debitCard/lkn-wc-gateway-checkout-layout.js', array(), LKN_WC_CIELO_VERSION, false);
+            wp_localize_script('lkn-wc-gateway-checkout-layout', 'lknCieloCardIcons', array(
+                'visa'       => plugin_dir_url(__FILE__) . '../resources/img/visa-icon.svg',
+                'mastercard' => plugin_dir_url(__FILE__) . '../resources/img/mastercard-icon.svg',
+                'amex'       => plugin_dir_url(__FILE__) . '../resources/img/amex-icon.svg',
+                'elo'        => plugin_dir_url(__FILE__) . '../resources/img/elo-icon.svg',
+            ));
+            wp_enqueue_style('lkn-wc-gateway-checkout-layout', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-wc-gateway-checkout-layout.css', array(), LKN_WC_CIELO_VERSION, 'all');
+        }
 
         do_action('lkn_wc_cielo_remove_cardholder_name_3ds', $this->gateway);
         return array('lkn_cielo_debit-blocks-integration');

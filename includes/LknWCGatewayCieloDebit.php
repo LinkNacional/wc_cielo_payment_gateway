@@ -126,6 +126,8 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         if ('wc-settings' === $page && 'checkout' === $tab && $section == $this->id) {
             wp_enqueue_script('lknWCGatewayCieloDebitSettingsLayoutScript', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-wc-gateway-admin-layout.js', array('jquery'), $this->version, false);
             wp_localize_script('lknWCGatewayCieloDebitSettingsLayoutScript', 'lknWcCieloTranslationsInput', array(
+                'modern' => __('Modern version', 'lkn-wc-gateway-cielo'),
+                'standard' => __('Standard version', 'lkn-wc-gateway-cielo'),
                 'enable' => __('Enable', 'lkn-wc-gateway-cielo'),
                 'disable' => __('Disable', 'lkn-wc-gateway-cielo'),
             ));
@@ -436,6 +438,20 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                     'data-title-description' => __('Botão para limpar os logs armazenados nos pedidos.', 'lkn-wc-gateway-cielo'),
                 ),
             ),
+            'layout' => array(
+                'title'       => __('Layout', 'lkn-wc-gateway-cielo'),
+                'type'        => 'checkbox',
+                'description' => __('Choose the layout style for the checkout page.', 'lkn-wc-gateway-cielo'),
+                'desc_tip'    => __('Select between Modern Version and Standard Version for the checkout layout.', 'lkn-wc-gateway-cielo'),
+                'options'     => array(
+                    'yes'  => __('Modern Version', 'lkn-wc-gateway-cielo'),
+                    'no' => __('Standard Version', 'lkn-wc-gateway-cielo'),
+                ),
+                'default'     => 'yes',
+                'custom_attributes' => array(
+                    'data-title-description' => __('Choose the layout style for the checkout page.', 'lkn-wc-gateway-cielo'),
+                ),
+            )
         );
 
         if (

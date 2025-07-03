@@ -27,9 +27,7 @@ document.addEventListener('DOMContentLoaded', function () {
           const classObserver = new MutationObserver(function (mutationsList) {
             mutationsList.forEach(mutation => {
               if (mutation.attributeName === 'class') {
-                console.log('entreiii')
                 const isChecked = parentLabel.classList.contains('wc-block-components-radio-control__option-checked')
-                console.log(`Classe wc-block-components-radio-control__option-checked presente: ${isChecked}`)
 
                 // Aplica o filtro com base na classe
                 iconsContainer.style.filter = isChecked ? 'none' : 'grayscale(100%)'
@@ -46,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     const inputs = contentContainer.querySelectorAll('input[type="text"], select')
                     inputs.forEach(element => {
                       const containerInput = element.closest('.wc-block-components-text-input, .wc-block-components-sort-select')
-                      if(element.tagName === 'SELECT') {
+                      if (element.tagName === 'SELECT') {
                         element.classList.add('lkn-cielo-select-input')
                       }
                       if (containerInput) {
