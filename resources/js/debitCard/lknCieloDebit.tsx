@@ -330,7 +330,7 @@ const lknDCContentCielo = (props) => {
             key: index,
             label: `${index}x de R$ ${installmentAmount}`
           }]);
-        }else {
+        } else {
           setOptions(prevOptions => [...prevOptions, {
             key: index,
             label: `${index}x de R$ ${installmentAmount} sem juros`
@@ -467,12 +467,12 @@ const lknDCContentCielo = (props) => {
         options={cardTypeOptions}
       />
 
-      <div style={{ marginBottom: '30px' }}></div>
+      <div style={{ marginBottom: '6px' }}></div>
 
       {(lknDCActiveInstallmentCielo === 'yes' && debitObject.lkn_cc_type == 'Credit') && (
         <wcComponents.SortSelect
           id="lkn_cc_dc_installments"
-          label={lknDCTranslationsCielo.cardType}
+          label={lknDCTranslationsCielo.installments}
           value={debitObject.lkn_cc_dc_installments}
           onChange={(event) => {
             updatedebitObject('lkn_cc_dc_installments', event.target.value)
