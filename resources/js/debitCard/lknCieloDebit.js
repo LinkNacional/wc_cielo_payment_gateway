@@ -78,7 +78,8 @@ const lknDCContentCielo = props => {
     lkn_dc_cvc: '',
     lkn_cc_dc_installments: '1',
     // Definir padrão como 1 parcela
-    lkn_cc_type: 'Credit'
+    lkn_cc_type: 'Credit',
+    lkn_save_debit_credit_card: false
   })
   const [focus, setFocus] = window.wp.element.useState('')
   const formatDebitCardNumber = value => {
@@ -138,8 +139,12 @@ const lknDCContentCielo = props => {
               if (!response.ok) {
                 throw new Error('Network response was not ok ' + response.statusText)
               }
+
               return response.json()
             }).then(data => {
+              if (data.Provider) {
+                window.lknCieloBrand = data.Provider
+              }
               if (data.CardType == 'Crédito') {
                 setCardTypeOptions([{
                   key: 'Credit',
@@ -363,7 +368,7 @@ const lknDCContentCielo = props => {
       }
     }, 500)
   }, [])
-  return /* #__PURE__ */React.createElement(React.Fragment, null, /* #__PURE__ */React.createElement('div', null, /* #__PURE__ */React.createElement('p', null, 'Pagamento processado pela Cielo API 3.0')), lknDCshowCard !== 'no' && /* #__PURE__ */React.createElement(Cards, {
+  return /* #__PURE__ */React.createElement(React.Fragment, null, lknDCshowCard !== 'no' && /* #__PURE__ */React.createElement(Cards, {
     number: debitObject.lkn_dcno,
     name: debitObject.lkn_dc_cardholder_name,
     expiry: debitObject.lkn_dc_expdate.replace(/\s+/g, ''),
@@ -396,6 +401,14 @@ const lknDCContentCielo = props => {
     },
     required: true,
     onFocus: () => setFocus('number')
+  }), /* #__PURE__ */React.createElement(wcComponents.SortSelect, {
+    id: 'lkn_cc_type',
+    value: debitObject.lkn_cc_type,
+    className: 'lkn-card-type-select',
+    onChange: event => {
+      updatedebitObject('lkn_cc_type', event.target.value)
+    },
+    options: cardTypeOptions
   }), /* #__PURE__ */React.createElement(wcComponents.TextInput, {
     id: 'lkn_dc_expdate',
     label: lknDCTranslationsDebitCielo.cardExpiryDate,
@@ -416,31 +429,29 @@ const lknDCContentCielo = props => {
     onFocus: () => setFocus('cvc')
   }), /* #__PURE__ */React.createElement('div', {
     style: {
-      marginBottom: '30px'
-    }
-  }), /* #__PURE__ */React.createElement(wcComponents.SortSelect, {
-    id: 'lkn_cc_type',
-    label: lknDCTranslationsCielo.cardType,
-    value: debitObject.lkn_cc_type,
-    onChange: event => {
-      updatedebitObject('lkn_cc_type', event.target.value)
-    },
-    options: cardTypeOptions
-  }), /* #__PURE__ */React.createElement('div', {
-    style: {
-      marginBottom: '6px'
+      marginBottom: '10px',
+      width: '100%'
     }
   }), lknDCActiveInstallmentCielo === 'yes' && debitObject.lkn_cc_type == 'Credit' && /* #__PURE__ */React.createElement(wcComponents.SortSelect, {
     id: 'lkn_cc_dc_installments',
     label: lknDCTranslationsCielo.installments,
     value: debitObject.lkn_cc_dc_installments,
+    className: 'lkn-cielo-custom-select',
     onChange: event => {
       updatedebitObject('lkn_cc_dc_installments', event.target.value)
     },
     options
+  }), /* #__PURE__ */React.createElement(wcComponents.CheckboxControl, {
+    id: 'lkn_save_debit_credit_card',
+    label: 'Salvar cartão para compra segura e rápida.',
+    checked: debitObject.lkn_save_debit_credit_card || false,
+    onChange: (isChecked) => {
+      updatedebitObject('lkn_save_debit_credit_card', isChecked)
+    }
   }), /* #__PURE__ */React.createElement('div', {
     style: {
-      marginBottom: '30px'
+      marginBottom: '25px',
+      width: '100%'
     }
   }), /* #__PURE__ */React.createElement('div', {
     style: {
@@ -452,9 +463,24 @@ const lknDCContentCielo = props => {
     onClick: handleButtonClick
   }, /* #__PURE__ */React.createElement('span', null, 'Finalizar pedido'))), /* #__PURE__ */React.createElement('div', {
     style: {
-      marginBottom: '20px'
+      margin: '2px',
+      width: '100%'
     }
-  }), /* #__PURE__ */React.createElement('div', null, /* #__PURE__ */React.createElement('input', {
+  }), /* #__PURE__ */React.createElement('div', {
+    style: {
+      width: '100%',
+      textAlign: 'center',
+      padding: '0px 10px'
+    }
+  }, /* #__PURE__ */React.createElement('p', {
+    style: {
+      fontSize: '14px',
+      color: '#a1a1a1',
+      fontWight: '100',
+      fontStyle: 'italic'
+    }
+  }, 'Pagamento processado pela Cielo API Link Nacional')),
+  /* #__PURE__ */React.createElement('div', null, /* #__PURE__ */React.createElement('input', {
     type: 'hidden',
     name: 'lkn_auth_enabled',
     className: 'bpmpi_auth',

@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const icon = document.createElement('img')
             icon.setAttribute('src', lknCieloCardIcons[brand])
             icon.setAttribute('alt', `${brand} logo`)
-            icon.setAttribute('style', 'width: 40px; height: auto; transition: filter 0.3s ease;')
+            icon.setAttribute('style', 'width: 40px; height: auto;')
             iconsContainer.appendChild(icon)
           })
 
@@ -23,13 +23,6 @@ document.addEventListener('DOMContentLoaded', function () {
           const applyLogic = () => {
             const isChecked = parentLabel.classList.contains('wc-block-components-radio-control__option-checked')
             iconsContainer.style.filter = isChecked ? 'none' : 'grayscale(20%)'
-
-            if (!isChecked) {
-              iconsContainer.querySelectorAll('img').forEach(icon => {
-                icon.style.filter = 'none'
-              })
-            }
-
             parentLabel.style.border = isChecked ? false : 'none'
 
             if (isChecked) {
@@ -50,54 +43,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     containerInput.style.position = 'relative' // Define o container como relativo
 
                     if (element.tagName === 'INPUT' && element.type === 'text') {
-                      let debounceTimeout // Variável para armazenar o timeout
-
-                      if (element.id === 'lkn_dcno') {
-                        element.addEventListener('input', () => {
-                          const value = element.value.trim()
-
-                          // Deixa todos os ícones em cinza ao digitar algo
-                          iconsContainer.querySelectorAll('img').forEach(icon => {
-                            icon.style.filter = 'grayscale(100%)'
-                          })
-
-                          if (value.length === 0) {
-                            // Se o campo estiver vazio, volta todos os ícones a serem coloridos
-                            iconsContainer.querySelectorAll('img').forEach(icon => {
-                              icon.style.filter = 'none'
-                            })
-                          } else if (value.length >= 3) {
-                            // Limpa o timeout anterior para evitar múltiplas chamadas
-                            clearTimeout(debounceTimeout)
-
-                            // Define um novo timeout para executar após 1.5 segundos
-                            debounceTimeout = setTimeout(() => {
-                              if (window.lknCieloBrand) {
-                                const brand = window.lknCieloBrand.toLowerCase()
-                                const cardBrands = ['visa', 'mastercard', 'elo', 'amex', 'other_card']
-
-                                iconsContainer.querySelectorAll('img').forEach(icon => {
-                                  const iconBrand = icon.getAttribute('alt').replace(' logo', '').toLowerCase()
-
-                                  if (cardBrands.includes(brand)) {
-                                    icon.style.filter = iconBrand === brand ? 'none' : 'grayscale(100%)'
-                                  } else if (brand === 'other_card') {
-                                    icon.style.filter = iconBrand === 'other_card' ? 'none' : 'grayscale(100%)'
-                                  } else {
-                                    icon.style.filter = 'grayscale(100%)' // Se não encontrar, deixa tudo em cinza
-                                  }
-                                })
-                              } else {
-                                // Se `window.lknCieloBrand` não existir, mantém todos os ícones em cinza
-                                iconsContainer.querySelectorAll('img').forEach(icon => {
-                                  icon.style.filter = 'grayscale(100%)'
-                                })
-                              }
-                            }, 2000)
-                          }
-                        })
-                      }
-
                       if (idsToIcons[element.id]) { // Verifica se o ID está no objeto idsToIcons
                         const iconElement = document.createElement('img')
                         iconElement.setAttribute('src', idsToIcons[element.id])

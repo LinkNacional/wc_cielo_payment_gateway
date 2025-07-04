@@ -33,14 +33,35 @@
     border-radius: 4px !important;
     width: 100% !important;
     font-size: 16px !important;
-    padding: 1em .5em !important;
+    padding-left: .5em !important;
     transition: border-color 0.3s ease, box-shadow 0.3s ease !important;
 }
 
-.lkn-cielo-custom-input::placeholder {
+.lkn-card-type-select {
+    width: 48% !important;
+    height: 50px;
+    margin-top: 16px;
+    margin-bottom: 0px !important;
+}
+
+.lkn-cielo-custom-select {
+    width: 100% !important;
+}
+
+.lkn-cielo-custom-select select,
+.lkn-card-type-select select {
+    border: 1px solid #ccc !important;
+    height: 50px !important;
+    background-color: #fff !important;
+    border-radius: 4px !important;
+    width: 100% !important;
     font-size: 16px !important;
-    color: #999 !important;
-    opacity: 1 !important;
+    padding-left: .5em !important;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+.lkn-card-type-select label {
+    display: none;
 }
 
 .lkn-cielo-custom-input:focus {
