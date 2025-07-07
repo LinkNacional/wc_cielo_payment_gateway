@@ -107,11 +107,11 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
 
     public function process_admin_options()
     {
-        parent::process_admin_options(); // Salva as configurações padrão
-
         if (isset($_POST['woocommerce_lkn_cielo_debit_fake_layout-control'])) {
             $_POST['woocommerce_lkn_cielo_debit_fake_layout-control'] = '0';
         }
+
+        parent::process_admin_options();
     }
 
     /**

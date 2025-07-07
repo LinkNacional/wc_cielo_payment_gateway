@@ -43,9 +43,11 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
             wp_set_script_translations('lkn_cielo_debit-blocks-integration');
         }
 
-        $custom_layout = isset($this->settings['layout']) ? $this->settings['layout'] : 'yes';
+        $custom_layout = isset($this->settings['checkout_layout']) ? $this->settings['checkout_layout'] : 'default';
+        $pro_plugin_active = function_exists('is_plugin_active') && is_plugin_active('lkn-cielo-api-pro/lkn-cielo-api-pro.php');
+        $pro_license_active = get_option('lkn_cielo_pro_license_boolean', 'opaaaa');
 
-        if ($custom_layout === 'yes') {
+        if ($pro_plugin_active && $pro_license_active && $custom_layout === 'yes') {
             wp_enqueue_script('lkn-wc-gateway-checkout-layout', plugin_dir_url(__FILE__) . '../resources/js/debitCard/lkn-wc-gateway-checkout-layout.js', array(), LKN_WC_CIELO_VERSION, false);
             wp_localize_script('lkn-wc-gateway-checkout-layout', 'lknCieloCardIcons', array(
                 'visa'       => plugin_dir_url(__FILE__) . '../resources/img/visa-icon.svg',
