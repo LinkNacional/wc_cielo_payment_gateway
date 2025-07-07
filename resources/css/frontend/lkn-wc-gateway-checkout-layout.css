@@ -106,3 +106,16 @@
 #sendOrder:hover {
     background-color: #172B85 !important;
 }
+
+.lkn-cielo-debit-description {
+    width: 100% !important;
+    text-align: center !important;
+    padding: 0px 10px !important;
+}
+
+.lkn-cielo-debit-description p {
+    font-size: 14px !important;
+    color: #a1a1a1 !important;
+    font-weight: 100 !important;
+    font-style: italic !important;
+}

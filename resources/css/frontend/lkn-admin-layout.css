@@ -57,6 +57,51 @@
     padding-left: 4px;
 }
 
+.radio-tooltip {
+    position: relative;
+    cursor: pointer;
+}
+
+.radio-tooltip[data-layout="modern"]:hover::after {
+    content: '';
+    position: absolute;
+    top: 120%;
+    left: 50%;
+    transform: translateX(-30%);
+    width: 200px;
+    height: 154px;
+    background-image: url('../../img/modern-version.png');
+    background-position: center;
+    background-size: 100%;
+    background-repeat: no-repeat;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+    z-index: 1000;
+}
+
+.radio-tooltip[data-layout="standard"]:hover::after {
+    content: '';
+    position: absolute;
+    top: 120%;
+    left: 50%;
+    transform: translateX(-30%);
+    width: 200px;
+    height: 170px;
+    background-image: url('../../img/standard-version.png');
+    background-position: center;
+    background-size: 100%;
+    background-repeat: no-repeat;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+    z-index: 1000;
+}
+
 @media (max-width: 1300px) {
     #lknWcCieloCreditBlocksSettingsLayoutDiv {
         padding: 0px;

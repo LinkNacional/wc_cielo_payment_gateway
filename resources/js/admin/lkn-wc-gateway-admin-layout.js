@@ -301,15 +301,23 @@
                 // Cria os rádios
                 const radioYes = document.createElement('label')
                 radioYes.innerHTML = `
-                <input type="radio" name="${nameAttr}-control" value="1" ${checked ? 'checked' : ''}>
-                  ${checkboxInput.id === 'woocommerce_lkn_cielo_debit_layout' ? lknWcCieloTranslationsInput.modern : lknWcCieloTranslationsInput.enable}
+                <input type="radio" name="${nameAttr}-control" value="1" ${checked ? 'checked' : ''} ${checkboxInput.id === 'woocommerce_lkn_cielo_debit_fake_layout' ? 'disabled' : ''}>
+                  ${checkboxInput.id.includes('fake_layout') || checkboxInput.id.includes('checkout_layout') ? lknWcCieloTranslationsInput.modern : lknWcCieloTranslationsInput.enable}
                 `
 
                 const radioNo = document.createElement('label')
                 radioNo.innerHTML = `
-                <input type="radio" name="${nameAttr}-control" value="0" ${!checked ? 'checked' : ''}>
-                  ${checkboxInput.id === 'woocommerce_lkn_cielo_debit_layout' ? lknWcCieloTranslationsInput.standard : lknWcCieloTranslationsInput.disable}
+                <input type="radio" name="${nameAttr}-control" value="0" ${!checked ? 'checked' : ''} ${checkboxInput.id === 'woocommerce_lkn_cielo_debit_fake_layout' ? 'disabled' : ''}>
+                  ${checkboxInput.id.includes('fake_layout') || checkboxInput.id.includes('checkout_layout') ? lknWcCieloTranslationsInput.standard : lknWcCieloTranslationsInput.disable}
                 `
+
+                if (checkboxInput.id.includes('fake_layout') || checkboxInput.id.includes('checkout_layout')) {
+                  radioYes.className = 'radio-tooltip'
+                  radioYes.setAttribute('data-layout', 'modern')
+
+                  radioNo.className = 'radio-tooltip'
+                  radioNo.setAttribute('data-layout', 'standard')
+                }
 
                 const radioYesInput = radioYes.querySelector('input')
                 const radioNoInput = radioNo.querySelector('input')

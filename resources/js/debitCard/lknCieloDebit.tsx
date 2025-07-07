@@ -500,8 +500,8 @@ const lknDCContentCielo = (props) => {
 
       <div style={{ margin: '2px', width: '100%' }}></div>
 
-      <div>
-        <p>Pagamento processado pela Cielo API Link Nacional</p>
+      <div className="lkn-cielo-debit-description">
+        <p style={{ textAlign: "center", widht: "100%" }}>Pagamento processado pela Cielo API Link Nacional</p>
       </div>
 
       <div>

@@ -131,6 +131,8 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         if ('wc-settings' === $page && 'checkout' === $tab && $section == $this->id) {
             wp_enqueue_script('lknWCGatewayCieloCreditSettingsLayoutScript', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-wc-gateway-admin-layout.js', array('jquery'), $this->version, false);
             wp_localize_script('lknWCGatewayCieloCreditSettingsLayoutScript', 'lknWcCieloTranslationsInput', array(
+                'modern' => __('Modern version', 'lkn-wc-gateway-cielo'),
+                'standard' => __('Standard version', 'lkn-wc-gateway-cielo'),
                 'enable' => __('Enable', 'lkn-wc-gateway-cielo'),
                 'disable' => __('Disable', 'lkn-wc-gateway-cielo'),
             ));

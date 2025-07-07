@@ -441,7 +441,7 @@ const lknDCContentCielo = props => {
       updatedebitObject('lkn_cc_dc_installments', event.target.value)
     },
     options
-  }), /* #__PURE__ */React.createElement(wcComponents.CheckboxControl, {
+  }), lknDCActiveInstallmentCielo === 'cielo' && /* #__PURE__ */React.createElement(wcComponents.CheckboxControl, {
     id: 'lkn_save_debit_credit_card',
     label: 'Salvar cartão para compra segura e rápida.',
     checked: debitObject.lkn_save_debit_credit_card || false,
@@ -467,17 +467,14 @@ const lknDCContentCielo = props => {
       width: '100%'
     }
   }), /* #__PURE__ */React.createElement('div', {
+    className: 'lkn-cielo-debit-description',
     style: {
-      width: '100%',
-      textAlign: 'center',
-      padding: '0px 10px'
+      width: '100%'
     }
   }, /* #__PURE__ */React.createElement('p', {
     style: {
-      fontSize: '14px',
-      color: '#a1a1a1',
-      fontWight: '100',
-      fontStyle: 'italic'
+      width: '100%',
+      textAlign: 'center'
     }
   }, 'Pagamento processado pela Cielo API Link Nacional')),
   /* #__PURE__ */React.createElement('div', null, /* #__PURE__ */React.createElement('input', {

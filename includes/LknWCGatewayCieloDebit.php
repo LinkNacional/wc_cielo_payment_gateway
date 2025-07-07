@@ -105,6 +105,15 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
 
     }
 
+    public function process_admin_options()
+    {
+        parent::process_admin_options(); // Salva as configurações padrão
+
+        if (isset($_POST['woocommerce_lkn_cielo_debit_fake_layout-control'])) {
+            $_POST['woocommerce_lkn_cielo_debit_fake_layout-control'] = '0';
+        }
+    }
+
     /**
      * Load admin JavaScript for the admin page.
      */
@@ -130,6 +139,8 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                 'standard' => __('Standard version', 'lkn-wc-gateway-cielo'),
                 'enable' => __('Enable', 'lkn-wc-gateway-cielo'),
                 'disable' => __('Disable', 'lkn-wc-gateway-cielo'),
+                'mordernVersion' => plugin_dir_url(__FILE__) . '../resources/img/modern-version.png',
+                'standardVersion' => plugin_dir_url(__FILE__) . '../resources/img/standard-version.png'
             ));
             wp_enqueue_style('lkn-admin-layout', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-admin-layout.css', array(), $this->version, 'all');
             wp_enqueue_script('lknWCGatewayCieloDebitClearButtonScript', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-clear-logs-button.js', array('jquery', 'wp-api'), $this->version, false);
@@ -437,20 +448,6 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                 'custom_attributes' => array(
                     'data-title-description' => __('Botão para limpar os logs armazenados nos pedidos.', 'lkn-wc-gateway-cielo'),
                 ),
-            ),
-            'layout' => array(
-                'title'       => __('Layout', 'lkn-wc-gateway-cielo'),
-                'type'        => 'checkbox',
-                'description' => __('Choose the layout style for the checkout page.', 'lkn-wc-gateway-cielo'),
-                'desc_tip'    => __('Select between Modern Version and Standard Version for the checkout layout.', 'lkn-wc-gateway-cielo'),
-                'options'     => array(
-                    'yes'  => __('Modern Version', 'lkn-wc-gateway-cielo'),
-                    'no' => __('Standard Version', 'lkn-wc-gateway-cielo'),
-                ),
-                'default'     => 'yes',
-                'custom_attributes' => array(
-                    'data-title-description' => __('Choose the layout style for the checkout page.', 'lkn-wc-gateway-cielo'),
-                ),
             )
         );
 
@@ -484,6 +481,22 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                 'custom_attributes' => array(
                     'readonly' => 'readonly',
                     'data-title-description' => __('This field displays the cardholder name but is disabled for editing.', 'lkn-wc-gateway-cielo'),
+                ),
+            );
+
+            $this->form_fields['fake_layout'] = array(
+                'title'       => __('Layout', 'lkn-wc-gateway-cielo'),
+                'type'        => 'checkbox',
+                'description' => __('Choose the layout style for the checkout page.', 'lkn-wc-gateway-cielo'),
+                'desc_tip'    => __('Select between Modern Version and Standard Version for the checkout layout.', 'lkn-wc-gateway-cielo'),
+                'options'     => array(
+                    'yes'  => __('Modern Version', 'lkn-wc-gateway-cielo'),
+                    'no' => __('Standard Version', 'lkn-wc-gateway-cielo'),
+                ),
+                'default'     => 'no',
+                'custom_attributes' => array(
+                    'readonly' => 'readonly',
+                    'data-title-description' => __('Choose the layout style for the checkout page.', 'lkn-wc-gateway-cielo'),
                 ),
             );
 
