@@ -416,6 +416,22 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
                 ),
             );
 
+            $this->form_fields['fake_layout'] = array(
+                'title'       => __('Layout', 'lkn-wc-gateway-cielo'),
+                'type'        => 'checkbox',
+                'description' => __('Choose the layout style for the checkout page.', 'lkn-wc-gateway-cielo'),
+                'desc_tip'    => __('Select between Modern Version and Standard Version for the checkout layout.', 'lkn-wc-gateway-cielo'),
+                'options'     => array(
+                    'yes'  => __('Modern Version', 'lkn-wc-gateway-cielo'),
+                    'no' => __('Standard Version', 'lkn-wc-gateway-cielo'),
+                ),
+                'default'     => 'no',
+                'custom_attributes' => array(
+                    'readonly' => 'readonly',
+                    'data-title-description' => __('Choose the layout style for the checkout page.', 'lkn-wc-gateway-cielo'),
+                ),
+            );
+
             $this->form_fields['fake_and_more_field'] = array(
                 'title'       => __('And much more...', 'lkn-wc-gateway-cielo'),
                 'type'        => 'text',

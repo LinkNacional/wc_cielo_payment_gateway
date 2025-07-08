@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  const layoutField = document.querySelector('[id$="lkn_cielo_debit_fake_layout"]')
+  const layoutField = document.querySelector('[id$="_fake_layout"]')
   if (layoutField) {
     layoutField.disabled = true
 
