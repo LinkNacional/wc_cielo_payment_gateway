@@ -4,6 +4,7 @@ import 'react-credit-cards/es/styles-compiled.css'
 import { jsx as _jsx, Fragment as _Fragment, jsxs as _jsxs } from 'react/jsx-runtime'
 const lknCCSettingsCielo = window.wc.wcSettings.getSetting('lkn_cielo_credit_data', {})
 const lknCCLabelCielo = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.title)
+const lknCCDescriptionCielo = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.description)
 const lknCCActiveInstallmentCielo = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.activeInstallment)
 const lknCCTotalCartCielo = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.totalCart)
 const lknCCShowCard = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.showCard)
@@ -28,6 +29,7 @@ const lknCCContentCielo = props => {
     lkn_cc_cvc: '',
     lkn_cc_installments: '1' // Definir padrão como 1 parcela
   })
+  const [cardBinState, setCardBinState] = window.wp.element.useState(0)
   const [focus, setFocus] = window.wp.element.useState('')
   const formatCreditCardNumber = value => {
     if (value?.length > 24) return creditObject.lkn_ccno
@@ -70,6 +72,38 @@ const lknCCContentCielo = props => {
         return
       case 'lkn_cc_cvc':
         if (value.length > 8) return
+        break
+      case 'lkn_ccno':
+        if (value.length > 7) {
+          const cardBin = value.replace(' ', '').substring(0, 6)
+          const url = wpApiSettings.root + 'lknWCGatewayCielo/checkCard?cardbin=' + cardBin
+          if (cardBin !== cardBinState) {
+            setCardBinState(cardBin) // Mova o setCardBinState para antes da requisição
+
+            fetch(url, {
+              method: 'GET',
+              headers: {
+                Accept: 'application/json'
+              }
+            }).then(response => {
+              if (!response.ok) {
+                throw new Error('Network response was not ok ' + response.statusText)
+              }
+
+              return response.json()
+            }).then(data => {
+              if (data.Provider) {
+                window.lknCieloBrand = data.Provider
+              }
+            }).catch(error => {
+              console.error('Erro:', error)
+            })
+          }
+          setCreditObject(prevState => ({
+            ...prevState,
+            lkn_ccno: value
+          }))
+        }
         break
       default:
         break
@@ -206,11 +240,7 @@ const lknCCContentCielo = props => {
     }
   }, [creditObject, emitResponse.responseTypes.ERROR, emitResponse.responseTypes.SUCCESS, onPaymentSetup])
   return /* #__PURE__ */_jsxs(_Fragment, {
-    children: [/* #__PURE__ */_jsx('div', {
-      children: /* #__PURE__ */_jsx('p', {
-        children: 'Pagamento processado pela Cielo API 3.0'
-      })
-    }), lknCCShowCard !== 'no' && /* #__PURE__ */_jsx(Cards, {
+    children: [lknCCShowCard !== 'no' && /* #__PURE__ */_jsx(Cards, {
       number: creditObject.lkn_ccno,
       name: creditObject.lkn_cc_cardholder_name,
       expiry: creditObject.lkn_cc_expdate.replace(/\s+/g, ''),
@@ -269,10 +299,23 @@ const lknCCContentCielo = props => {
       id: 'lkn_cc_installments',
       label: lknCCTranslationsCielo.installments,
       value: creditObject.lkn_cc_installments,
+      className: 'lkn-cielo-credit-custom-select',
       onChange: event => {
         updateCreditObject('lkn_cc_installments', event.target.value)
       },
       options
+    }), /* #__PURE__ */_jsx('div', {
+      className: 'lkn-cielo-credit-description',
+      style: {
+        width: '100%'
+      },
+      children: /* #__PURE__ */_jsx('p', {
+        style: {
+          width: '100%',
+          textAlign: 'center'
+        },
+        children: lknCCDescriptionCielo
+      })
     })]
   })
 }

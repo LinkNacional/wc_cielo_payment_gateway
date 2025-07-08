@@ -45,23 +45,27 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
 
         $custom_layout = isset($this->settings['checkout_layout']) ? $this->settings['checkout_layout'] : 'default';
         $pro_plugin_active = function_exists('is_plugin_active') && is_plugin_active('lkn-cielo-api-pro/lkn-cielo-api-pro.php');
-        $pro_license_active = get_option('lkn_cielo_pro_license_boolean', 'opaaaa');
+        $pro_license_active = get_option('lkn_cielo_pro_license_boolean', false);
+
+        if ($custom_layout === 'default' && $pro_plugin_active && $pro_license_active) {
+            $custom_layout = "yes";
+        }
 
         if ($pro_plugin_active && $pro_license_active && $custom_layout === 'yes') {
-            wp_enqueue_script('lkn-wc-gateway-checkout-layout', plugin_dir_url(__FILE__) . '../resources/js/debitCard/lkn-wc-gateway-checkout-layout.js', array(), LKN_WC_CIELO_VERSION, false);
-            wp_localize_script('lkn-wc-gateway-checkout-layout', 'lknCieloCardIcons', array(
+            wp_enqueue_script('lkn-wc-gateway-debit-checkout-layout', plugin_dir_url(__FILE__) . '../resources/js/debitCard/lkn-wc-gateway-checkout-layout.js', array(), LKN_WC_CIELO_VERSION, false);
+            wp_localize_script('lkn-wc-gateway-debit-checkout-layout', 'lknCieloCardIcons', array(
                 'visa'       => plugin_dir_url(__FILE__) . '../resources/img/visa-icon.svg',
                 'mastercard' => plugin_dir_url(__FILE__) . '../resources/img/mastercard-icon.svg',
                 'amex'       => plugin_dir_url(__FILE__) . '../resources/img/amex-icon.svg',
                 'elo'        => plugin_dir_url(__FILE__) . '../resources/img/elo-icon.svg',
                 'other_card'        => plugin_dir_url(__FILE__) . '../resources/img/other-card.svg',
             ));
-            wp_localize_script('lkn-wc-gateway-checkout-layout', 'lknCieloInputIcons', array(
+            wp_localize_script('lkn-wc-gateway-debit-checkout-layout', 'lknCieloInputIcons', array(
                 'calendar'       => plugin_dir_url(__FILE__) . '../resources/img/calendar.svg',
                 'key' => plugin_dir_url(__FILE__) . '../resources/img/key.svg',
                 'lock'       => plugin_dir_url(__FILE__) . '../resources/img/lock.svg'
             ));
-            wp_enqueue_style('lkn-wc-gateway-checkout-layout', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-wc-gateway-debit-card-checkout-layout.css', array(), LKN_WC_CIELO_VERSION, 'all');
+            wp_enqueue_style('lkn-wc-gateway-debit-checkout-layout', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-wc-gateway-debit-card-checkout-layout.css', array(), LKN_WC_CIELO_VERSION, 'all');
         }
 
         do_action('lkn_wc_cielo_remove_cardholder_name_3ds', $this->gateway);
