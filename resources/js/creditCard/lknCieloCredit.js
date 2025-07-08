@@ -72,7 +72,6 @@ const lknCCContentCielo = props => {
         return
       case 'lkn_cc_cvc':
         if (value.length > 8) return
-        break
       case 'lkn_ccno':
         if (value.length > 7) {
           const cardBin = value.replace(' ', '').substring(0, 6)
@@ -99,12 +98,8 @@ const lknCCContentCielo = props => {
               console.error('Erro:', error)
             })
           }
-          setCreditObject(prevState => ({
-            ...prevState,
-            lkn_ccno: value
-          }))
         }
-        break
+        return
       default:
         break
     }

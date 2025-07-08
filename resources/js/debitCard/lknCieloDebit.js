@@ -79,8 +79,7 @@ const lknDCContentCielo = props => {
     lkn_dc_cvc: '',
     lkn_cc_dc_installments: '1',
     // Definir padrão como 1 parcela
-    lkn_cc_type: 'Credit',
-    lkn_save_debit_credit_card: false
+    lkn_cc_type: 'Credit'
   })
   const [focus, setFocus] = window.wp.element.useState('')
   const formatDebitCardNumber = value => {
@@ -124,7 +123,6 @@ const lknDCContentCielo = props => {
         return
       case 'lkn_dc_cvc':
         if (value.length > 8) return
-        break
       case 'lkn_dcno':
         if (value.length > 7) {
           const cardBin = value.replace(' ', '').substring(0, 6)
