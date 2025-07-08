@@ -3,6 +3,7 @@ import Cards from 'react-credit-cards'
 import 'react-credit-cards/es/styles-compiled.css'
 const lknDCsettingsCielo = window.wc.wcSettings.getSetting('lkn_cielo_debit_data', {})
 const lknDCLabelCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.title)
+const lknDCDescriptionCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.description)
 const lknDCAccessTokenCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.accessToken)
 const lknDCAccessTokenExpiration = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.accessTokenExpiration)
 const lknDCshowCard = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.showCard)
@@ -404,7 +405,7 @@ const lknDCContentCielo = props => {
   }), /* #__PURE__ */React.createElement(wcComponents.SortSelect, {
     id: 'lkn_cc_type',
     value: debitObject.lkn_cc_type,
-    className: 'lkn-card-type-select',
+    className: 'lkn-credit-debit-card-type-select',
     onChange: event => {
       updatedebitObject('lkn_cc_type', event.target.value)
     },
@@ -436,7 +437,7 @@ const lknDCContentCielo = props => {
     id: 'lkn_cc_dc_installments',
     label: lknDCTranslationsCielo.installments,
     value: debitObject.lkn_cc_dc_installments,
-    className: 'lkn-cielo-custom-select',
+    className: 'lkn-cielo-credit-debit-custom-select',
     onChange: event => {
       updatedebitObject('lkn_cc_dc_installments', event.target.value)
     },
@@ -467,7 +468,7 @@ const lknDCContentCielo = props => {
       width: '100%'
     }
   }), /* #__PURE__ */React.createElement('div', {
-    className: 'lkn-cielo-debit-description',
+    className: 'lkn-cielo-credit-debit-description',
     style: {
       width: '100%'
     }
@@ -476,7 +477,7 @@ const lknDCContentCielo = props => {
       width: '100%',
       textAlign: 'center'
     }
-  }, 'Pagamento processado pela Cielo API Link Nacional')),
+  }, lknDCDescriptionCielo)),
   /* #__PURE__ */React.createElement('div', null, /* #__PURE__ */React.createElement('input', {
     type: 'hidden',
     name: 'lkn_auth_enabled',

@@ -61,7 +61,7 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
                 'key' => plugin_dir_url(__FILE__) . '../resources/img/key.svg',
                 'lock'       => plugin_dir_url(__FILE__) . '../resources/img/lock.svg'
             ));
-            wp_enqueue_style('lkn-wc-gateway-checkout-layout', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-wc-gateway-checkout-layout.css', array(), LKN_WC_CIELO_VERSION, 'all');
+            wp_enqueue_style('lkn-wc-gateway-checkout-layout', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-wc-gateway-debit-card-checkout-layout.css', array(), LKN_WC_CIELO_VERSION, 'all');
         }
 
         do_action('lkn_wc_cielo_remove_cardholder_name_3ds', $this->gateway);

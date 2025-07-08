@@ -4,11 +4,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const targetElement = document.getElementById('radio-control-wc-payment-method-options-lkn_cielo_debit')
     if (targetElement) {
       const parentLabel = targetElement.closest('label')
-      if (parentLabel && !parentLabel.classList.contains('lkn-cielo-header-label')) {
-        parentLabel.classList.add('lkn-cielo-header-label')
-        if (!parentLabel.querySelector('.lkn-cielo-card-icons')) {
+      if (parentLabel && !parentLabel.classList.contains('lkn-cielo-credit-debit-header-label')) {
+        parentLabel.classList.add('lkn-cielo-credit-debit-header-label')
+        if (!parentLabel.querySelector('.lkn-cielo-credit-debit-card-icons')) {
           const iconsContainer = document.createElement('div')
-          iconsContainer.setAttribute('class', 'lkn-cielo-card-icons')
+          iconsContainer.setAttribute('class', 'lkn-cielo-credit-debit-card-icons')
 
           const cardBrands = ['visa', 'mastercard', 'elo', 'amex', 'other_card']
           cardBrands.forEach(brand => {
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (isChecked) {
               const contentContainer = document.getElementById('radio-control-wc-payment-method-options-lkn_cielo_debit__content')
               if (contentContainer) {
-                contentContainer.classList.add('lkn-cielo-content-container')
+                contentContainer.classList.add('lkn-cielo-credit-debit-content-container')
 
                 const idsToCheck = ['lkn_dc_expdate', 'lkn_dc_cvc', 'lkn_dcno']
                 const idsToIcons = {
@@ -136,14 +136,14 @@ document.addEventListener('DOMContentLoaded', function () {
                       containerInput.style.width = '100%'
                     }
                   }
-                  element.classList.add('lkn-cielo-custom-input')
+                  element.classList.add('lkn-cielo-credit-debit-custom-input')
                 })
 
                 const orderButton = document.getElementById('sendOrder')
                 if (orderButton) {
                   const divContainer = orderButton.closest('div')
                   if (divContainer) {
-                    divContainer.classList.add('lkn-wc-gateway-cielo-order-button')
+                    divContainer.classList.add('lkn-wc-gateway-cielo-credit-debit-order-button')
                   }
                 }
               }

@@ -4,6 +4,7 @@ import 'react-credit-cards/es/styles-compiled.css';
 
 const lknDCsettingsCielo = window.wc.wcSettings.getSetting('lkn_cielo_debit_data', {})
 const lknDCLabelCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.title)
+const lknDCDescriptionCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.description)
 const lknDCAccessTokenCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.accessToken)
 const lknDCAccessTokenExpiration = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.accessTokenExpiration)
 const lknDCshowCard = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.showCard)
@@ -470,7 +471,7 @@ const lknDCContentCielo = (props) => {
           id="lkn_cc_dc_installments"
           label={lknDCTranslationsCielo.installments}
           value={debitObject.lkn_cc_dc_installments}
-          className="lkn-cielo-custom-select"
+          className="lkn-cielo-credit-debit-custom-select"
           onChange={(event) => {
             updatedebitObject('lkn_cc_dc_installments', event.target.value)
           }}
@@ -500,8 +501,8 @@ const lknDCContentCielo = (props) => {
 
       <div style={{ margin: '2px', width: '100%' }}></div>
 
-      <div className="lkn-cielo-debit-description">
-        <p style={{ textAlign: "center", widht: "100%" }}>Pagamento processado pela Cielo API Link Nacional</p>
+      <div className="lkn-cielo-credit-debit-description">
+        <p style={{ textAlign: "center", widht: "100%" }}>{lknDCDescriptionCielo}</p>
       </div>
 
       <div>

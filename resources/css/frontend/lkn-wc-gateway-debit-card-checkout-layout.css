@@ -1,5 +1,6 @@
-.lkn-cielo-card-icons {
+.lkn-cielo-credit-debit-card-icons {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: flex-end;
     gap: 10px;
@@ -7,7 +8,7 @@
     height: 100%;
 }
 
-.lkn-cielo-header-label {
+.lkn-cielo-credit-debit-header-label {
     display: flex !important;
     align-items: center !important;
     justify-content: space-around !important;
@@ -26,7 +27,7 @@
     padding-right: .75em;
 }
 
-.lkn-cielo-custom-input {
+.lkn-cielo-credit-debit-custom-input {
     border: 1px solid #ccc !important;
     height: 50px !important;
     background-color: #fff !important;
@@ -37,19 +38,19 @@
     transition: border-color 0.3s ease, box-shadow 0.3s ease !important;
 }
 
-.lkn-card-type-select {
+.lkn-credit-debit-card-type-select {
     width: 48% !important;
     height: 50px;
     margin-top: 16px;
     margin-bottom: 0px !important;
 }
 
-.lkn-cielo-custom-select {
+.lkn-cielo-credit-debit-custom-select {
     width: 100% !important;
 }
 
-.lkn-cielo-custom-select select,
-.lkn-card-type-select select {
+.lkn-cielo-credit-debit-custom-select select,
+.lkn-credit-debit-card-type-select select {
     border: 1px solid #ccc !important;
     height: 50px !important;
     background-color: #fff !important;
@@ -60,17 +61,17 @@
     transition: border-color 0.3s ease, box-shadow 0.3s ease !important;
 }
 
-.lkn-card-type-select label {
+.lkn-credit-debit-card-type-select label {
     display: none;
 }
 
-.lkn-cielo-custom-input:focus {
+.lkn-cielo-credit-debit-custom-input:focus {
     border-color: #0073aa !important;
     box-shadow: 0 0 5px rgba(0, 115, 170, 0.5) !important;
     outline: none !important;
 }
 
-.lkn-cielo-content-container {
+.lkn-cielo-credit-debit-content-container {
     display: flex !important;
     flex-wrap: wrap;
     width: fit-content !important;
@@ -86,16 +87,16 @@
     border-bottom-left-radius: 4px !important;
 }
 
-.lkn-cielo-select-input {
+.lkn-cielo-credit-debit-select-input {
     padding: 6px !important;
 }
 
-.lkn-wc-gateway-cielo-order-button {
+.lkn-wc-gateway-cielo-credit-debit-order-button {
     width: 100% !important;
     margin-top: 0px !important;
 }
 
-#sendOrder {
+#radio-control-wc-payment-method-options-lkn_cielo_debit__content #sendOrder {
     background-color: #306FC5 !important;
     color: #fff !important;
     width: 100% !important;
@@ -103,19 +104,34 @@
     transition: background-color 0.3s ease-in-out !important;
 }
 
-#sendOrder:hover {
+#radio-control-wc-payment-method-options-lkn_cielo_debit__content #sendOrder:hover {
     background-color: #172B85 !important;
 }
 
-.lkn-cielo-debit-description {
+.lkn-cielo-credit-debit-description {
     width: 100% !important;
     text-align: center !important;
     padding: 0px 10px !important;
 }
 
-.lkn-cielo-debit-description p {
+.lkn-cielo-credit-debit-description p {
     font-size: 14px !important;
     color: #a1a1a1 !important;
     font-weight: 100 !important;
     font-style: italic !important;
+}
+
+@media (max-width: 769px) {
+    .lkn-cielo-credit-debit-header-label {
+        flex-wrap: wrap !important;
+    }
+
+    .lkn-cielo-credit-debit-card-icons {
+        justify-content: flex-start !important;
+    }
+
+    #radio-control-wc-payment-method-options-lkn_cielo_debit__content .wc-block-components-text-input,
+    #radio-control-wc-payment-method-options-lkn_cielo_debit__content .lkn-credit-debit-card-type-select {
+        width: 100% !important;
+    }
 }
