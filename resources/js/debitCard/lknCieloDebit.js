@@ -124,6 +124,7 @@ const lknDCContentCielo = props => {
         return
       case 'lkn_dc_cvc':
         if (value.length > 8) return
+        break
       case 'lkn_dcno':
         if (value.length > 7) {
           const cardBin = value.replace(' ', '').substring(0, 6)
@@ -205,7 +206,7 @@ const lknDCContentCielo = props => {
   })
   const handleButtonClick = () => {
     // Verifica se todos os campos do debitObject estão preenchidos
-    const allFieldsFilled = Object.keys(debitObject).filter(key => key !== 'lkn_dc_cardholder_name').every(key => debitObject[key].trim() !== '')
+    const allFieldsFilled = Object.keys(debitObject).filter(key => key !== 'lkn_dc_cardholder_name' && key !== 'lkn_save_debit_credit_card').every(key => debitObject[key].trim() !== '')
 
     // Seleciona os lknDCElements dos campos de entrada
     const cardNumberInput = document.getElementById('lkn_dcno')
