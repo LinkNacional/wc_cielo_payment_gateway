@@ -2,6 +2,16 @@
     padding: 1em !important;
 }
 
+.rccs {
+    max-width: 290px !important;
+    width: 100% !important;
+}
+
+.rccs .rccs__card {
+    max-width: 290px !important;
+    width: 100% !important;
+}
+
 .lkn-cielo-credit-card-icons {
     display: flex;
     flex-wrap: wrap;
@@ -29,6 +39,10 @@
     padding-bottom: 1em;
     padding-left: 3.5em;
     padding-right: .75em;
+}
+
+#radio-control-wc-payment-method-options-lkn_cielo_credit__content .wc-block-components-text-input label {
+    font-size: 16px !important;
 }
 
 .lkn-cielo-credit-custom-input {
@@ -108,7 +122,7 @@
     font-style: italic !important;
 }
 
-@media (max-width: 769px) {
+@media (max-width: 780px) {
     .lkn-cielo-credit-header-label {
         flex-wrap: wrap !important;
     }
@@ -120,5 +134,15 @@
     #radio-control-wc-payment-method-options-lkn_cielo_credit__content .wc-block-components-text-input,
     #radio-control-wc-payment-method-options-lkn_cielo_credit__content .lkn-credit-credit-card-type-select {
         width: 100% !important;
+    }
+}
+
+@media (max-width: 400px) {
+    .rccs {
+        max-width: none !important;
+    }
+
+    .rccs .rccs__card {
+        max-width: none !important;
     }
 }
