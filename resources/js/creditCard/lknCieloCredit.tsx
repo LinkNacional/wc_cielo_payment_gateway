@@ -247,6 +247,7 @@ const lknCCContentCielo = (props) => {
         id="lkn_cc_cardholder_name"
         label={lknCCTranslationsCielo.cardHolder}
         value={creditObject.lkn_cc_cardholder_name}
+        autocomplete="cc-name"
         onChange={(value) => {
           updateCreditObject('lkn_cc_cardholder_name', value)
         }}
@@ -258,6 +259,7 @@ const lknCCContentCielo = (props) => {
         id="lkn_ccno"
         label={lknCCTranslationsCielo.cardNumber}
         value={creditObject.lkn_ccno}
+        autocomplete="cc-number"
         onChange={(value) => {
           updateCreditObject('lkn_ccno', formatCreditCardNumber(value))
         }}
@@ -269,6 +271,7 @@ const lknCCContentCielo = (props) => {
         id="lkn_cc_expdate"
         label={lknCCTranslationsCielo.cardExpiryDate}
         value={creditObject.lkn_cc_expdate}
+        autocomplete="cc-exp"
         onChange={(value) => {
           updateCreditObject('lkn_cc_expdate', value)
         }}
@@ -280,6 +283,7 @@ const lknCCContentCielo = (props) => {
         id="lkn_cc_cvc"
         label={lknCCTranslationsCielo.securityCode}
         value={creditObject.lkn_cc_cvc}
+        autocomplete="cc-csc"
         onChange={(value) => {
           updateCreditObject('lkn_cc_cvc', value)
         }}

@@ -387,6 +387,7 @@ const lknDCContentCielo = props => {
     id: 'lkn_dc_cardholder_name',
     label: lknDCTranslationsDebitCielo.cardHolder,
     value: debitObject.lkn_dc_cardholder_name,
+    autocomplete: 'cc-name',
     onChange: value => {
       updatedebitObject('lkn_dc_cardholder_name', value)
     },
@@ -396,6 +397,7 @@ const lknDCContentCielo = props => {
     id: 'lkn_dcno',
     label: lknDCTranslationsDebitCielo.cardNumber,
     value: debitObject.lkn_dcno,
+    autocomplete: 'cc-number',
     onChange: value => {
       updatedebitObject('lkn_dcno', formatDebitCardNumber(value))
     },
@@ -413,6 +415,7 @@ const lknDCContentCielo = props => {
     id: 'lkn_dc_expdate',
     label: lknDCTranslationsDebitCielo.cardExpiryDate,
     value: debitObject.lkn_dc_expdate,
+    autocomplete: 'cc-exp',
     onChange: value => {
       updatedebitObject('lkn_dc_expdate', value)
     },
@@ -422,6 +425,7 @@ const lknDCContentCielo = props => {
     id: 'lkn_dc_cvc',
     label: lknDCTranslationsDebitCielo.securityCode,
     value: debitObject.lkn_dc_cvc,
+    autocomplete: 'cc-csc',
     onChange: value => {
       updatedebitObject('lkn_dc_cvc', value)
     },
