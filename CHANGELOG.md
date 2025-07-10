@@ -1,3 +1,6 @@
+# 1.22.0 - 08/07/2025
+* Novo layout para os gateways de pagamento de crédito e débito.
+
 # 1.21.5 - 23/06/2025
 * Correção de exibição de pix.
 

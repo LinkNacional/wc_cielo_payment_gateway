@@ -4,6 +4,7 @@ import 'react-credit-cards/es/styles-compiled.css';
 
 const lknCCSettingsCielo = window.wc.wcSettings.getSetting('lkn_cielo_credit_data', {})
 const lknCCLabelCielo = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.title)
+const lknCCDescriptionCielo = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.description)
 const lknCCActiveInstallmentCielo = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.activeInstallment)
 const lknCCTotalCartCielo = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.totalCart)
 const lknCCShowCard = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.showCard)
@@ -124,7 +125,7 @@ const lknCCContentCielo = (props) => {
             key: index,
             label: `${index}x de R$ ${installmentAmount}`
           }]);
-        }else {
+        } else {
           setOptions(prevOptions => [...prevOptions, {
             key: index,
             label: `${index}x de R$ ${installmentAmount} sem juros`
@@ -225,10 +226,6 @@ const lknCCContentCielo = (props) => {
 
   return (
     <>
-      <div>
-        <p>Pagamento processado pela Cielo API 3.0</p>
-      </div>
-
       {lknCCShowCard !== 'no' && (
         <Cards
           number={creditObject.lkn_ccno}
@@ -250,6 +247,7 @@ const lknCCContentCielo = (props) => {
         id="lkn_cc_cardholder_name"
         label={lknCCTranslationsCielo.cardHolder}
         value={creditObject.lkn_cc_cardholder_name}
+        autocomplete="cc-name"
         onChange={(value) => {
           updateCreditObject('lkn_cc_cardholder_name', value)
         }}
@@ -261,6 +259,7 @@ const lknCCContentCielo = (props) => {
         id="lkn_ccno"
         label={lknCCTranslationsCielo.cardNumber}
         value={creditObject.lkn_ccno}
+        autocomplete="cc-number"
         onChange={(value) => {
           updateCreditObject('lkn_ccno', formatCreditCardNumber(value))
         }}
@@ -272,6 +271,7 @@ const lknCCContentCielo = (props) => {
         id="lkn_cc_expdate"
         label={lknCCTranslationsCielo.cardExpiryDate}
         value={creditObject.lkn_cc_expdate}
+        autocomplete="cc-exp"
         onChange={(value) => {
           updateCreditObject('lkn_cc_expdate', value)
         }}
@@ -283,6 +283,7 @@ const lknCCContentCielo = (props) => {
         id="lkn_cc_cvc"
         label={lknCCTranslationsCielo.securityCode}
         value={creditObject.lkn_cc_cvc}
+        autocomplete="cc-csc"
         onChange={(value) => {
           updateCreditObject('lkn_cc_cvc', value)
         }}
@@ -297,12 +298,17 @@ const lknCCContentCielo = (props) => {
           id="lkn_cc_installments"
           label={lknCCTranslationsCielo.installments}
           value={creditObject.lkn_cc_installments}
+          className="lkn-cielo-credit-custom-select"
           onChange={(event) => {
             updateCreditObject('lkn_cc_installments', event.target.value)
           }}
           options={options}
         />
       )}
+
+      <div>
+        <p>{lknCCDescriptionCielo}</p>
+      </div>
     </>
   )
 }

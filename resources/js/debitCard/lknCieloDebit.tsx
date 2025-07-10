@@ -4,6 +4,7 @@ import 'react-credit-cards/es/styles-compiled.css';
 
 const lknDCsettingsCielo = window.wc.wcSettings.getSetting('lkn_cielo_debit_data', {})
 const lknDCLabelCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.title)
+const lknDCDescriptionCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.description)
 const lknDCAccessTokenCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.accessToken)
 const lknDCAccessTokenExpiration = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.accessTokenExpiration)
 const lknDCshowCard = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.showCard)
@@ -77,6 +78,7 @@ const lknDCContentCielo = (props) => {
     lkn_dc_cvc: '',
     lkn_cc_dc_installments: '1', // Definir padrão como 1 parcela
     lkn_cc_type: 'Credit',
+    lkn_save_debit_credit_card: false
   })
   const [focus, setFocus] = window.wp.element.useState('')
 
@@ -145,7 +147,6 @@ const lknDCContentCielo = (props) => {
                 return response.json();
               })
               .then(data => {
-
                 if ('Crédito' == data.CardType) {
                   setCardTypeOptions([
                     { key: 'Credit', label: lknDCTranslationsCielo.creditCard },
@@ -330,7 +331,7 @@ const lknDCContentCielo = (props) => {
             key: index,
             label: `${index}x de R$ ${installmentAmount}`
           }]);
-        }else {
+        } else {
           setOptions(prevOptions => [...prevOptions, {
             key: index,
             label: `${index}x de R$ ${installmentAmount} sem juros`
@@ -391,10 +392,6 @@ const lknDCContentCielo = (props) => {
 
   return (
     <>
-      <div>
-        <p>Pagamento processado pela Cielo API 3.0</p>
-      </div>
-
       {lknDCshowCard !== 'no' && (
         <Cards
           number={debitObject.lkn_dcno}
@@ -416,6 +413,7 @@ const lknDCContentCielo = (props) => {
         id="lkn_dc_cardholder_name"
         label={lknDCTranslationsDebitCielo.cardHolder}
         value={debitObject.lkn_dc_cardholder_name}
+        autocomplete="cc-name"
         onChange={(value) => {
           updatedebitObject('lkn_dc_cardholder_name', value)
         }}
@@ -427,6 +425,7 @@ const lknDCContentCielo = (props) => {
         id="lkn_dcno"
         label={lknDCTranslationsDebitCielo.cardNumber}
         value={debitObject.lkn_dcno}
+        autocomplete="cc-number"
         onChange={(value) => {
           updatedebitObject('lkn_dcno', formatDebitCardNumber(value))
         }}
@@ -434,10 +433,21 @@ const lknDCContentCielo = (props) => {
         onFocus={() => setFocus('number')}
       />
 
+      <wcComponents.SortSelect
+        id="lkn_cc_type"
+        value={debitObject.lkn_cc_type}
+        onChange={(event) => {
+          updatedebitObject('lkn_cc_type', event.target.value)
+        }}
+        className="lkn-type-card-select"
+        options={cardTypeOptions}
+      />
+
       <wcComponents.TextInput
         id="lkn_dc_expdate"
         label={lknDCTranslationsDebitCielo.cardExpiryDate}
         value={debitObject.lkn_dc_expdate}
+        autocomplete="cc-exp"
         onChange={(value) => {
           updatedebitObject('lkn_dc_expdate', value)
         }}
@@ -449,31 +459,20 @@ const lknDCContentCielo = (props) => {
         id="lkn_dc_cvc"
         label={lknDCTranslationsDebitCielo.securityCode}
         value={debitObject.lkn_dc_cvc}
+        autocomplete="cc-csc"
         onChange={(value) => {
           updatedebitObject('lkn_dc_cvc', value)
         }}
         required
         onFocus={() => setFocus('cvc')}
       />
-      <div style={{ marginBottom: '30px' }}></div>
-
-      <wcComponents.SortSelect
-        id="lkn_cc_type"
-        label={lknDCTranslationsCielo.cardType}
-        value={debitObject.lkn_cc_type}
-        onChange={(event) => {
-          updatedebitObject('lkn_cc_type', event.target.value)
-        }}
-        options={cardTypeOptions}
-      />
-
-      <div style={{ marginBottom: '30px' }}></div>
 
       {(lknDCActiveInstallmentCielo === 'yes' && debitObject.lkn_cc_type == 'Credit') && (
         <wcComponents.SortSelect
           id="lkn_cc_dc_installments"
-          label={lknDCTranslationsCielo.cardType}
+          label={lknDCTranslationsCielo.installments}
           value={debitObject.lkn_cc_dc_installments}
+          className="lkn-cielo-credit-debit-custom-select"
           onChange={(event) => {
             updatedebitObject('lkn_cc_dc_installments', event.target.value)
           }}
@@ -481,7 +480,16 @@ const lknDCContentCielo = (props) => {
         />
       )}
 
-      <div style={{ marginBottom: '30px' }}></div>
+      <wcComponents.CheckboxControl
+        id="lkn_save_debit_credit_card"
+        label="Salvar cartão para compra segura e rápida."
+        checked={debitObject.lkn_save_debit_credit_card || false}
+        onChange={isChecked => {
+          updatedebitObject('lkn_save_debit_credit_card', isChecked)
+        }}
+      />
+
+      <div style={{ marginBottom: '25px', width: '100%' }}></div>
 
       <div style={{ display: 'flex', justifyContent: 'center' }}>
         <wcComponents.Button
@@ -492,7 +500,11 @@ const lknDCContentCielo = (props) => {
         </wcComponents.Button>
       </div>
 
-      <div style={{ marginBottom: '20px' }}></div>
+      <div style={{ margin: '2px', width: '100%' }}></div>
+
+      <div className="lkn-cielo-credit-debit-description">
+        <p style={{ textAlign: "center", widht: "100%" }}>{lknDCDescriptionCielo}</p>
+      </div>
 
       <div>
         <input type="hidden" name="lkn_auth_enabled" className="bpmpi_auth" value="true" />
