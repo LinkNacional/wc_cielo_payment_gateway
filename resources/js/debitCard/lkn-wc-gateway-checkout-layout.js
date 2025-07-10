@@ -14,7 +14,17 @@ document.addEventListener('DOMContentLoaded', function () {
           cardBrands.forEach(brand => {
             const icon = document.createElement('img')
             icon.setAttribute('src', lknCieloCardIcons[brand])
-            icon.setAttribute('alt', `${brand} logo`)
+
+            // Define o atributo alt
+            const altText = brand === 'other_card' ? lknCieloCardIcons.other_card_alt + ' logo' || 'Other Card logo' : `${brand} logo`
+            icon.setAttribute('alt', altText)
+
+            // Define o atributo title
+            const titleText = brand === 'other_card'
+              ? (lknCieloCardIcons.other_card_alt ? lknCieloCardIcons.other_card_alt.charAt(0).toUpperCase() + lknCieloCardIcons.other_card_alt.slice(1) : 'Other Card')
+              : brand.charAt(0).toUpperCase() + brand.slice(1)
+            icon.setAttribute('title', titleText)
+
             icon.setAttribute('style', 'width: 40px; height: auto; transition: filter 0.3s ease;')
             iconsContainer.appendChild(icon)
           })

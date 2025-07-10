@@ -59,6 +59,7 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
                 'amex'       => plugin_dir_url(__FILE__) . '../resources/img/amex-icon.svg',
                 'elo'        => plugin_dir_url(__FILE__) . '../resources/img/elo-icon.svg',
                 'other_card'        => plugin_dir_url(__FILE__) . '../resources/img/other-card.svg',
+                'other_card_alt'    => __('other card', 'lkn-wc-gateway-cielo')
             ));
             wp_localize_script('lkn-wc-gateway-debit-checkout-layout', 'lknCieloInputIcons', array(
                 'calendar'       => plugin_dir_url(__FILE__) . '../resources/img/calendar.svg',

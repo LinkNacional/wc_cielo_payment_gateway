@@ -99,7 +99,6 @@ const lknCCContentCielo = props => {
             })
           }
         }
-        return
       default:
         break
     }
