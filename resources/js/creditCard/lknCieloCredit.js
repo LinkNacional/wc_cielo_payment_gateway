@@ -72,33 +72,6 @@ const lknCCContentCielo = props => {
         return
       case 'lkn_cc_cvc':
         if (value.length > 8) return
-      case 'lkn_ccno':
-        if (value.length > 7) {
-          const cardBin = value.replace(' ', '').substring(0, 6)
-          const url = wpApiSettings.root + 'lknWCGatewayCielo/checkCard?cardbin=' + cardBin
-          if (cardBin !== cardBinState) {
-            setCardBinState(cardBin) // Mova o setCardBinState para antes da requisição
-
-            fetch(url, {
-              method: 'GET',
-              headers: {
-                Accept: 'application/json'
-              }
-            }).then(response => {
-              if (!response.ok) {
-                throw new Error('Network response was not ok ' + response.statusText)
-              }
-
-              return response.json()
-            }).then(data => {
-              if (data.Provider) {
-                window.lknCieloBrand = data.Provider
-              }
-            }).catch(error => {
-              console.error('Erro:', error)
-            })
-          }
-        }
       default:
         break
     }

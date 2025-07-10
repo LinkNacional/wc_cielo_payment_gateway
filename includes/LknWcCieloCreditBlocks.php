@@ -45,12 +45,13 @@ final class LknWcCieloCreditBlocks extends AbstractPaymentMethodType
         $custom_layout = isset($this->settings['checkout_layout']) ? $this->settings['checkout_layout'] : 'default';
         $pro_plugin_active = function_exists('is_plugin_active') && is_plugin_active('lkn-cielo-api-pro/lkn-cielo-api-pro.php');
         $pro_license_active = get_option('lkn_cielo_pro_license_boolean', false);
+        $pro_plugin_version_valid = defined('LKN_CIELO_API_PRO_VERSION') && version_compare(LKN_CIELO_API_PRO_VERSION, '1.20.2', '>=');
 
         if ($custom_layout === 'default' && $pro_plugin_active && $pro_license_active) {
             $custom_layout = "yes";
         }
 
-        if ($pro_plugin_active && $pro_license_active && $custom_layout === 'yes') {
+        if ($pro_plugin_active && $pro_license_active && $custom_layout === 'yes' && $pro_plugin_version_valid) {
             wp_enqueue_script('lkn-wc-gateway-credit-checkout-layout', plugin_dir_url(__FILE__) . '../resources/js/creditCard/lkn-wc-gateway-checkout-layout.js', array(), LKN_WC_CIELO_VERSION, false);
             wp_localize_script('lkn-wc-gateway-credit-checkout-layout', 'lknCieloCardIcons', array(
                 'visa'       => plugin_dir_url(__FILE__) . '../resources/img/visa-icon.svg',

@@ -25,6 +25,17 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
 
     public function get_payment_method_script_handles()
     {
+        $custom_layout = isset($this->settings['checkout_layout']) ? $this->settings['checkout_layout'] : 'default';
+        $pro_plugin_active = function_exists('is_plugin_active') && is_plugin_active('lkn-cielo-api-pro/lkn-cielo-api-pro.php');
+        $pro_license_active = get_option('lkn_cielo_pro_license_boolean', false);
+        $pro_plugin_version_valid = defined('LKN_CIELO_API_PRO_VERSION') && version_compare(LKN_CIELO_API_PRO_VERSION, '1.20.2', '>=');
+
+        if ($custom_layout === 'default' && $pro_plugin_active && $pro_license_active) {
+            $custom_layout = "yes";
+        }
+
+        $is_pro_plugin_valid = $pro_plugin_active && $pro_license_active && $custom_layout === 'yes' && $pro_plugin_version_valid;
+
         wp_register_script(
             'lkn_cielo_debit-blocks-integration',
             plugin_dir_url(__FILE__) . '../resources/js/debitCard/lknCieloDebitCompiled.js',
@@ -39,19 +50,16 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
             '1.0.0',
             true
         );
+
+        wp_localize_script('lkn_cielo_debit-blocks-integration', 'lknCieloDebitConfig', array(
+            'isProPluginValid' => $is_pro_plugin_valid
+        ));
+
         if (function_exists('wp_set_script_translations')) {
             wp_set_script_translations('lkn_cielo_debit-blocks-integration');
         }
 
-        $custom_layout = isset($this->settings['checkout_layout']) ? $this->settings['checkout_layout'] : 'default';
-        $pro_plugin_active = function_exists('is_plugin_active') && is_plugin_active('lkn-cielo-api-pro/lkn-cielo-api-pro.php');
-        $pro_license_active = get_option('lkn_cielo_pro_license_boolean', false);
-
-        if ($custom_layout === 'default' && $pro_plugin_active && $pro_license_active) {
-            $custom_layout = "yes";
-        }
-
-        if ($pro_plugin_active && $pro_license_active && $custom_layout === 'yes') {
+        if ($is_pro_plugin_valid) {
             wp_enqueue_script('lkn-wc-gateway-debit-checkout-layout', plugin_dir_url(__FILE__) . '../resources/js/debitCard/lkn-wc-gateway-checkout-layout.js', array(), LKN_WC_CIELO_VERSION, false);
             wp_localize_script('lkn-wc-gateway-debit-checkout-layout', 'lknCieloCardIcons', array(
                 'visa'       => plugin_dir_url(__FILE__) . '../resources/img/visa-icon.svg',

@@ -142,9 +142,6 @@ const lknDCContentCielo = props => {
 
               return response.json()
             }).then(data => {
-              if (data.Provider) {
-                window.lknCieloBrand = data.Provider
-              }
               if (data.CardType == 'Crédito') {
                 setCardTypeOptions([{
                   key: 'Credit',
@@ -403,7 +400,7 @@ const lknDCContentCielo = props => {
     },
     required: true,
     onFocus: () => setFocus('number')
-  }), /* #__PURE__ */React.createElement(wcComponents.SortSelect, {
+  }), lknCieloDebitConfig.isProPluginValid && /* #__PURE__ */React.createElement(wcComponents.SortSelect, {
     id: 'lkn_cc_type',
     value: debitObject.lkn_cc_type,
     className: 'lkn-credit-debit-card-type-select',
@@ -431,6 +428,20 @@ const lknDCContentCielo = props => {
     },
     required: true,
     onFocus: () => setFocus('cvc')
+  }), !lknCieloDebitConfig.isProPluginValid && /* #__PURE__ */React.createElement('div', {
+    style: {
+      marginBottom: '20px',
+      width: '100%'
+    }
+  }), !lknCieloDebitConfig.isProPluginValid && /* #__PURE__ */React.createElement(wcComponents.SortSelect, {
+    id: 'lkn_cc_type',
+    label: lknDCTranslationsCielo.cardType,
+    value: debitObject.lkn_cc_type,
+    className: 'lkn-credit-debit-card-type-select',
+    onChange: event => {
+      updatedebitObject('lkn_cc_type', event.target.value)
+    },
+    options: cardTypeOptions
   }), /* #__PURE__ */React.createElement('div', {
     style: {
       marginBottom: '10px',

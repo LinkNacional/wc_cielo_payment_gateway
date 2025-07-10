@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
   let debounceTimeout = null
+
   const observer = new MutationObserver(function () {
     const targetElement = document.getElementById('radio-control-wc-payment-method-options-lkn_cielo_credit')
     if (targetElement) {
@@ -25,7 +26,7 @@ document.addEventListener('DOMContentLoaded', function () {
               : brand.charAt(0).toUpperCase() + brand.slice(1)
             icon.setAttribute('title', titleText)
 
-            icon.setAttribute('style', 'width: 40px; height: auto; transition: filter 0.3s ease;')
+            icon.setAttribute('style', 'width: 40px; height: auto;')
             iconsContainer.appendChild(icon)
           })
 
@@ -34,10 +35,12 @@ document.addEventListener('DOMContentLoaded', function () {
           const applyLogic = () => {
             const isChecked = parentLabel.classList.contains('wc-block-components-radio-control__option-checked')
             iconsContainer.style.filter = isChecked ? 'none' : 'grayscale(20%)'
+            iconsContainer.style.opacity = isChecked ? '1' : '1'
 
             if (!isChecked) {
               iconsContainer.querySelectorAll('img').forEach(icon => {
                 icon.style.filter = 'none'
+                icon.style.opacity = '1'
               })
             }
 
@@ -64,63 +67,61 @@ document.addEventListener('DOMContentLoaded', function () {
                       if (element.id === 'lkn_ccno') {
                         element.addEventListener('input', () => {
                           const value = element.value.trim()
-                          let cieloBrand = window.lknCieloBrand?.toLowerCase()
-
-                          if (value.length > 0 && value.length < 7 && window.lknCieloBrand) {
-                            clearTimeout(debounceTimeout)
-                            cieloBrand = 'lkn_empty'
-                            window.lknCieloBrand = null
-                          }
-
-                          iconsContainer.querySelectorAll('img').forEach(icon => {
-                            if (!icon.src.includes(cieloBrand)) {
-                              icon.style.filter = 'grayscale(100%)'
-                            }
-                          })
 
                           if (value.length === 0) {
                             clearTimeout(debounceTimeout)
                             iconsContainer.querySelectorAll('img').forEach(icon => {
                               icon.style.filter = 'none'
+                              icon.style.opacity = '1'
+                            })
+                          } else if (value.length > 0 && value.length < 7) {
+                            clearTimeout(debounceTimeout)
+                            iconsContainer.querySelectorAll('img').forEach(icon => {
+                              icon.style.filter = 'none'
+                              icon.style.opacity = '1'
                             })
                           } else if (value.length >= 7) {
                             // Limpa o timeout anterior para evitar múltiplas chamadas
                             clearTimeout(debounceTimeout)
+                            let isBrandMatched = false
 
                             debounceTimeout = setTimeout(() => {
-                              let attempts = 0
-                              const maxAttempts = 10
+                              fetch(`/wp-json/lknWCGatewayCielo/getCardBrand?number=${value}`)
+                                .then(response => response.json())
+                                .then(data => {
+                                  if (data.status) {
+                                    const brand = data.brand.toLowerCase()
+                                    iconsContainer.querySelectorAll('img').forEach(icon => {
+                                      const iconBrand = icon.getAttribute('alt').replace(' logo', '').toLowerCase()
 
-                              const intervalCheck = setInterval(() => {
-                                const brand = window.lknCieloBrand?.toLowerCase()
-                                attempts++
+                                      if (cardBrands.includes(brand)) {
+                                        icon.style.filter = iconBrand === brand ? 'none' : 'grayscale(100%)'
+                                        icon.style.opacity = iconBrand === brand ? '1' : '0.3'
+                                        isBrandMatched = true
+                                      } else {
+                                        icon.style.filter = 'grayscale(100%)'
+                                        icon.style.opacity = '0.3'
+                                      }
+                                    })
 
-                                if (window.lknCieloBrand) {
-                                  iconsContainer.querySelectorAll('img').forEach(icon => {
-                                    const iconBrand = icon.getAttribute('alt').replace(' logo', '').toLowerCase()
-
-                                    if (cardBrands.includes(brand)) {
-                                      icon.style.filter = iconBrand === brand ? 'none' : 'grayscale(100%)'
-                                    } else if (brand && !cardBrands.includes(brand)) {
-                                      icon.style.filter = iconBrand === 'other_card' ? 'none' : 'grayscale(100%)'
-                                    } else {
-                                      icon.style.filter = 'grayscale(100%)' // Se não encontrar, deixa tudo em cinza
+                                    if (!isBrandMatched) {
+                                      const otherCardIcon = iconsContainer.querySelector('img[alt="other card logo"]')
+                                      if (otherCardIcon) {
+                                        otherCardIcon.style.filter = 'none'
+                                        otherCardIcon.style.opacity = '1'
+                                      }
                                     }
-                                  })
-
-                                  clearInterval(intervalCheck) // Para o intervalo ao encontrar o valor
-                                } else {
-                                  // Se `window.lknCieloBrand` não existir, mantém todos os ícones em cinza
-                                  iconsContainer.querySelectorAll('img').forEach(icon => {
-                                    icon.style.filter = 'grayscale(100%)'
-                                  })
-
-                                  if (attempts >= maxAttempts) {
-                                    clearInterval(intervalCheck) // Para o intervalo após atingir o número máximo de tentativas
+                                  } else {
+                                    iconsContainer.querySelectorAll('img').forEach(icon => {
+                                      icon.style.filter = 'none'
+                                      icon.style.opacity = '1'
+                                    })
                                   }
-                                }
-                              }, 1000)
-                            }, 1500)
+                                })
+                                .catch(error => {
+                                  console.error('Error fetching card brand:', error)
+                                })
+                            }, 1000)
                           }
                         })
                       }

@@ -147,9 +147,6 @@ const lknDCContentCielo = (props) => {
                 return response.json();
               })
               .then(data => {
-                if (data['Provider']) {
-                  window.lknCieloBrand = data['Provider']
-                }
                 if ('Crédito' == data.CardType) {
                   setCardTypeOptions([
                     { key: 'Credit', label: lknDCTranslationsCielo.creditCard },
