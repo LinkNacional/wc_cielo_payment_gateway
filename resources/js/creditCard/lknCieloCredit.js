@@ -4,6 +4,7 @@ import 'react-credit-cards/es/styles-compiled.css'
 import { jsx as _jsx, Fragment as _Fragment, jsxs as _jsxs } from 'react/jsx-runtime'
 const lknCCSettingsCielo = window.wc.wcSettings.getSetting('lkn_cielo_credit_data', {})
 const lknCCLabelCielo = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.title)
+const lknCCDescriptionCielo = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.description)
 const lknCCActiveInstallmentCielo = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.activeInstallment)
 const lknCCTotalCartCielo = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.totalCart)
 const lknCCShowCard = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.showCard)
@@ -28,6 +29,7 @@ const lknCCContentCielo = props => {
     lkn_cc_cvc: '',
     lkn_cc_installments: '1' // Definir padrão como 1 parcela
   })
+  const [cardBinState, setCardBinState] = window.wp.element.useState(0)
   const [focus, setFocus] = window.wp.element.useState('')
   const formatCreditCardNumber = value => {
     if (value?.length > 24) return creditObject.lkn_ccno
@@ -70,7 +72,6 @@ const lknCCContentCielo = props => {
         return
       case 'lkn_cc_cvc':
         if (value.length > 8) return
-        break
       default:
         break
     }
@@ -206,11 +207,7 @@ const lknCCContentCielo = props => {
     }
   }, [creditObject, emitResponse.responseTypes.ERROR, emitResponse.responseTypes.SUCCESS, onPaymentSetup])
   return /* #__PURE__ */_jsxs(_Fragment, {
-    children: [/* #__PURE__ */_jsx('div', {
-      children: /* #__PURE__ */_jsx('p', {
-        children: 'Pagamento processado pela Cielo API 3.0'
-      })
-    }), lknCCShowCard !== 'no' && /* #__PURE__ */_jsx(Cards, {
+    children: [lknCCShowCard !== 'no' && /* #__PURE__ */_jsx(Cards, {
       number: creditObject.lkn_ccno,
       name: creditObject.lkn_cc_cardholder_name,
       expiry: creditObject.lkn_cc_expdate.replace(/\s+/g, ''),
@@ -229,6 +226,7 @@ const lknCCContentCielo = props => {
       id: 'lkn_cc_cardholder_name',
       label: lknCCTranslationsCielo.cardHolder,
       value: creditObject.lkn_cc_cardholder_name,
+      autocomplete: 'cc-name',
       onChange: value => {
         updateCreditObject('lkn_cc_cardholder_name', value)
       },
@@ -238,6 +236,7 @@ const lknCCContentCielo = props => {
       id: 'lkn_ccno',
       label: lknCCTranslationsCielo.cardNumber,
       value: creditObject.lkn_ccno,
+      autocomplete: 'cc-number',
       onChange: value => {
         updateCreditObject('lkn_ccno', formatCreditCardNumber(value))
       },
@@ -247,6 +246,7 @@ const lknCCContentCielo = props => {
       id: 'lkn_cc_expdate',
       label: lknCCTranslationsCielo.cardExpiryDate,
       value: creditObject.lkn_cc_expdate,
+      autocomplete: 'cc-exp',
       onChange: value => {
         updateCreditObject('lkn_cc_expdate', value)
       },
@@ -256,6 +256,7 @@ const lknCCContentCielo = props => {
       id: 'lkn_cc_cvc',
       label: lknCCTranslationsCielo.securityCode,
       value: creditObject.lkn_cc_cvc,
+      autocomplete: 'cc-csc',
       onChange: value => {
         updateCreditObject('lkn_cc_cvc', value)
       },
@@ -269,10 +270,23 @@ const lknCCContentCielo = props => {
       id: 'lkn_cc_installments',
       label: lknCCTranslationsCielo.installments,
       value: creditObject.lkn_cc_installments,
+      className: 'lkn-cielo-credit-custom-select',
       onChange: event => {
         updateCreditObject('lkn_cc_installments', event.target.value)
       },
       options
+    }), /* #__PURE__ */_jsx('div', {
+      className: 'lkn-cielo-credit-description',
+      style: {
+        width: '100%'
+      },
+      children: /* #__PURE__ */_jsx('p', {
+        style: {
+          width: '100%',
+          textAlign: 'center'
+        },
+        children: lknCCDescriptionCielo
+      })
     })]
   })
 }

@@ -87,6 +87,8 @@ final class LknWcCieloPix extends WC_Payment_Gateway
 
             wp_enqueue_script('LknCieloPixSettingsLayoutScript', LKN_WC_GATEWAY_CIELO_URL . 'resources/js/admin/lkn-wc-gateway-admin-layout.js', array('jquery'), $this->version, false);
             wp_localize_script('LknCieloPixSettingsLayoutScript', 'lknWcCieloTranslationsInput', array(
+                'modern' => __('Modern version', 'lkn-wc-gateway-cielo'),
+                'standard' => __('Standard version', 'lkn-wc-gateway-cielo'),
                 'enable' => __('Enable', 'lkn-wc-gateway-cielo'),
                 'disable' => __('Disable', 'lkn-wc-gateway-cielo'),
             ));
