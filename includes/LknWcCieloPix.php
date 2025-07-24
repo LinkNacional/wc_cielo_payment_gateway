@@ -234,14 +234,13 @@ final class LknWcCieloPix extends WC_Payment_Gateway
                 ),
             ),
             'show_button' => array(
-                'title' => esc_attr__('Generate PIX Button', 'lkn-wc-gateway-cielo'),
+                'title' => esc_attr__('Botão Gerar PIX', 'lkn-wc-gateway-cielo'),
                 'type' => 'checkbox',
-                'label' => __('Enable', 'lkn-wc-gateway-cielo'),
-                'desc_tip' => esc_attr__('Displays the "Complete and Generate PIX" button at checkout.', 'lkn-wc-gateway-cielo'),
-                'description' => esc_attr__('Displays the "Complete and Generate PIX" button at checkout.', 'lkn-wc-gateway-cielo'),
+                'desc_tip' => esc_attr__('Exibe o botão "Finalizar e Gerar PIX" no checkout.', 'lkn-wc-gateway-cielo'),
+                'description' => esc_attr__('Exibe o botão "Finalizar e Gerar PIX" no checkout.', 'lkn-wc-gateway-cielo'),
                 'default' => 'no',
                 'custom_attributes' => array(
-                    'data-title-description' => __('', 'lkn-wc-gateway-cielo'),
+                    'data-title-description' => __('Exibe um botão adicional para gerar o PIX', 'lkn-wc-gateway-cielo'),
                     'disabled' => 'disabled',
                 ),
                 
