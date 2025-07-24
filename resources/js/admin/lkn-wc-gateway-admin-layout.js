@@ -463,6 +463,7 @@
     })
 
     $('#lknWcCieloCreditBlocksSettingsLayoutDiv').append(message).css('display', 'table')
+    document.dispatchEvent(new Event('lknWcCieloFinishedAdminLayout'))
   })
 
   function lknWcCieloValidateMerchantInputs() {

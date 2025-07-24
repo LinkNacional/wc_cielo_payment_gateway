@@ -1,3 +1,6 @@
+# 1.23.0 - 24/07/2025
+* Adição de configuração PRO para exibir botão "Finalizar e Gerar PIX" no checkout.
+
 # 1.22.0 - 08/07/2025
 * Novo layout para os gateways de pagamento de crédito e débito.
 
