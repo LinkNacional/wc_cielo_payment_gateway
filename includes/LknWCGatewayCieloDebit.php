@@ -85,7 +85,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         $this->instructions = $this->get_option('instructions', $this->description);
         $this->log = new WC_Logger();
         $gateway_enabled = get_option('woocommerce_' . $this->id . '_settings');
-        if ('yes' === $gateway_enabled['enabled']) {
+        if (isset($gateway_enabled['enabled']) && 'yes' === $gateway_enabled['enabled']) {
             $this->accessToken = $this->generate_debit_auth_token();
         }
 
