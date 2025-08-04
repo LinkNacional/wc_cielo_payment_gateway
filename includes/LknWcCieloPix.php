@@ -85,6 +85,17 @@ final class LknWcCieloPix extends WC_Payment_Gateway
                 'isProActive' => $pro_plugin_exists && $pro_plugin_active ? true : false,
             ));
 
+            if (isset($_GET['section']) && sanitize_text_field(wp_unslash($_GET['section'])) === 'lkn_wc_cielo_pix') {
+                wp_enqueue_script('LknCieloPixSettingsPix', LKN_WC_GATEWAY_CIELO_URL . 'resources/js/admin/lkn-settings-pix.js', array(), $this->version, false);
+
+                wp_localize_script(
+                    'LknCieloPixSettingsPix',
+                    'lknCieloProSettingsVars',
+                    array(
+                        'proOnly' => __('Available only in PRO', 'lkn-wc-gateway-cielo'),
+                    )
+                );
+            }
             wp_enqueue_script('LknCieloPixSettingsLayoutScript', LKN_WC_GATEWAY_CIELO_URL . 'resources/js/admin/lkn-wc-gateway-admin-layout.js', array('jquery'), $this->version, false);
             wp_localize_script('LknCieloPixSettingsLayoutScript', 'lknWcCieloTranslationsInput', array(
                 'modern' => __('Modern version', 'lkn-wc-gateway-cielo'),
@@ -103,17 +114,6 @@ final class LknWcCieloPix extends WC_Payment_Gateway
                 'disable' => __('Disable', 'lkn-wc-gateway-cielo'),
             ));
 
-            if (isset($_GET['section']) && sanitize_text_field(wp_unslash($_GET['section'])) === 'lkn_wc_cielo_pix') {
-                wp_enqueue_script('LknCieloPixSettingsPix', LKN_WC_GATEWAY_CIELO_URL . 'resources/js/admin/lkn-settings-pix.js', array(), $this->version, false);
-
-                wp_localize_script(
-                    'LknCieloPixSettingsPix',
-                    'lknCieloProSettingsVars',
-                    array(
-                        'proOnly' => __('Available only in PRO', 'lkn-wc-gateway-cielo'),
-                    )
-                );
-            }
         }
     }
 
@@ -232,6 +232,18 @@ final class LknWcCieloPix extends WC_Payment_Gateway
                 'custom_attributes' => array(
                     'data-title-description' => __('Posição do layout PIX na página de checkout.', 'lkn-wc-gateway-cielo'),
                 ),
+            ),
+            'show_button' => array(
+                'title' => esc_attr__('Botão Gerar PIX', 'lkn-wc-gateway-cielo'),
+                'type' => 'checkbox',
+                'desc_tip' => esc_attr__('Exibe o botão "Finalizar e Gerar PIX" no checkout.', 'lkn-wc-gateway-cielo'),
+                'description' => esc_attr__('Exibe o botão "Finalizar e Gerar PIX" no checkout.', 'lkn-wc-gateway-cielo'),
+                'default' => 'no',
+                'custom_attributes' => array(
+                    'data-title-description' => __('Exibe um botão adicional para gerar o PIX', 'lkn-wc-gateway-cielo'),
+                    'disabled' => 'disabled',
+                ),
+                
             ),
             'developer' => array(
                 'title' => esc_attr__('Developer', 'lkn-wc-gateway-cielo'),
