@@ -92,7 +92,9 @@ final class LknWCCieloPayment
         add_action('plugins_loaded', array(__CLASS__, 'includes'), 0);
 
         // New order email with installments.
-        add_filter('woocommerce_email_order_meta_fields', array(__CLASS__, 'email_order_meta_fields'), 10, 3);
+        //add_filter('woocommerce_email_order_meta_fields', array(__CLASS__, 'email_order_meta_fields'), 10, 3);
+
+        add_filter('woocommerce_get_order_item_totals', array(__CLASS__, 'new_order_item_totals'), 999, 3);
 
         // Make the Cielo Payments gateway available to WC.
         add_filter('woocommerce_payment_gateways', array(__CLASS__, 'add_gateway'));
@@ -104,7 +106,7 @@ final class LknWCCieloPayment
         add_filter('plugin_action_links_' . plugin_basename(__FILE__), array(__CLASS__, 'lkn_wc_cielo_plugin_row_meta_pro'), 10, 2);
 
         // Thank you page with installments.
-        add_action('woocommerce_order_details_after_order_table', array(__CLASS__, 'order_details_after_order_table'), 10, 1);
+        //add_action('woocommerce_order_details_after_order_table', array(__CLASS__, 'order_details_after_order_table'), 10, 1);
 
         add_action('rest_api_init', array(new LknWCGatewayCieloEndpoint(), 'registerOrderCaptureEndPoint'));
 
@@ -380,6 +382,42 @@ final class LknWCCieloPayment
         }
 
         return $fields;
+    }
+
+    public static function new_order_item_totals($total_rows, $order, $tax_display)
+    {
+        $installment = $order->get_meta('installments');
+        $payment_id = $order->get_meta('paymentId');
+        $order_id = $order->get_id();
+        $nsu = $order->get_meta('lkn_nsu');
+        if ($installment && $installment > 1) {
+            // Cria o array do installment
+            $installment_row = array(
+                'label' => __('Installment', 'lkn-wc-gateway-cielo'),
+                'value' => $installment,
+            );
+            $total_rows['installment'] = $installment_row;
+
+            $novo_array = array(
+                'cart_subtotal' => $total_rows['cart_subtotal'],
+                'order_total' => $total_rows['order_total'],
+                'order_id' => array(
+                    'label' => __('Order ID', 'lkn-wc-gateway-cielo'),
+                    'value' => $order_id,
+                ),
+                'payment_id' => array(
+                    'label' => __('Payment ID', 'lkn-wc-gateway-cielo'),
+                    'value' => $payment_id,
+                ),
+                'authorization' => array(
+                    'label' => __('Authorization', 'lkn-wc-gateway-cielo'),
+                    'value' => $nsu,
+                ),
+                'installment' => $total_rows['installment'],
+                'payment_method' => $total_rows['payment_method'],
+            );
+        }
+        return $novo_array;
     }
 
     /**
