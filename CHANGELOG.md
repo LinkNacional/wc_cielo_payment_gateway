@@ -1,3 +1,6 @@
+# 1.24.0 - 02/09/2025
+* Adição das informações no recibo de pagamento.
+
 # 1.23.0 - 24/07/2025
 * Adição de configuração PRO para exibir botão "Finalizar e Gerar PIX" no checkout.
 
