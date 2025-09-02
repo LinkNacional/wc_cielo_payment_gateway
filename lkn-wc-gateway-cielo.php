@@ -4,7 +4,7 @@
  * Plugin Name: Payment Gateway for Cielo API on WooCommerce
  * Plugin URI: https://www.linknacional.com.br/wordpress/woocommerce/cielo/
  * Description: Adds the Cielo API 3.0 Payments gateway to your WooCommerce website.
- * Version: 1.23.0
+ * Version: 1.24.0
  * Author: Link Nacional
  * Author URI: https://linknacional.com.br
  * Text Domain: lkn-wc-gateway-cielo
@@ -92,7 +92,7 @@ final class LknWCCieloPayment
         add_action('plugins_loaded', array(__CLASS__, 'includes'), 0);
 
         // New order email with installments.
-        add_filter('woocommerce_email_order_meta_fields', array(__CLASS__, 'email_order_meta_fields'), 10, 3);
+        add_filter('woocommerce_get_order_item_totals', array(__CLASS__, 'new_order_item_totals'), 10, 3);
 
         // Make the Cielo Payments gateway available to WC.
         add_filter('woocommerce_payment_gateways', array(__CLASS__, 'add_gateway'));
@@ -104,7 +104,7 @@ final class LknWCCieloPayment
         add_filter('plugin_action_links_' . plugin_basename(__FILE__), array(__CLASS__, 'lkn_wc_cielo_plugin_row_meta_pro'), 10, 2);
 
         // Thank you page with installments.
-        add_action('woocommerce_order_details_after_order_table', array(__CLASS__, 'order_details_after_order_table'), 10, 1);
+        //add_action('woocommerce_order_details_after_order_table', array(__CLASS__, 'order_details_after_order_table'), 10, 1);
 
         add_action('rest_api_init', array(new LknWCGatewayCieloEndpoint(), 'registerOrderCaptureEndPoint'));
 
@@ -362,24 +362,56 @@ final class LknWCCieloPayment
         }
     }
 
-    /**
-     * Show the Installments info in the new order notification email.
-     *
-     * @param array    $fields
-     * @param bool     $sent_to_admin
-     * @param WC_Order $order
-     */
-    public static function email_order_meta_fields($fields, $sent_to_admin, $order)
+    public static function new_order_item_totals($total_rows, $order, $tax_display)
     {
-        $installment = $order->get_meta('installments');
-        if ($installment && $installment > 1) {
-            $fields['installment'] = array(
-                'label' => __('Installment', 'lkn-wc-gateway-cielo'),
-                'value' => $installment,
-            );
-        }
+        $payment_method = $order->get_payment_method();
 
-        return $fields;
+        if($payment_method === 'lkn_cielo_credit' || $payment_method === 'lkn_cielo_debit') {
+            $installment = $order->get_meta('installments');
+            $payment_id = $order->get_meta('paymentId');
+            $order_id = $order->get_id();
+            $nsu = $order->get_meta('lkn_nsu');
+    
+            // Verifica se é um pagamento Cielo (tem pelo menos payment_id ou nsu)
+            $is_cielo_payment = $payment_id || $nsu;
+            
+            // Se não é pagamento Cielo, retorna os totais originais
+            if (!$is_cielo_payment) {
+                return $total_rows;
+            }
+            
+            // Reconstrói o array com as informações do Cielo
+            $cielo_total_rows = array(
+                'cart_subtotal' => $total_rows['cart_subtotal'],
+                'order_total' => $total_rows['order_total'],
+                'order_id' => array(
+                    'label' => __('Order ID', 'lkn-wc-gateway-cielo'),
+                    'value' => $order_id,
+                ),
+                'payment_id' => array(
+                    'label' => __('Payment ID', 'lkn-wc-gateway-cielo'),
+                    'value' => $payment_id ?: 'N/A',
+                ),
+                'authorization' => array(
+                    'label' => __('Authorization', 'lkn-wc-gateway-cielo'),
+                    'value' => $nsu ?: 'N/A',
+                ),
+            );
+            
+            if ($installment) {
+                $cielo_total_rows['installment'] = array(
+                    'label' => __('Installment', 'lkn-wc-gateway-cielo'),
+                    'value' => $installment . 'x',
+                );
+            }
+            
+            // Sempre mantém o método de pagamento por último
+            if (isset($total_rows['payment_method'])) {
+                $cielo_total_rows['payment_method'] = $total_rows['payment_method'];
+            }
+        }
+        
+        return $cielo_total_rows;
     }
 
     /**
@@ -389,7 +421,7 @@ final class LknWCCieloPayment
     {
         // Defines addon version number for easy reference.
         if (! defined('LKN_WC_CIELO_VERSION')) {
-            define('LKN_WC_CIELO_VERSION', '1.23.0');
+            define('LKN_WC_CIELO_VERSION', '1.24.0');
         }
         if (! defined('LKN_WC_CIELO_TRANSLATION_PATH')) {
             define('LKN_WC_CIELO_TRANSLATION_PATH', plugin_dir_path(__FILE__) . 'languages/');
