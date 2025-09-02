@@ -838,9 +838,14 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         }
 
         if (isset($responseDecoded->Payment) && (1 == $responseDecoded->Payment->Status || 2 == $responseDecoded->Payment->Status)) {
+            // Adicionar metadados do pagamento
             $order->add_meta_data('paymentId', $responseDecoded->Payment->PaymentId, true);
-            do_action("lkn_wc_cielo_change_order_status", $order, $this, $capture);
             $order->update_meta_data('lkn_nsu', $responseDecoded->Payment->ProofOfSale);
+            
+            // Executar ações de mudança de status
+            do_action("lkn_wc_cielo_change_order_status", $order, $this, $capture);
+            
+            // Adicionar nota do pedido com detalhes do pagamento
             $order->add_order_note(
                 __('Payment completed successfully. Payment id:', 'lkn-wc-gateway-cielo') .
                     ' ' .
@@ -867,13 +872,12 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
                     ' - ' .
                     $responseDecoded->Payment->ReturnCode
             );
-            $order->save();
+            
+            // Completar pagamento
             $order->payment_complete($responseDecoded->Payment->PaymentId);
-            $order->add_meta_data('paymentId', $responseDecoded->Payment->PaymentId, true);
-            do_action("lkn_wc_cielo_change_order_status", $order, $this, $capture);
 
+            // Gerenciar salvamento de cartão (se aplicável)
             if ($saveCard || (class_exists('WC_Subscriptions_Order') && WC_Subscriptions_Order::order_contains_subscription($order_id))) {
-                // Salvar o token e a bandeira do cartão no meta do pedido
                 $user_id = $order->get_user_id();
 
                 if (! isset($responseDecoded->Payment->CreditCard->CardToken)) {
@@ -906,37 +910,9 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
                 }
             }
 
-            // Remove cart
+            // Finalizar processo
             WC()->cart->empty_cart();
             do_action("lkn_wc_cielo_update_order", $order_id, $this);
-
-            $order->update_meta_data('lkn_nsu', $responseDecoded->Payment->ProofOfSale);
-            $order->add_order_note(
-                __('Payment completed successfully. Payment id:', 'lkn-wc-gateway-cielo') .
-                    ' ' .
-                    $responseDecoded->Payment->PaymentId .
-                    PHP_EOL .
-                    __('Proof of sale (NSU)', 'lkn-wc-gateway-cielo') .
-                    ' - ' .
-                    $responseDecoded->Payment->ProofOfSale .
-                    PHP_EOL .
-                    'TID ' .
-                    $responseDecoded->Payment->Tid .
-                    ' - ' .
-                    $provider .
-                    ' (****' .
-                    substr($cardNum, -4) .
-                    ')' .
-                    PHP_EOL .
-                    __('Installments quantity', 'lkn-wc-gateway-cielo') .
-                    ' - ' .
-                    $installments .
-                    'x' .
-                    PHP_EOL .
-                    __('Return code', 'lkn-wc-gateway-cielo') .
-                    ' - ' .
-                    $responseDecoded->Payment->ReturnCode
-            );
             $order->save();
 
             // Return thankyou redirect

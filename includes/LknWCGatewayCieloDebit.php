@@ -105,6 +105,19 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
 
     }
 
+    /**
+     * Admin options - usa o sistema universal
+     */
+    public function admin_options()
+    {
+        if (defined('LKN_WC_CIELO_VERSION') && class_exists('Lkn\WCCieloPaymentGateway\Includes\LknWcCieloUniversalTemplateManager')) {
+            LknWcCieloUniversalTemplateManager::render_admin_page($this);
+        } else {
+            // Fallback para método padrão
+            parent::admin_options();
+        }
+    }
+
     public function process_admin_options()
     {
         if (isset($_POST['woocommerce_lkn_cielo_debit_fake_layout-control'])) {
@@ -1470,14 +1483,17 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         }
 
         if (isset($responseDecoded->Payment) && (1 == $responseDecoded->Payment->Status || 2 == $responseDecoded->Payment->Status)) {
-            $order->payment_complete($responseDecoded->Payment->PaymentId);
+            
+            // Adicionar metadados do pagamento PRIMEIRO
             $order->add_meta_data('paymentId', $responseDecoded->Payment->PaymentId, true);
+            $order->update_meta_data('lkn_nsu', $responseDecoded->Payment->ProofOfSale);
+            
+            $order->payment_complete($responseDecoded->Payment->PaymentId);
             do_action("lkn_wc_cielo_change_order_status", $order, $this, $capture);
 
             // Remove cart
             WC()->cart->empty_cart();
             do_action("lkn_wc_cielo_update_order", $order_id, $this);
-            $order->update_meta_data('lkn_nsu', $responseDecoded->Payment->ProofOfSale);
             $order->add_order_note(
                 __('Payment completed successfully. Payment id:', 'lkn-wc-gateway-cielo') .
                 ' ' .
