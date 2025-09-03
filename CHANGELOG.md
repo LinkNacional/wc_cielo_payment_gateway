@@ -1,3 +1,6 @@
+# 1.24.1 - 03/09/2025
+* Correção no retorno do metadados do pagamento.
+
 # 1.24.0 - 02/09/2025
 * Adição das informações no recibo de pagamento.
 
