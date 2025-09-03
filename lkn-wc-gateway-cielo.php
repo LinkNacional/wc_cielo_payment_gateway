@@ -409,9 +409,11 @@ final class LknWCCieloPayment
             if (isset($total_rows['payment_method'])) {
                 $cielo_total_rows['payment_method'] = $total_rows['payment_method'];
             }
+
+            return $cielo_total_rows;
         }
         
-        return $cielo_total_rows;
+        return $total_rows;
     }
 
     /**
