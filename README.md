@@ -5,7 +5,7 @@ Forma de pagamento [Cielo API 3.0 para WooCommerce](https://www.linknacional.com
 ## Perguntas frequentes
 
 - O plugin é gratuito?
-Sim, o [Plugin Cielo WooCommerceclique aqui](https://wordpress.org/plugins/lkn-wc-gateway-cielo/) é gratuito pode instalar direto pelo administrativo do WP ou fazer o download do plugin.
+Sim, o [Plugin Cielo WooCommerce](https://wordpress.org/plugins/lkn-wc-gateway-cielo/) é gratuito pode instalar direto pelo administrativo do WP ou fazer o download do plugin.
 
 - Do que preciso para usar este plugin?
 * Precisa ter instalado o plugin [WooCommerce](https://www.linknacional.com.br/wordpress/woocommerce/);
