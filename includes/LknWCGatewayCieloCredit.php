@@ -80,6 +80,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         $this->init_form_fields();
         $this->init_settings();
 
+        $this->icon = LknWcCieloHelper::getIconUrl();
         // Define user set variables.
         $this->title = $this->get_option('title');
         $this->description = $this->get_option('description');
@@ -841,10 +842,10 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
             // Adicionar metadados do pagamento
             $order->add_meta_data('paymentId', $responseDecoded->Payment->PaymentId, true);
             $order->update_meta_data('lkn_nsu', $responseDecoded->Payment->ProofOfSale);
-            
+
             // Executar ações de mudança de status
             do_action("lkn_wc_cielo_change_order_status", $order, $this, $capture);
-            
+
             // Adicionar nota do pedido com detalhes do pagamento
             $order->add_order_note(
                 __('Payment completed successfully. Payment id:', 'lkn-wc-gateway-cielo') .
@@ -872,7 +873,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
                     ' - ' .
                     $responseDecoded->Payment->ReturnCode
             );
-            
+
             // Completar pagamento
             $order->payment_complete($responseDecoded->Payment->PaymentId);
 
