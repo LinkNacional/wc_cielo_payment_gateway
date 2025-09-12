@@ -89,6 +89,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         $this->log = new WC_Logger();
 
         // Actions.
+        add_filter('woocommerce_new_order_note_data', array($this, 'add_gateway_name_to_notes'), 10, 2);
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
 
         add_action('woocommerce_scheduled_subscription_payment_' . $this->id, array($this, 'process_subscription_payment'), 10, 3);
@@ -1230,6 +1231,23 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         } else {
             return sanitize_text_field($brand);
         }
+    }
+
+    public function add_gateway_name_to_notes($note_data, $args)
+    {
+        // Verificar se é uma nota de mudança de status e se o pedido usa este gateway
+        if (isset($args['order_id'])) {
+            $order = wc_get_order($args['order_id']);
+
+            if ($order && $order->get_payment_method() === $this->id) {
+                // Verificar se o prefixo já existe para evitar duplicação
+                if (strpos($note_data['comment_content'], $this->method_title . ' — ') === false) {
+                    // Adicionar prefixo com nome do gateway
+                    $note_data['comment_content'] = $this->method_title . ' — ' . $note_data['comment_content'];
+                }
+            }
+        }
+        return $note_data;
     }
 }
 ?>
