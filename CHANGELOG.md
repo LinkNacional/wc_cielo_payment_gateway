@@ -1,3 +1,7 @@
+# 1.25.0 - 12/09/2025
+* Adição do nome do gateway nas notas de pedido.
+* Adição do icone do plugin nos gateways.
+
 # 1.24.1 - 03/09/2025
 * Correção no retorno do metadados do pagamento.
 

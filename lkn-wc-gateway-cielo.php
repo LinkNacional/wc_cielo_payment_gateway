@@ -4,7 +4,7 @@
  * Plugin Name: Payment Gateway for Cielo API on WooCommerce
  * Plugin URI: https://www.linknacional.com.br/wordpress/woocommerce/cielo/
  * Description: Adds the Cielo API 3.0 Payments gateway to your WooCommerce website.
- * Version: 1.24.1
+ * Version: 1.25.0
  * Author: Link Nacional
  * Author URI: https://linknacional.com.br
  * Text Domain: lkn-wc-gateway-cielo
@@ -366,20 +366,20 @@ final class LknWCCieloPayment
     {
         $payment_method = $order->get_payment_method();
 
-        if($payment_method === 'lkn_cielo_credit' || $payment_method === 'lkn_cielo_debit') {
+        if ($payment_method === 'lkn_cielo_credit' || $payment_method === 'lkn_cielo_debit') {
             $installment = $order->get_meta('installments');
             $payment_id = $order->get_meta('paymentId');
             $order_id = $order->get_id();
             $nsu = $order->get_meta('lkn_nsu');
-    
+
             // Verifica se é um pagamento Cielo (tem pelo menos payment_id ou nsu)
             $is_cielo_payment = $payment_id || $nsu;
-            
+
             // Se não é pagamento Cielo, retorna os totais originais
             if (!$is_cielo_payment) {
                 return $total_rows;
             }
-            
+
             // Reconstrói o array com as informações do Cielo
             $cielo_total_rows = array(
                 'cart_subtotal' => $total_rows['cart_subtotal'],
@@ -397,14 +397,14 @@ final class LknWCCieloPayment
                     'value' => $nsu ?: 'N/A',
                 ),
             );
-            
+
             if ($installment) {
                 $cielo_total_rows['installment'] = array(
                     'label' => __('Installment', 'lkn-wc-gateway-cielo'),
                     'value' => $installment . 'x',
                 );
             }
-            
+
             // Sempre mantém o método de pagamento por último
             if (isset($total_rows['payment_method'])) {
                 $cielo_total_rows['payment_method'] = $total_rows['payment_method'];
@@ -412,7 +412,7 @@ final class LknWCCieloPayment
 
             return $cielo_total_rows;
         }
-        
+
         return $total_rows;
     }
 
@@ -423,7 +423,7 @@ final class LknWCCieloPayment
     {
         // Defines addon version number for easy reference.
         if (! defined('LKN_WC_CIELO_VERSION')) {
-            define('LKN_WC_CIELO_VERSION', '1.24.1');
+            define('LKN_WC_CIELO_VERSION', '1.25.0');
         }
         if (! defined('LKN_WC_CIELO_TRANSLATION_PATH')) {
             define('LKN_WC_CIELO_TRANSLATION_PATH', plugin_dir_path(__FILE__) . 'languages/');
