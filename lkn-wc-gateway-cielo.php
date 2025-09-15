@@ -104,7 +104,6 @@ final class LknWCCieloPayment
         add_filter('plugin_action_links_' . plugin_basename(__FILE__), array(__CLASS__, 'lkn_wc_cielo_plugin_row_meta_pro'), 10, 2);
 
         // Thank you page with installments.
-        //add_action('woocommerce_order_details_after_order_table', array(__CLASS__, 'order_details_after_order_table'), 10, 1);
 
         add_action('rest_api_init', array(new LknWCGatewayCieloEndpoint(), 'registerOrderCaptureEndPoint'));
 
@@ -353,15 +352,6 @@ final class LknWCCieloPayment
      *
      * @param WC_Order $order
      */
-    public static function order_details_after_order_table($order): void
-    {
-        $installment = $order->get_meta('installments');
-
-        if ($installment && $installment > 1) {
-            echo '<div id="lkn-wc-installment-notice"><p><strong>' . esc_html__('Installment', 'lkn-wc-gateway-cielo') . ':</strong> ' . esc_html($installment) . 'x</p></div>';
-        }
-    }
-
     public static function new_order_item_totals($total_rows, $order, $tax_display)
     {
         $payment_method = $order->get_payment_method();
@@ -381,36 +371,32 @@ final class LknWCCieloPayment
             }
 
             // Reconstrói o array com as informações do Cielo
-            $cielo_total_rows = array(
-                'cart_subtotal' => $total_rows['cart_subtotal'],
-                'order_total' => $total_rows['order_total'],
-                'order_id' => array(
-                    'label' => __('Order ID', 'lkn-wc-gateway-cielo'),
-                    'value' => $order_id,
-                ),
-                'payment_id' => array(
-                    'label' => __('Payment ID', 'lkn-wc-gateway-cielo'),
-                    'value' => $payment_id ?: 'N/A',
-                ),
-                'authorization' => array(
-                    'label' => __('Authorization', 'lkn-wc-gateway-cielo'),
-                    'value' => $nsu ?: 'N/A',
-                ),
+            error_log(json_encode($total_rows));
+            $payment_method;
+            if (isset($total_rows['payment_method'])) {
+                $payment_method = $total_rows['payment_method'] ?? [];
+                unset($total_rows['payment_method']);
+            }
+            $total_rows['order_id'] = array(
+                'label' => __('Order ID', 'lkn-wc-gateway-cielo'),
+                'value' => $order_id,
             );
-
+            $total_rows['payment_id'] = array(
+                'label' => __('Payment ID', 'lkn-wc-gateway-cielo'),
+                'value' => $payment_id ?: 'N/A',
+            );
+            $total_rows['authorization'] = array(
+                'label' => __('Authorization', 'lkn-wc-gateway-cielo'),
+                'value' => $nsu ?: 'N/A',
+            );
             if ($installment) {
-                $cielo_total_rows['installment'] = array(
+                $total_rows['installment'] = array(
                     'label' => __('Installment', 'lkn-wc-gateway-cielo'),
                     'value' => $installment . 'x',
                 );
             }
-
-            // Sempre mantém o método de pagamento por último
-            if (isset($total_rows['payment_method'])) {
-                $cielo_total_rows['payment_method'] = $total_rows['payment_method'];
-            }
-
-            return $cielo_total_rows;
+            $total_rows['payment_method'] = $payment_method;
+            return $total_rows;
         }
 
         return $total_rows;
