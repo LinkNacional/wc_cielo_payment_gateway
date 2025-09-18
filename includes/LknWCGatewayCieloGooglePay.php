@@ -55,6 +55,7 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
         $this->init_settings();
 
         // Define user set variables.
+        $this->icon = LknWcCieloHelper::getIconUrl();
         $this->title = $this->get_option('title');
         $this->description = $this->get_option('description');
         $this->instructions = $this->get_option('instructions', $this->description);
@@ -99,14 +100,69 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
             wp_enqueue_style('lkn-admin-layout', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-admin-layout.css', array(), $this->version, 'all');
             wp_enqueue_script('lknWCGatewayCieloGooglePayClearButtonScript', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-clear-logs-button.js', array('jquery', 'wp-api'), $this->version, false);
             wp_localize_script('lknWCGatewayCieloGooglePayClearButtonScript', 'lknWcCieloTranslations', array(
-                'clearLogs' => __('Limpar Logs', 'lkn-wc-gateway-cielo'),
-                'alertText' => __('Deseja realmente deletar todos logs dos pedidos?', 'lkn-wc-gateway-cielo'),
+                'clearLogs' => __('Clear Logs', 'lkn-wc-gateway-cielo'),
+                'alertText' => __('Do you really want to delete all order logs?', 'lkn-wc-gateway-cielo'),
                 'production' => __('Use this in the live store to charge real payments.', 'lkn-wc-gateway-cielo'),
                 'sandbox' => __('Use this for testing purposes in the Cielo sandbox environment.', 'lkn-wc-gateway-cielo'),
                 'enable' => __('Enable', 'lkn-wc-gateway-cielo'),
                 'disable' => __('Disable', 'lkn-wc-gateway-cielo'),
             ));
+            wp_enqueue_script('lknWCGatewayCieloGooglePaySettingsFixLayoutScript', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-wc-gateway-admin-fix-layout .js', array('jquery'), $this->version, false);
+
+            
         }
+    }
+
+    /**
+     * Get default merchant_id from other gateways (credit -> debit -> pix)
+     */
+    private function get_default_merchant_id(): string
+    {
+        // Tenta pegar do cartão de crédito primeiro
+        $credit_settings = get_option('woocommerce_lkn_cielo_credit_settings');
+        if (!empty($credit_settings['merchant_id'])) {
+            return $credit_settings['merchant_id'];
+        }
+
+        // Se não encontrou no crédito, tenta no débito
+        $debit_settings = get_option('woocommerce_lkn_cielo_debit_settings');
+        if (!empty($debit_settings['merchant_id'])) {
+            return $debit_settings['merchant_id'];
+        }
+
+        // Se não encontrou no débito, tenta no PIX
+        $pix_settings = get_option('woocommerce_lkn_wc_cielo_pix_settings');
+        if (!empty($pix_settings['merchant_id'])) {
+            return $pix_settings['merchant_id'];
+        }
+
+        return '';
+    }
+
+    /**
+     * Get default merchant_key from other gateways (credit -> debit -> pix)
+     */
+    private function get_default_merchant_key(): string
+    {
+        // Tenta pegar do cartão de crédito primeiro
+        $credit_settings = get_option('woocommerce_lkn_cielo_credit_settings');
+        if (!empty($credit_settings['merchant_key'])) {
+            return $credit_settings['merchant_key'];
+        }
+
+        // Se não encontrou no crédito, tenta no débito
+        $debit_settings = get_option('woocommerce_lkn_cielo_debit_settings');
+        if (!empty($debit_settings['merchant_key'])) {
+            return $debit_settings['merchant_key'];
+        }
+
+        // Se não encontrou no débito, tenta no PIX
+        $pix_settings = get_option('woocommerce_lkn_wc_cielo_pix_settings');
+        if (!empty($pix_settings['merchant_key'])) {
+            return $pix_settings['merchant_key'];
+        }
+
+        return '';
     }
 
     /**
@@ -124,87 +180,21 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
                 'type' => 'checkbox',
                 'label' => __('Enable Google Pay Payments', 'lkn-wc-gateway-cielo'),
                 'default' => 'no',
-                'description' => __('Enable or disable the Google Pay payment method.', 'lkn-wc-gateway-cielo'),
-                'desc_tip'    => __('Check this box and save to enable Google Pay settings.', 'lkn-wc-gateway-cielo'),
+                'description' => __('Habilitar ou desabilitar o método de pagamento Google Pay.', 'lkn-wc-gateway-cielo'),
+                'desc_tip'    => __('Marque esta opção e salve para habilitar as configurações do Google Pay.', 'lkn-wc-gateway-cielo'),
                 'custom_attributes' => array(
-                    'data-title-description' => __('Enable this option to allow customers to pay with Google Pay using Cielo API 3.0.', 'lkn-wc-gateway-cielo')
+                    'data-title-description' => __('Disponibilize o Google Pay via API 3.0 da Cielo para os seus clientes. <a href="https://www.youtube.com/watch?v=rP_UAPcIG4I" target="_blank">Saiba mais</a>.', 'lkn-wc-gateway-cielo')
                 )
             ),
             'title' => array(
                 'title'       => __('Title', 'lkn-wc-gateway-cielo'),
                 'type'        => 'text',
                 'default'     => __('Google Pay', 'lkn-wc-gateway-cielo'),
-                'description' => __('This controls the title which the user sees during checkout.', 'lkn-wc-gateway-cielo'),
+                'description' => __('Insira o título que será exibido para os utilizadores no checkout.', 'lkn-wc-gateway-cielo'),
                 'desc_tip'    => __('Enter the title that will be shown to customers during the checkout process.', 'lkn-wc-gateway-cielo'),
                 'custom_attributes' => array(
                     'required' => 'required',
                     'data-title-description' => __('This text will appear as the payment method title during checkout. Choose something your customers will easily understand, like “Pay with Google Pay (Cielo)”.', 'lkn-wc-gateway-cielo')
-                )
-            ),
-            'description' => array(
-                'title'       => __('Description', 'lkn-wc-gateway-cielo'),
-                'type'        => 'textarea',
-                'default'     => __('Payment processed by Cielo API 3.0', 'lkn-wc-gateway-cielo'),
-                'description' => __('Payment method description that the customer will see on your checkout.', 'lkn-wc-gateway-cielo'),
-                'desc_tip'    => __('This description appears below the payment method title at checkout. Use it to inform your customers about the payment processing details.', 'lkn-wc-gateway-cielo'),
-                'custom_attributes' => array(
-                    'required' => 'required',
-                    'data-title-description' => __('Provide a brief message that informs the customer how the payment will be processed. For example: “Your payment will be securely processed by Cielo.”', 'lkn-wc-gateway-cielo')
-                )
-            ),
-            'google_merchant_id' => array(
-                'title'       => __('Google Merchant Id', 'lkn-wc-gateway-cielo'),
-                'type'        => 'password',
-                'description' => __('Chave de produção do Google Pay.', 'lkn-wc-gateway-cielo'),
-                'desc_tip'    => __('Enter the Merchant ID provided by Google Pay.', 'lkn-wc-gateway-cielo'),
-                'custom_attributes' => array(
-                    'required' => 'required',
-                    'data-title-description' => __('Enter the Google Merchant ID for your Google Pay integration.', 'lkn-wc-gateway-cielo')
-                )
-            ),
-            'google_merchant_name' => array(
-                'title'       => __('Google Merchant Name', 'lkn-wc-gateway-cielo'),
-                'type'        => 'text',
-                'description' => __('Nome da loja no Google Pay.', 'lkn-wc-gateway-cielo'),
-                'desc_tip'    => __('Enter the Merchant Name provided by Google Pay.', 'lkn-wc-gateway-cielo'),
-                'custom_attributes' => array(
-                    'required' => 'required',
-                    'data-title-description' => __('Enter the Google Merchant Name for your Google Pay integration.', 'lkn-wc-gateway-cielo')
-                )
-            ),
-            'google_text_button' => array(
-                'title'       => __('Google Pay Button Text', 'lkn-wc-gateway-cielo'),
-                'type'        => 'select',
-                'options'     => array(
-                    'pay'    => __('Pay', 'lkn-wc-gateway-cielo'),
-                    'buy'    => __('Buy', 'lkn-wc-gateway-cielo'),
-                    'checkout' => __('Checkout', 'lkn-wc-gateway-cielo'),
-                    'donate' => __('Donate', 'lkn-wc-gateway-cielo'),
-                ),
-                'default'   => 'pay',
-                'desc_tip'  => __('Choose the text to display on the Google Pay button.', 'lkn-wc-gateway-cielo'),
-                'custom_attributes' => array(
-                    'data-title-description' => __('Select the text you want to display on the Google Pay button.', 'lkn-wc-gateway-cielo')
-                )
-            ),
-            'cielo_merchant_id' => array(
-                'title'       => __('Merchant Id', 'lkn-wc-gateway-cielo'),
-                'type'        => 'password',
-                'description' => __('Cielo credentials.', 'lkn-wc-gateway-cielo'),
-                'desc_tip'    => __('Enter the Merchant ID provided by Cielo for API integration.', 'lkn-wc-gateway-cielo'),
-                'custom_attributes' => array(
-                    'required' => 'required',
-                    'data-title-description' => __('This is your Cielo Merchant ID used to authenticate API requests. You can find it in your Cielo dashboard.', 'lkn-wc-gateway-cielo')
-                )
-            ),
-            'cielo_merchant_key' => array(
-                'title'       => __('Merchant Key', 'lkn-wc-gateway-cielo'),
-                'type'        => 'password',
-                'description' => __('Cielo credentials.', 'lkn-wc-gateway-cielo'),
-                'desc_tip'    => __('Enter the Merchant Key provided by Cielo for secure requests.', 'lkn-wc-gateway-cielo'),
-                'custom_attributes' => array(
-                    'required' => 'required',
-                    'data-title-description' => __('This is your secret Merchant Key used to sign transactions with Cielo API. Keep it safe and do not share.', 'lkn-wc-gateway-cielo')
                 )
             ),
             'env' => array(
@@ -215,9 +205,63 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
                     'TEST'    => __('Development', 'lkn-wc-gateway-cielo'),
                 ),
                 'default'   => 'production',
-                'desc_tip'  => __('Choose between production or development mode for Cielo API.', 'lkn-wc-gateway-cielo'),
+                'description' => __("‘Produção’ para as suas credenciais de venda e 'Desenvolvimento' para as suas chaves de teste (Sandbox).", 'lkn-wc-gateway-cielo'),
+                'desc_tip'    => __('Preencha com os dados fornecidos pela CIELO.', 'lkn-wc-gateway-cielo'),
                 'custom_attributes' => array(
-                    'data-title-description' => __('Select "Development" to test transactions in sandbox mode. Use "Production" for real transactions.', 'lkn-wc-gateway-cielo')
+                    'data-title-description' => __('Selecione o ambiente (Produção ou Sandbox) em que suas chaves da API Cielo foram geradas.', 'lkn-wc-gateway-cielo')
+                )
+            ),
+            'merchant_id' => array(
+                'title'       => __('Merchant Id', 'lkn-wc-gateway-cielo'),
+                'type'        => 'password',
+                'default'     => $this->get_default_merchant_id(),
+                'description' => __('Cielo credentials.', 'lkn-wc-gateway-cielo'),
+                'custom_attributes' => array(
+                    'required' => 'required',
+                    'data-title-description' => __('This is your Cielo Merchant ID used to authenticate API requests. You can find it in your Cielo dashboard.', 'lkn-wc-gateway-cielo')
+                )
+            ),
+            'merchant_key' => array(
+                'title'       => __('Merchant Key', 'lkn-wc-gateway-cielo'),
+                'type'        => 'password',
+                'default'     => $this->get_default_merchant_key(),
+                'description' => __('Cielo credentials.', 'lkn-wc-gateway-cielo'),
+                'custom_attributes' => array(
+                    'required' => 'required',
+                    'data-title-description' => __('Esta é sua chave de comerciante secreta (Merchant Key) usada para assinar transações com a Cielo API. Mantenha-a segura e não a compartilhe.', 'lkn-wc-gateway-cielo')
+                )
+            ),
+            'google_merchant_name' => array(
+                'title'       => __('Nome do Comerciante', 'lkn-wc-gateway-cielo'),
+                'type'        => 'text',
+                'description' => __('Nome da loja no Google Pay.', 'lkn-wc-gateway-cielo'),
+                'desc_tip'    => __('Insira os dados definidos pelo Google Pay.', 'lkn-wc-gateway-cielo'),
+                'custom_attributes' => array(
+                    'required' => 'required',
+                    'data-title-description' => __('Insira o Nome do Comerciante Google para sua integração Google Pay.', 'lkn-wc-gateway-cielo')
+                )
+            ),
+            'google_merchant_id' => array(
+                'title'       => __('Merchant Id do Google', 'lkn-wc-gateway-cielo'),
+                'type'        => 'password',
+                'description' => __('Chave de produção do Google Pay.', 'lkn-wc-gateway-cielo'),
+                'custom_attributes' => array(
+                    'required' => 'required',
+                    'data-title-description' => __('Insira o ID do Comerciante Google para sua integração Google Pay.', 'lkn-wc-gateway-cielo')
+                )
+            ),
+            'google_text_button' => array(
+                'title'       => __('Botão Google Pay', 'lkn-wc-gateway-cielo'),
+                'type'        => 'select',
+                'options'     => array(
+                    'pay'    => __('Pay', 'lkn-wc-gateway-cielo'),
+                    'buy'    => __('Buy', 'lkn-wc-gateway-cielo'),
+                    'checkout' => __('Checkout', 'lkn-wc-gateway-cielo'),
+                    'donate' => __('Donate', 'lkn-wc-gateway-cielo'),
+                ),
+                'default'   => 'pay',
+                'custom_attributes' => array(
+                    'data-title-description' => __('Escolha o texto a ser exibido no botão do Google Pay.', 'lkn-wc-gateway-cielo')
                 )
             ),
             'developer' => array(
@@ -241,9 +285,9 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
                 )
             ),
             'show_order_logs' => array(
-                'title'   => __('Visualizar Log no Pedido', 'lkn-wc-gateway-cielo'),
+                'title'   => __('Show Order Logs', 'lkn-wc-gateway-cielo'),
                 'type'    => 'checkbox',
-                'label'   => __('Habilita visualização do log da transação dentro do pedido.', 'lkn-wc-gateway-cielo'),
+                'label'   => __('Enable transaction log view within the order.', 'lkn-wc-gateway-cielo'),
                 'default' => 'no',
                 'description' => __('Displays Cielo transaction logs inside WooCommerce order details.', 'lkn-wc-gateway-cielo'),
                 'desc_tip' => __('Useful for quickly viewing payment log data without accessing the system log files.', 'lkn-wc-gateway-cielo'),
@@ -252,7 +296,7 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
                 )
             ),
             'clear_order_records' => array(
-                'title' => __('Limpar logs nos Pedidos', 'lkn-wc-gateway-cielo'),
+                'title' => __('Clear Order Logs', 'lkn-wc-gateway-cielo'),
                 'type'  => 'button',
                 'id'    => 'validateLicense',
                 'class' => 'woocommerce-save-button components-button is-primary',
@@ -270,6 +314,7 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
      */
     public function payment_fields(): void
     {
+        wp_enqueue_style('lknWCGatewayCieloGooglePayStyle', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-wc-google-pay.css', array(), $this->version, 'all');
         wp_enqueue_script('lknWCGatewayCieloGooglePayScript', 'https://pay.google.com/gp/p/js/pay.js', array('jquery'), $this->version, false);
         wp_enqueue_script('lknWCGatewayCieloGooglePayCheckoutScript', plugin_dir_url(__FILE__) . '../resources/js/googlePay/lkn-wc-google-pay.js', array('jquery', 'wp-api'), $this->version, false);
         wp_localize_script('lknWCGatewayCieloGooglePayCheckoutScript', 'lknWcCieloGooglePayVars', array(
@@ -306,32 +351,147 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
     {
         $nonceInactive = $this->get_option('nonce_compatibility', 'no');
         $nonce = isset($_POST['nonce_lkn_cielo_google_pay']) ? sanitize_text_field(wp_unslash($_POST['nonce_lkn_cielo_google_pay'])) : '';
-        
-        
+
+
         if (! wp_verify_nonce($nonce, 'nonce_lkn_cielo_google_pay') && 'no' === $nonceInactive) {
             $this->log->log('error', 'Nonce verification failed. Nonce: ' . var_export($nonce, true), array('source' => 'woocommerce-cielo-google-pay'));
             $this->add_notice_once(__('Nonce verification failed, try reloading the page', 'lkn-wc-gateway-cielo'), 'error');
             throw new Exception(esc_attr(__('Nonce verification failed, try reloading the page', 'lkn-wc-gateway-cielo')));
         }
-        $data = json_decode(wp_unslash($_POST['google_pay_data']));
+        if (isset($_POST['is_block_checkout'])) {
+            $data = json_decode($_POST['google_pay_data']);
+        } else {
+            $data = json_decode(wp_unslash($_POST['google_pay_data']));
+        }
         $paymentData = json_decode($data->paymentMethodData->tokenizationData->token);
-        $encryptedMessage = json_encode($paymentData->signedMessage);
+        $walletKey = json_encode($paymentData->signedMessage);
 
-        throw new Exception(($encryptedMessage));
-        throw new Exception(wp_unslash($data->paymentMethodData->tokenizationData->token));
-        throw new Exception(json_encode($data));
-        
         $order = wc_get_order($order_id);
+        $merchantId = sanitize_text_field($this->get_option('merchant_id'));
+        $merchantSecret = sanitize_text_field($this->get_option('merchant_key'));
+        $amount = $order->get_total();
+        $merchantOrderId = uniqid('invoice_');
 
-        // Card parameters
-        
+        // Convert the amount to equivalent in BRL
+        if ('BRL' !== $currency) {
+            $amount = apply_filters('lkn_wc_cielo_convert_amount', $amount, $currency, $this);
+
+            $order->add_meta_data('amount_converted', $amount, true);
+        }
+
+        $amountFormated = number_format($amount, 2, '', '');
+        $url = ($this->get_option('env') == 'production') ? 'https://api.cieloecommerce.cielo.com.br/' : 'https://apisandbox.cieloecommerce.cielo.com.br/';
+
+        $args['headers'] = array(
+            'Content-Type' => 'application/json',
+            'MerchantId' => $merchantId,
+            'MerchantKey' => $merchantSecret,
+        );
+
+        $body = array(
+            'MerchantOrderId' => $merchantOrderId,
+            'Payment' => array(
+                'Type' => 'CreditCard',
+                'Amount' => (int) $amountFormated,
+                'Installments' => 1,
+                'Wallet' => array(
+                    'Type' => 'AndroidPay',
+                    'WalletKey' => $walletKey,
+                ),
+            ),
+        );
+
+        $args['body'] = wp_json_encode($body);
+        $args['timeout'] = 120;
+
+        $response = wp_remote_post($url . '1/sales', $args);
+
+        if (is_wp_error($response)) {
+            if ('yes' === $debug) {
+                $this->log->log('error', var_export($response->get_error_messages(), true), array('source' => 'woocommerce-cielo-credit'));
+            }
+
+            $message = __('Order payment failed. Please review the gateway settings.', 'lkn-wc-gateway-cielo');
+
+            throw new Exception(esc_attr($message));
+        }
+        $responseDecoded = json_decode($response['body']);
+
+        if ($this->get_option('debug') === 'yes') {
+            $lknWcCieloHelper = new LknWcCieloHelper();
+
+            $orderLogsArray = array(
+                'url' => $url . '1/sales',
+                'headers' => array(
+                    'Content-Type' => $args['headers']['Content-Type'],
+                    'MerchantId' => $lknWcCieloHelper->censorString($args['headers']['MerchantId'], 10),
+                    'MerchantKey' => $lknWcCieloHelper->censorString($args['headers']['MerchantKey'], 10)
+                ),
+                'body' => json_decode($args['body'], true), // Decodificar como array associativo
+                'response' => json_decode(json_encode($responseDecoded), true) // Certificar que responseDecoded é um array associativo
+            );
+
+            $orderLogs = json_encode($orderLogsArray);
+            $order->update_meta_data('lknWcCieloOrderLogs', $orderLogs);
+            $order->save();
+        }
+
+        if (isset($responseDecoded->Payment) && (1 == $responseDecoded->Payment->Status || 2 == $responseDecoded->Payment->Status)) {
+            // Adicionar metadados do pagamento
+            $order->add_meta_data('paymentId', $responseDecoded->Payment->PaymentId, true);
+            $order->update_meta_data('lkn_nsu', $responseDecoded->Payment->ProofOfSale);
+
+            // Executar ações de mudança de status
+            do_action("lkn_wc_cielo_change_order_status", $order, $this, $capture);
+
+            // Adicionar nota do pedido com detalhes do pagamento
+            $order->add_order_note(
+                __('Payment completed successfully. Payment id:', 'lkn-wc-gateway-cielo') .
+                    ' ' .
+                    $responseDecoded->Payment->PaymentId .
+                    PHP_EOL .
+                    __('Proof of sale (NSU)', 'lkn-wc-gateway-cielo') .
+                    ' - ' .
+                    $responseDecoded->Payment->ProofOfSale .
+                    PHP_EOL .
+                    'TID ' .
+                    $responseDecoded->Payment->Tid .
+                    ' - ' .
+                    PHP_EOL .
+                    __('Return code', 'lkn-wc-gateway-cielo') .
+                    ' - ' .
+                    $responseDecoded->Payment->ReturnCode
+            );
+
+            // Completar pagamento
+            $order->payment_complete($responseDecoded->Payment->PaymentId);
+
+            // Finalizar processo
+            WC()->cart->empty_cart();
+            do_action("lkn_wc_cielo_update_order", $order_id, $this);
+            $order->save();
 
             // Return thankyou redirect
-        return array(
-            'result' => 'success',
-            'redirect' => $this->get_return_url($order),
-        );
-        
+            return array(
+                'result' => 'success',
+                'redirect' => $this->get_return_url($order),
+            );
+        }
+        if (isset($responseDecoded->Payment->ReturnCode) && 'GF' == $responseDecoded->Payment->ReturnCode) {
+            // Error GF detected, notify site admin
+            $error_message = "Return Code: " . $responseDecoded->Payment->ReturnCode . '. Return Message: ' . $responseDecoded->Payment->ReturnMessage . '.' . __('Please contact Cielo for further assistance.', 'lkn-wc-gateway-cielo');
+            //wp_mail(get_option('admin_email'), 'Erro na transação Cielo', $error_message);
+
+            // Registrar a mensagem de erro em um arquivo de log
+            $this->log->log('error', $error_message, array('source' => 'woocommerce-cielo-credit'));
+
+            throw new Exception(esc_attr($error_message));
+        }
+        if ('yes' === $debug) {
+            $this->log->log('error', var_export($response, true), array('source' => 'woocommerce-cielo-credit'));
+        }
+
+        throw new Exception(esc_attr(__('Order payment failed, please try again.', 'lkn-wc-gateway-cielo')));
     }
 
     /**
@@ -394,4 +554,3 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
         }
     }
 }
-?>

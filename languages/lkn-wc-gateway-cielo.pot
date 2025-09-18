@@ -379,3 +379,150 @@ msgstr ""
 
 msgid "Debit card"
 msgstr ""
+
+msgid "Cielo - Google Pay"
+msgstr ""
+
+msgid "Allows Google Pay payment with Cielo API 3.0."
+msgstr ""
+
+msgid "Enable Google Pay Payments"
+msgstr ""
+
+msgid "Google Pay"
+msgstr ""
+
+msgid "Payment processed by Cielo API 3.0"
+msgstr ""
+
+msgid "Google Merchant Id"
+msgstr ""
+
+msgid "Google Pay production key."
+msgstr ""
+
+msgid "Enter the Merchant ID provided by Google Pay."
+msgstr ""
+
+msgid "Enter the Google Merchant ID for your Google Pay integration."
+msgstr ""
+
+msgid "Google Merchant Name"
+msgstr ""
+
+msgid "Store name in Google Pay."
+msgstr ""
+
+msgid "Enter the Merchant Name provided by Google Pay."
+msgstr ""
+
+msgid "Enter the Google Merchant Name for your Google Pay integration."
+msgstr ""
+
+msgid "Google Pay Button Text"
+msgstr ""
+
+msgid "Pay"
+msgstr ""
+
+msgid "Buy"
+msgstr ""
+
+msgid "Checkout"
+msgstr ""
+
+msgid "Donate"
+msgstr ""
+
+msgid "Choose the text to display on the Google Pay button."
+msgstr ""
+
+msgid "Select the text you want to display on the Google Pay button."
+msgstr ""
+
+msgid "Show Order Logs"
+msgstr ""
+
+msgid "Enable transaction log view within the order."
+msgstr ""
+
+msgid "Clear Order Logs"
+msgstr ""
+
+msgid "Clear Logs"
+msgstr ""
+
+msgid "Do you really want to delete all order logs?"
+msgstr ""
+
+msgid "Check this box and save to enable Google Pay settings."
+msgstr ""
+
+msgid "Enable or disable the Google Pay payment method."
+msgstr ""
+
+msgid "Enable this option to allow customers to pay with Google Pay using Cielo API 3.0."
+msgstr ""
+
+msgid "Enter the title that will be shown to customers during the checkout process."
+msgstr ""
+
+msgid "This text will appear as the payment method title during checkout. Choose something your customers will easily understand, like \"Pay with Google Pay (Cielo)\"."
+msgstr ""
+
+msgid "This description appears below the payment method title at checkout. Use it to inform your customers about the payment processing details."
+msgstr ""
+
+msgid "Provide a brief message that informs the customer how the payment will be processed. For example: \"Your payment will be securely processed by Cielo.\""
+msgstr ""
+
+msgid "Enter the Merchant ID provided by Cielo for API integration."
+msgstr ""
+
+msgid "This is your Cielo Merchant ID used to authenticate API requests. You can find it in your Cielo dashboard."
+msgstr ""
+
+msgid "Enter the Merchant Key provided by Cielo for secure requests."
+msgstr ""
+
+msgid "This is your secret Merchant Key used to sign transactions with Cielo API. Keep it safe and do not share."
+msgstr ""
+
+msgid "Choose between production or development mode for Cielo API."
+msgstr ""
+
+msgid "Select \"Development\" to test transactions in sandbox mode. Use \"Production\" for real transactions."
+msgstr ""
+
+msgid "Enable log capture for payments"
+msgstr ""
+
+msgid "View logs"
+msgstr ""
+
+msgid "Enable this option to log payment requests and responses for troubleshooting purposes."
+msgstr ""
+
+msgid "Useful for identifying errors in payment requests or responses during development or support."
+msgstr ""
+
+msgid "When enabled, all Cielo transactions will be logged. You can access logs via WooCommerce > Status > Logs."
+msgstr ""
+
+msgid "Displays Cielo transaction logs inside WooCommerce order details."
+msgstr ""
+
+msgid "Useful for quickly viewing payment log data without accessing the system log files."
+msgstr ""
+
+msgid "Enable this to show the transaction details for Cielo payments directly in each order's admin panel."
+msgstr ""
+
+msgid "Click this button to delete all Cielo log data stored in orders."
+msgstr ""
+
+msgid "Use only if you no longer need the Cielo transaction logs for past orders."
+msgstr ""
+
+msgid "This will permanently remove all stored logs from WooCommerce orders. Ideal after resolving issues or for privacy."
+msgstr ""

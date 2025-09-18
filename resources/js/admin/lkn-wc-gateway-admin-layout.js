@@ -274,7 +274,7 @@
               inputElement.style.maxWidth = '400px'
               const titleText = inputElement.getAttribute('data-title-description')
               if (titleText) {
-                descBlock.textContent = titleText
+                descBlock.innerHTML = titleText
               }
             }
 
@@ -282,7 +282,7 @@
             if (checkboxInput) {
               const titleText = checkboxInput.getAttribute('data-title-description')
               if (titleText) {
-                descBlock.textContent = titleText
+                descBlock.innerHTML = titleText
               }
             }
 

@@ -125,7 +125,8 @@ final class LknWCCieloPayment
             'lkn_cielo_debit',
             'lkn_wc_cielo_pix',
             'lkn_cielo_pix',
-            'lkn_cielo_boleto'
+            'lkn_cielo_boleto',
+            'lkn_cielo_google_pay'
         ];
 
         if (
