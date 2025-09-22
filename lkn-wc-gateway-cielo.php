@@ -376,7 +376,6 @@ final class LknWCCieloPayment
             }
 
             // Reconstrói o array com as informações do Cielo
-            error_log(json_encode($total_rows));
             $payment_method;
             if (isset($total_rows['payment_method'])) {
                 $payment_method = $total_rows['payment_method'] ?? [];
