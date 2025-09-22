@@ -1484,7 +1484,11 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
             $this->log->log('error', var_export($response, true), array('source' => 'woocommerce-cielo-debit'));
         }
 
-        $message = __('Order payment failed. Make sure your debit card is valid.', 'lkn-wc-gateway-cielo');
+        if($cardType == 'Credit'){
+            $message = __('Order payment failed. Make sure your credit card is valid.', 'lkn-wc-gateway-cielo');
+        }else{
+            $message = __('Order payment failed. Make sure your debit card is valid.', 'lkn-wc-gateway-cielo');
+        }
 
         throw new Exception(esc_attr($message));
     }

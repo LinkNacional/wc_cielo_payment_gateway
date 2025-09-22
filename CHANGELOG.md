@@ -1,4 +1,5 @@
 # 1.25.0 - 12/09/2025
+* Adição do gateway de pagamento com Google Pay.
 * Adição do nome do gateway nas notas de pedido.
 * Adição do icone do plugin nos gateways.
 

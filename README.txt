@@ -102,6 +102,7 @@ This plugin uses the [React Credit Cards](https://github.com/amaroteam/react-cre
 == Changelog ==
 = 1.25.0 =
 ** 12/09/2025 ** 
+* Adding of Google Pay payment gateway.
 * Adding the gateway name to order notes.
 * Adding the plugin icon to the gateways.
 
