@@ -107,7 +107,7 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
                 'enable' => __('Enable', 'lkn-wc-gateway-cielo'),
                 'disable' => __('Disable', 'lkn-wc-gateway-cielo'),
             ));
-            wp_enqueue_script('lknWCGatewayCieloGooglePaySettingsFixLayoutScript', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-wc-gateway-admin-fix-layout .js', array('jquery'), $this->version, false);
+            wp_enqueue_script('lknWCGatewayCieloGooglePaySettingsFixLayoutScript', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-wc-gateway-admin-fix-layout.js', array('jquery'), $this->version, false);
 
             
         }
@@ -358,10 +358,18 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
             $this->add_notice_once(__('Nonce verification failed, try reloading the page', 'lkn-wc-gateway-cielo'), 'error');
             throw new Exception(esc_attr(__('Nonce verification failed, try reloading the page', 'lkn-wc-gateway-cielo')));
         }
+        // Validate and sanitize google_pay_data
+        if (!isset($_POST['google_pay_data']) || empty($_POST['google_pay_data'])) {
+            $this->log->log('error', 'Google Pay data is missing', array('source' => 'woocommerce-cielo-google-pay'));
+            throw new Exception(esc_attr(__('Payment data is missing, please try again.', 'lkn-wc-gateway-cielo')));
+        }
+
+        $google_pay_data = sanitize_textarea_field(wp_unslash($_POST['google_pay_data']));
+        
         if (isset($_POST['is_block_checkout'])) {
-            $data = json_decode($_POST['google_pay_data']);
+            $data = json_decode($google_pay_data);
         } else {
-            $data = json_decode(wp_unslash($_POST['google_pay_data']));
+            $data = json_decode($google_pay_data);
         }
         $paymentData = json_decode($data->paymentMethodData->tokenizationData->token);
         $walletKey = json_encode($paymentData->signedMessage);
@@ -371,6 +379,7 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
         $merchantSecret = sanitize_text_field($this->get_option('merchant_key'));
         $amount = $order->get_total();
         $merchantOrderId = uniqid('invoice_');
+        $currency = get_woocommerce_currency();
 
         // Convert the amount to equivalent in BRL
         if ('BRL' !== $currency) {
@@ -407,8 +416,8 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
         $response = wp_remote_post($url . '1/sales', $args);
 
         if (is_wp_error($response)) {
-            if ('yes' === $debug) {
-                $this->log->log('error', var_export($response->get_error_messages(), true), array('source' => 'woocommerce-cielo-credit'));
+            if ('yes' === $this->get_option('debug')) {
+                $this->log->log('error', var_export($response->get_error_messages(), true), array('source' => 'woocommerce-cielo-google-pay'));
             }
 
             $message = __('Order payment failed. Please review the gateway settings.', 'lkn-wc-gateway-cielo');
@@ -442,7 +451,7 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
             $order->update_meta_data('lkn_nsu', $responseDecoded->Payment->ProofOfSale);
 
             // Executar ações de mudança de status
-            do_action("lkn_wc_cielo_change_order_status", $order, $this, $capture);
+            do_action("lkn_wc_cielo_change_order_status", $order, $this, true);
 
             // Adicionar nota do pedido com detalhes do pagamento
             $order->add_order_note(
@@ -487,8 +496,8 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
 
             throw new Exception(esc_attr($error_message));
         }
-        if ('yes' === $debug) {
-            $this->log->log('error', var_export($response, true), array('source' => 'woocommerce-cielo-credit'));
+        if ('yes' === $this->get_option('debug')) {
+            $this->log->log('error', var_export($response, true), array('source' => 'woocommerce-cielo-google-pay'));
         }
 
         throw new Exception(esc_attr(__('Order payment failed, please try again.', 'lkn-wc-gateway-cielo')));
