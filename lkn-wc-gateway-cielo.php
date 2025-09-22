@@ -23,6 +23,8 @@ use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloCreditBlocks;
 use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloDebitBlocks;
 use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloPix;
 use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloPixBlocks;
+use Lkn\WCCieloPaymentGateway\Includes\LknWCGatewayCieloGooglePay;
+use Lkn\WCCieloPaymentGateway\Includes\LknWCGatewayCieloGooglePayBlocks;
 
 // Exit if accessed directly.
 if (! defined('ABSPATH')) {
@@ -122,7 +124,8 @@ final class LknWCCieloPayment
             'lkn_cielo_debit',
             'lkn_wc_cielo_pix',
             'lkn_cielo_pix',
-            'lkn_cielo_boleto'
+            'lkn_cielo_boleto',
+            'lkn_cielo_google_pay'
         ];
 
         if (
@@ -197,6 +200,7 @@ final class LknWCCieloPayment
         $payment_method_registry->register(new LknWcCieloCreditBlocks());
         $payment_method_registry->register(new LknWcCieloDebitBlocks());
         $payment_method_registry->register(new LknWcCieloPixBlocks());
+        $payment_method_registry->register(new LknWCGatewayCieloGooglePayBlocks());
     }
 
     /**
@@ -275,6 +279,7 @@ final class LknWCCieloPayment
         $gateways[] = new LknWCGatewayCieloCredit();
         $gateways[] = new LknWCGatewayCieloDebit();
         $gateways[] = new LknWcCieloPix();
+        $gateways[] = new LknWCGatewayCieloGooglePay();
 
         return $gateways;
     }

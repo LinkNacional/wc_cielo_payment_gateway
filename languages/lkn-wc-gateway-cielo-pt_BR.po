@@ -171,7 +171,7 @@ msgid "order"
 msgstr "pedido"
 
 msgid "Enable log capture for payments"
-msgstr "Habilita a captura de logs para pagamentos"
+msgstr "Habilitar captura de log para pagamentos"
 
 msgid "Debug"
 msgstr "Depuração"
@@ -394,3 +394,150 @@ msgstr "para mais informações."
 
 msgid "Debit card"
 msgstr "Cartão de débito"
+
+msgid "Cielo - Google Pay"
+msgstr "Cielo - Google Pay"
+
+msgid "Allows Google Pay payment with Cielo API 3.0."
+msgstr "Permite pagamentos via Google Pay com Cielo API 3.0."
+
+msgid "Enable Google Pay Payments"
+msgstr "Habilitar Pagamentos Google Pay"
+
+msgid "Google Pay"
+msgstr "Google Pay"
+
+msgid "Payment processed by Cielo API 3.0"
+msgstr "Pagamento processado pela Cielo API 3.0"
+
+msgid "Google Merchant Id"
+msgstr "ID do Comerciante Google"
+
+msgid "Google Pay production key."
+msgstr "Chave de produção do Google Pay."
+
+msgid "Enter the Merchant ID provided by Google Pay."
+msgstr "Insira o ID do Comerciante fornecido pelo Google Pay."
+
+msgid "Enter the Google Merchant ID for your Google Pay integration."
+msgstr "Insira o ID do Comerciante Google para sua integração Google Pay."
+
+msgid "Google Merchant Name"
+msgstr "Nome do Comerciante Google"
+
+msgid "Store name in Google Pay."
+msgstr "Nome da loja no Google Pay."
+
+msgid "Enter the Merchant Name provided by Google Pay."
+msgstr "Insira o Nome do Comerciante fornecido pelo Google Pay."
+
+msgid "Enter the Google Merchant Name for your Google Pay integration."
+msgstr "Insira o Nome do Comerciante Google para sua integração Google Pay."
+
+msgid "Google Pay Button Text"
+msgstr "Texto do Botão Google Pay"
+
+msgid "Pay"
+msgstr "Pagar"
+
+msgid "Buy"
+msgstr "Comprar"
+
+msgid "Checkout"
+msgstr "Finalizar"
+
+msgid "Donate"
+msgstr "Doar"
+
+msgid "Choose the text to display on the Google Pay button."
+msgstr "Escolha o texto a ser exibido no botão Google Pay."
+
+msgid "Select the text you want to display on the Google Pay button."
+msgstr "Selecione o texto que deseja exibir no botão Google Pay."
+
+msgid "Show Order Logs"
+msgstr "Visualizar Logs do Pedido"
+
+msgid "Enable transaction log view within the order."
+msgstr "Habilitar visualização do log da transação dentro do pedido."
+
+msgid "Clear Order Logs"
+msgstr "Limpar Logs dos Pedidos"
+
+msgid "Clear Logs"
+msgstr "Limpar Logs"
+
+msgid "Do you really want to delete all order logs?"
+msgstr "Deseja realmente deletar todos os logs dos pedidos?"
+
+msgid "Check this box and save to enable Google Pay settings."
+msgstr "Marque esta opção e salve para habilitar as configurações do Google Pay."
+
+msgid "Enable or disable the Google Pay payment method."
+msgstr "Habilitar ou desabilitar o método de pagamento Google Pay."
+
+msgid "Enable this option to allow customers to pay with Google Pay using Cielo API 3.0."
+msgstr "Habilite esta opção para permitir que clientes paguem com Google Pay usando Cielo API 3.0."
+
+msgid "Enter the title that will be shown to customers during the checkout process."
+msgstr "Insira o título que será exibido aos clientes durante o processo de finalização."
+
+msgid "This text will appear as the payment method title during checkout. Choose something your customers will easily understand, like \"Pay with Google Pay (Cielo)\"."
+msgstr "Este texto aparecerá como título do método de pagamento durante o checkout. Escolha algo que seus clientes entendam facilmente, como \"Pagar com Google Pay (Cielo)\"."
+
+msgid "This description appears below the payment method title at checkout. Use it to inform your customers about the payment processing details."
+msgstr "Esta descrição aparece abaixo do título do método de pagamento no checkout. Use para informar seus clientes sobre os detalhes do processamento do pagamento."
+
+msgid "Provide a brief message that informs the customer how the payment will be processed. For example: \"Your payment will be securely processed by Cielo.\""
+msgstr "Forneça uma mensagem breve que informe ao cliente como o pagamento será processado. Por exemplo: \"Seu pagamento será processado com segurança pela Cielo.\""
+
+msgid "Enter the Merchant ID provided by Cielo for API integration."
+msgstr "Insira o ID do Comerciante fornecido pela Cielo para integração da API."
+
+msgid "This is your Cielo Merchant ID used to authenticate API requests. You can find it in your Cielo dashboard."
+msgstr "Este é seu ID de Comerciante Cielo usado para autenticar requisições da API. Você pode encontrá-lo em seu painel Cielo."
+
+msgid "Enter the Merchant Key provided by Cielo for secure requests."
+msgstr "Insira a Chave do Comerciante fornecida pela Cielo para requisições seguras."
+
+msgid "This is your secret Merchant Key used to sign transactions with Cielo API. Keep it safe and do not share."
+msgstr "Esta é sua Chave de Comerciante secreta usada para assinar transações com a API Cielo. Mantenha segura e não compartilhe."
+
+msgid "Choose between production or development mode for Cielo API."
+msgstr "Escolha entre modo produção ou desenvolvimento para a API Cielo."
+
+msgid "Select \"Development\" to test transactions in sandbox mode. Use \"Production\" for real transactions."
+msgstr "Selecione \"Desenvolvimento\" para testar transações em modo sandbox. Use \"Produção\" para transações reais."
+
+msgid "Enable log capture for payments"
+msgstr "Habilitar captura de log para pagamentos"
+
+msgid "View logs"
+msgstr "Ver logs"
+
+msgid "Enable this option to log payment requests and responses for troubleshooting purposes."
+msgstr "Habilite esta opção para registrar requisições e respostas de pagamento para fins de solução de problemas."
+
+msgid "Useful for identifying errors in payment requests or responses during development or support."
+msgstr "Útil para identificar erros em requisições ou respostas de pagamento durante desenvolvimento ou suporte."
+
+msgid "When enabled, all Cielo transactions will be logged. You can access logs via WooCommerce > Status > Logs."
+msgstr "Quando habilitado, todas as transações Cielo serão registradas. Você pode acessar logs via WooCommerce > Status > Logs."
+
+msgid "Displays Cielo transaction logs inside WooCommerce order details."
+msgstr "Exibe logs de transação Cielo dentro dos detalhes do pedido WooCommerce."
+
+msgid "Useful for quickly viewing payment log data without accessing the system log files."
+msgstr "Útil para visualizar rapidamente dados de log de pagamento sem acessar os arquivos de log do sistema."
+
+msgid "Enable this to show the transaction details for Cielo payments directly in each order's admin panel."
+msgstr "Habilite isto para mostrar os detalhes da transação para pagamentos Cielo diretamente no painel admin de cada pedido."
+
+msgid "Click this button to delete all Cielo log data stored in orders."
+msgstr "Clique neste botão para deletar todos os dados de log Cielo armazenados nos pedidos."
+
+msgid "Use only if you no longer need the Cielo transaction logs for past orders."
+msgstr "Use apenas se não precisar mais dos logs de transação Cielo para pedidos passados."
+
+msgid "This will permanently remove all stored logs from WooCommerce orders. Ideal after resolving issues or for privacy."
+msgstr "Isto removerá permanentemente todos os logs armazenados dos pedidos WooCommerce. Ideal após resolver problemas ou por privacidade."

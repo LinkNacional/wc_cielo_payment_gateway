@@ -733,6 +733,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
             $order = apply_filters('lkn_wc_cielo_process_recurring_payment', $order);
             $saveCard = true;
         }
+        $amount = $order->get_total();
 
         // Convert the amount to equivalent in BRL
         if ('BRL' !== $currency) {
@@ -740,35 +741,9 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
 
             $order->add_meta_data('amount_converted', $amount, true);
         }
-
-        // If installments option is active verify $_POST attribute
-        if ('yes' === $activeInstallment) {
-            $installments = (int) isset($_POST['lkn_cc_installments']) ? sanitize_text_field(wp_unslash($_POST['lkn_cc_installments'])) : 1;
-
-            if ($installments > 12) {
-                if (
-                    'Elo' !== $provider
-                    && 'Visa' !== $provider
-                    && 'Master' !== $provider
-                    && 'Amex' !== $provider
-                    && 'Hipercard' !== $provider
-                ) {
-                    $message = __('Order payment failed. Installment quantity invalid.', 'lkn-wc-gateway-cielo');
-
-                    throw new Exception(esc_attr($message));
-                }
-            }
-
-            $order->add_order_note(__('Installments quantity', 'lkn-wc-gateway-cielo') . ' ' . $installments);
-            $order->add_meta_data('installments', $installments, true);
-
-            if ($this->get_option('installment_interest') === 'yes' || $this->get_option('installment_discount') === 'yes') {
-                $interest = $this->get_option($installments . 'x', 0);
-                $amount = apply_filters('lkn_wc_cielo_calculate_interest', $amount, $interest, $order, $this, $installments);
-            }
-        }
-
+        
         $amountFormated = number_format($amount, 2, '', '');
+        $url = ($this->get_option('env') == 'production') ? 'https://api.cieloecommerce.cielo.com.br/' : 'https://apisandbox.cieloecommerce.cielo.com.br/';
 
         $args['headers'] = array(
             'Content-Type' => 'application/json',
