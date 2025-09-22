@@ -4,7 +4,7 @@
  * Plugin Name: Payment Gateway for Cielo API on WooCommerce
  * Plugin URI: https://www.linknacional.com.br/wordpress/woocommerce/cielo/
  * Description: Adds the Cielo API 3.0 Payments gateway to your WooCommerce website.
- * Version: 1.24.1
+ * Version: 1.25.0
  * Author: Link Nacional
  * Author URI: https://linknacional.com.br
  * Text Domain: lkn-wc-gateway-cielo
@@ -23,6 +23,8 @@ use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloCreditBlocks;
 use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloDebitBlocks;
 use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloPix;
 use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloPixBlocks;
+use Lkn\WCCieloPaymentGateway\Includes\LknWCGatewayCieloGooglePay;
+use Lkn\WCCieloPaymentGateway\Includes\LknWCGatewayCieloGooglePayBlocks;
 
 // Exit if accessed directly.
 if (! defined('ABSPATH')) {
@@ -104,7 +106,6 @@ final class LknWCCieloPayment
         add_filter('plugin_action_links_' . plugin_basename(__FILE__), array(__CLASS__, 'lkn_wc_cielo_plugin_row_meta_pro'), 10, 2);
 
         // Thank you page with installments.
-        //add_action('woocommerce_order_details_after_order_table', array(__CLASS__, 'order_details_after_order_table'), 10, 1);
 
         add_action('rest_api_init', array(new LknWCGatewayCieloEndpoint(), 'registerOrderCaptureEndPoint'));
 
@@ -123,7 +124,8 @@ final class LknWCCieloPayment
             'lkn_cielo_debit',
             'lkn_wc_cielo_pix',
             'lkn_cielo_pix',
-            'lkn_cielo_boleto'
+            'lkn_cielo_boleto',
+            'lkn_cielo_google_pay'
         ];
 
         if (
@@ -198,6 +200,7 @@ final class LknWCCieloPayment
         $payment_method_registry->register(new LknWcCieloCreditBlocks());
         $payment_method_registry->register(new LknWcCieloDebitBlocks());
         $payment_method_registry->register(new LknWcCieloPixBlocks());
+        $payment_method_registry->register(new LknWCGatewayCieloGooglePayBlocks());
     }
 
     /**
@@ -276,6 +279,7 @@ final class LknWCCieloPayment
         $gateways[] = new LknWCGatewayCieloCredit();
         $gateways[] = new LknWCGatewayCieloDebit();
         $gateways[] = new LknWcCieloPix();
+        $gateways[] = new LknWCGatewayCieloGooglePay();
 
         return $gateways;
     }
@@ -353,66 +357,53 @@ final class LknWCCieloPayment
      *
      * @param WC_Order $order
      */
-    public static function order_details_after_order_table($order): void
-    {
-        $installment = $order->get_meta('installments');
-
-        if ($installment && $installment > 1) {
-            echo '<div id="lkn-wc-installment-notice"><p><strong>' . esc_html__('Installment', 'lkn-wc-gateway-cielo') . ':</strong> ' . esc_html($installment) . 'x</p></div>';
-        }
-    }
-
     public static function new_order_item_totals($total_rows, $order, $tax_display)
     {
         $payment_method = $order->get_payment_method();
 
-        if($payment_method === 'lkn_cielo_credit' || $payment_method === 'lkn_cielo_debit') {
+        if ($payment_method === 'lkn_cielo_credit' || $payment_method === 'lkn_cielo_debit') {
             $installment = $order->get_meta('installments');
             $payment_id = $order->get_meta('paymentId');
             $order_id = $order->get_id();
             $nsu = $order->get_meta('lkn_nsu');
-    
+
             // Verifica se é um pagamento Cielo (tem pelo menos payment_id ou nsu)
             $is_cielo_payment = $payment_id || $nsu;
-            
+
             // Se não é pagamento Cielo, retorna os totais originais
             if (!$is_cielo_payment) {
                 return $total_rows;
             }
-            
+
             // Reconstrói o array com as informações do Cielo
-            $cielo_total_rows = array(
-                'cart_subtotal' => $total_rows['cart_subtotal'],
-                'order_total' => $total_rows['order_total'],
-                'order_id' => array(
-                    'label' => __('Order ID', 'lkn-wc-gateway-cielo'),
-                    'value' => $order_id,
-                ),
-                'payment_id' => array(
-                    'label' => __('Payment ID', 'lkn-wc-gateway-cielo'),
-                    'value' => $payment_id ?: 'N/A',
-                ),
-                'authorization' => array(
-                    'label' => __('Authorization', 'lkn-wc-gateway-cielo'),
-                    'value' => $nsu ?: 'N/A',
-                ),
+            error_log(json_encode($total_rows));
+            $payment_method;
+            if (isset($total_rows['payment_method'])) {
+                $payment_method = $total_rows['payment_method'] ?? [];
+                unset($total_rows['payment_method']);
+            }
+            $total_rows['order_id'] = array(
+                'label' => __('Order ID', 'lkn-wc-gateway-cielo'),
+                'value' => $order_id,
             );
-            
+            $total_rows['payment_id'] = array(
+                'label' => __('Payment ID', 'lkn-wc-gateway-cielo'),
+                'value' => $payment_id ?: 'N/A',
+            );
+            $total_rows['authorization'] = array(
+                'label' => __('Authorization', 'lkn-wc-gateway-cielo'),
+                'value' => $nsu ?: 'N/A',
+            );
             if ($installment) {
-                $cielo_total_rows['installment'] = array(
+                $total_rows['installment'] = array(
                     'label' => __('Installment', 'lkn-wc-gateway-cielo'),
                     'value' => $installment . 'x',
                 );
             }
-            
-            // Sempre mantém o método de pagamento por último
-            if (isset($total_rows['payment_method'])) {
-                $cielo_total_rows['payment_method'] = $total_rows['payment_method'];
-            }
-
-            return $cielo_total_rows;
+            $total_rows['payment_method'] = $payment_method;
+            return $total_rows;
         }
-        
+
         return $total_rows;
     }
 
@@ -423,7 +414,7 @@ final class LknWCCieloPayment
     {
         // Defines addon version number for easy reference.
         if (! defined('LKN_WC_CIELO_VERSION')) {
-            define('LKN_WC_CIELO_VERSION', '1.24.1');
+            define('LKN_WC_CIELO_VERSION', '1.25.0');
         }
         if (! defined('LKN_WC_CIELO_TRANSLATION_PATH')) {
             define('LKN_WC_CIELO_TRANSLATION_PATH', plugin_dir_path(__FILE__) . 'languages/');

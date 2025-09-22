@@ -80,6 +80,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         $this->init_form_fields();
         $this->init_settings();
 
+        $this->icon = LknWcCieloHelper::getIconUrl();
         // Define user set variables.
         $this->title = $this->get_option('title');
         $this->description = $this->get_option('description');
@@ -88,6 +89,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         $this->log = new WC_Logger();
 
         // Actions.
+        add_filter('woocommerce_new_order_note_data', array($this, 'add_gateway_name_to_notes'), 10, 2);
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
 
         add_action('woocommerce_scheduled_subscription_payment_' . $this->id, array($this, 'process_subscription_payment'), 10, 3);
@@ -731,6 +733,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
             $order = apply_filters('lkn_wc_cielo_process_recurring_payment', $order);
             $saveCard = true;
         }
+        $amount = $order->get_total();
 
         // Convert the amount to equivalent in BRL
         if ('BRL' !== $currency) {
@@ -738,35 +741,9 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
 
             $order->add_meta_data('amount_converted', $amount, true);
         }
-
-        // If installments option is active verify $_POST attribute
-        if ('yes' === $activeInstallment) {
-            $installments = (int) isset($_POST['lkn_cc_installments']) ? sanitize_text_field(wp_unslash($_POST['lkn_cc_installments'])) : 1;
-
-            if ($installments > 12) {
-                if (
-                    'Elo' !== $provider
-                    && 'Visa' !== $provider
-                    && 'Master' !== $provider
-                    && 'Amex' !== $provider
-                    && 'Hipercard' !== $provider
-                ) {
-                    $message = __('Order payment failed. Installment quantity invalid.', 'lkn-wc-gateway-cielo');
-
-                    throw new Exception(esc_attr($message));
-                }
-            }
-
-            $order->add_order_note(__('Installments quantity', 'lkn-wc-gateway-cielo') . ' ' . $installments);
-            $order->add_meta_data('installments', $installments, true);
-
-            if ($this->get_option('installment_interest') === 'yes' || $this->get_option('installment_discount') === 'yes') {
-                $interest = $this->get_option($installments . 'x', 0);
-                $amount = apply_filters('lkn_wc_cielo_calculate_interest', $amount, $interest, $order, $this, $installments);
-            }
-        }
-
+        
         $amountFormated = number_format($amount, 2, '', '');
+        $url = ($this->get_option('env') == 'production') ? 'https://api.cieloecommerce.cielo.com.br/' : 'https://apisandbox.cieloecommerce.cielo.com.br/';
 
         $args['headers'] = array(
             'Content-Type' => 'application/json',
@@ -841,10 +818,10 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
             // Adicionar metadados do pagamento
             $order->add_meta_data('paymentId', $responseDecoded->Payment->PaymentId, true);
             $order->update_meta_data('lkn_nsu', $responseDecoded->Payment->ProofOfSale);
-            
+
             // Executar ações de mudança de status
             do_action("lkn_wc_cielo_change_order_status", $order, $this, $capture);
-            
+
             // Adicionar nota do pedido com detalhes do pagamento
             $order->add_order_note(
                 __('Payment completed successfully. Payment id:', 'lkn-wc-gateway-cielo') .
@@ -872,7 +849,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
                     ' - ' .
                     $responseDecoded->Payment->ReturnCode
             );
-            
+
             // Completar pagamento
             $order->payment_complete($responseDecoded->Payment->PaymentId);
 
@@ -1229,6 +1206,23 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         } else {
             return sanitize_text_field($brand);
         }
+    }
+
+    public function add_gateway_name_to_notes($note_data, $args)
+    {
+        // Verificar se é uma nota de mudança de status e se o pedido usa este gateway
+        if (isset($args['order_id'])) {
+            $order = wc_get_order($args['order_id']);
+
+            if ($order && $order->get_payment_method() === $this->id) {
+                // Verificar se o prefixo já existe para evitar duplicação
+                if (strpos($note_data['comment_content'], $this->method_title . ' — ') === false) {
+                    // Adicionar prefixo com nome do gateway
+                    $note_data['comment_content'] = $this->method_title . ' — ' . $note_data['comment_content'];
+                }
+            }
+        }
+        return $note_data;
     }
 }
 ?>

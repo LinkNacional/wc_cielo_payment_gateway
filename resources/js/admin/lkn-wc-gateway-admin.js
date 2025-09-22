@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
   const lknCieloAdminPage = lknCieloFindGetParameter('section')
 
-  if (lknCieloAdminPage && (lknCieloAdminPage === 'lkn_cielo_credit' || lknCieloAdminPage === 'lkn_cielo_debit' || lknCieloAdminPage === 'lkn_wc_cielo_pix')) {
+  if (lknCieloAdminPage && (lknCieloAdminPage === 'lkn_cielo_credit' || lknCieloAdminPage === 'lkn_cielo_debit' || lknCieloAdminPage === 'lkn_wc_cielo_pix') || lknCieloAdminPage === 'lkn_cielo_google_pay') {
     let observer = null
 
     function createNotice(targetDiv) {
@@ -12,6 +12,11 @@ document.addEventListener('DOMContentLoaded', function () {
       lknCieloNoticeDiv.setAttribute('style', 'background-color: #fcf9e8;color: #646970;border: solid 1px #d3d3d3;border-left: 4px #dba617 solid;font-size: 16px;margin-top: 10px;max-width: 370px; box-sizing: border-box;')
       lknCieloNoticeDiv.setAttribute('id', 'lkn-cielo-hosting-notice')
       lknCieloNoticeDiv.innerHTML = '<a href="https://cliente.linknacional.com.br/solicitar/wordpress-woo-gratis/" target="_blank" style="text-decoration:none; display: block;padding: 10px;">Parabéns! Você ganhou uma hospedagem WooCommerce grátis por 12 meses. Solicite agora!</a>'
+      
+      if(lknCieloAdminPage === 'lkn_cielo_google_pay'){
+        lknCieloNoticeDiv.innerHTML = '<a href="https://www.linknacional.com.br/hora-tecnica/" target="_blank" style="text-decoration:none; display: block;padding: 10px; width: 370px;">Precisa de ajuda? Agende hora técnica.</a>'
+      }
+      
       targetDiv.append(lknCieloNoticeDiv)
 
       if (typeof lknCieloProStatus === 'undefined' || lknCieloProStatus.isProActive != true) {

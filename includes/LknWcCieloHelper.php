@@ -58,22 +58,22 @@ final class LknWcCieloHelper
             $response = isset($decodedLogs['response']) ? json_encode($decodedLogs['response'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : 'N/A';
 
             // Exibir as seções formatadas
-            ?>
-<div id="lknWcCieloOrderLogs">
-    <div>
-        <h3>URL:</h3>
-        <pre class="wc-pre"><?php echo esc_html($url); ?></pre>
-    </div>
+?>
+            <div id="lknWcCieloOrderLogs">
+                <div>
+                    <h3>URL:</h3>
+                    <pre class="wc-pre"><?php echo esc_html($url); ?></pre>
+                </div>
 
-    <h3>Headers:</h3>
-    <pre class="wc-pre"><?php echo esc_html($headers); ?></pre>
+                <h3>Headers:</h3>
+                <pre class="wc-pre"><?php echo esc_html($headers); ?></pre>
 
-    <h3>Body:</h3>
-    <pre class="wc-pre"><?php echo esc_html($body); ?></pre>
+                <h3>Body:</h3>
+                <pre class="wc-pre"><?php echo esc_html($body); ?></pre>
 
-    <h3>Response:</h3>
-    <pre class="wc-pre"><?php echo esc_html($response); ?></pre>
-</div>
+                <h3>Response:</h3>
+                <pre class="wc-pre"><?php echo esc_html($response); ?></pre>
+            </div>
 <?php
         }
     }
@@ -95,5 +95,10 @@ final class LknWcCieloHelper
 
         $censored = str_repeat('*', $censorLength);
         return $start . $censored . $end;
+    }
+
+    public static function getIconUrl()
+    {
+        return plugin_dir_url(__FILE__) . '../includes/assets/icon.svg';
     }
 }
