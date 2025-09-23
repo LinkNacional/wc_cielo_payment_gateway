@@ -218,7 +218,7 @@
             bodyDiv.style.flexDirection = 'column'
             bodyDiv.style.alignItems = 'start'
             bodyDiv.style.justifyContent = 'center'
-            bodyDiv.style.minHeight = '120px'
+            bodyDiv.style.minHeight = '90px'
             bodyDiv.style.paddingLeft = '4px'
             bodyDiv.style.color = '#2C3338'
 

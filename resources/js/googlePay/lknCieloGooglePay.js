@@ -50,6 +50,11 @@ const lknGooglePayContentCielo = props => {
       }
     }];
 
+    if(lknGooglePaySettingsCielo.require3ds === 'yes'){
+      // Remove o 'Pan Only' para forçar o 3DS
+      allowedPaymentMethods[0].parameters.allowedAuthMethods = ['CRYPTOGRAM_3DS'];
+    }
+
     const button = paymentsClient.createButton({
       buttonColor: 'default',
       buttonType: lknGooglePaySettingsCielo.buttonText || 'pay',

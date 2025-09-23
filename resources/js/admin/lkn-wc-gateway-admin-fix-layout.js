@@ -3,12 +3,30 @@
     function agruparCampos(titulo, fieldIds) {
       const fieldsets = fieldIds
         .map((id, index) => {
-          const el = document.getElementById(id);
-          if (!el) return null;
-          el.parentElement.style.justifyContent = "";
-          el.parentElement.style.paddingTop = "20px";
-          console.log(el.parentElement);
+          // Try different ID patterns to find the element
+          let el = document.getElementById(id);
+          if (!el && !id.endsWith('-control')) {
+            el = document.getElementById(id + '-control');
+          }
+          
+          // If still not found, try to find by name attribute or other methods
+          if (!el) {
+            // Look for radio buttons or elements with name attribute
+            const radioButtons = document.querySelectorAll(`input[name="${id}"], input[name="${id}-control"]`);
+            if (radioButtons.length > 0) {
+              el = radioButtons[0];
+            }
+          }
+          
 
+          if (!el) return null;
+          
+          // Only apply styles if element has parentElement
+          if (el.parentElement) {
+            el.parentElement.style.justifyContent = "";
+            el.parentElement.style.paddingTop = "20px";
+          }
+          
           if (index !== 0) {
             el.closest("tr").remove();
           }
@@ -57,6 +75,7 @@
       "woocommerce_lkn_cielo_google_pay_google_merchant_name",
       "woocommerce_lkn_cielo_google_pay_google_merchant_id",
       "woocommerce_lkn_cielo_google_pay_google_text_button",
+      "woocommerce_lkn_cielo_google_pay_require_3ds",
     ]);
   });
 })(jQuery);
