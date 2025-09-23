@@ -264,6 +264,17 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
                     'data-title-description' => __('Escolha o texto a ser exibido no botão do Google Pay.', 'lkn-wc-gateway-cielo')
                 )
             ),
+            'require_3ds' => array(
+                'title'   => __('Exigir 3DS', 'lkn-wc-gateway-cielo'),
+                'type'    => 'checkbox',
+                'label'   => __('Permitir apenas pagamentos com 3DS', 'lkn-wc-gateway-cielo'),
+                'default' => 'no',
+                'description' => __('Quando habilitado, apenas transações com autenticação 3DS serão processadas.', 'lkn-wc-gateway-cielo'),
+                'desc_tip' => __('Esta configuração aumenta a segurança, mas bloqueia alguns cartões que não suportam 3DS.', 'lkn-wc-gateway-cielo'),
+                'custom_attributes' => array(
+                    'data-title-description' => __('Ative para exigir autenticação 3DS em todas as transações do Google Pay para maior segurança.', 'lkn-wc-gateway-cielo')
+                )
+            ),
             'developer' => array(
                 'title' => esc_attr__('Developer', 'lkn-wc-gateway-cielo'),
                 'type'  => 'title',
@@ -326,6 +337,7 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
             'locale' => substr(get_locale(), 0, 2),
             'thousandSeparator' => wc_get_price_thousand_separator(),
             'decimalSeparator' => wc_get_price_decimal_separator(),
+            'require3ds' => $this->get_option('require_3ds', 'no'),
             'nonce' => wp_create_nonce('nonce_lkn_cielo_google_pay'),
         ));
     }

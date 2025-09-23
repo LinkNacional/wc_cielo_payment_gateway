@@ -27,3 +27,8 @@ input.masked,
     width: 100%;
     text-transform: uppercase;
 }
+
+[for="payment_method_lkn_cielo_credit"] img,
+[for="payment_method_lkn_cielo_debit"] img {
+    display: none !important;
+}

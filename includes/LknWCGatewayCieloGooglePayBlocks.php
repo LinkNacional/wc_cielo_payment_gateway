@@ -55,6 +55,7 @@ final class LknWCGatewayCieloGooglePayBlocks extends AbstractPaymentMethodType
             'buttonText' => $this->gateway->get_option('google_text_button', 'pay'),
             'currency' => get_woocommerce_currency(),
             'locale' => substr(get_locale(), 0, 2),
+            'require3ds' => $this->gateway->get_option('require_3ds', 'no'),
             'thousandSeparator' => wc_get_price_thousand_separator(),
             'decimalSeparator' => wc_get_price_decimal_separator(),
             'nonce' => wp_create_nonce('nonce_lkn_cielo_google_pay')
