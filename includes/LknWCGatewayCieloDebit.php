@@ -644,6 +644,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
      */
     public function payment_fields(): void
     {
+        wp_enqueue_style('lknWCGatewayCieloFixIconsStyle', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-fix-icons-styles.css', array(), $this->version, 'all');
         $total_cart = number_format($this->get_order_total(), 2, '', '');
         $accessToken = $this->accessToken;
         $url = get_page_link();
