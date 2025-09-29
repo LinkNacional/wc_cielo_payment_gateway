@@ -458,6 +458,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
      */
     public function payment_fields(): void
     {
+        wp_enqueue_style('lknWCGatewayCieloFixIconsStyle', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-fix-icons-styles.css', array(), $this->version, 'all');
         $activeInstallment = $this->get_option('installment_payment');
         $total_cart = number_format($this->get_order_total(), 2, '.', '');
         $noLoginCheckout = isset($_GET['pay_for_order']) ? sanitize_text_field(wp_unslash($_GET['pay_for_order'])) : 'false';

@@ -1,0 +1,6 @@
+[for="payment_method_lkn_wc_cielo_pix"] img,
+[for="payment_method_lkn_cielo_boleto"] img,
+[for="payment_method_lkn_cielo_pix"] img
+{
+    display: none !important;
+}

@@ -303,6 +303,7 @@ final class LknWcCieloPix extends WC_Payment_Gateway
 
     public function payment_fields(): void
     {
+        wp_enqueue_style('lknWCGatewayCieloFixIconsStyle', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-fix-icons-styles.css', array(), $this->version, 'all');
         $description = $this->get_option('description', __('After the purchase is completed, the PIX will be generated and made available for payment!', 'lkn-wc-gateway-cielo'));
         echo "
             <div style=\"text-align:center;font-weight: bold;\">
