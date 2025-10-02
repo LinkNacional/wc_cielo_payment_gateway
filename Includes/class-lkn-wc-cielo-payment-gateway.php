@@ -15,6 +15,11 @@ use Lkn\WcCieloPaymentGateway\Includes\Lkn_Wc_Cielo_Debit_Blocks;
 use Lkn\WcCieloPaymentGateway\Includes\Lkn_Wc_Cielo_Pix_Blocks;
 use Lkn\WcCieloPaymentGateway\Includes\Lkn_Wc_Gateway_Cielo_Google_Pay_Blocks;
 use Lkn\WcCieloPaymentGateway\PublicView\Lkn_Wc_Cielo_Payment_Gateway_Public;
+use Lkn\WcCieloPaymentGateway\Services\ServiceContainer;
+use Lkn\WcCieloPaymentGateway\Services\HttpClient;
+use Lkn\WcCieloPaymentGateway\Services\SimpleSettingsManager;
+use Lkn\WcCieloPaymentGateway\Services\WebhookRouter;
+use Lkn\WcCieloPaymentGateway\Gateways\Cielo\CieloGateway;
 
 /**
  * The file that defines the core plugin class
@@ -74,6 +79,15 @@ final class Lkn_Wc_Cielo_Payment_Gateway
     protected $version;
 
     /**
+     * Service Container for dependency injection
+     *
+     * @since    1.25.0
+     * @access   protected
+     * @var      \Lkn\WcCieloPaymentGateway\Services\ServiceContainer    $serviceContainer    Service container instance.
+     */
+    protected $serviceContainer;
+
+    /**
      * Define the core functionality of the plugin.
      *
      * Set the plugin name and the plugin version that can be used throughout the plugin.
@@ -92,6 +106,7 @@ final class Lkn_Wc_Cielo_Payment_Gateway
         $this->plugin_name = 'lkn-wc-cielo-payment-gateway';
 
         $this->lkn_load_dependencies();
+        $this->lkn_setup_service_container();
         $this->loader->lkn_add_action('plugins_loaded', $this, 'lkn_define_hooks');
     }
 
@@ -109,6 +124,9 @@ final class Lkn_Wc_Cielo_Payment_Gateway
     public function lkn_define_hooks(): void
     {
         if (class_exists('WooCommerce')) {
+            // Inject Service Container into gateway classes
+            \Lkn\WcCieloPaymentGateway\Services\GatewayServiceAdapter::setServiceContainer($this->serviceContainer);
+            
             $this->lkn_wc_cielo_pix = new Lkn_Wc_Cielo_Pix();
             $this->lkn_define_admin_hooks();
             $this->lkn_define_public_hooks();
@@ -146,6 +164,39 @@ final class Lkn_Wc_Cielo_Payment_Gateway
         $this->loader = new Lkn_Wc_Cielo_Payment_Gateway_Loader();
         $this->lkn_wc_gateway_cielo_endpoint = new Lkn_Wc_Gateway_Cielo_Endpoint();
         $this->lkn_wc_cielo_helper = new Lkn_Wc_Cielo_Helper();
+    }
+
+    /**
+     * Setup service container and register services
+     *
+     * @since 1.25.0
+     * @access private
+     */
+    private function lkn_setup_service_container(): void
+    {
+        $this->serviceContainer = new ServiceContainer();
+
+        // Register core services
+        $this->serviceContainer->register('httpClient', function() {
+            return new HttpClient();
+        });
+
+        $this->serviceContainer->register('settingsManager', function() {
+            return new SimpleSettingsManager();
+        });
+
+        $this->serviceContainer->register('webhookRouter', function($container) {
+            return new WebhookRouter();
+        });
+
+        // Register Cielo gateway
+        $this->serviceContainer->register('cieloGateway', function($container) {
+            return new CieloGateway(
+                $container->get('httpClient'),
+                $container->get('settingsManager'),
+                [] // Configuration will be set by individual gateway classes
+            );
+        });
     }
 
     /**
@@ -296,6 +347,17 @@ final class Lkn_Wc_Cielo_Payment_Gateway
     public function lkn_get_loader()
     {
         return $this->loader;
+    }
+
+    /**
+     * Get the service container instance
+     *
+     * @since     1.25.0
+     * @return    \Lkn\WcCieloPaymentGateway\Services\ServiceContainer    Service container instance.
+     */
+    public function lkn_get_service_container()
+    {
+        return $this->serviceContainer;
     }
 
     /**

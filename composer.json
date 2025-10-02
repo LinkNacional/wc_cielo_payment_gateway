@@ -6,7 +6,8 @@
         "psr-4": {
             "Lkn\\WcCieloPaymentGateway\\Includes\\": "Includes/",
             "Lkn\\WcCieloPaymentGateway\\Admin\\": "Admin/",
-            "Lkn\\WcCieloPaymentGateway\\PublicView\\": "Public/"
+            "Lkn\\WcCieloPaymentGateway\\PublicView\\": "Public/",
+            "Lkn\\WcCieloPaymentGateway\\": "src/"
         },
         "classmap": [
             "Includes/",
