@@ -1,8 +1,8 @@
 <?php
 
-use Lkn\WcCieloPaymentGateway\Includes\LknWcCieloPaymentGateway;
-use Lkn\WcCieloPaymentGateway\Includes\LknWcCieloPaymentGatewayActivator;
-use Lkn\WcCieloPaymentGateway\Includes\LknWcCieloPaymentGatewayDeactivator;
+use Lkn\WcCieloPaymentGateway\Includes\Lkn_Wc_Cielo_Payment_Gateway;
+use Lkn\WcCieloPaymentGateway\Includes\Lkn_Wc_Cielo_Payment_Gateway_Activator;
+use Lkn\WcCieloPaymentGateway\Includes\Lkn_Wc_Cielo_Payment_Gateway_Deactivator;
 
 // If this file is called directly, abort.
 if (! defined('WPINC')) {
@@ -21,7 +21,7 @@ if (! defined('WC_CIELO_PAYMENT_GATEWAY_VERSION')) {
 }
 
 if (! defined('WC_CIELO_PAYMENT_GATEWAY_FILE')) {
-    define('WC_CIELO_PAYMENT_GATEWAY_FILE', __DIR__ . '/wc-cielo-payment-gateway.php');
+    define('WC_CIELO_PAYMENT_GATEWAY_FILE', __DIR__ . '/lkn-wc-cielo-payment-gateway.php');
 }
 
 if (! defined('WC_CIELO_PAYMENT_GATEWAY_DIR')) {
@@ -37,11 +37,11 @@ if (! defined('WC_CIELO_PAYMENT_GATEWAY_DIR_URL')) {
 }
 
 if (! defined('WC_CIELO_PAYMENT_GATEWAY_FILE_BASENAME')) {
-    define('WC_CIELO_PAYMENT_GATEWAY_FILE_BASENAME', plugin_basename(__DIR__ . '/wc-cielo-payment-gateway.php'));
+    define('WC_CIELO_PAYMENT_GATEWAY_FILE_BASENAME', plugin_basename(__DIR__ . '/lkn-wc-cielo-payment-gateway.php'));
 }
 
 if (! defined('WC_CIELO_PAYMENT_GATEWAY_BASE_FILE')) {
-    define('WC_CIELO_PAYMENT_GATEWAY_BASE_FILE', __DIR__ . '/wc-cielo-payment-gateway.php');
+    define('WC_CIELO_PAYMENT_GATEWAY_BASE_FILE', __DIR__ . '/lkn-wc-cielo-payment-gateway.php');
 }
 if (! defined('LKN_WC_CIELO_VERSION')) {
     define('LKN_WC_CIELO_VERSION', WC_CIELO_PAYMENT_GATEWAY_VERSION);
@@ -64,24 +64,24 @@ if (! defined('LKN_WC_GATEWAY_CIELO_MIN_WC_VERSION')) {
 
 /**
  * The code that runs during plugin activation.
- * This action is documented in includes/LknWcCieloPaymentGatewayActivator.php
+ * This action is documented in includes/class-lkn-wc-cielo-payment-gateway-activator.php
  */
-function activate_LknWcCieloPaymentGateway(): void
+function lkn_activate_wc_cielo_payment_gateway(): void
 {
-    LknWcCieloPaymentGatewayActivator::activate();
+    Lkn_Wc_Cielo_Payment_Gateway_Activator::lkn_activate();
 }
 
 /**
  * The code that runs during plugin deactivation.
- * This action is documented in includes/LknWcCieloPaymentGatewayDeactivator.php
+ * This action is documented in includes/class-lkn-wc-cielo-payment-gateway-deactivator.php
  */
-function deactivate_LknWcCieloPaymentGateway(): void
+function lkn_deactivate_wc_cielo_payment_gateway(): void
 {
-    LknWcCieloPaymentGatewayDeactivator::deactivate();
+    Lkn_Wc_Cielo_Payment_Gateway_Deactivator::lkn_deactivate();
 }
 
-register_activation_hook(__FILE__, 'activate_LknWcCieloPaymentGateway');
-register_deactivation_hook(__FILE__, 'deactivate_LknWcCieloPaymentGateway');
+register_activation_hook(__FILE__, 'lkn_activate_wc_cielo_payment_gateway');
+register_deactivation_hook(__FILE__, 'lkn_deactivate_wc_cielo_payment_gateway');
 
 /**
  * Begins execution of the plugin.
@@ -92,10 +92,10 @@ register_deactivation_hook(__FILE__, 'deactivate_LknWcCieloPaymentGateway');
  *
  * @since    1.0.0
  */
-function run_LknWcCieloPaymentGateway(): void
+function lkn_run_wc_cielo_payment_gateway(): void
 {
-    $plugin = new LknWcCieloPaymentGateway();
-    $plugin->run();
+    $plugin = new Lkn_Wc_Cielo_Payment_Gateway();
+    $plugin->lkn_run();
 }
 
-run_LknWcCieloPaymentGateway();
+lkn_run_wc_cielo_payment_gateway();

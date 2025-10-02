@@ -3,9 +3,9 @@
 namespace Lkn\WcCieloPaymentGateway\Includes;
 
 use Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType;
-use Lkn\WcCieloPaymentGateway\Includes\LknWcGatewayCieloDebit;
+use Lkn\WcCieloPaymentGateway\Includes\Lkn_Wc_Gateway_Cielo_Debit;
 
-final class LknWcGatewayCieloGooglePayBlocks extends AbstractPaymentMethodType
+final class Lkn_Wc_Gateway_Cielo_Google_Pay_Blocks extends AbstractPaymentMethodType
 {
     private $gateway;
     protected $name = 'lkn_cielo_google_pay';
@@ -13,7 +13,7 @@ final class LknWcGatewayCieloGooglePayBlocks extends AbstractPaymentMethodType
     public function initialize(): void
     {
         $this->settings = get_option('woocommerce_lkn_cielo_google_pay_settings', array());
-        $lknWcGateWayCieloGooglePay = new LknWcGatewayCieloGooglePay();
+        $lknWcGateWayCieloGooglePay = new Lkn_Wc_Gateway_Cielo_Google_Pay();
         $this->gateway = $lknWcGateWayCieloGooglePay;
     }
 

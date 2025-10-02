@@ -31,4 +31,4 @@ if (! defined('WPINC')) {
     die;
 }
 
-require_once 'lkn-wc-cielo-payment-gateway-file.php';
+require_once 'lkn-wc-cielo-payment-gateway-activator.php';

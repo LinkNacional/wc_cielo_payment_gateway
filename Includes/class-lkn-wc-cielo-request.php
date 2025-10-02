@@ -4,7 +4,7 @@ namespace Lkn\WcCieloPaymentGateway\Includes;
 
 use WC_Logger;
 
-final class LknWcCieloRequest
+final class Lkn_Wc_Cielo_Request
 {
     private $urls = array('https://apisandbox.cieloecommerce.cielo.com.br', 'https://api.cieloecommerce.cielo.com.br/');
     private $queryUrl = array('https://apiquerysandbox.cieloecommerce.cielo.com.br/', 'https://apiquery.cieloecommerce.cielo.com.br/');
@@ -82,14 +82,14 @@ final class LknWcCieloRequest
             );
         }
         if ($instance->get_option('debug') === 'yes') {
-            $LknWcCieloHelper = new LknWcCieloHelper();
+            $Lkn_Wc_Cielo_Helper = new Lkn_Wc_Cielo_Helper();
 
             $orderLogsArray = array(
                 'url' => $postUrl . '1/sales',
                 'headers' => array(
                     'Content-Type' => $header['Content-Type'],
-                    'MerchantId' => $LknWcCieloHelper->censorString($header['MerchantId'], 10),
-                    'MerchantKey' => $LknWcCieloHelper->censorString($header['MerchantKey'], 10)
+                    'MerchantId' => $Lkn_Wc_Cielo_Helper->censorString($header['MerchantId'], 10),
+                    'MerchantKey' => $Lkn_Wc_Cielo_Helper->censorString($header['MerchantKey'], 10)
                 ),
                 'body' => $body,
                 'response' => json_decode(json_encode($response), true)
@@ -217,8 +217,8 @@ final class LknWcCieloRequest
 
     private function payment_request($paymentId)
     {
-        $postUrl = get_option('woocommerce_lkn_lkn_wc_cielo_pix_settings')['env'] != 'sandbox' ? $this->queryUrl[1] : $this->queryUrl[0];
-        $options = get_option('woocommerce_lkn_lkn_wc_cielo_pix_settings');
+        $postUrl = get_option('woocommerce_lkn_wc_cielo_pix_settings')['env'] != 'sandbox' ? $this->queryUrl[1] : $this->queryUrl[0];
+        $options = get_option('woocommerce_lkn_wc_cielo_pix_settings');
 
         $header = array(
             'Content-Type' => 'application/json',

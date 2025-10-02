@@ -4,7 +4,7 @@ namespace Lkn\WcCieloPaymentGateway\Includes;
 
 use Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType;
 
-final class LknWcCieloPixBlocks extends AbstractPaymentMethodType
+final class Lkn_Wc_Cielo_Pix_Blocks extends AbstractPaymentMethodType
 {
     private $gateway;
     protected $name = 'lkn_wc_cielo_pix';
@@ -12,7 +12,7 @@ final class LknWcCieloPixBlocks extends AbstractPaymentMethodType
     public function initialize(): void
     {
         $this->settings = get_option('cielo_wc_pix_settings', array());
-        $this->gateway = new LknWcCieloPix();
+        $this->gateway = new Lkn_Wc_Cielo_Pix();
     }
 
     public function is_active()

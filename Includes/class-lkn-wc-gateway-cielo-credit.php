@@ -2,7 +2,7 @@
 
 namespace Lkn\WcCieloPaymentGateway\Includes;
 
-use Lkn\WcCieloPaymentGateway\Includes\LknWcCieloHelper;
+use Lkn\WcCieloPaymentGateway\Includes\Lkn_Wc_Cielo_Helper;
 use DateTime;
 use Exception;
 use WC_Logger;
@@ -30,7 +30,7 @@ if (! defined('ABSPATH')) {
  *
  * @version  1.0.0
  */
-final class LknWcGatewayCieloCredit extends WC_Payment_Gateway
+final class Lkn_Wc_Gateway_Cielo_Credit extends WC_Payment_Gateway
 {
     /**
      * Define instructions to configure and use this plugin.
@@ -77,10 +77,10 @@ final class LknWcGatewayCieloCredit extends WC_Payment_Gateway
         $this->method_description = __('Allows credit card payment with Cielo API 3.0.', 'lkn-wc-gateway-cielo');
 
         // Load the settings.
-        $this->init_form_fields();
+        $this->lkn_init_form_fields();
         $this->init_settings();
 
-        $this->icon = LknWcCieloHelper::getIconUrl();
+        $this->icon = Lkn_Wc_Cielo_Helper::getIconUrl();
         // Define user set variables.
         $this->title = $this->get_option('title');
         $this->description = $this->get_option('description');
@@ -89,14 +89,14 @@ final class LknWcGatewayCieloCredit extends WC_Payment_Gateway
         $this->log = new WC_Logger();
 
         // Actions.
-        add_filter('woocommerce_new_order_note_data', array($this, 'add_gateway_name_to_notes'), 10, 2);
+        add_filter('woocommerce_new_order_note_data', array($this, 'lkn_add_gateway_name_to_notes'), 10, 2);
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
 
         add_action('woocommerce_scheduled_subscription_payment_' . $this->id, array($this, 'process_subscription_payment'), 10, 3);
 
         // Action hook to load admin JavaScript
         if (function_exists('get_plugins')) {
-            add_action('admin_enqueue_scripts', array($this, 'admin_load_script'));
+            add_action('admin_enqueue_scripts', array($this, 'lkn_admin_load_script'));
         }
     }
 
@@ -115,7 +115,7 @@ final class LknWcGatewayCieloCredit extends WC_Payment_Gateway
     /**
      * Load admin JavaScript for the admin page.
      */
-    public function admin_load_script(): void
+    public function lkn_admin_load_script(): void
     {
         wp_enqueue_script('lkn-wc-gateway-admin', WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'Admin/js/lkn-wc-gateway-admin.js', array('wp-i18n'), $this->version, 'all');
 
@@ -151,16 +151,16 @@ final class LknWcGatewayCieloCredit extends WC_Payment_Gateway
         }
     }
 
-    public function initialize_payment_gateway_scripts()
+    public function lkn_initialize_payment_gateway_scripts()
     {
         // Aqui você pode adicionar o hook manualmente dentro da função
-        add_action('wp_enqueue_scripts', [$this, 'payment_gateway_scripts']);
+        add_action('wp_enqueue_scripts', [$this, 'lkn_payment_gateway_scripts']);
     }
 
     /**
      * Load gateway scripts/styles.
      */
-    public function payment_gateway_scripts(): void
+    public function lkn_payment_gateway_scripts(): void
     {
         // Don't load scripts outside payment page
         if (
@@ -206,7 +206,7 @@ final class LknWcGatewayCieloCredit extends WC_Payment_Gateway
     /**
      * Initialise Gateway Settings Form Fields.
      */
-    public function init_form_fields(): void
+    public function lkn_init_form_fields(): void
     {
         $this->form_fields = array(
             'general' => array(
@@ -630,7 +630,7 @@ final class LknWcGatewayCieloCredit extends WC_Payment_Gateway
 
         if (! wp_verify_nonce($nonce, 'nonce_lkn_cielo_credit') && 'no' === $validateCompatMode) {
             $this->log->log('error', 'Nonce verification failed. Nonce: ' . var_export($nonce, true), array('source' => 'woocommerce-cielo-credit'));
-            $this->add_notice_once(__('Nonce verification failed, try reloading the page', 'lkn-wc-gateway-cielo'), 'error');
+            $this->lkn_add_notice_once(__('Nonce verification failed, try reloading the page', 'lkn-wc-gateway-cielo'), 'error');
             return false;
         }
         if ('no' === $validateCompatMode) {
@@ -638,9 +638,9 @@ final class LknWcGatewayCieloCredit extends WC_Payment_Gateway
             $expDate = isset($_POST['lkn_cc_expdate']) ? sanitize_text_field(wp_unslash($_POST['lkn_cc_expdate'])) : '';
             $cvv = isset($_POST['lkn_cc_cvc']) ? sanitize_text_field(wp_unslash($_POST['lkn_cc_cvc'])) : '';
 
-            $validCcNumber = $this->validate_card_number($ccnum, true);
-            $validExpDate = $this->validate_exp_date($expDate, true);
-            $validCvv = $this->validate_cvv($cvv, true);
+            $validCcNumber = $this->lkn_validate_card_number($ccnum, true);
+            $validExpDate = $this->lkn_validate_exp_date($expDate, true);
+            $validCvv = $this->lkn_validate_cvv($cvv, true);
 
             if (true === $validCcNumber && true === $validExpDate && true === $validCvv) {
                 return true;
@@ -666,7 +666,7 @@ final class LknWcGatewayCieloCredit extends WC_Payment_Gateway
 
         if (! wp_verify_nonce($nonce, 'nonce_lkn_cielo_credit') && 'no' === $nonceInactive) {
             $this->log->log('error', 'Nonce verification failed. Nonce: ' . var_export($nonce, true), array('source' => 'woocommerce-cielo-credit'));
-            $this->add_notice_once(__('Nonce verification failed, try reloading the page', 'lkn-wc-gateway-cielo'), 'error');
+            $this->lkn_add_notice_once(__('Nonce verification failed, try reloading the page', 'lkn-wc-gateway-cielo'), 'error');
             throw new Exception(esc_attr(__('Nonce verification failed, try reloading the page', 'lkn-wc-gateway-cielo')));
         }
 
@@ -693,27 +693,27 @@ final class LknWcGatewayCieloCredit extends WC_Payment_Gateway
         $description = sanitize_text_field($this->get_option('invoiceDesc'));
         $description = preg_replace('/[^a-zA-Z\s]+/', '', $description);
         $description = preg_replace('/\s+/', ' ', $description);
-        $provider = $this->get_card_provider($cardNum);
+        $provider = $this->lkn_get_card_provider($cardNum);
         $debug = $this->get_option('debug');
         $currency = $order->get_currency();
         $activeInstallment = $this->get_option('installment_payment');
 
-        if ($this->validate_card_holder_name($cardName, false) === false) {
+        if ($this->lkn_validate_card_holder_name($cardName, false) === false) {
             $message = __('Card Holder Name is required!', 'lkn-wc-gateway-cielo');
 
             throw new Exception(esc_attr($message));
         }
-        if ($this->validate_card_number($cardNum, false) === false) {
+        if ($this->lkn_validate_card_number($cardNum, false) === false) {
             $message = __('Credit Card number is invalid!', 'lkn-wc-gateway-cielo');
 
             throw new Exception(esc_attr($message));
         }
-        if ($this->validate_exp_date($cardExpShort, false) === false) {
+        if ($this->lkn_validate_exp_date($cardExpShort, false) === false) {
             $message = __('Expiration date is invalid!', 'lkn-wc-gateway-cielo');
 
             throw new Exception(esc_attr($message));
         }
-        if ($this->validate_cvv($cardCvv, false) === false) {
+        if ($this->lkn_validate_cvv($cardCvv, false) === false) {
             $message = __('CVV is invalid!', 'lkn-wc-gateway-cielo');
 
             throw new Exception(esc_attr($message));
@@ -792,7 +792,7 @@ final class LknWcGatewayCieloCredit extends WC_Payment_Gateway
         $responseDecoded = json_decode($response['body']);
 
         if ($this->get_option('debug') === 'yes') {
-            $lknWcCieloHelper = new LknWcCieloHelper();
+            $lknWcCieloHelper = new Lkn_Wc_Cielo_Helper();
 
             $orderLogsArray = array(
                 'url' => $url . '1/sales',
@@ -996,11 +996,11 @@ final class LknWcGatewayCieloCredit extends WC_Payment_Gateway
      *
      * @return bool
      */
-    private function validate_card_number($ccnum, $renderNotice)
+    private function lkn_validate_card_number($ccnum, $renderNotice)
     {
         if (empty($ccnum)) {
             if ($renderNotice) {
-                $this->add_notice_once(__('Credit Card number is required!', 'lkn-wc-gateway-cielo'), 'error');
+                $this->lkn_add_notice_once(__('Credit Card number is required!', 'lkn-wc-gateway-cielo'), 'error');
             }
 
             return false;
@@ -1009,7 +1009,7 @@ final class LknWcGatewayCieloCredit extends WC_Payment_Gateway
 
         if (true !== $isValid || strlen($ccnum) < 12) {
             if ($renderNotice) {
-                $this->add_notice_once(__('Credit Card number is invalid!', 'lkn-wc-gateway-cielo'), 'error');
+                $this->lkn_add_notice_once(__('Credit Card number is invalid!', 'lkn-wc-gateway-cielo'), 'error');
             }
 
             return false;
@@ -1018,11 +1018,11 @@ final class LknWcGatewayCieloCredit extends WC_Payment_Gateway
         return true;
     }
 
-    private function validate_card_holder_name($cardName, $renderNotice)
+    private function lkn_validate_card_holder_name($cardName, $renderNotice)
     {
         if (empty($cardName) || strlen($cardName) < 3) {
             if ($renderNotice) {
-                $this->add_notice_once(__('Card Holder Name is required!', 'lkn-wc-gateway-cielo'), 'error');
+                $this->lkn_add_notice_once(__('Card Holder Name is required!', 'lkn-wc-gateway-cielo'), 'error');
             }
 
             return false;
@@ -1039,11 +1039,11 @@ final class LknWcGatewayCieloCredit extends WC_Payment_Gateway
      *
      * @return bool
      */
-    private function validate_exp_date($expDate, $renderNotice)
+    private function lkn_validate_exp_date($expDate, $renderNotice)
     {
         if (empty($expDate)) {
             if ($renderNotice) {
-                $this->add_notice_once(__('Expiration date is required!', 'lkn-wc-gateway-cielo'), 'error');
+                $this->lkn_add_notice_once(__('Expiration date is required!', 'lkn-wc-gateway-cielo'), 'error');
             }
 
             return false;
@@ -1056,7 +1056,7 @@ final class LknWcGatewayCieloCredit extends WC_Payment_Gateway
 
             if ($today > $expDate) {
                 if ($renderNotice) {
-                    $this->add_notice_once(__('Credit card is expired!', 'lkn-wc-gateway-cielo'), 'error');
+                    $this->lkn_add_notice_once(__('Credit card is expired!', 'lkn-wc-gateway-cielo'), 'error');
                 }
 
                 return false;
@@ -1065,7 +1065,7 @@ final class LknWcGatewayCieloCredit extends WC_Payment_Gateway
             return true;
         } catch (Exception $e) {
             if ($renderNotice) {
-                $this->add_notice_once(__('Expiration date is invalid!', 'lkn-wc-gateway-cielo'), 'error');
+                $this->lkn_add_notice_once(__('Expiration date is invalid!', 'lkn-wc-gateway-cielo'), 'error');
             }
 
             return false;
@@ -1080,11 +1080,11 @@ final class LknWcGatewayCieloCredit extends WC_Payment_Gateway
      *
      * @return bool
      */
-    private function validate_cvv($cvv, $renderNotice)
+    private function lkn_validate_cvv($cvv, $renderNotice)
     {
         if (empty($cvv)) {
             if ($renderNotice) {
-                $this->add_notice_once(__('CVV is required!', 'lkn-wc-gateway-cielo'), 'error');
+                $this->lkn_add_notice_once(__('CVV is required!', 'lkn-wc-gateway-cielo'), 'error');
             }
 
             return false;
@@ -1093,7 +1093,7 @@ final class LknWcGatewayCieloCredit extends WC_Payment_Gateway
 
         if (true !== $isValid || strlen($cvv) < 3) {
             if ($renderNotice) {
-                $this->add_notice_once(__('CVV is invalid!', 'lkn-wc-gateway-cielo'), 'error');
+                $this->lkn_add_notice_once(__('CVV is invalid!', 'lkn-wc-gateway-cielo'), 'error');
             }
 
             return false;
@@ -1108,7 +1108,7 @@ final class LknWcGatewayCieloCredit extends WC_Payment_Gateway
      * @param string $message
      * @param string $type
      */
-    private function add_notice_once($message, $type): void
+    private function lkn_add_notice_once($message, $type): void
     {
         if (! wc_has_notice($message, $type)) {
             wc_add_notice($message, $type);
@@ -1122,7 +1122,7 @@ final class LknWcGatewayCieloCredit extends WC_Payment_Gateway
      *
      * @return string|bool
      */
-    private function get_card_provider($cardNumber)
+    private function lkn_get_card_provider($cardNumber)
     {
         $brand = '';
         $brand = apply_filters('lkn_wc_cielo_get_card_brand', $brand, $cardNumber, $this->id);
@@ -1209,7 +1209,7 @@ final class LknWcGatewayCieloCredit extends WC_Payment_Gateway
         }
     }
 
-    public function add_gateway_name_to_notes($note_data, $args)
+    public function lkn_add_gateway_name_to_notes($note_data, $args)
     {
         // Verificar se é uma nota de mudança de status e se o pedido usa este gateway
         if (isset($args['order_id'])) {

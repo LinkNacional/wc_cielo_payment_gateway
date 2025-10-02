@@ -6,7 +6,7 @@ use Exception;
 use WC_Logger;
 use WC_Payment_Gateway;
 
-final class LknWcCieloPix extends WC_Payment_Gateway
+final class Lkn_Wc_Cielo_Pix extends WC_Payment_Gateway
 {
     /**
      * @var string
@@ -16,7 +16,7 @@ final class LknWcCieloPix extends WC_Payment_Gateway
     /**
      * Request
      *
-     * @var LknWcCieloRequest
+     * @var Lkn_Wc_Cielo_Request
      */
     private static $request;
     private $log;
@@ -31,7 +31,7 @@ final class LknWcCieloPix extends WC_Payment_Gateway
             'products',
         );
 
-        self::$request = new LknWcCieloRequest();
+        self::$request = new Lkn_Wc_Cielo_Request();
         $this->version = LKN_WC_CIELO_VERSION;
 
         $this->method_title = __('Cielo PIX Free', 'lkn-wc-gateway-cielo');
@@ -48,13 +48,13 @@ final class LknWcCieloPix extends WC_Payment_Gateway
             'products',
         );
 
-        $this->icon = LknWcCieloHelper::getIconUrl();
+        $this->icon = Lkn_Wc_Cielo_Helper::getIconUrl();
         // Load the settings.
-        $this->init_form_fields();
+        $this->lkn_init_form_fields();
         $this->init_settings();
         //Actions
 
-        add_filter('woocommerce_new_order_note_data', array($this, 'add_gateway_name_to_notes'), 10, 2);
+        add_filter('woocommerce_new_order_note_data', array($this, 'lkn_add_gateway_name_to_notes'), 10, 2);
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
 
         // Define user set variables.
@@ -66,11 +66,11 @@ final class LknWcCieloPix extends WC_Payment_Gateway
         $this->log = new WC_Logger();
 
         if (function_exists('get_plugins')) {
-            add_action('admin_enqueue_scripts', array($this, 'admin_load_script'));
+            add_action('admin_enqueue_scripts', array($this, 'lkn_admin_load_script'));
         }
     }
 
-    public function admin_load_script(): void
+    public function lkn_admin_load_script(): void
     {
         $page = isset($_GET['page']) ? sanitize_text_field(wp_unslash($_GET['page'])) : '';
         $tab = isset($_GET['tab']) ? sanitize_text_field(wp_unslash($_GET['tab'])) : '';
@@ -118,7 +118,7 @@ final class LknWcCieloPix extends WC_Payment_Gateway
         }
     }
 
-    public function init_form_fields(): void
+    public function lkn_init_form_fields(): void
     {
         $this->form_fields = array(
             'general' => array(
@@ -368,7 +368,7 @@ final class LknWcCieloPix extends WC_Payment_Gateway
 <?php
         }
 
-        $this->payment_gateway_scripts();
+        $this->lkn_payment_gateway_scripts();
     }
 
     public function process_payment($order_id)
@@ -441,7 +441,7 @@ final class LknWcCieloPix extends WC_Payment_Gateway
             );
         } else {
             $this->log->log('error', 'PIX Payment failed: ' . var_export($response, true), array('source' => 'woocommerce-cielo-pix'));
-            $this->add_notice_once(__('PIX Payment Failed', 'lkn-wc-gateway-cielo-pro'), 'error');
+            $this->lkn_add_notice_once(__('PIX Payment Failed', 'lkn-wc-gateway-cielo-pro'), 'error');
             throw new Exception(esc_attr(__('PIX Payment Failed', 'lkn-wc-gateway-cielo-pro')));
         }
     }
@@ -452,7 +452,7 @@ final class LknWcCieloPix extends WC_Payment_Gateway
      * @param string $message
      * @param string $type
      */
-    private function add_notice_once($message, $type): void
+    private function lkn_add_notice_once($message, $type): void
     {
         if (! wc_has_notice($message, $type)) {
             wc_add_notice($message, $type);
@@ -542,7 +542,7 @@ final class LknWcCieloPix extends WC_Payment_Gateway
 
     // Agendar cron job
 
-    public function payment_gateway_scripts(): void
+    public function lkn_payment_gateway_scripts(): void
     {
         // Don't load scripts outside payment page
         if (
@@ -561,7 +561,7 @@ final class LknWcCieloPix extends WC_Payment_Gateway
         }
     }
 
-    public static function showPix($order_id): void
+    public static function lkn_show_pix($order_id): void
     {
         $order = wc_get_order($order_id);
         $paymentMethod = $order->get_payment_method();
@@ -669,7 +669,7 @@ final class LknWcCieloPix extends WC_Payment_Gateway
         return $saved;
     }
 
-    public function add_gateway_name_to_notes($note_data, $args)
+    public function lkn_add_gateway_name_to_notes($note_data, $args)
     {
         // Verificar se é uma nota de mudança de status e se o pedido usa este gateway
         if (isset($args['order_id'])) {

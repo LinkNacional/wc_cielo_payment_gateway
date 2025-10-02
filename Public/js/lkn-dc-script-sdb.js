@@ -38,29 +38,29 @@ function bpmpi_config () {
       // Card is not eligible for authentication, but the bearer failed payment
       console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage + ' raw: ' + JSON.stringify(e))
 
-      alert(__('Authentication failed check the card information and try again', 'lkn-wc-gateway-cielo'))
+      alert(_('Authentication failed check the card information and try again', 'lkn-wc-gateway-cielo'))
     },
     onUnenrolled: function (e) {
       console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage + ' raw: ' + JSON.stringify(e))
 
       // Card is not eligible for authentication (unauthenticable)
-      alert(__('Card Ineligible for Authentication', 'lkn-wc-gateway-cielo'))
+      alert(_('Card Ineligible for Authentication', 'lkn-wc-gateway-cielo'))
     },
     onDisabled: function () {
       // Store don't require bearer authentication (class "bpmpi_auth" false -> disabled authentication).
-      alert(__('Authentication disabled by the store', 'lkn-wc-gateway-cielo'))
+      alert(_('Authentication disabled by the store', 'lkn-wc-gateway-cielo'))
     },
     onError: function (e) {
       console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage + ' raw: ' + JSON.stringify(e))
 
       // Error on proccess in authentication
-      alert(__('Error in the 3DS 2.2 authentication process check that your credentials are filled in correctly', 'lkn-wc-gateway-cielo'))
+      alert(_('Error in the 3DS 2.2 authentication process check that your credentials are filled in correctly', 'lkn-wc-gateway-cielo'))
     },
     onUnsupportedBrand: function (e) {
       console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage + ' raw: ' + JSON.stringify(e))
 
       // Provider not supported for authentication
-      alert(__('Provider not supported by Cielo 3DS authentication', 'lkn-wc-gateway-cielo'))
+      alert(_('Provider not supported by Cielo 3DS authentication', 'lkn-wc-gateway-cielo'))
     },
 
     Environment: 'SDB', // SDB or PRD
@@ -127,6 +127,6 @@ function lknDCProccessButton () {
     bpmpi_authenticate()
   } catch (error) {
     console.log(error)
-    alert(__('Authentication failed check the card information and try again', 'lkn-wc-gateway-cielo'))
+    alert(_('Authentication failed check the card information and try again', 'lkn-wc-gateway-cielo'))
   }
 }

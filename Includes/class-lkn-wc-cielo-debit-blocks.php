@@ -3,9 +3,9 @@
 namespace Lkn\WcCieloPaymentGateway\Includes;
 
 use Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType;
-use Lkn\WcCieloPaymentGateway\Includes\LknWcGatewayCieloDebit;
+use Lkn\WcCieloPaymentGateway\Includes\Lkn_Wc_Gateway_Cielo_Debit;
 
-final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
+final class Lkn_Wc_Cielo_Debit_Blocks extends AbstractPaymentMethodType
 {
     private $gateway;
     protected $name = 'lkn_cielo_debit';
@@ -13,8 +13,8 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
     public function initialize(): void
     {
         $this->settings = get_option('woocommerce_lkn_cielo_debit_settings', array());
-        $lknWcGateWayCieloDebit = new LknWcGatewayCieloDebit();
-        $lknWcGateWayCieloDebit->initialize_payment_gateway_scripts();
+        $lknWcGateWayCieloDebit = new Lkn_Wc_Gateway_Cielo_Debit();
+        $lknWcGateWayCieloDebit->lkn_initialize_payment_gateway_scripts();
         $this->gateway = $lknWcGateWayCieloDebit;
     }
 

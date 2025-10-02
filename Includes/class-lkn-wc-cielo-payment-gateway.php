@@ -2,19 +2,19 @@
 
 namespace Lkn\WcCieloPaymentGateway\Includes;
 
-use Lkn\WcCieloPaymentGateway\Admin\LknWcCieloPaymentGatewayAdmin;
-use Lkn\WcCieloPaymentGateway\Includes\LknWcCieloPaymentGatewayLoader;
-use Lkn\WcCieloPaymentGateway\Includes\LknWcGatewayCieloCredit;
-use Lkn\WcCieloPaymentGateway\Includes\LknWcGatewayCieloDebit;
-use Lkn\WcCieloPaymentGateway\Includes\LknWcCieloPix;
-use Lkn\WcCieloPaymentGateway\Includes\LknWcGatewayCieloGooglePay;
-use Lkn\WcCieloPaymentGateway\Includes\LknWcGatewayCieloEndpoint;
-use Lkn\WcCieloPaymentGateway\Includes\LknWcCieloHelper;
-use Lkn\WcCieloPaymentGateway\Includes\LknWcCieloCreditBlocks;
-use Lkn\WcCieloPaymentGateway\Includes\LknWcCieloDebitBlocks;
-use Lkn\WcCieloPaymentGateway\Includes\LknWcCieloPixBlocks;
-use Lkn\WcCieloPaymentGateway\Includes\LknWcGatewayCieloGooglePayBlocks;
-use Lkn\WcCieloPaymentGateway\PublicView\LknWcCieloPaymentGatewayPublic;
+use Lkn\WcCieloPaymentGateway\Admin\Lkn_Wc_Cielo_Payment_Gateway_Admin;
+use Lkn\WcCieloPaymentGateway\Includes\Lkn_Wc_Cielo_Payment_Gateway_Loader;
+use Lkn\WcCieloPaymentGateway\Includes\Lkn_Wc_Gateway_Cielo_Credit;
+use Lkn\WcCieloPaymentGateway\Includes\Lkn_Wc_Gateway_Cielo_Debit;
+use Lkn\WcCieloPaymentGateway\Includes\Lkn_Wc_Cielo_Pix;
+use Lkn\WcCieloPaymentGateway\Includes\Lkn_Wc_Gateway_Cielo_Google_Pay;
+use Lkn\WcCieloPaymentGateway\Includes\Lkn_Wc_Gateway_Cielo_Endpoint;
+use Lkn\WcCieloPaymentGateway\Includes\Lkn_Wc_Cielo_Helper;
+use Lkn\WcCieloPaymentGateway\Includes\Lkn_Wc_Cielo_Credit_Blocks;
+use Lkn\WcCieloPaymentGateway\Includes\Lkn_Wc_Cielo_Debit_Blocks;
+use Lkn\WcCieloPaymentGateway\Includes\Lkn_Wc_Cielo_Pix_Blocks;
+use Lkn\WcCieloPaymentGateway\Includes\Lkn_Wc_Gateway_Cielo_Google_Pay_Blocks;
+use Lkn\WcCieloPaymentGateway\PublicView\Lkn_Wc_Cielo_Payment_Gateway_Public;
 
 /**
  * The file that defines the core plugin class
@@ -43,7 +43,7 @@ use Lkn\WcCieloPaymentGateway\PublicView\LknWcCieloPaymentGatewayPublic;
  * @subpackage LknWcCieloPaymentGateway/includes
  * @author     Link Nacional <contato@linknacional.com>
  */
-final class LknWcCieloPaymentGateway
+final class Lkn_Wc_Cielo_Payment_Gateway
 {
     /**
      * The loader that's responsible for maintaining and registering all hooks that power
@@ -51,7 +51,7 @@ final class LknWcCieloPaymentGateway
      *
      * @since    1.0.0
      * @access   protected
-     * @var      LknWcCieloPaymentGatewayLoader    $loader    Maintains and registers all hooks for the plugin.
+     * @var      Lkn_Wc_Cielo_Payment_Gateway_Loader    $loader    Maintains and registers all hooks for the plugin.
      */
     protected $loader;
 
@@ -91,35 +91,35 @@ final class LknWcCieloPaymentGateway
         }
         $this->plugin_name = 'lkn-wc-cielo-payment-gateway';
 
-        $this->load_dependencies();
-        $this->loader->add_action('plugins_loaded', $this, 'define_hooks');
+        $this->lkn_load_dependencies();
+        $this->loader->lkn_add_action('plugins_loaded', $this, 'lkn_define_hooks');
     }
 
     // Gateway classes
-    public $lknWcGatewayCieloCredit;
-    public $lknWcGatewayCieloDebit;
-    public $lknWcCieloPix;
-    public $lknWcGatewayCieloGooglePay;
-    public $lknWcGatewayCieloEndpoint;
-    public $lknWcCieloHelper;
+    public $lkn_wc_gateway_cielo_credit;
+    public $lkn_wc_gateway_cielo_debit;
+    public $lkn_wc_cielo_pix;
+    public $lkn_wc_gateway_cielo_google_pay;
+    public $lkn_wc_gateway_cielo_endpoint;
+    public $lkn_wc_cielo_helper;
 
     /**
      * Define os hooks somente quando woocommerce está ativo
      */
-    public function define_hooks(): void
+    public function lkn_define_hooks(): void
     {
         if (class_exists('WooCommerce')) {
-            $this->lknWcCieloPix = new LknWcCieloPix();
-            $this->define_admin_hooks();
-            $this->define_public_hooks();
+            $this->lkn_wc_cielo_pix = new Lkn_Wc_Cielo_Pix();
+            $this->lkn_define_admin_hooks();
+            $this->lkn_define_public_hooks();
         } else {
             // Aguarda WooCommerce ser carregado
-            $this->loader->add_action('admin_notices', $this, 'woocommerceMissingNotice');
+            $this->loader->lkn_add_action('admin_notices', $this, 'lkn_woocommerce_missing_notice');
         }
-        $this->run();
+        $this->lkn_run();
     }
 
-    public function woocommerceMissingNotice(): void
+    public function lkn_woocommerce_missing_notice(): void
     {
         deactivate_plugins(plugin_basename(WC_CIELO_PAYMENT_GATEWAY_BASE_FILE));
         include_once __DIR__ . '/views/notices/html-notice-woocommerce-missing.php';
@@ -130,10 +130,10 @@ final class LknWcCieloPaymentGateway
      *
      * Include the following files that make up the plugin:
      *
-     * - LknWcCieloPaymentGatewayLoader. Orchestrates the hooks of the plugin.
-     * - LknWcCieloPaymentGatewayI18n. Defines internationalization functionality.
-     * - LknWcCieloPaymentGatewayAdmin. Defines all hooks for the admin area.
-     * - LknWcCieloPaymentGatewayPublic. Defines all hooks for the public side of the site.
+     * - Lkn_Wc_Cielo_Payment_Gateway_Loader. Orchestrates the hooks of the plugin.
+     * - Lkn_Wc_Cielo_Payment_Gateway_I18n. Defines internationalization functionality.
+     * - Lkn_Wc_Cielo_Payment_Gateway_Admin. Defines all hooks for the admin area.
+     * - Lkn_Wc_Cielo_Payment_Gateway_Public. Defines all hooks for the public side of the site.
      *
      * Create an instance of the loader which will be used to register the hooks
      * with WordPress.
@@ -141,11 +141,11 @@ final class LknWcCieloPaymentGateway
      * @since    1.0.0
      * @access   private
      */
-    private function load_dependencies(): void
+    private function lkn_load_dependencies(): void
     {
-        $this->loader = new LknWcCieloPaymentGatewayLoader();
-        $this->lknWcGatewayCieloEndpoint = new LknWcGatewayCieloEndpoint();
-        $this->lknWcCieloHelper = new LknWcCieloHelper();
+        $this->loader = new Lkn_Wc_Cielo_Payment_Gateway_Loader();
+        $this->lkn_wc_gateway_cielo_endpoint = new Lkn_Wc_Gateway_Cielo_Endpoint();
+        $this->lkn_wc_cielo_helper = new Lkn_Wc_Cielo_Helper();
     }
 
     /**
@@ -155,17 +155,17 @@ final class LknWcCieloPaymentGateway
      * @since    1.0.0
      * @access   private
      */
-    private function define_admin_hooks(): void
+    private function lkn_define_admin_hooks(): void
     {
-        $plugin_admin = new LknWcCieloPaymentGatewayAdmin($this->get_plugin_name(), $this->get_version());
+        $plugin_admin = new Lkn_Wc_Cielo_Payment_Gateway_Admin($this->lkn_get_plugin_name(), $this->lkn_get_version());
 
-        $this->loader->add_action('admin_enqueue_scripts', $plugin_admin, 'enqueue_styles');
-        $this->loader->add_action('admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts');
-        $this->loader->add_action('admin_notices', $this, 'lkn_admin_notice');
-        $this->loader->add_filter('plugin_action_links_' . WC_CIELO_PAYMENT_GATEWAY_FILE_BASENAME, $this, 'lkn_wc_cielo_plugin_row_meta', 10, 2);
-        $this->loader->add_filter('plugin_action_links_' . WC_CIELO_PAYMENT_GATEWAY_FILE_BASENAME, $this, 'lkn_wc_cielo_plugin_row_meta_pro', 10, 2);
+        $this->loader->lkn_add_action('admin_enqueue_scripts', $plugin_admin, 'lkn_enqueue_styles');
+        $this->loader->lkn_add_action('admin_enqueue_scripts', $plugin_admin, 'lkn_enqueue_scripts');
+        $this->loader->lkn_add_action('admin_notices', $this, 'lkn_admin_notice');
+        $this->loader->lkn_add_filter('plugin_action_links_' . WC_CIELO_PAYMENT_GATEWAY_FILE_BASENAME, $this, 'lkn_wc_cielo_plugin_row_meta', 10, 2);
+        $this->loader->lkn_add_filter('plugin_action_links_' . WC_CIELO_PAYMENT_GATEWAY_FILE_BASENAME, $this, 'lkn_wc_cielo_plugin_row_meta_pro', 10, 2);
         // Admin settings card for specific sections
-        $this->setup_admin_settings_card();
+        $this->lkn_setup_admin_settings_card();
     }
 
     /**
@@ -175,20 +175,20 @@ final class LknWcCieloPaymentGateway
      * @since    1.0.0
      * @access   private
      */
-    private function define_public_hooks(): void
+    private function lkn_define_public_hooks(): void
     {
-        $plugin_public = new LknWcCieloPaymentGatewayPublic($this->get_plugin_name(), $this->get_version());
+        $plugin_public = new Lkn_Wc_Cielo_Payment_Gateway_Public($this->lkn_get_plugin_name(), $this->lkn_get_version());
 
-        $this->loader->add_action('wp_enqueue_scripts', $plugin_public, 'enqueue_styles');
-        $this->loader->add_action('wp_enqueue_scripts', $plugin_public, 'enqueue_scripts');
-        $this->loader->add_filter('woocommerce_payment_gateways', $this, 'add_gateway');
-        $this->loader->add_action('rest_api_init', $this->lknWcGatewayCieloEndpoint, 'registerOrderCaptureEndPoint');
-        $this->loader->add_action('add_meta_boxes', $this->lknWcCieloHelper, 'showOrderLogs');
-        $this->loader->add_action('woocommerce_order_details_after_order_table', $this->lknWcCieloPix, 'showPix');
-        $this->loader->add_filter('woocommerce_get_order_item_totals', $this, 'new_order_item_totals', 10, 3);
+        $this->loader->lkn_add_action('wp_enqueue_scripts', $plugin_public, 'lkn_enqueue_styles');
+        $this->loader->lkn_add_action('wp_enqueue_scripts', $plugin_public, 'lkn_enqueue_scripts');
+        $this->loader->lkn_add_filter('woocommerce_payment_gateways', $this, 'lkn_add_gateway');
+        $this->loader->lkn_add_action('rest_api_init', $this->lkn_wc_gateway_cielo_endpoint, 'lkn_register_order_capture_endpoint');
+        $this->loader->lkn_add_action('add_meta_boxes', $this->lkn_wc_cielo_helper, 'lkn_show_order_logs');
+        $this->loader->lkn_add_action('woocommerce_order_details_after_order_table', $this->lkn_wc_cielo_pix, 'lkn_show_pix');
+        $this->loader->lkn_add_filter('woocommerce_get_order_item_totals', $this, 'lkn_new_order_item_totals', 10, 3);
         // WooCommerce Blocks compatibility
-        $this->loader->add_action('before_woocommerce_init', $this, 'wcEditorBlocksActive');
-        $this->loader->add_action('woocommerce_blocks_payment_method_type_registration', $this, 'wcEditorBlocksAddPaymentMethod');
+        $this->loader->lkn_add_action('before_woocommerce_init', $this, 'lkn_wc_editor_blocks_active');
+        $this->loader->lkn_add_action('woocommerce_blocks_payment_method_type_registration', $this, 'lkn_wc_editor_blocks_add_payment_method');
 
     }
 
@@ -198,7 +198,7 @@ final class LknWcCieloPaymentGateway
      * @since    1.0.0
      * @access   private
      */
-    private function setup_admin_settings_card(): void
+    private function lkn_setup_admin_settings_card(): void
     {
         $page    = isset($_GET['page']) ? sanitize_text_field(wp_unslash($_GET['page'])) : '';
         $tab     = isset($_GET['tab']) ? sanitize_text_field(wp_unslash($_GET['tab'])) : '';
@@ -218,7 +218,7 @@ final class LknWcCieloPaymentGateway
             $tab === 'checkout' &&
             in_array($section, $sections, true)
         ) {
-            $this->loader->add_action('woocommerce_init', $this, 'load_admin_settings_assets');
+            $this->loader->lkn_add_action('woocommerce_init', $this, 'lkn_load_admin_settings_assets');
         }
     }
 
@@ -227,7 +227,7 @@ final class LknWcCieloPaymentGateway
      *
      * @since    1.0.0
      */
-    public function load_admin_settings_assets(): void
+    public function lkn_load_admin_settings_assets(): void
     {
         $versions = 'Plugin Cielo v' . WC_CIELO_PAYMENT_GATEWAY_VERSION;
         if (defined('LKN_CIELO_API_PRO_VERSION')) {
@@ -270,9 +270,9 @@ final class LknWcCieloPaymentGateway
      *
      * @since    1.0.0
      */
-    public function run(): void
+    public function lkn_run(): void
     {
-        $this->loader->run();
+        $this->loader->lkn_run();
     }
 
     /**
@@ -282,7 +282,7 @@ final class LknWcCieloPaymentGateway
      * @since     1.0.0
      * @return    string    The name of the plugin.
      */
-    public function get_plugin_name()
+    public function lkn_get_plugin_name()
     {
         return $this->plugin_name;
     }
@@ -291,9 +291,9 @@ final class LknWcCieloPaymentGateway
      * The reference to the class that orchestrates the hooks with the plugin.
      *
      * @since     1.0.0
-     * @return    LknWcCieloPaymentGatewayLoader    Orchestrates the hooks of the plugin.
+     * @return    Lkn_Wc_Cielo_Payment_Gateway_Loader    Orchestrates the hooks of the plugin.
      */
-    public function get_loader()
+    public function lkn_get_loader()
     {
         return $this->loader;
     }
@@ -304,7 +304,7 @@ final class LknWcCieloPaymentGateway
      * @since     1.0.0
      * @return    string    The version number of the plugin.
      */
-    public function get_version()
+    public function lkn_get_version()
     {
         return $this->version;
     }
@@ -314,17 +314,17 @@ final class LknWcCieloPaymentGateway
      *
      * @param array $gateways
      */
-    public function add_gateway($methods)
+    public function lkn_add_gateway($methods)
     {
-        $lknWcGatewayCieloCreditClass = new LknWcGatewayCieloCredit();
-        $lknWcGatewayCieloDebitClass = new LknWcGatewayCieloDebit();
-        $lknWcGatewayCieloPixClass = new LknWcCieloPix();
-        $lknWcGatewayCieloGooglePayClass = new LknWcGatewayCieloGooglePay();
+        $lkn_wc_gateway_cielo_credit_class = new Lkn_Wc_Gateway_Cielo_Credit();
+        $lkn_wc_gateway_cielo_debit_class = new Lkn_Wc_Gateway_Cielo_Debit();
+        $lkn_wc_gateway_cielo_pix_class = new Lkn_Wc_Cielo_Pix();
+        $lkn_wc_gateway_cielo_google_pay_class = new Lkn_Wc_Gateway_Cielo_Google_Pay();
 
-        array_push($methods, $lknWcGatewayCieloCreditClass);
-        array_push($methods, $lknWcGatewayCieloDebitClass);
-        array_push($methods, $lknWcGatewayCieloPixClass);
-        array_push($methods, $lknWcGatewayCieloGooglePayClass);
+        array_push($methods, $lkn_wc_gateway_cielo_credit_class);
+        array_push($methods, $lkn_wc_gateway_cielo_debit_class);
+        array_push($methods, $lkn_wc_gateway_cielo_pix_class);
+        array_push($methods, $lkn_wc_gateway_cielo_google_pay_class);
 
         return $methods;
     }
@@ -342,7 +342,7 @@ final class LknWcCieloPaymentGateway
     /**
      * Declare WooCommerce Blocks compatibility
      */
-    public function wcEditorBlocksActive(): void
+    public function lkn_wc_editor_blocks_active(): void
     {
         if (class_exists('\Automattic\WooCommerce\Utilities\FeaturesUtil')) {
             \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility(
@@ -356,16 +356,16 @@ final class LknWcCieloPaymentGateway
     /**
      * Register WooCommerce Blocks payment methods
      */
-    public function wcEditorBlocksAddPaymentMethod(\Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry): void
+    public function lkn_wc_editor_blocks_add_payment_method(\Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry): void
     {
         if (! class_exists('Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType')) {
             return;
         }
 
-        $payment_method_registry->register(new LknWcCieloCreditBlocks());
-        $payment_method_registry->register(new LknWcCieloDebitBlocks());
-        $payment_method_registry->register(new LknWcCieloPixBlocks());
-        $payment_method_registry->register(new LknWcGatewayCieloGooglePayBlocks());
+        $payment_method_registry->register(new Lkn_Wc_Cielo_Credit_Blocks());
+        $payment_method_registry->register(new Lkn_Wc_Cielo_Debit_Blocks());
+        $payment_method_registry->register(new Lkn_Wc_Cielo_Pix_Blocks());
+        $payment_method_registry->register(new Lkn_Wc_Gateway_Cielo_Google_Pay_Blocks());
     }
 
     /**
@@ -426,7 +426,7 @@ final class LknWcCieloPaymentGateway
      * @param WC_Order $order
      * @param string $tax_display
      */
-    public function new_order_item_totals($total_rows, $order, $tax_display)
+    public function lkn_new_order_item_totals($total_rows, $order, $tax_display)
     {
         $payment_method = $order->get_payment_method();
 

@@ -2,7 +2,7 @@
 
 namespace Lkn\WcCieloPaymentGateway\Includes;
 
-use Lkn\WcCieloPaymentGateway\Includes\LknWcCieloHelper;
+use Lkn\WcCieloPaymentGateway\Includes\Lkn_Wc_Cielo_Helper;
 use DateTime;
 use Exception;
 use WC_Logger;
@@ -30,7 +30,7 @@ if (! defined('ABSPATH')) {
  *
  * @version  1.0.0
  */
-final class LknWcGatewayCieloGooglePay extends WC_Payment_Gateway
+final class Lkn_Wc_Gateway_Cielo_Google_Pay extends WC_Payment_Gateway
 {
     public $instructions = '';
 
@@ -51,11 +51,11 @@ final class LknWcGatewayCieloGooglePay extends WC_Payment_Gateway
         $this->method_description = __('Allows Google Pay payment with Cielo API 3.0.', 'lkn-wc-gateway-cielo');
 
         // Load the settings.
-        $this->init_form_fields();
+        $this->lkn_init_form_fields();
         $this->init_settings();
 
         // Define user set variables.
-        $this->icon = LknWcCieloHelper::getIconUrl();
+        $this->icon = Lkn_Wc_Cielo_Helper::getIconUrl();
         $this->title = $this->get_option('title');
         $this->description = $this->get_option('description');
         $this->instructions = $this->get_option('instructions', $this->description);
@@ -67,14 +67,14 @@ final class LknWcGatewayCieloGooglePay extends WC_Payment_Gateway
 
         // Action hook to load admin JavaScript
         if (function_exists('get_plugins')) {
-            add_action('admin_enqueue_scripts', array($this, 'admin_load_script'));
+            add_action('admin_enqueue_scripts', array($this, 'lkn_admin_load_script'));
         }
     }
 
     /**
      * Load admin JavaScript for the admin page.
      */
-    public function admin_load_script(): void
+    public function lkn_admin_load_script(): void
     {
         wp_enqueue_script('lkn-wc-gateway-admin', WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'Admin/js/lkn-wc-gateway-admin.js', array('wp-i18n'), $this->version, 'all');
 
@@ -168,7 +168,7 @@ final class LknWcGatewayCieloGooglePay extends WC_Payment_Gateway
     /**
      * Initialise Gateway Settings Form Fields.
      */
-    public function init_form_fields(): void
+    public function lkn_init_form_fields(): void
     {
         $this->form_fields = array(
             'general' => array(
@@ -367,7 +367,7 @@ final class LknWcGatewayCieloGooglePay extends WC_Payment_Gateway
 
         if (! wp_verify_nonce($nonce, 'nonce_lkn_cielo_google_pay') && 'no' === $nonceInactive) {
             $this->log->log('error', 'Nonce verification failed. Nonce: ' . var_export($nonce, true), array('source' => 'woocommerce-cielo-google-pay'));
-            $this->add_notice_once(__('Nonce verification failed, try reloading the page', 'lkn-wc-gateway-cielo'), 'error');
+            $this->lkn_add_notice_once(__('Nonce verification failed, try reloading the page', 'lkn-wc-gateway-cielo'), 'error');
             throw new Exception(esc_attr(__('Nonce verification failed, try reloading the page', 'lkn-wc-gateway-cielo')));
         }
         // Validate and sanitize google_pay_data
@@ -439,7 +439,7 @@ final class LknWcGatewayCieloGooglePay extends WC_Payment_Gateway
         $responseDecoded = json_decode($response['body']);
 
         if ($this->get_option('debug') === 'yes') {
-            $lknWcCieloHelper = new LknWcCieloHelper();
+            $lknWcCieloHelper = new Lkn_Wc_Cielo_Helper();
 
             $orderLogsArray = array(
                 'url' => $url . '1/sales',
@@ -568,7 +568,7 @@ final class LknWcGatewayCieloGooglePay extends WC_Payment_Gateway
      * @param string $message
      * @param string $type
      */
-    private function add_notice_once($message, $type): void
+    private function lkn_add_notice_once($message, $type): void
     {
         if (! wc_has_notice($message, $type)) {
             wc_add_notice($message, $type);

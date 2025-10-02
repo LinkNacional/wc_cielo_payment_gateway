@@ -2,14 +2,14 @@
 
 namespace Lkn\WcCieloPaymentGateway\Includes;
 
-use Lkn\WcCieloPaymentGateway\Includes\LknWcGatewayCieloDebit;
+use Lkn\WcCieloPaymentGateway\Includes\Lkn_Wc_Gateway_Cielo_Debit;
 use WC_Logger;
 use WP_Error;
 use WP_REST_Response;
 
-final class LknWcGatewayCieloEndpoint
+final class Lkn_Wc_Gateway_Cielo_Endpoint
 {
-    public function registerOrderCaptureEndPoint(): void
+    public function lkn_register_order_capture_endpoint(): void
     {
         register_rest_route('lknWCGatewayCielo', '/checkCard', array(
             'methods' => 'GET',
@@ -117,8 +117,8 @@ final class LknWcGatewayCieloEndpoint
 
     public function getAcessToken()
     {
-        $LknWcGatewayCieloDebitClass = new LknWcGatewayCieloDebit();
-        $acessToken = $LknWcGatewayCieloDebitClass->generate_debit_auth_token();
+        $Lkn_Wc_Gateway_Cielo_DebitClass = new Lkn_Wc_Gateway_Cielo_Debit();
+        $acessToken = $Lkn_Wc_Gateway_Cielo_DebitClass->generate_debit_auth_token();
 
         return new WP_REST_Response($acessToken, 200);
     }

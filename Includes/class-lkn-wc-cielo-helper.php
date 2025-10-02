@@ -4,9 +4,9 @@ namespace Lkn\WcCieloPaymentGateway\Includes;
 
 use WC_Order;
 
-final class LknWcCieloHelper
+final class Lkn_Wc_Cielo_Helper
 {
-    public function showOrderLogs(): void
+    public function lkn_show_order_logs(): void
     {
         $id = isset($_GET['id']) ? sanitize_text_field(wp_unslash($_GET['id'])) : '';
         if (empty($id)) {

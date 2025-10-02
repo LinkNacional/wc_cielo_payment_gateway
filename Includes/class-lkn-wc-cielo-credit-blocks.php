@@ -3,9 +3,9 @@
 namespace Lkn\WcCieloPaymentGateway\Includes;
 
 use Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType;
-use Lkn\WcCieloPaymentGateway\Includes\LknWcGatewayCieloCredit;
+use Lkn\WcCieloPaymentGateway\Includes\Lkn_Wc_Gateway_Cielo_Credit;
 
-final class LknWcCieloCreditBlocks extends AbstractPaymentMethodType
+final class Lkn_Wc_Cielo_Credit_Blocks extends AbstractPaymentMethodType
 {
     private $gateway;
     protected $name = 'lkn_cielo_credit';
@@ -13,8 +13,8 @@ final class LknWcCieloCreditBlocks extends AbstractPaymentMethodType
     public function initialize(): void
     {
         $this->settings = get_option('woocommerce_lkn_cielo_credit_settings', array());
-        $lknWcGateWayCieloCredit = new LknWcGatewayCieloCredit();
-        $lknWcGateWayCieloCredit->initialize_payment_gateway_scripts();
+        $lknWcGateWayCieloCredit = new Lkn_Wc_Gateway_Cielo_Credit();
+        $lknWcGateWayCieloCredit->lkn_initialize_payment_gateway_scripts();
         $this->gateway = $lknWcGateWayCieloCredit;
     }
 
@@ -91,7 +91,7 @@ final class LknWcCieloCreditBlocks extends AbstractPaymentMethodType
         }
         /**
          * @param $installments array
-         * @param $gateway LknWcGatewayCieloCredit - Payment Gateway instance
+         * @param $gateway Lkn_Wc_Gateway_Cielo_Credit - Payment Gateway instance
          */
         $installments = apply_filters('lkn_wc_cielo_set_installments', $installments, $this->gateway);
 

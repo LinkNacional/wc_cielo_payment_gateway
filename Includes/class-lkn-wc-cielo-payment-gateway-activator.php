@@ -22,7 +22,7 @@ namespace Lkn\WcCieloPaymentGateway\Includes;
  * @subpackage LknWcCieloPaymentGateway/includes
  * @author     Link Nacional <contato@linknacional.com>
  */
-final class LknWcCieloPaymentGatewayActivator {
+final class Lkn_Wc_Cielo_Payment_Gateway_Activator {
 
     /**
      * Short Description. (use period)
@@ -31,7 +31,7 @@ final class LknWcCieloPaymentGatewayActivator {
      *
      * @since    1.0.0
      */
-    public static function activate(): void {
+    public static function lkn_activate(): void {
         // Activation code here if needed
     }
 

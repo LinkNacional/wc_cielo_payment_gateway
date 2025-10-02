@@ -7,7 +7,12 @@
             "Lkn\\WcCieloPaymentGateway\\Includes\\": "Includes/",
             "Lkn\\WcCieloPaymentGateway\\Admin\\": "Admin/",
             "Lkn\\WcCieloPaymentGateway\\PublicView\\": "Public/"
-        }
+        },
+        "classmap": [
+            "Includes/",
+            "Admin/",
+            "Public/"
+        ]
     },
     "authors": [
         {
