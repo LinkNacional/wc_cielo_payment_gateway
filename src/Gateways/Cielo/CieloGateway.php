@@ -311,4 +311,95 @@ class CieloGateway extends AbstractApiGateway
         // Same validation as credit card
         $this->validateCreditCardData($data);
     }
+
+    /**
+     * Processa um pagamento com Google Pay (implementação da interface)
+     *
+     * @param array $google_pay_data Dados do Google Pay
+     * @return array Resposta do processamento do Google Pay
+     * @throws PaymentException
+     */
+    public function processGooglePayPayment(array $google_pay_data): array
+    {
+        $this->validatePaymentData($google_pay_data);
+
+        $requestData = $this->buildGooglePayRequest($google_pay_data);
+        
+        return $this->makeApiRequest('POST', '1/sales/', $requestData);
+    }
+
+    /**
+     * Consulta o status de uma transação (implementação da interface)
+     *
+     * @param string $transaction_id ID da transação
+     * @return array Status da transação
+     * @throws PaymentException
+     */
+    public function getTransactionStatus(string $transaction_id): array
+    {
+        return $this->getPaymentStatus($transaction_id);
+    }
+
+    /**
+     * Cancela uma transação (implementação da interface)
+     *
+     * @param string $transaction_id ID da transação
+     * @return array Resposta do cancelamento
+     * @throws PaymentException
+     */
+    public function cancelTransaction(string $transaction_id): array
+    {
+        return $this->cancelPayment($transaction_id);
+    }
+
+    /**
+     * Captura uma transação pré-autorizada (implementação da interface)
+     *
+     * @param string $transaction_id ID da transação
+     * @param float $amount Valor a ser capturado
+     * @return array Resposta da captura
+     * @throws PaymentException
+     */
+    public function captureTransaction(string $transaction_id, float $amount): array
+    {
+        return $this->capturePayment($transaction_id, $amount);
+    }
+
+    /**
+     * Obtém as configurações necessárias para o gateway (implementação da interface)
+     *
+     * @return array Array com as configurações obrigatórias
+     */
+    public function getRequiredSettings(): array
+    {
+        return [
+            'merchant_id' => 'ID do Merchant Cielo',
+            'merchant_key' => 'Chave do Merchant Cielo',
+            'environment' => 'Ambiente (sandbox/production)',
+            'soft_descriptor' => 'Descrição na Fatura'
+        ];
+    }
+
+    /**
+     * Constrói request para Google Pay
+     *
+     * @param array $data Dados do Google Pay
+     * @return array Request data
+     */
+    private function buildGooglePayRequest(array $data): array
+    {
+        return [
+            'MerchantOrderId' => $data['order_id'],
+            'Customer' => $this->buildCustomerData($data['customer'] ?? []),
+            'Payment' => [
+                'Type' => 'DebitCard',
+                'Amount' => $this->formatAmount($data['amount']),
+                'Currency' => $data['currency'] ?? 'BRL',
+                'DebitCard' => [
+                    'PaymentToken' => $data['payment_token'] ?? '',
+                    'Brand' => $data['brand'] ?? 'Visa'
+                ]
+            ]
+        ];
+    }
 }

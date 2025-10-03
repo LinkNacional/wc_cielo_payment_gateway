@@ -373,20 +373,28 @@ final class Lkn_Wc_Cielo_Pix extends WC_Payment_Gateway
 
     public function process_payment($order_id)
     {
+        // LÓGICA WORDPRESS: Obter dados do pedido WooCommerce
         $order = wc_get_order($order_id);
-        $first_name = $order->get_billing_first_name();
-        $last_name = $order->get_billing_last_name();
         $paymentComplete = true;
+        
         try {
-            // Verificação de nome
+            // NOVA ARQUITETURA: Usar Service Container da camada PSR-4
+            $gatewayAdapter = \Lkn\WcCieloPaymentGateway\Services\GatewayServiceAdapter::getServiceContainer();
+            $cieloGateway = $gatewayAdapter->get('cieloGateway');
+            
+            // LÓGICA WORDPRESS: Validação de dados do WooCommerce  
+            $first_name = $order->get_billing_first_name();
+            $last_name = $order->get_billing_last_name();
             $firstName = sanitize_text_field($first_name);
             $lastName = sanitize_text_field($last_name);
             $currency = (string) $order->get_currency();
-
             $fullName = $firstName . ' ' . $lastName;
+            
             if (empty($fullName)) {
                 throw new Exception('Nome não informado');
             }
+            
+            // LÓGICA WORDPRESS: Sanitização e validação CPF/CNPJ
             if (isset($_POST['billing_cpf']) && '' === $_POST['billing_cpf']) {
                 $_POST['billing_cpf'] = isset($_POST['billing_cnpj']) ? sanitize_text_field(wp_unslash($_POST['billing_cnpj'])) : '';
             }
@@ -397,8 +405,10 @@ final class Lkn_Wc_Cielo_Pix extends WC_Payment_Gateway
             if ('' === $billingCpfCpnj['Identity'] || ! $this->validateCpfCnpj($billingCpfCpnj['Identity'])) {
                 throw new Exception(__('Please enter a valid CPF or CNPJ.', 'lkn-wc-gateway-cielo'));
             }
+            
             $amount = number_format((float) $order->get_total(), 2, '.', '');
 
+            // LÓGICA WORDPRESS: Aplicar filtros do WordPress
             if ('BRL' != $currency) {
                 $amount = apply_filters('lkn_wc_cielo_convert_amount', $amount, $currency);
                 $order->add_order_note('Amount converted: ' . $amount);
@@ -408,25 +418,35 @@ final class Lkn_Wc_Cielo_Pix extends WC_Payment_Gateway
                 throw new Exception('Não foi possivel recuperar o valor da compra!', 1);
             }
 
-            $response = self::$request->pix_request($fullName, $amount, $billingCpfCpnj, $this, $order);
+            // NOVA ARQUITETURA PSR-4: Usar CieloGateway para lógica de negócio
+            $pixData = [
+                'order_id' => $order_id,
+                'amount' => floatval($amount),
+                'currency' => $currency,
+                'customer' => [
+                    'name' => $fullName,
+                    'identity' => $billingCpfCpnj['Identity'],
+                    'identity_type' => $billingCpfCpnj['IdentityType']
+                ]
+            ];
 
-            if (isset($response['sucess']) && $response['sucess'] === false) {
-                throw new Exception(json_encode($response['response']), 1);
-            }
-            if (! is_array($response) && ! is_object($response)) {
-                throw new Exception(json_encode($response), 1);
-            }
-            if (! $response['response']) {
-                throw new Exception('Erro na Requisição. Tente novamente!', 1);
+            // CAMADA PSR-4: Processar PIX com lógica pura
+            $response = $cieloGateway->createPixTransaction($pixData);
+
+            if (!$response || isset($response['error'])) {
+                throw new Exception('Erro na Requisição Cielo API. Tente novamente!', 1);
             }
 
-            if (! wp_next_scheduled('lkn_schedule_check_payment_hook', array($response["response"]["paymentId"], $order_id))) {
-                wp_schedule_event(time(), "every_minute", 'lkn_schedule_check_payment_hook', array($response["response"]["paymentId"], $order_id));
+            // LÓGICA WORDPRESS: Usar WordPress CRON para agendamento
+            $paymentId = $response['PaymentId'] ?? '';
+            if ($paymentId && ! wp_next_scheduled('lkn_schedule_check_payment_hook', array($paymentId, $order_id))) {
+                wp_schedule_event(time(), "every_minute", 'lkn_schedule_check_payment_hook', array($paymentId, $order_id));
             }
 
-            $order->update_meta_data('_wc_cielo_qrcode_image', $response['response']['qrcodeImage']);
-            $order->update_meta_data('_wc_cielo_qrcode_string', $response['response']['qrcodeString']);
-            $order->update_meta_data('_wc_cielo_qrcode_payment_id', $response['response']['paymentId']);
+            // LÓGICA WORDPRESS: Salvar metadados no WooCommerce
+            $order->update_meta_data('_wc_cielo_qrcode_image', $response['QrCodeBase64Image'] ?? '');
+            $order->update_meta_data('_wc_cielo_qrcode_string', $response['QrCodeString'] ?? '');
+            $order->update_meta_data('_wc_cielo_qrcode_payment_id', $paymentId);
 
             $order->save();
         } catch (Exception $err) {

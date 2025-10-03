@@ -2,7 +2,7 @@
 
 namespace Lkn\WcCieloPaymentGateway\Gateways;
 
-// use Lkn\WcCieloPaymentGateway\Contracts\PaymentApiInterface;
+use Lkn\WcCieloPaymentGateway\Contracts\PaymentApiInterface;
 use Lkn\WcCieloPaymentGateway\Services\HttpClient;
 use Lkn\WcCieloPaymentGateway\Services\SimpleSettingsManager;
 use Lkn\WcCieloPaymentGateway\Exceptions\PaymentException;
@@ -15,7 +15,7 @@ use Lkn\WcCieloPaymentGateway\Exceptions\ValidationException;
  *
  * @since 1.25.0
  */
-abstract class AbstractApiGateway // implements PaymentApiInterface
+abstract class AbstractApiGateway implements PaymentApiInterface
 {
     /**
      * HTTP client for API requests
@@ -187,6 +187,60 @@ abstract class AbstractApiGateway // implements PaymentApiInterface
     {
         return (int) round($amount * 100);
     }
+
+    /**
+     * Métodos abstratos da interface PaymentApiInterface que devem ser implementados pelas classes filhas
+     */
+    
+    /**
+     * Processa um pagamento - método abstrato
+     */
+    abstract public function processPayment(array $payment_data): array;
+
+    /**
+     * Cria uma transação PIX - método abstrato
+     */
+    abstract public function createPixTransaction(array $pix_data): array;
+
+    /**
+     * Processa um pagamento com cartão de crédito - método abstrato
+     */
+    abstract public function processCreditPayment(array $credit_data): array;
+
+    /**
+     * Processa um pagamento com cartão de débito - método abstrato
+     */
+    abstract public function processDebitPayment(array $debit_data): array;
+
+    /**
+     * Processa um pagamento com Google Pay - método abstrato
+     */
+    abstract public function processGooglePayPayment(array $google_pay_data): array;
+
+    /**
+     * Consulta o status de uma transação - método abstrato
+     */
+    abstract public function getTransactionStatus(string $transaction_id): array;
+
+    /**
+     * Cancela uma transação - método abstrato
+     */
+    abstract public function cancelTransaction(string $transaction_id): array;
+
+    /**
+     * Captura uma transação pré-autorizada - método abstrato
+     */
+    abstract public function captureTransaction(string $transaction_id, float $amount): array;
+
+    /**
+     * Processa webhook de notificação - método abstrato
+     */
+    abstract public function processWebhook(array $webhook_data): array;
+
+    /**
+     * Obtém as configurações necessárias para o gateway - método abstrato
+     */
+    abstract public function getRequiredSettings(): array;
 
     /**
      * Validate payment credentials

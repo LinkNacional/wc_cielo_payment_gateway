@@ -661,6 +661,7 @@ final class Lkn_Wc_Gateway_Cielo_Credit extends WC_Payment_Gateway
      */
     public function process_payment($order_id)
     {
+        // LÓGICA WORDPRESS: Validação de nonce de segurança
         $nonceInactive = $this->get_option('nonce_compatibility', 'no');
         $nonce = isset($_POST['nonce_lkn_cielo_credit']) ? sanitize_text_field(wp_unslash($_POST['nonce_lkn_cielo_credit'])) : '';
 
@@ -670,9 +671,14 @@ final class Lkn_Wc_Gateway_Cielo_Credit extends WC_Payment_Gateway
             throw new Exception(esc_attr(__('Nonce verification failed, try reloading the page', 'lkn-wc-gateway-cielo')));
         }
 
+        // NOVA ARQUITETURA: Usar Service Container da camada PSR-4
+        $gatewayAdapter = \Lkn\WcCieloPaymentGateway\Services\GatewayServiceAdapter::getServiceContainer();
+        $cieloGateway = $gatewayAdapter->get('cieloGateway');
+
+        // LÓGICA WORDPRESS: Obter dados do pedido WooCommerce
         $order = wc_get_order($order_id);
 
-        // Card parameters
+        // LÓGICA WORDPRESS: Sanitização e validação de dados do cartão
         $cardNum = preg_replace('/\s/', '', isset($_POST['lkn_ccno']) ? sanitize_text_field(wp_unslash($_POST['lkn_ccno'])) : '');
         $cardExpSplit = explode('/', preg_replace('/\s/', '', isset($_POST['lkn_cc_expdate']) ? sanitize_text_field(wp_unslash($_POST['lkn_cc_expdate'])) : ''));
         $cardExp = $cardExpSplit[0] . '/20' . $cardExpSplit[1];
