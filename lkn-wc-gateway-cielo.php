@@ -115,6 +115,16 @@ final class LknWCCieloPayment
 
         add_action('woocommerce_order_details_after_order_table', array('Lkn\WCCieloPaymentGateway\Includes\LknWcCieloPix', 'showPix'));
 
+        add_action('lkn_schedule_check_free_pix_payment_hook', array('Lkn\WCCieloPaymentGateway\Includes\LknWcCieloRequest', 'check_payment'), 10, 2);
+
+        add_filter('cron_schedules', function($schedules) {
+            $schedules['pix_free_every_minute'] = array(
+                'interval' => 60,
+                'display'  => __('Pix FREE Every Minute')
+            );
+            return $schedules;
+        });
+
         $page    = isset($_GET['page']) ? sanitize_text_field(wp_unslash($_GET['page'])) : '';
         $tab     = isset($_GET['tab']) ? sanitize_text_field(wp_unslash($_GET['tab'])) : '';
         $section = isset($_GET['section']) ? sanitize_text_field(wp_unslash($_GET['section'])) : '';
