@@ -4,15 +4,15 @@
     "license": "Proprietary",
     "autoload": {
         "psr-4": {
-            "Lkn\\WcCieloPaymentGateway\\Includes\\": "Includes/",
-            "Lkn\\WcCieloPaymentGateway\\Admin\\": "Admin/",
-            "Lkn\\WcCieloPaymentGateway\\PublicView\\": "Public/",
+            "Lkn\\WcCieloPaymentGateway\\Includes\\": "includes/",
+            "Lkn\\WcCieloPaymentGateway\\Admin\\": "admin/",
+            "Lkn\\WcCieloPaymentGateway\\PublicView\\": "public/",
             "Lkn\\WcCieloPaymentGateway\\": "src/"
         },
         "classmap": [
-            "Includes/",
-            "Admin/",
-            "Public/"
+            "includes/",
+            "admin/",
+            "public/"
         ]
     },
     "authors": [

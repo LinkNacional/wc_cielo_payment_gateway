@@ -27,7 +27,7 @@ final class Lkn_Wc_Gateway_Cielo_Google_Pay_Blocks extends AbstractPaymentMethod
         wp_enqueue_script('lknWCGatewayCieloGooglePayScript', 'https://pay.google.com/gp/p/js/pay.js', array('jquery'), LKN_WC_CIELO_VERSION, false);
         wp_register_script(
             'lkn_cielo_google_pay-blocks-integration',
-            WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'Public/js/lknCieloGooglePay.js',
+            WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'public/js/lknCieloGooglePay.js',
             array(
                 'wc-blocks-registry',
                 'wc-settings',

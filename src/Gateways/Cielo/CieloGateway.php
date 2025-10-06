@@ -176,13 +176,21 @@ class CieloGateway extends AbstractApiGateway
      */
     private function buildPixRequest(array $data): array
     {
-        $request = $this->buildPaymentRequest($data);
-        
-        $request['Payment']['Type'] = 'Pix';
-        $request['Payment']['ExpirationDate'] = $this->calculatePixExpiration($data['expiration_minutes'] ?? 15);
-        
-        // Remove installments for PIX
-        unset($request['Payment']['Installments']);
+        $identity = $data['customer']['identity'] ?? ($data['identity'] ?? '');
+        $identityType = $data['customer']['identity_type'] ?? ($data['identity_type'] ?? '');
+
+        $request = [
+            'MerchantOrderId' => $data['order_id'],
+            'Customer' => [
+                'Name' => $data['customer']['name'] ?? ($data['customer_name'] ?? ''),
+                'Identity' => $identity,
+                'IdentityType' => $identityType,
+            ],
+            'Payment' => [
+                'Type' => 'Pix',
+                'Amount' => $this->formatAmount($data['amount']), // Deve estar em centavos (ex: 100 = R$1,00)
+            ],
+        ];
 
         return $request;
     }

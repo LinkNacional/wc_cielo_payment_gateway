@@ -2,7 +2,7 @@
 if (! defined('ABSPATH')) {
     exit();
 }
-$telegramIconPath = LKN_WC_GATEWAY_CIELO_DIR . 'resources/img/telegram.svg';
+$telegramIconPath = LKN_WC_GATEWAY_CIELO_DIR . 'includes/assets/img/telegram.svg';
 $telegramIconContent = file_get_contents($telegramIconPath);
 
 ?>

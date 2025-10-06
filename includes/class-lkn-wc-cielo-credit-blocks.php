@@ -27,7 +27,7 @@ final class Lkn_Wc_Cielo_Credit_Blocks extends AbstractPaymentMethodType
     {
         wp_register_script(
             'lkn_cielo_credit-blocks-integration',
-            WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'Public/js/lknCieloCreditCompiled.js',
+            WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'public/js/lknCieloCreditCompiled.js',
             array(
                 'wc-blocks-registry',
                 'wc-settings',
@@ -52,7 +52,7 @@ final class Lkn_Wc_Cielo_Credit_Blocks extends AbstractPaymentMethodType
         }
 
         if ($pro_plugin_active && $pro_license_active && $custom_layout === 'yes' && $pro_plugin_version_valid) {
-            wp_enqueue_script('lkn-wc-gateway-credit-checkout-layout', WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'Public/js/lkn-wc-gateway-checkout-layout.js', array(), LKN_WC_CIELO_VERSION, false);
+            wp_enqueue_script('lkn-wc-gateway-credit-checkout-layout', WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'public/js/lkn-wc-gateway-checkout-layout.js', array(), LKN_WC_CIELO_VERSION, false);
             wp_localize_script('lkn-wc-gateway-credit-checkout-layout', 'lknCieloCardIcons', array(
                 'visa'       => plugin_dir_url(__FILE__) . '../resources/img/visa-icon.svg',
                 'mastercard' => plugin_dir_url(__FILE__) . '../resources/img/mastercard-icon.svg',
@@ -66,7 +66,7 @@ final class Lkn_Wc_Cielo_Credit_Blocks extends AbstractPaymentMethodType
                 'key' => plugin_dir_url(__FILE__) . '../resources/img/key.svg',
                 'lock'       => plugin_dir_url(__FILE__) . '../resources/img/lock.svg'
             ));
-            wp_enqueue_style('lkn-wc-gateway-credit-checkout-layout', WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'Admin/css/lkn-wc-gateway-credit-card-checkout-layout.css', array(), LKN_WC_CIELO_VERSION, 'all');
+            wp_enqueue_style('lkn-wc-gateway-credit-checkout-layout', WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'admin/css/lkn-wc-gateway-credit-card-checkout-layout.css', array(), LKN_WC_CIELO_VERSION, 'all');
         }
 
         do_action('lkn_wc_cielo_remove_cardholder_name', $this->gateway);

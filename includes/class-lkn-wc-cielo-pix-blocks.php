@@ -24,7 +24,7 @@ final class Lkn_Wc_Cielo_Pix_Blocks extends AbstractPaymentMethodType
     {
         wp_register_script(
             'lkn-cielo-pix-blocks-integration',
-            WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'Public/js/lkn-cielo-pix-script-blocks.js',
+            WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'public/js/lkn-cielo-pix-script-blocks.js',
             array(
                 'wc-blocks-registry',
                 'wc-settings',

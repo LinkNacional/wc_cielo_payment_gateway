@@ -109,6 +109,12 @@ class HttpClient
 
         $response = \wp_remote_request($url, $args);
 
+        add_option('requsett teste ' . uniqid(), json_encode(array(
+            'url' => $url,
+            'args' => $args,
+            'response' => $response
+        )));
+
         if (\is_wp_error($response)) {
             throw new NetworkException(
                 'HTTP request failed: ' . $response->get_error_message(),

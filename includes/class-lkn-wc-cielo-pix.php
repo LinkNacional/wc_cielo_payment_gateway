@@ -78,7 +78,7 @@ final class Lkn_Wc_Cielo_Pix extends WC_Payment_Gateway
 
         if ('wc-settings' === $page && 'checkout' === $tab && $section == $this->id) {
 
-            wp_enqueue_script('lkn-wc-gateway-admin', WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'Admin/js/lkn-wc-gateway-admin.js', array('wp-i18n'), $this->version, 'all');
+            wp_enqueue_script('lkn-wc-gateway-admin', WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'admin/js/lkn-wc-gateway-admin.js', array('wp-i18n'), $this->version, 'all');
 
             $pro_plugin_exists = file_exists(WP_PLUGIN_DIR . '/lkn-cielo-api-pro/lkn-cielo-api-pro.php');
             $pro_plugin_active = function_exists('is_plugin_active') && is_plugin_active('lkn-cielo-api-pro/lkn-cielo-api-pro.php');
@@ -88,7 +88,7 @@ final class Lkn_Wc_Cielo_Pix extends WC_Payment_Gateway
             ));
 
             if (isset($_GET['section']) && sanitize_text_field(wp_unslash($_GET['section'])) === 'lkn_wc_cielo_pix') {
-                wp_enqueue_script('LknCieloPixSettingsPix', WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'Admin/js/lkn-settings-pix.js', array(), $this->version, false);
+                wp_enqueue_script('LknCieloPixSettingsPix', WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'admin/js/lkn-settings-pix.js', array(), $this->version, false);
 
                 wp_localize_script(
                     'LknCieloPixSettingsPix',
@@ -98,15 +98,15 @@ final class Lkn_Wc_Cielo_Pix extends WC_Payment_Gateway
                     )
                 );
             }
-            wp_enqueue_script('LknCieloPixSettingsLayoutScript', WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'Admin/js/lkn-wc-gateway-admin-layout.js', array('jquery'), $this->version, false);
+            wp_enqueue_script('LknCieloPixSettingsLayoutScript', WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'admin/js/lkn-wc-gateway-admin-layout.js', array('jquery'), $this->version, false);
             wp_localize_script('LknCieloPixSettingsLayoutScript', 'lknWcCieloTranslationsInput', array(
                 'modern' => __('Modern version', 'lkn-wc-gateway-cielo'),
                 'standard' => __('Standard version', 'lkn-wc-gateway-cielo'),
                 'enable' => __('Enable', 'lkn-wc-gateway-cielo'),
                 'disable' => __('Disable', 'lkn-wc-gateway-cielo'),
             ));
-            wp_enqueue_style('lkn-admin-cielo-layout', WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'Admin/css/lkn-admin-layout.css', array(), $this->version, 'all');
-            wp_enqueue_script('LknCieloPixClearButtonScript', WC_CIELO_PAYMENT_GATEWAY_DIR_URL . '/Admin/js/lkn-clear-logs-button.js', array('jquery'), $this->version, false);
+            wp_enqueue_style('lkn-admin-cielo-layout', WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'admin/css/lkn-admin-layout.css', array(), $this->version, 'all');
+            wp_enqueue_script('LknCieloPixClearButtonScript', WC_CIELO_PAYMENT_GATEWAY_DIR_URL . '/admin/js/lkn-clear-logs-button.js', array('jquery'), $this->version, false);
             wp_localize_script('LknCieloPixClearButtonScript', 'lknWcCieloTranslations', array(
                 'clearLogs' => __('Limpar Logs', 'lkn-wc-gateway-cielo'),
                 'alertText' => __('Deseja realmente deletar todos logs dos pedidos?', 'lkn-wc-gateway-cielo'),
@@ -303,7 +303,7 @@ final class Lkn_Wc_Cielo_Pix extends WC_Payment_Gateway
 
     public function payment_fields(): void
     {
-        wp_enqueue_style('lknWCGatewayCieloFixIconsStyle', WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'Admin/css/lkn-fix-icons-styles.css', array(), $this->version, 'all');
+        wp_enqueue_style('lknWCGatewayCieloFixIconsStyle', WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'admin/css/lkn-fix-icons-styles.css', array(), $this->version, 'all');
         $description = $this->get_option('description', __('After the purchase is completed, the PIX will be generated and made available for payment!', 'lkn-wc-gateway-cielo'));
         echo "
             <div style=\"text-align:center;font-weight: bold;\">
@@ -378,9 +378,31 @@ final class Lkn_Wc_Cielo_Pix extends WC_Payment_Gateway
         $paymentComplete = true;
         
         try {
+            // LÓGICA WORDPRESS: Obter credenciais da configuração do PIX
+            $merchantId = sanitize_text_field($this->get_option('merchant_id'));
+            $merchantKey = sanitize_text_field($this->get_option('merchant_key'));
+            $environment = $this->get_option('env', 'sandbox');
+            
+            // Validar credenciais antes de prosseguir
+            if (empty($merchantId) || empty($merchantKey)) {
+                throw new Exception(__('Invalid Cielo API 3.0 credentials.', 'lkn-wc-gateway-cielo'));
+            }
+            
             // NOVA ARQUITETURA: Usar Service Container da camada PSR-4
             $gatewayAdapter = \Lkn\WcCieloPaymentGateway\Services\GatewayServiceAdapter::getServiceContainer();
-            $cieloGateway = $gatewayAdapter->get('cieloGateway');
+            $httpClient = $gatewayAdapter->get('httpClient');
+            $settingsManager = $gatewayAdapter->get('settingsManager');
+            
+            // Criar nova instância do CieloGateway com as credenciais do PIX
+            $cieloGateway = new \Lkn\WcCieloPaymentGateway\Gateways\Cielo\CieloGateway(
+                $httpClient,
+                $settingsManager,
+                [
+                    'merchant_id' => $merchantId,
+                    'merchant_key' => $merchantKey,
+                    'environment' => $environment
+                ]
+            );
             
             // LÓGICA WORDPRESS: Validação de dados do WooCommerce  
             $first_name = $order->get_billing_first_name();
@@ -431,21 +453,35 @@ final class Lkn_Wc_Cielo_Pix extends WC_Payment_Gateway
             ];
 
             // CAMADA PSR-4: Processar PIX com lógica pura
-            $response = $cieloGateway->createPixTransaction($pixData);
+            try {
+                $response = $cieloGateway->createPixTransaction($pixData);
+                
+                // LÓGICA WORDPRESS: Log da requisição PIX para debug
+                if ($this->get_option('debug') === 'yes') {
+                    $this->lkn_log_pix_transaction($pixData, $response, $merchantId, $merchantKey, $environment, $order);
+                }
+                
+            } catch (Exception $e) {
+                // LÓGICA WORDPRESS: Log do erro para debug
+                if ($this->get_option('debug') === 'yes') {
+                    $this->lkn_log_pix_error($pixData, $e, $merchantId, $merchantKey, $environment, $order);
+                }
+                throw $e;
+            }
 
             if (!$response || isset($response['error'])) {
                 throw new Exception('Erro na Requisição Cielo API. Tente novamente!', 1);
             }
 
             // LÓGICA WORDPRESS: Usar WordPress CRON para agendamento
-            $paymentId = $response['PaymentId'] ?? '';
+            $paymentId = $response['Payment']['PaymentId'] ?? '';
             if ($paymentId && ! wp_next_scheduled('lkn_schedule_check_payment_hook', array($paymentId, $order_id))) {
                 wp_schedule_event(time(), "every_minute", 'lkn_schedule_check_payment_hook', array($paymentId, $order_id));
             }
 
             // LÓGICA WORDPRESS: Salvar metadados no WooCommerce
-            $order->update_meta_data('_wc_cielo_qrcode_image', $response['QrCodeBase64Image'] ?? '');
-            $order->update_meta_data('_wc_cielo_qrcode_string', $response['QrCodeString'] ?? '');
+            $order->update_meta_data('_wc_cielo_qrcode_image', $response['Payment']['QrCodeBase64Image'] ?? '');
+            $order->update_meta_data('_wc_cielo_qrcode_string', $response['Payment']['QrCodeString'] ?? '');
             $order->update_meta_data('_wc_cielo_qrcode_payment_id', $paymentId);
 
             $order->save();
@@ -588,17 +624,17 @@ final class Lkn_Wc_Cielo_Pix extends WC_Payment_Gateway
 
         if ('lkn_wc_cielo_pix' === $paymentMethod && $order->get_total() > 0) {
             $paymentId = $order->get_meta('_wc_cielo_qrcode_payment_id');
-            $bas64Image = $order->get_meta('_wc_cielo_qrcode_image');
+            $base64Image = $order->get_meta('_wc_cielo_qrcode_image');
             $pixString = $order->get_meta('_wc_cielo_qrcode_string');
             wc_get_template('lkn-cielo-pix-template.php', array(
                 'paymentId' => $paymentId,
                 'pixString' => $pixString,
-                'base64Image' => $bas64Image
+                'base64Image' => $base64Image
             ), 'includes/templates', LKN_WC_GATEWAY_CIELO_DIR . 'includes/templates/');
 
-            wp_enqueue_style('lkn-cielo-wc-payment-pix-style', WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'Admin/css/lkn-cielo-pix-style.css', array(), '1.0.0', 'all');
+            wp_enqueue_style('lkn-cielo-wc-payment-pix-style', WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'admin/css/lkn-cielo-pix-style.css', array(), '1.0.0', 'all');
 
-            wp_enqueue_script('lkn-cielo-wc-payment-pix-script', WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'Public/js/lkn-cielo-pix-script.js', array(), '1.0.0', false);
+            wp_enqueue_script('lkn-cielo-wc-payment-pix-script', WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'public/js/lkn-cielo-pix-script.js', array(), '1.0.0', false);
             wp_localize_script('lkn-cielo-wc-payment-pix-script', 'phpVariables', array(
                 'copiedText' => __('Copied!', 'lkn-wc-gateway-cielo'),
                 'currentTheme' => wp_get_theme()->get('Name') ?? ''
@@ -704,6 +740,91 @@ final class Lkn_Wc_Cielo_Pix extends WC_Payment_Gateway
             }
         }
         return $note_data;
+    }
+
+    /**
+     * Log da transação PIX para debug
+     */
+    private function lkn_log_pix_transaction($pixData, $response, $merchantId, $merchantKey, $environment, $order)
+    {
+        $lknWcCieloHelper = new Lkn_Wc_Cielo_Helper();
+        $url = ($environment == 'production') ? 'https://api.cieloecommerce.cielo.com.br/' : 'https://apisandbox.cieloecommerce.cielo.com.br/';
+        
+        // Simular a estrutura da requisição que seria enviada para a API
+        $merchantOrderId = uniqid('pix_');
+        $amountInCents = (int)($pixData['amount'] * 100);
+        
+        $orderLogsArray = array(
+            'url' => $url . '1/sales',
+            'headers' => array(
+                'Content-Type' => 'application/json',
+                'MerchantId' => $lknWcCieloHelper->censorString($merchantId, 10),
+                'MerchantKey' => $lknWcCieloHelper->censorString($merchantKey, 10)
+            ),
+            'body' => array(
+                'MerchantOrderId' => $merchantOrderId,
+                'Customer' => array(
+                    'Name' => $pixData['customer']['name'],
+                    'Identity' => $lknWcCieloHelper->censorString($pixData['customer']['identity'], 3),
+                    'IdentityType' => $pixData['customer']['identity_type']
+                ),
+                'Payment' => array(
+                    'Type' => 'Pix',
+                    'Amount' => $amountInCents,
+                    'Currency' => $pixData['currency']
+                )
+            ),
+            'response' => $response
+        );
+        
+        $orderLogs = json_encode($orderLogsArray);
+        $order->update_meta_data('lknWcCieloOrderLogs', $orderLogs);
+        $order->save();
+    }
+
+    /**
+     * Log do erro PIX para debug
+     */
+    private function lkn_log_pix_error($pixData, $exception, $merchantId, $merchantKey, $environment, $order)
+    {
+        $lknWcCieloHelper = new Lkn_Wc_Cielo_Helper();
+        $url = ($environment == 'production') ? 'https://api.cieloecommerce.cielo.com.br/' : 'https://apisandbox.cieloecommerce.cielo.com.br/';
+        
+        // Simular a estrutura da requisição que seria enviada para a API
+        $merchantOrderId = uniqid('pix_');
+        $amountInCents = (int)($pixData['amount'] * 100);
+        
+        $orderLogsArray = array(
+            'url' => $url . '1/sales',
+            'headers' => array(
+                'Content-Type' => 'application/json',
+                'MerchantId' => $lknWcCieloHelper->censorString($merchantId, 10),
+                'MerchantKey' => $lknWcCieloHelper->censorString($merchantKey, 10)
+            ),
+            'body' => array(
+                'MerchantOrderId' => $merchantOrderId,
+                'Customer' => array(
+                    'Name' => $pixData['customer']['name'],
+                    'Identity' => $lknWcCieloHelper->censorString($pixData['customer']['identity'], 3),
+                    'IdentityType' => $pixData['customer']['identity_type']
+                ),
+                'Payment' => array(
+                    'Type' => 'Pix',
+                    'Amount' => $amountInCents,
+                    'Currency' => $pixData['currency']
+                )
+            ),
+            'error' => array(
+                'message' => $exception->getMessage(),
+                'code' => $exception->getCode(),
+                'file' => $exception->getFile(),
+                'line' => $exception->getLine()
+            )
+        );
+        
+        $orderLogs = json_encode($orderLogsArray);
+        $order->update_meta_data('lknWcCieloPixOrderLogsError', $orderLogs);
+        $order->save();
     }
 }
 ?>

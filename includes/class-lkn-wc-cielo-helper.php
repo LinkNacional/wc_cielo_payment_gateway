@@ -22,7 +22,7 @@ final class Lkn_Wc_Cielo_Helper
                 $options = get_option('woocommerce_' . $payment_method_id . '_settings');
                 if ($orderLogs && 'yes' === $options['show_order_logs']) {
                     //carregar css
-                    wp_enqueue_style('lkn-wc-cielo-order-logs', WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'Admin/css/lkn-admin-order-logs.css', array(), LKN_WC_CIELO_VERSION, 'all');
+                    wp_enqueue_style('lkn-wc-cielo-order-logs', WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'admin/css/lkn-admin-order-logs.css', array(), LKN_WC_CIELO_VERSION, 'all');
 
                     $screen = class_exists('\Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController') && wc_get_container()->get('Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController')->custom_orders_table_usage_is_enabled()
                         ? wc_get_page_screen_id('shop-order')
