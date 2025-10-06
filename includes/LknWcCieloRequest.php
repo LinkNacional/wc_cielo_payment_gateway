@@ -150,16 +150,17 @@ final class LknWcCieloRequest
         return $start . str_repeat('*', 8) . $end;
     }
 
-    public function check_payment($paymentId, $order_id): void
+    public static function check_payment($paymentId, $order_id): void
     {
         if (empty($paymentId)) {
-            $timestamp = wp_next_scheduled('lkn_schedule_check_payment_hook', array($paymentId, $order_id));
+            $timestamp = wp_next_scheduled('lkn_schedule_check_free_pix_payment_hook', array($paymentId, $order_id));
             if ($timestamp !== false) {
-                wp_unschedule_event($timestamp, 'lkn_schedule_check_payment_hook', array($paymentId, $order_id));
+                wp_unschedule_event($timestamp, 'lkn_schedule_check_free_pix_payment_hook', array($paymentId, $order_id));
             }
         } else {
+            $instance = new self();
             $order = wc_get_order($order_id);
-            $response = $this->payment_request($paymentId);
+            $response = $instance->payment_request($paymentId);
 
             $response = wp_remote_retrieve_body($response);
             if (! wp_next_scheduled('lkn_remove_custom_cron_job_hook', array($paymentId, $order_id))) {
@@ -167,9 +168,9 @@ final class LknWcCieloRequest
             }
 
             if (get_option('woocommerce_lkn_wc_cielo_pix_settings')['debug'] == 'yes') {
-                $this->log->notice($response, array('source' => 'woocommerce-cielo-pix'));
+                $instance->log->notice($response, array('source' => 'woocommerce-cielo-pix'));
             }
-            $order->update_status($this->update_status($response));
+            $order->update_status($instance->update_status($response));
         }
     }
 
@@ -188,7 +189,7 @@ final class LknWcCieloRequest
     private function update_status($response)
     {
         $response = json_decode($response, true);
-        if (! is_array($response)) {
+        if (!is_array($response) || !isset($response['Payment'])) {
             return 'cancelled';
         }
         $payment_status = (int) $response['Payment']['Status'];
@@ -217,8 +218,8 @@ final class LknWcCieloRequest
 
     private function payment_request($paymentId)
     {
-        $postUrl = get_option('woocommerce_lkn_lkn_wc_cielo_pix_settings')['env'] != 'sandbox' ? $this->queryUrl[1] : $this->queryUrl[0];
-        $options = get_option('woocommerce_lkn_lkn_wc_cielo_pix_settings');
+        $postUrl = get_option('woocommerce_lkn_wc_cielo_pix_settings')['env'] != 'sandbox' ? $this->queryUrl[1] : $this->queryUrl[0];
+        $options = get_option('woocommerce_lkn_wc_cielo_pix_settings');
 
         $header = array(
             'Content-Type' => 'application/json',
@@ -241,9 +242,9 @@ final class LknWcCieloRequest
 
     public function lkn_remove_custom_cron_job($paymentId, $orderId): void
     {
-        $timestamp = wp_next_scheduled('lkn_schedule_check_payment_hook', array($paymentId, $orderId));
+        $timestamp = wp_next_scheduled('lkn_schedule_check_free_pix_payment_hook', array($paymentId, $orderId));
         if ($timestamp !== false) {
-            wp_unschedule_event($timestamp, 'lkn_schedule_check_payment_hook', array($paymentId, $orderId));
+            wp_unschedule_event($timestamp, 'lkn_schedule_check_free_pix_payment_hook', array($paymentId, $orderId));
         }
         $timestamp = wp_next_scheduled('lkn_remove_custom_cron_job_hook', array($paymentId, $orderId));
         if ($timestamp !== false) {
