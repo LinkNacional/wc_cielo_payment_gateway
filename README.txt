@@ -100,6 +100,10 @@ This plugin uses the [React Credit Cards](https://github.com/amaroteam/react-cre
 7. Debit card front page with payment fields.
 
 == Changelog ==
+= 1.25.1 =
+** 06/10/2025 ** 
+* Fix in installment variable.
+
 = 1.25.0 =
 ** 12/09/2025 ** 
 * Adding of Google Pay payment gateway.

@@ -1,3 +1,6 @@
+# 1.25.1 - 06/10/2025
+* Correção na variável de parcelamento.
+
 # 1.25.0 - 12/09/2025
 * Adição do gateway de pagamento com Google Pay.
 * Adição do nome do gateway nas notas de pedido.
