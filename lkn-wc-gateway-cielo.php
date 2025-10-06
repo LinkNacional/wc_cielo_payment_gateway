@@ -120,7 +120,7 @@ final class LknWCCieloPayment
         add_filter('cron_schedules', function($schedules) {
             $schedules['pix_free_every_minute'] = array(
                 'interval' => 60,
-                'display'  => __('Pix FREE Every Minute')
+                'display'  => __('Pix FREE Every Minute', 'lkn-wc-gateway-cielo')
             );
             return $schedules;
         });
