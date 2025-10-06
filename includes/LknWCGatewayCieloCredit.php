@@ -680,7 +680,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         $cardCvv = isset($_POST['lkn_cc_cvc']) ? sanitize_text_field(wp_unslash($_POST['lkn_cc_cvc'])) : '';
         $cardName = isset($_POST['lkn_cc_cardholder_name']) ? sanitize_text_field(wp_unslash($_POST['lkn_cc_cardholder_name'])) : '';
         $cardName = apply_filters('lkn_wc_cielo_get_cardholder_name', $cardName, $this, $order);
-        $installments = 1;
+        $installments = (int) isset($_POST['lkn_cc_installments']) ? sanitize_text_field(wp_unslash($_POST['lkn_cc_installments'])) : 1;
 
         // POST parameters
         $url = ($this->get_option('env') == 'production') ? 'https://api.cieloecommerce.cielo.com.br/' : 'https://apisandbox.cieloecommerce.cielo.com.br/';
