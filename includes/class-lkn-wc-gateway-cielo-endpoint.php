@@ -2,7 +2,7 @@
 
 namespace Lkn\WcCieloPaymentGateway\Includes;
 
-use Lkn\WcCieloPaymentGateway\Includes\Lkn_Wc_Gateway_Cielo_Debit;
+use Lkn\WcCieloPaymentGateway\Integrations\Lkn_Wc_Gateway_Cielo_Debit;
 use WC_Logger;
 use WP_Error;
 use WP_REST_Response;

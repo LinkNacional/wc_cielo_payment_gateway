@@ -1,9 +1,8 @@
 <?php
 
-namespace Lkn\WcCieloPaymentGateway\Includes;
+namespace Lkn\WcCieloPaymentGateway\Integrations;
 
 use Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType;
-use Lkn\WcCieloPaymentGateway\Includes\Lkn_Wc_Gateway_Cielo_Debit;
 
 final class Lkn_Wc_Cielo_Debit_Blocks extends AbstractPaymentMethodType
 {
@@ -38,7 +37,7 @@ final class Lkn_Wc_Cielo_Debit_Blocks extends AbstractPaymentMethodType
 
         wp_register_script(
             'lkn_cielo_debit-blocks-integration',
-            WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'public/js/lknCieloDebitCompiled.js',
+            LKN_WC_GATEWAY_CIELO_URL . 'public/js/lknCieloDebitCompiled.js',
             array(
                 'wc-blocks-registry',
                 'wc-settings',
@@ -60,21 +59,21 @@ final class Lkn_Wc_Cielo_Debit_Blocks extends AbstractPaymentMethodType
         }
 
         if ($is_pro_plugin_valid) {
-            wp_enqueue_script('lkn-wc-gateway-debit-checkout-layout', WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'public/js/lkn-wc-gateway-checkout-layout.js', array(), LKN_WC_CIELO_VERSION, false);
+            wp_enqueue_script('lkn-wc-gateway-debit-checkout-layout', LKN_WC_GATEWAY_CIELO_URL . 'public/js/lkn-wc-gateway-checkout-layout.js', array(), LKN_WC_CIELO_VERSION, false);
             wp_localize_script('lkn-wc-gateway-debit-checkout-layout', 'lknCieloCardIcons', array(
-                'visa'       => plugin_dir_url(__FILE__) . '../resources/img/visa-icon.svg',
-                'mastercard' => plugin_dir_url(__FILE__) . '../resources/img/mastercard-icon.svg',
-                'amex'       => plugin_dir_url(__FILE__) . '../resources/img/amex-icon.svg',
-                'elo'        => plugin_dir_url(__FILE__) . '../resources/img/elo-icon.svg',
-                'other_card'        => plugin_dir_url(__FILE__) . '../resources/img/other-card.svg',
+                'visa'       => LKN_WC_GATEWAY_CIELO_URL . 'public/images/visa-icon.svg',
+                'mastercard' => LKN_WC_GATEWAY_CIELO_URL . 'public/images/mastercard-icon.svg',
+                'amex'       => LKN_WC_GATEWAY_CIELO_URL . 'public/images/amex-icon.svg',
+                'elo'        => LKN_WC_GATEWAY_CIELO_URL . 'public/images/elo-icon.svg',
+                'other_card' => LKN_WC_GATEWAY_CIELO_URL . 'public/images/other-card.svg',
                 'other_card_alt'    => __('other card', 'lkn-wc-gateway-cielo')
             ));
             wp_localize_script('lkn-wc-gateway-debit-checkout-layout', 'lknCieloInputIcons', array(
-                'calendar'       => plugin_dir_url(__FILE__) . '../resources/img/calendar.svg',
-                'key' => plugin_dir_url(__FILE__) . '../resources/img/key.svg',
-                'lock'       => plugin_dir_url(__FILE__) . '../resources/img/lock.svg'
+                'calendar' => LKN_WC_GATEWAY_CIELO_URL . 'public/images/calendar.svg',
+                'key'      => LKN_WC_GATEWAY_CIELO_URL . 'public/images/key.svg',
+                'lock'     => LKN_WC_GATEWAY_CIELO_URL . 'public/images/lock.svg'
             ));
-            wp_enqueue_style('lkn-wc-gateway-debit-checkout-layout', WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'admin/css/lkn-wc-gateway-debit-card-checkout-layout.css', array(), LKN_WC_CIELO_VERSION, 'all');
+            wp_enqueue_style('lkn-wc-gateway-debit-checkout-layout', LKN_WC_GATEWAY_CIELO_URL . 'admin/css/lkn-wc-gateway-debit-card-checkout-layout.css', array(), LKN_WC_CIELO_VERSION, 'all');
         }
 
         do_action('lkn_wc_cielo_remove_cardholder_name_3ds', $this->gateway);
@@ -107,9 +106,9 @@ final class Lkn_Wc_Cielo_Debit_Blocks extends AbstractPaymentMethodType
     public function get_payment_method_data()
     {
         if ($this->gateway->get_option('env') == 'sandbox') {
-            $dirScriptConfig3DS = WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'public/js/lkn-dc-script-sdb.js';
+            $dirScriptConfig3DS = LKN_WC_GATEWAY_CIELO_URL . 'public/js/lkn-dc-script-sdb.js';
         } else {
-            $dirScriptConfig3DS = WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'public/js/lkn-dc-script-prd.js';
+            $dirScriptConfig3DS = LKN_WC_GATEWAY_CIELO_URL . 'public/js/lkn-dc-script-prd.js';
         }
 
         $installmentMinAmount = apply_filters('lkn_wc_cielo_set_installment_min_amount', '5,00', $this->gateway);
@@ -144,7 +143,7 @@ final class Lkn_Wc_Cielo_Debit_Blocks extends AbstractPaymentMethodType
             'orderNumber' => uniqid(),
             'activeInstallment' => $this->gateway->get_option('installment_payment'),
             'activeDiscount' => $this->gateway->get_option('installment_discount', 'no'),
-            'dirScript3DS' => WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'public/js/BP.Mpi.3ds20.min.js',
+            'dirScript3DS' => LKN_WC_GATEWAY_CIELO_URL . 'public/js/BP.Mpi.3ds20.min.js',
             'dirScriptConfig3DS' => $dirScriptConfig3DS,
             'totalCart' => $this->gateway->lknGetCartTotal(),
             'nonceCieloDebit' => wp_create_nonce('nonce_lkn_cielo_debit'),

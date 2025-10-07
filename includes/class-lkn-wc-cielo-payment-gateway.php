@@ -4,22 +4,22 @@ namespace Lkn\WcCieloPaymentGateway\Includes;
 
 use Lkn\WcCieloPaymentGateway\Admin\Lkn_Wc_Cielo_Payment_Gateway_Admin;
 use Lkn\WcCieloPaymentGateway\Includes\Lkn_Wc_Cielo_Payment_Gateway_Loader;
-use Lkn\WcCieloPaymentGateway\Includes\Lkn_Wc_Gateway_Cielo_Credit;
-use Lkn\WcCieloPaymentGateway\Includes\Lkn_Wc_Gateway_Cielo_Debit;
-use Lkn\WcCieloPaymentGateway\Includes\Lkn_Wc_Cielo_Pix;
-use Lkn\WcCieloPaymentGateway\Includes\Lkn_Wc_Gateway_Cielo_Google_Pay;
 use Lkn\WcCieloPaymentGateway\Includes\Lkn_Wc_Gateway_Cielo_Endpoint;
 use Lkn\WcCieloPaymentGateway\Includes\Lkn_Wc_Cielo_Helper;
-use Lkn\WcCieloPaymentGateway\Includes\Lkn_Wc_Cielo_Credit_Blocks;
-use Lkn\WcCieloPaymentGateway\Includes\Lkn_Wc_Cielo_Debit_Blocks;
-use Lkn\WcCieloPaymentGateway\Includes\Lkn_Wc_Cielo_Pix_Blocks;
-use Lkn\WcCieloPaymentGateway\Includes\Lkn_Wc_Gateway_Cielo_Google_Pay_Blocks;
 use Lkn\WcCieloPaymentGateway\PublicView\Lkn_Wc_Cielo_Payment_Gateway_Public;
 use Lkn\WcCieloPaymentGateway\Services\ServiceContainer;
 use Lkn\WcCieloPaymentGateway\Services\HttpClient;
 use Lkn\WcCieloPaymentGateway\Services\SimpleSettingsManager;
 use Lkn\WcCieloPaymentGateway\Services\WebhookRouter;
 use Lkn\WcCieloPaymentGateway\Gateways\Cielo\CieloGateway;
+use Lkn\WcCieloPaymentGateway\Integrations\Lkn_Wc_Cielo_Credit_Blocks;
+use Lkn\WcCieloPaymentGateway\Integrations\Lkn_Wc_Cielo_Debit_Blocks;
+use Lkn\WcCieloPaymentGateway\Integrations\Lkn_Wc_Cielo_Pix_Blocks;
+use Lkn\WcCieloPaymentGateway\Integrations\Lkn_Wc_Gateway_Cielo_Credit;
+use Lkn\WcCieloPaymentGateway\Integrations\Lkn_Wc_Gateway_Cielo_Debit;
+use Lkn\WcCieloPaymentGateway\Integrations\Lkn_Wc_Gateway_Cielo_Google_Pay_Blocks;
+use Lkn\WcCieloPaymentGateway\Integrations\Lkn_Wc_Cielo_Pix;
+use Lkn\WcCieloPaymentGateway\Integrations\Lkn_Wc_Gateway_Cielo_Google_Pay;
 
 /**
  * The file that defines the core plugin class
@@ -287,9 +287,9 @@ final class Lkn_Wc_Cielo_Payment_Gateway
             $versions .= ' | WooCommerce v' . WC()->version;
         }
 
-        wp_enqueue_script('lknCieloForWoocommerceCard', WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'admin/js/lkn-woocommerce-admin-card.js', array('jquery'), WC_CIELO_PAYMENT_GATEWAY_VERSION, false);
-        wp_enqueue_style('lknCieloForWoocommerceCard', WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'admin/css/lkn-woocommerce-admin-card.css', array(), WC_CIELO_PAYMENT_GATEWAY_VERSION, 'all');
-        wp_enqueue_script('lknCieloForWoocommerceProSettings', WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'admin/js/lkn-settings-pro-fields.js', array(), WC_CIELO_PAYMENT_GATEWAY_VERSION, false);
+        wp_enqueue_script('lknCieloForWoocommerceCard', LKN_WC_GATEWAY_CIELO_URL . 'admin/js/lkn-woocommerce-admin-card.js', array('jquery'), WC_CIELO_PAYMENT_GATEWAY_VERSION, false);
+        wp_enqueue_style('lknCieloForWoocommerceCard', LKN_WC_GATEWAY_CIELO_URL . 'admin/css/lkn-woocommerce-admin-card.css', array(), WC_CIELO_PAYMENT_GATEWAY_VERSION, 'all');
+        wp_enqueue_script('lknCieloForWoocommerceProSettings', LKN_WC_GATEWAY_CIELO_URL . 'admin/js/lkn-settings-pro-fields.js', array(), WC_CIELO_PAYMENT_GATEWAY_VERSION, false);
 
         wp_localize_script(
             'lknCieloForWoocommerceProSettings',
@@ -300,19 +300,19 @@ final class Lkn_Wc_Cielo_Payment_Gateway
         );
 
         wc_get_template(
-            'adminSettingsCard.php',
+            'lknwp-admin-settings-card.php',
             array(
                 'backgrounds' => array(
-                    'right' => WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'includes/assets/img/backgroundCardRight.svg',
-                    'left' => WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'includes/assets/img/backgroundCardLeft.svg'
+                    'right' => LKN_WC_GATEWAY_CIELO_URL . 'admin/images/background-card-right.svg',
+                    'left' => LKN_WC_GATEWAY_CIELO_URL . 'admin/images/background-card-left.svg'
                 ),
-                'logo' => WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'includes/assets/img/linkNacionalLogo.webp',
-                'whatsapp' => WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'includes/assets/img/whatsapp-icon.svg',
-                'telegram' => WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'includes/assets/img/telegram-icon.svg',
+                'logo' => LKN_WC_GATEWAY_CIELO_URL . 'admin/images/link-nacional-logo.webp',
+                'whatsapp' => LKN_WC_GATEWAY_CIELO_URL . 'admin/images/whatsapp-icon.svg',
+                'telegram' => LKN_WC_GATEWAY_CIELO_URL . 'admin/images/telegram-icon.svg',
                 'versions' => $versions
             ),
-            'woocommerce/adminSettingsCard/',
-            WC_CIELO_PAYMENT_GATEWAY_DIR . '/includes/templates/'
+            'admin/partials',
+            WC_CIELO_PAYMENT_GATEWAY_DIR . 'admin/partials/'
         );
     }
 
@@ -397,7 +397,7 @@ final class Lkn_Wc_Cielo_Payment_Gateway
     public function lkn_admin_notice(): void
     {
         if (!file_exists(WP_PLUGIN_DIR . '/fraud-detection-for-woocommerce/fraud-detection-for-woocommerce.php') && (!is_plugin_active('integration-rede-for-woocommerce/integration-rede-for-woocommerce.php') && !is_plugin_active('woo-rede/integration-rede-for-woocommerce.php'))) {
-            require WC_CIELO_PAYMENT_GATEWAY_DIR . 'includes/views/notices/LknWcCieloDownloadNotice.php';
+            require WC_CIELO_PAYMENT_GATEWAY_DIR . 'admin/partials/lknwp-wc-cielo-download-notice.php';
         }
     }
 

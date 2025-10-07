@@ -1,6 +1,6 @@
 <?php
 
-namespace Lkn\WcCieloPaymentGateway\Includes;
+namespace Lkn\WcCieloPaymentGateway\Integrations;
 
 use Lkn\WcCieloPaymentGateway\Includes\Lkn_Wc_Cielo_Helper;
 use DateTime;
@@ -76,7 +76,7 @@ final class Lkn_Wc_Gateway_Cielo_Google_Pay extends WC_Payment_Gateway
      */
     public function lkn_admin_load_script(): void
     {
-        wp_enqueue_script('lkn-wc-gateway-admin', WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'admin/js/lkn-wc-gateway-admin.js', array('wp-i18n'), $this->version, 'all');
+        wp_enqueue_script('lkn-wc-gateway-admin', LKN_WC_GATEWAY_CIELO_URL . 'admin/js/lkn-wc-gateway-admin.js', array('wp-i18n'), $this->version, 'all');
 
         $pro_plugin_exists = file_exists(WP_PLUGIN_DIR . '/lkn-cielo-api-pro/lkn-cielo-api-pro.php');
         $pro_plugin_active = function_exists('is_plugin_active') && is_plugin_active('lkn-cielo-api-pro/lkn-cielo-api-pro.php');
@@ -90,15 +90,15 @@ final class Lkn_Wc_Gateway_Cielo_Google_Pay extends WC_Payment_Gateway
         $section = isset($_GET['section']) ? sanitize_text_field(wp_unslash($_GET['section'])) : '';
 
         if ('wc-settings' === $page && 'checkout' === $tab && $section == $this->id) {
-            wp_enqueue_script('lknWCGatewayCieloGooglePaySettingsLayoutScript', WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'admin/js/lkn-wc-gateway-admin-layout.js', array('jquery'), $this->version, false);
+            wp_enqueue_script('lknWCGatewayCieloGooglePaySettingsLayoutScript', LKN_WC_GATEWAY_CIELO_URL . 'admin/js/lkn-wc-gateway-admin-layout.js', array('jquery'), $this->version, false);
             wp_localize_script('lknWCGatewayCieloGooglePaySettingsLayoutScript', 'lknWcCieloTranslationsInput', array(
                 'modern' => __('Modern version', 'lkn-wc-gateway-cielo'),
                 'standard' => __('Standard version', 'lkn-wc-gateway-cielo'),
                 'enable' => __('Enable', 'lkn-wc-gateway-cielo'),
                 'disable' => __('Disable', 'lkn-wc-gateway-cielo'),
             ));
-            wp_enqueue_style('lkn-admin-layout', WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'admin/css/lkn-admin-layout.css', array(), $this->version, 'all');
-            wp_enqueue_script('lknWCGatewayCieloGooglePayClearButtonScript', WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'admin/js/lkn-clear-logs-button.js', array('jquery', 'wp-api'), $this->version, false);
+            wp_enqueue_style('lkn-admin-layout', LKN_WC_GATEWAY_CIELO_URL . 'admin/css/lkn-admin-layout.css', array(), $this->version, 'all');
+            wp_enqueue_script('lknWCGatewayCieloGooglePayClearButtonScript', LKN_WC_GATEWAY_CIELO_URL . 'admin/js/lkn-clear-logs-button.js', array('jquery', 'wp-api'), $this->version, false);
             wp_localize_script('lknWCGatewayCieloGooglePayClearButtonScript', 'lknWcCieloTranslations', array(
                 'clearLogs' => __('Clear Logs', 'lkn-wc-gateway-cielo'),
                 'alertText' => __('Do you really want to delete all order logs?', 'lkn-wc-gateway-cielo'),
@@ -107,7 +107,7 @@ final class Lkn_Wc_Gateway_Cielo_Google_Pay extends WC_Payment_Gateway
                 'enable' => __('Enable', 'lkn-wc-gateway-cielo'),
                 'disable' => __('Disable', 'lkn-wc-gateway-cielo'),
             ));
-            wp_enqueue_script('lknWCGatewayCieloGooglePaySettingsFixLayoutScript', WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'admin/js/lkn-wc-gateway-admin-fix-layout.js', array('jquery'), $this->version, false);
+            wp_enqueue_script('lknWCGatewayCieloGooglePaySettingsFixLayoutScript', LKN_WC_GATEWAY_CIELO_URL . 'admin/js/lkn-wc-gateway-admin-fix-layout.js', array('jquery'), $this->version, false);
 
             
         }
@@ -325,9 +325,9 @@ final class Lkn_Wc_Gateway_Cielo_Google_Pay extends WC_Payment_Gateway
      */
     public function payment_fields(): void
     {
-        wp_enqueue_style('lknWCGatewayCieloGooglePayStyle', WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'admin/css/lkn-wc-google-pay.css', array(), $this->version, 'all');
+        wp_enqueue_style('lknWCGatewayCieloGooglePayStyle', LKN_WC_GATEWAY_CIELO_URL . 'admin/css/lkn-wc-google-pay.css', array(), $this->version, 'all');
         wp_enqueue_script('lknWCGatewayCieloGooglePayScript', 'https://pay.google.com/gp/p/js/pay.js', array('jquery'), $this->version, false);
-        wp_enqueue_script('lknWCGatewayCieloGooglePayCheckoutScript', WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'public/js/lkn-wc-google-pay.js', array('jquery', 'wp-api'), $this->version, false);
+        wp_enqueue_script('lknWCGatewayCieloGooglePayCheckoutScript', LKN_WC_GATEWAY_CIELO_URL . 'public/js/lkn-wc-google-pay.js', array('jquery', 'wp-api'), $this->version, false);
         wp_localize_script('lknWCGatewayCieloGooglePayCheckoutScript', 'lknWcCieloGooglePayVars', array(
             'env' => $this->get_option('env', 'TEST'),
             'googleMerchantId' => $this->get_option('google_merchant_id'),

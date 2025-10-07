@@ -75,7 +75,7 @@ final class Lkn_Wc_Cielo_Payment_Gateway_Admin {
          * class.
          */
 
-        wp_enqueue_style( $this->plugin_name, WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'admin/css/lkn-wc-cielo-payment-gateway-admin.css', array(), $this->version, 'all' );
+        wp_enqueue_style( $this->plugin_name, LKN_WC_GATEWAY_CIELO_URL . 'admin/css/lkn-wc-cielo-payment-gateway-admin.css', array(), $this->version, 'all' );
 
     }
 
@@ -98,7 +98,7 @@ final class Lkn_Wc_Cielo_Payment_Gateway_Admin {
          * class.
          */
 
-        wp_enqueue_script( $this->plugin_name, WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'admin/js/lkn-wc-cielo-payment-gateway-admin.js', array( 'jquery' ), $this->version, false );
+        wp_enqueue_script( $this->plugin_name, LKN_WC_GATEWAY_CIELO_URL . 'admin/js/lkn-wc-cielo-payment-gateway-admin.js', array( 'jquery' ), $this->version, false );
 
     }
 

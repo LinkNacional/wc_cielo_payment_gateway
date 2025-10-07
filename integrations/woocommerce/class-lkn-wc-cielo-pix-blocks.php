@@ -1,6 +1,6 @@
 <?php
 
-namespace Lkn\WcCieloPaymentGateway\Includes;
+namespace Lkn\WcCieloPaymentGateway\Integrations;
 
 use Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType;
 
@@ -24,7 +24,7 @@ final class Lkn_Wc_Cielo_Pix_Blocks extends AbstractPaymentMethodType
     {
         wp_register_script(
             'lkn-cielo-pix-blocks-integration',
-            WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'public/js/lkn-cielo-pix-script-blocks.js',
+            LKN_WC_GATEWAY_CIELO_URL . 'public/js/lkn-cielo-pix-script-blocks.js',
             array(
                 'wc-blocks-registry',
                 'wc-settings',

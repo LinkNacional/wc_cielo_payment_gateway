@@ -1,9 +1,8 @@
 <?php
 
-namespace Lkn\WcCieloPaymentGateway\Includes;
+namespace Lkn\WcCieloPaymentGateway\Integrations;
 
 use Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType;
-use Lkn\WcCieloPaymentGateway\Includes\Lkn_Wc_Gateway_Cielo_Credit;
 
 final class Lkn_Wc_Cielo_Credit_Blocks extends AbstractPaymentMethodType
 {
@@ -27,7 +26,7 @@ final class Lkn_Wc_Cielo_Credit_Blocks extends AbstractPaymentMethodType
     {
         wp_register_script(
             'lkn_cielo_credit-blocks-integration',
-            WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'public/js/lknCieloCreditCompiled.js',
+            LKN_WC_GATEWAY_CIELO_URL . 'public/js/lknCieloCreditCompiled.js',
             array(
                 'wc-blocks-registry',
                 'wc-settings',
@@ -52,21 +51,21 @@ final class Lkn_Wc_Cielo_Credit_Blocks extends AbstractPaymentMethodType
         }
 
         if ($pro_plugin_active && $pro_license_active && $custom_layout === 'yes' && $pro_plugin_version_valid) {
-            wp_enqueue_script('lkn-wc-gateway-credit-checkout-layout', WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'public/js/lkn-wc-gateway-checkout-layout.js', array(), LKN_WC_CIELO_VERSION, false);
+            wp_enqueue_script('lkn-wc-gateway-credit-checkout-layout', LKN_WC_GATEWAY_CIELO_URL . 'public/js/lkn-wc-gateway-checkout-layout.js', array(), LKN_WC_CIELO_VERSION, false);
             wp_localize_script('lkn-wc-gateway-credit-checkout-layout', 'lknCieloCardIcons', array(
-                'visa'       => plugin_dir_url(__FILE__) . '../resources/img/visa-icon.svg',
-                'mastercard' => plugin_dir_url(__FILE__) . '../resources/img/mastercard-icon.svg',
-                'amex'       => plugin_dir_url(__FILE__) . '../resources/img/amex-icon.svg',
-                'elo'        => plugin_dir_url(__FILE__) . '../resources/img/elo-icon.svg',
-                'other_card'        => plugin_dir_url(__FILE__) . '../resources/img/other-card.svg',
+                'visa'       => LKN_WC_GATEWAY_CIELO_URL . 'public/images/visa-icon.svg',
+                'mastercard' => LKN_WC_GATEWAY_CIELO_URL . 'public/images/mastercard-icon.svg',
+                'amex'       => LKN_WC_GATEWAY_CIELO_URL . 'public/images/amex-icon.svg',
+                'elo'        => LKN_WC_GATEWAY_CIELO_URL . 'public/images/elo-icon.svg',
+                'other_card' => LKN_WC_GATEWAY_CIELO_URL . 'public/images/other-card.svg',
                 'other_card_alt'    => __('other card', 'lkn-wc-gateway-cielo')
             ));
             wp_localize_script('lkn-wc-gateway-credit-checkout-layout', 'lknCieloInputIcons', array(
-                'calendar'       => plugin_dir_url(__FILE__) . '../resources/img/calendar.svg',
-                'key' => plugin_dir_url(__FILE__) . '../resources/img/key.svg',
-                'lock'       => plugin_dir_url(__FILE__) . '../resources/img/lock.svg'
+                'calendar' => LKN_WC_GATEWAY_CIELO_URL . 'public/images/calendar.svg',
+                'key'      => LKN_WC_GATEWAY_CIELO_URL . 'public/images/key.svg',
+                'lock'     => LKN_WC_GATEWAY_CIELO_URL . 'public/images/lock.svg'
             ));
-            wp_enqueue_style('lkn-wc-gateway-credit-checkout-layout', WC_CIELO_PAYMENT_GATEWAY_DIR_URL . 'admin/css/lkn-wc-gateway-credit-card-checkout-layout.css', array(), LKN_WC_CIELO_VERSION, 'all');
+            wp_enqueue_style('lkn-wc-gateway-credit-checkout-layout', LKN_WC_GATEWAY_CIELO_URL . 'admin/css/lkn-wc-gateway-credit-card-checkout-layout.css', array(), LKN_WC_CIELO_VERSION, 'all');
         }
 
         do_action('lkn_wc_cielo_remove_cardholder_name', $this->gateway);
