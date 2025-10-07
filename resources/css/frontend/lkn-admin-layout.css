@@ -1,0 +1,127 @@
+#lknWcCieloCreditBlocksSettingsLayoutDiv {
+    padding: 10px 24px;
+    background-color: transparent;
+    border-radius: 10px;
+    flex: 1;
+}
+
+#lknWcCieloCreditBlocksSettingsLayoutMenu {
+    height: 27px;
+}
+
+#lknWcCieloCreditBlocksSettingsLayoutMenu a:first-of-type {
+    margin: 0px !important;
+}
+
+#lknWcCieloCreditBlocksSettingsLayoutMenu a {
+    height: 22px !important;
+    border: none;
+    background-color: #F0F0F1;
+    color: #9A9A9A;
+}
+
+#lknWcCieloCreditBlocksSettingsLayoutMenu a:hover {
+    background-color: #f3f3f3;
+}
+
+#lknWcCieloCreditBlocksSettingsLayoutMenu a.nav-tab {
+    padding: 7px 30px;
+}
+
+#lknWcCieloCreditBlocksSettingsLayoutMenu a.nav-tab.nav-tab-active {
+    background-color: #FFFFFF;
+    color: black;
+    outline: none;
+}
+
+#woocommerce_lkn_cielo_google_pay_clear_order_records,
+#woocommerce_lkn_cielo_pix_clear_order_records,
+#woocommerce_lkn_wc_cielo_pix_clear_order_records,
+#woocommerce_lkn_cielo_debit_clear_order_records,
+#woocommerce_lkn_cielo_credit_clear_order_records {
+    display: flex;
+    justify-content: center;
+    width: fit-content;
+    padding: 0px 20px 0px 20px;
+}
+
+#lknWcCieloOrderLogs pre {
+    padding: 5px;
+    background-color: #D9D9D9;
+    width: fit-content;
+    border-radius: 4px;
+    margin: 0;
+    white-space: pre-wrap
+}
+
+.description-title {
+    padding-left: 4px;
+}
+
+.radio-tooltip {
+    position: relative;
+    cursor: pointer;
+}
+
+.radio-tooltip[data-layout="modern"]:hover::after {
+    content: '';
+    position: absolute;
+    top: 120%;
+    left: 50%;
+    transform: translateX(-30%);
+    width: 200px;
+    height: 154px;
+    background-image: url('../../img/modern-version.png');
+    background-position: center;
+    background-size: 100%;
+    background-repeat: no-repeat;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+    z-index: 1000;
+}
+
+.radio-tooltip[data-layout="standard"]:hover::after {
+    content: '';
+    position: absolute;
+    top: 120%;
+    left: 50%;
+    transform: translateX(-30%);
+    width: 200px;
+    height: 170px;
+    background-image: url('../../img/standard-version.png');
+    background-position: center;
+    background-size: 100%;
+    background-repeat: no-repeat;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+    z-index: 1000;
+}
+
+@media (max-width: 1300px) {
+    #lknWcCieloCreditBlocksSettingsLayoutDiv {
+        padding: 0px;
+    }
+
+    #lknBlocksSettingsLogo {
+        width: 100%;
+        padding: 0px !important;
+        align-items: start !important;
+        margin-bottom: 20px;
+    }
+}
+
+@media (max-width: 782px) {
+    .titledesc {
+        padding-top: 40px !important;
+    }
+
+    .lkn-wc-cielo-hr {
+        margin: 2px 0px 0px !important;
+    }
+}

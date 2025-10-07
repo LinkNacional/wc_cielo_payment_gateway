@@ -4,18 +4,8 @@
     "license": "Proprietary",
     "autoload": {
         "psr-4": {
-            "Lkn\\WcCieloPaymentGateway\\Includes\\": "includes/",
-            "Lkn\\WcCieloPaymentGateway\\Admin\\": "admin/",
-            "Lkn\\WcCieloPaymentGateway\\Integrations\\": "integrations/",
-            "Lkn\\WcCieloPaymentGateway\\PublicView\\": "public/",
-            "Lkn\\WcCieloPaymentGateway\\": "src/"
-        },
-        "classmap": [
-            "includes/",
-            "integrations/",
-            "admin/",
-            "public/"
-        ]
+            "Lkn\\WCCieloPaymentGateway\\Includes\\": "includes/"
+        }
     },
     "authors": [
         {
