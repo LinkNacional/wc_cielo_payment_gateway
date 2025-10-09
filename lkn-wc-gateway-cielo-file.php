@@ -37,7 +37,7 @@ if (! defined('LKN_WC_GATEWAY_CIELO_BASENAME')) {
 }
 
 if (! defined('LKN_WC_GATEWAY_CIELO_URL')) {
-    define('LKN_WC_GATEWAY_CIELO_URL', '');
+    define('LKN_WC_GATEWAY_CIELO_URL', plugin_dir_url(__FILE__));
 }
 
 if (! defined('LKN_WC_GATEWAY_CIELO_MIN_WC_VERSION')) {
