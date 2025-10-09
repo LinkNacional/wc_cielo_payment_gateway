@@ -1,3 +1,6 @@
+# 1.25.2 - 09/10/2025
+* Alteração em carregamento de hooks.
+
 # 1.25.1 - 06/10/2025
 * Correção na variável de parcelamento.
 * Correção na verificação de pagamento PIX.
