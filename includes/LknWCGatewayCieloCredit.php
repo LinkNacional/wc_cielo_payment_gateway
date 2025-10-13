@@ -698,6 +698,19 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         $currency = $order->get_currency();
         $activeInstallment = $this->get_option('installment_payment');
 
+        $order->add_meta_data('installments', $installments, true);
+        if ($this->get_option('installment_interest') === 'yes' || $this->get_option('installment_discount') === 'yes') {
+            $original_amount = $amount;
+            $interest = $this->get_option($installments . 'x', 0);
+            $amount = apply_filters('lkn_wc_cielo_calculate_interest', $amount, $interest, $order, $this, $installments);
+            $interest_amount = $amount - $original_amount;
+
+            $order->add_meta_data('interest_amount', $interest_amount, true);
+
+            $order->set_total($amount);
+            $order->save();
+        }
+
         if ($this->validate_card_holder_name($cardName, false) === false) {
             $message = __('Card Holder Name is required!', 'lkn-wc-gateway-cielo');
 
@@ -742,7 +755,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
 
             $order->add_meta_data('amount_converted', $amount, true);
         }
-        
+
         $amountFormated = number_format($amount, 2, '', '');
         $url = ($this->get_option('env') == 'production') ? 'https://api.cieloecommerce.cielo.com.br/' : 'https://apisandbox.cieloecommerce.cielo.com.br/';
 

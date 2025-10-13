@@ -178,7 +178,6 @@ final class LknWCCieloPayment
         // WooCommerce Blocks compatibility
         $this->loader->add_action('before_woocommerce_init', $this, 'wcEditorBlocksActive');
         $this->loader->add_action('woocommerce_blocks_payment_method_type_registration', $this, 'wcEditorBlocksAddPaymentMethod');
-
     }
 
     /**
@@ -424,6 +423,7 @@ final class LknWCCieloPayment
             $payment_id = $order->get_meta('paymentId');
             $order_id = $order->get_id();
             $nsu = $order->get_meta('lkn_nsu');
+            $interest_amount = $order->get_meta('interest_amount');
 
             // Verifica se é um pagamento Cielo (tem pelo menos payment_id ou nsu)
             $is_cielo_payment = $payment_id || $nsu;
@@ -438,7 +438,14 @@ final class LknWCCieloPayment
             if (isset($total_rows['payment_method'])) {
                 unset($total_rows['payment_method']);
             }
-            
+
+            if ($interest_amount && $interest_amount > 0) {
+                $total_rows['interest'] = array(
+                    'label' => __($interest_amount > 0 ? 'Juros' : 'Desconto', 'lkn-wc-gateway-cielo'),
+                    'value' => wc_price($interest_amount),
+                );
+            }
+
             $total_rows['order_id'] = array(
                 'label' => __('Order ID', 'lkn-wc-gateway-cielo'),
                 'value' => $order_id,

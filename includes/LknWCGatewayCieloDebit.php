@@ -1250,10 +1250,16 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
 
             $order->add_order_note(__('Installments quantity', 'lkn-wc-gateway-cielo') . ' ' . $installments);
             $order->add_meta_data('installments', $installments, true);
-
             if ($this->get_option('installment_interest') === 'yes' || $this->get_option('installment_discount') === 'yes') {
+                $original_amount = $amount;
                 $interest = $this->get_option($installments . 'x', 0);
                 $amount = apply_filters('lkn_wc_cielo_calculate_interest', $amount, $interest, $order, $this, $installments);
+                $interest_amount = $amount - $original_amount;
+
+                $order->add_meta_data('interest_amount', $interest_amount, true);
+
+                $order->set_total($amount);
+                $order->save();
             }
         }
 
@@ -1485,9 +1491,9 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
             $this->log->log('error', var_export($response, true), array('source' => 'woocommerce-cielo-debit'));
         }
 
-        if($cardType == 'Credit'){
+        if ($cardType == 'Credit') {
             $message = __('Order payment failed. Make sure your credit card is valid.', 'lkn-wc-gateway-cielo');
-        }else{
+        } else {
             $message = __('Order payment failed. Make sure your debit card is valid.', 'lkn-wc-gateway-cielo');
         }
 
