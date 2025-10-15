@@ -441,7 +441,7 @@ final class LknWCCieloPayment
 
             if ($interest_amount) {
                 $total_rows['interest'] = array(
-                    'label' => __($interest_amount > 0 ? 'Juros' : 'Desconto', 'lkn-wc-gateway-cielo'),
+                    'label' => __($interest_amount > 0 ? 'Juros de parcelamento:' : 'Desconto de Parcelamento:', 'lkn-wc-gateway-cielo'),
                     'value' => wc_price($interest_amount),
                 );
             }
