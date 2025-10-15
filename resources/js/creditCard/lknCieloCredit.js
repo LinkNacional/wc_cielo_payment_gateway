@@ -95,26 +95,30 @@ const lknCCContentCielo = props => {
           break
         }
         let formatedInterest = false
+        let typeText = '';
         for (let t = 0; t < lknCCinstallmentsCielo.length; t++) {
+          const interestOrDiscount = lknCCSettingsCielo.interestOrDiscount;
           const installmentObj = lknCCinstallmentsCielo[t]
-          if (installmentObj.isDiscount == true && installmentObj.id === index) {
+          if (interestOrDiscount === 'discount' && lknCCSettingsCielo.activeDiscount == "yes" && installmentObj.id === index) {
             nextInstallmentAmount = (lknCCTotalCartCielo - lknCCTotalCartCielo * (parseFloat(installmentObj.interest) / 100)) / index
             formatedInterest = new Intl.NumberFormat('pt-br', {
               style: 'currency',
               currency: 'BRL'
             }).format(nextInstallmentAmount)
-          } else if (installmentObj.id === index) {
+            typeText = ` (${installmentObj.interest}% de desconto)`;
+          } else if (interestOrDiscount === "interest" && lknCCSettingsCielo.activeInstallment == "yes" && installmentObj.id === index) {
             nextInstallmentAmount = (lknCCTotalCartCielo + lknCCTotalCartCielo * (parseFloat(installmentObj.interest) / 100)) / index
             formatedInterest = new Intl.NumberFormat('pt-br', {
               style: 'currency',
               currency: 'BRL'
             }).format(nextInstallmentAmount)
+            typeText = ` (${installmentObj.interest}% de juros)`;
           }
         }
         if (formatedInterest) {
           setOptions(prevOptions => [...prevOptions, {
             key: index,
-            label: `${index}x de ${formatedInterest}`
+            label: `${index}x de ${formatedInterest}${typeText}`
           }])
         } else if (lknCCSettingsCielo.activeDiscount == 'yes') {
           setOptions(prevOptions => [...prevOptions, {

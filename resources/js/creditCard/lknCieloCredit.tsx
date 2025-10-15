@@ -98,9 +98,10 @@ const lknCCContentCielo = (props) => {
         if (nextInstallmentAmount < installmentMin) {
           break
         }
-        let formatedInterest = false
+        let formatedInterest: string | false = false
         for (let t = 0; t < lknCCinstallmentsCielo.length; t++) {
           const installmentObj = lknCCinstallmentsCielo[t];
+          console.log(installmentObj)
           if (installmentObj.isDiscount == true && installmentObj.id === index) {
             nextInstallmentAmount = (lknCCTotalCartCielo - lknCCTotalCartCielo * (parseFloat(installmentObj.interest) / 100)) / index;
             formatedInterest = new Intl.NumberFormat('pt-br', {
