@@ -434,7 +434,12 @@ final class LknWCCieloPayment
             }
 
             // Reconstrói o array com as informações do Cielo
+            $order_total_row = $total_rows['order_total'] ?? [];
             $payment_method_row = $total_rows['payment_method'] ?? [];
+            if (isset($total_rows['order_total'])) {
+                unset($total_rows['order_total']);
+            }
+
             if (isset($total_rows['payment_method'])) {
                 unset($total_rows['payment_method']);
             }
@@ -444,6 +449,9 @@ final class LknWCCieloPayment
                     'label' => __($interest_amount > 0 ? 'Juros de parcelamento:' : 'Desconto de Parcelamento:', 'lkn-wc-gateway-cielo'),
                     'value' => wc_price($interest_amount),
                 );
+            }
+            if (!empty($order_total_row)) {
+                $total_rows['order_total'] = $order_total_row;
             }
 
             $total_rows['order_id'] = array(

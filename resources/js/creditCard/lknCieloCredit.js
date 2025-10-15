@@ -123,7 +123,7 @@ const lknCCContentCielo = props => {
         } else if (lknCCSettingsCielo.activeDiscount == 'yes') {
           setOptions(prevOptions => [...prevOptions, {
             key: index,
-            label: `${index}x de R$ ${installmentAmount}`
+            label: `${index}x de R$ ${installmentAmount}${lknCCSettingsCielo.interestOrDiscount == 'interest' ? ' sem juros' : ' sem desconto'}`
           }])
         } else {
           setOptions(prevOptions => [...prevOptions, {

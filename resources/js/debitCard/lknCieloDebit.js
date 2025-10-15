@@ -286,7 +286,6 @@ const lknDCContentCielo = props => {
         let formatedInterest = false
         let typeText = '';
         for (let t = 0; t < lknCC3DSinstallmentsCielo.length; t++) {
-          console.log(lknDCsettingsCielo);
           const interestOrDiscount = lknDCsettingsCielo.interestOrDiscount;
           const installmentObj = lknCC3DSinstallmentsCielo[t]
           if (interestOrDiscount === 'discount' && lknDCsettingsCielo.activeDiscount == "yes" && installmentObj.id === index) {
@@ -313,7 +312,7 @@ const lknDCContentCielo = props => {
         } else if (lknDCsettingsCielo.activeDiscount == 'yes') {
           setOptions(prevOptions => [...prevOptions, {
             key: index,
-            label: `${index}x de R$ ${installmentAmount}`
+            label: `${index}x de R$ ${installmentAmount}${lknDCsettingsCielo.interestOrDiscount == 'interest' ? ' sem juros' : ' sem desconto'}`
           }])
         } else {
           setOptions(prevOptions => [...prevOptions, {
