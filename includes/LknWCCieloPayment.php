@@ -458,6 +458,13 @@ final class LknWCCieloPayment
                 'label' => __('Order ID', 'lkn-wc-gateway-cielo'),
                 'value' => $order_id,
             );
+            if ($installment) {
+                $valorParcela = number_format(($order->get_total() / $installment), 2, ',', '.');
+                $total_rows['installment'] = array(
+                    'label' => __('Installment', 'lkn-wc-gateway-cielo'),
+                    'value' => $installment . 'x de R$ ' . $valorParcela
+                );
+            }
             $total_rows['payment_id'] = array(
                 'label' => __('Payment ID', 'lkn-wc-gateway-cielo'),
                 'value' => $payment_id ?: 'N/A',
@@ -466,12 +473,6 @@ final class LknWCCieloPayment
                 'label' => __('Authorization', 'lkn-wc-gateway-cielo'),
                 'value' => $nsu ?: 'N/A',
             );
-            if ($installment) {
-                $total_rows['installment'] = array(
-                    'label' => __('Installment', 'lkn-wc-gateway-cielo'),
-                    'value' => $installment . 'x',
-                );
-            }
             $total_rows['payment_method'] = $payment_method_row;
         }
 
