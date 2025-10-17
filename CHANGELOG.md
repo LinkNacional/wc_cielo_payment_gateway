@@ -1,3 +1,8 @@
+# 1.26.0 - 17/10/2025
+* Ajustes no resumo do pedido.
+* Adição da porcentagem de juros nas parcelas
+* Correção no footer do WooCommerce nas configurações
+
 # 1.25.2 - 09/10/2025
 * Alteração em carregamento de hooks.
 
