@@ -170,7 +170,9 @@ final class LknWcCieloRequest
             if (get_option('woocommerce_lkn_wc_cielo_pix_settings')['debug'] == 'yes') {
                 $instance->log->notice($response, array('source' => 'woocommerce-cielo-pix'));
             }
-            $order->update_status($instance->update_status($response));
+            if ($order->get_status() === self::WC_STATUS_PENDING) {
+                $order->update_status($instance->update_status($response));
+            }
         }
     }
 
