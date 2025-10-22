@@ -446,8 +446,9 @@ final class LknWCCieloPayment
             }
 
             if ($interest_amount) {
-                $interest_label = $interest_amount > 0 ? 'Juros de parcelamento:' : 'Desconto de Parcelamento:';
-                $interest_label = __($interest_label, 'lkn-wc-gateway-cielo');
+                $label_positive = esc_html__('Installment Interest:', 'lkn-wc-gateway-cielo');
+                $label_negative = esc_html__('Installment Discount:', 'lkn-wc-gateway-cielo');
+                $interest_label = $interest_amount > 0 ? $label_positive : $label_negative;
                 $total_rows['interest'] = array(
                     'label' => $interest_label,
                     'value' => wc_price($interest_amount),
@@ -458,22 +459,22 @@ final class LknWCCieloPayment
             }
 
             $total_rows['order_id'] = array(
-                'label' => __('Order ID', 'lkn-wc-gateway-cielo'),
+                'label' => esc_html__('Order ID', 'lkn-wc-gateway-cielo'),
                 'value' => $order_id,
             );
             if ($installment) {
                 $valorParcela = number_format(($order->get_total() / $installment), 2, ',', '.');
                 $total_rows['installment'] = array(
-                    'label' => __('Installment', 'lkn-wc-gateway-cielo'),
+                    'label' => esc_html__('Installment', 'lkn-wc-gateway-cielo'),
                     'value' => $installment . 'x de R$ ' . $valorParcela
                 );
             }
             $total_rows['payment_id'] = array(
-                'label' => __('Payment ID', 'lkn-wc-gateway-cielo'),
+                'label' => esc_html__('Payment ID', 'lkn-wc-gateway-cielo'),
                 'value' => $payment_id ?: 'N/A',
             );
             $total_rows['authorization'] = array(
-                'label' => __('Authorization', 'lkn-wc-gateway-cielo'),
+                'label' => esc_html__('Authorization', 'lkn-wc-gateway-cielo'),
                 'value' => $nsu ?: 'N/A',
             );
             $total_rows['payment_method'] = $payment_method_row;
