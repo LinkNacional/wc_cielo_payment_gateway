@@ -284,31 +284,35 @@ const lknDCContentCielo = props => {
           break
         }
         let formatedInterest = false
+        let typeText = '';
         for (let t = 0; t < lknCC3DSinstallmentsCielo.length; t++) {
+          const interestOrDiscount = lknDCsettingsCielo.interestOrDiscount;
           const installmentObj = lknCC3DSinstallmentsCielo[t]
-          if (installmentObj.isDiscount == true && installmentObj.id === index) {
+          if (interestOrDiscount === 'discount' && lknDCsettingsCielo.activeDiscount == "yes" && installmentObj.id === index) {
             nextInstallmentAmount = (lknDCTotalCartCielo - lknDCTotalCartCielo * (parseFloat(installmentObj.interest) / 100)) / index
             formatedInterest = new Intl.NumberFormat('pt-br', {
               style: 'currency',
               currency: 'BRL'
             }).format(nextInstallmentAmount)
-          } else if (installmentObj.id === index) {
+            typeText = ` (${installmentObj.interest}% de desconto)`;
+          } else if (interestOrDiscount === "interest" && lknDCsettingsCielo.activeInstallment == "yes" && installmentObj.id === index) {
             nextInstallmentAmount = (lknDCTotalCartCielo + lknDCTotalCartCielo * (parseFloat(installmentObj.interest) / 100)) / index
             formatedInterest = new Intl.NumberFormat('pt-br', {
               style: 'currency',
               currency: 'BRL'
             }).format(nextInstallmentAmount)
+            typeText = ` (${installmentObj.interest}% de juros)`;
           }
         }
         if (formatedInterest) {
           setOptions(prevOptions => [...prevOptions, {
             key: index,
-            label: `${index}x de ${formatedInterest}`
+            label: `${index}x de ${formatedInterest}${typeText}`
           }])
         } else if (lknDCsettingsCielo.activeDiscount == 'yes') {
           setOptions(prevOptions => [...prevOptions, {
             key: index,
-            label: `${index}x de R$ ${installmentAmount}`
+            label: `${index}x de R$ ${installmentAmount}${lknDCsettingsCielo.interestOrDiscount == 'interest' ? ' sem juros' : ' sem desconto'}`
           }])
         } else {
           setOptions(prevOptions => [...prevOptions, {

@@ -98,7 +98,7 @@ const lknCCContentCielo = (props) => {
         if (nextInstallmentAmount < installmentMin) {
           break
         }
-        let formatedInterest = false
+        let formatedInterest: string | false = false
         for (let t = 0; t < lknCCinstallmentsCielo.length; t++) {
           const installmentObj = lknCCinstallmentsCielo[t];
           if (installmentObj.isDiscount == true && installmentObj.id === index) {

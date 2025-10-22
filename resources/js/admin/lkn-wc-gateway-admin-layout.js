@@ -451,7 +451,7 @@
       lknWcCieloValidateMerchantInputs()
     }
 
-    const message = $('<p id="footer-left" class="alignleft"></p>')
+    const message = $('<p id="footer-left-lkn" class="alignleft"></p>')
 
     message.html('Saiba mais sobre nossos plugins, suporte e manutenção 24h para WordPress na <a href="https://www.linknacional.com.br/wordpress/plugins/" target="_blank">Link Nacional</a> | Avaliar esse plugin <a href="https://wordpress.org/support/plugin/lkn-wc-gateway-cielo/reviews/?filter=5#postform" target="_blank" class="give-rating-link" style="text-decoration:none;" data-rated="Obrigado :)">★★★★★</a>')
 
@@ -507,4 +507,11 @@
       }
     }
   }
+
+  $(document).ready(function () {
+    const wpcontent = document.querySelector('#wpcontent')
+    if (wpcontent) {
+      wpcontent.style.height = 'unset'
+    }
+  })
 })(jQuery)

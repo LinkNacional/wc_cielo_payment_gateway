@@ -9,6 +9,7 @@ final class LknWcCieloRequest
     private $urls = array('https://apisandbox.cieloecommerce.cielo.com.br', 'https://api.cieloecommerce.cielo.com.br/');
     private $queryUrl = array('https://apiquerysandbox.cieloecommerce.cielo.com.br/', 'https://apiquery.cieloecommerce.cielo.com.br/');
     private $log;
+    private const WC_STATUS_PENDING = 'pending';
 
     public function __construct()
     {
@@ -170,7 +171,9 @@ final class LknWcCieloRequest
             if (get_option('woocommerce_lkn_wc_cielo_pix_settings')['debug'] == 'yes') {
                 $instance->log->notice($response, array('source' => 'woocommerce-cielo-pix'));
             }
-            $order->update_status($instance->update_status($response));
+            if ($order->get_status() === self::WC_STATUS_PENDING) {
+                $order->update_status($instance->update_status($response));
+            }
         }
     }
 
