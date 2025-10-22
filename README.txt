@@ -1,7 +1,7 @@
-=== Payment Gateway for Cielo API on WooCommerce ===
+=== Cielo for WooCommerce PIX, Debit Card and Credit Card ===
 Contributors: linknacional
 Donate link: https://www.linknacional.com.br/wordpress/woocommerce/cielo/
-Tags: woocommerce, payment, paymethod, card, credit
+Tags: pagamento, cielo, pix, woocommerce, creditcard
 Requires at least: 5.7
 Tested up to: 6.8
 Stable tag: 1.26.0
@@ -9,33 +9,41 @@ Requires PHP: 7.2
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
-Payment Gateway for Cielo API on WooCommerce.
+Payment Gateway for Cielo API for WooCommerce - PIX, Google Pay, Credit Card and Debit Cards.
 
 == Description ==
 
-The **Cielo API Payment Gateway for WooCommerce** is a payment plugin for WooCommerce that allows you to integrate your online store with Cielo, one of Brazil's leading payment solutions. With this plugin, you can offer your customers the ability to pay with **credit** and **debit cards**, with **3DS support**, ensuring secure and fast transactions.
+The **Cielo for WooCommerce** plugin is a robust payment gateway designed to seamlessly integrate your [WooCommerce](https://www.linknacional.com.br/wordpress/woocommerce/) store with [Cielo](https://www.linknacional.com.br/wordpress/woocommerce/cielo/), one of Brazil's leading payment processors. With this plugin, you can empower your customers to pay using popular methods like PIX, Google Pay, and securely process both **credit** and **debit cards**, all while leveraging **3DS support** for fast and protected transactions.
 
-The plugin is easy to configure and enables the use of the main cards accepted by Cielo, integrating natively with WooCommerce and streamlining the checkout experience in your store.
+Setting up the plugin is straightforward, allowing you to quickly enable the main card brands accepted by Cielo API. It integrates natively with WooCommerce, ensuring a smooth and efficient checkout experience for your customers.
 
-**Main Features:**
-- Support for **credit and debit cards**;
-- Integration with **3DS** for secure transactions;
-- Intuitive configuration directly in WooCommerce;
-- Compatible with the main card brands accepted by Cielo.
+**Key Features:**
+* Support for **credit and debit cards**;
+* Seamless PIX integration for automatic payment confirmation;
+* **3DS support** for enhanced transaction security;
+* Integration with Google Pay Wallet;
+* Intuitive configuration directly within the WooCommerce dashboard;
+* Compatible with all major card brands accepted by Cielo.
 
-**PRO Version**
-In addition to the free version's features, the **Cielo API Payment Gateway for WooCommerce PRO** offers a range of advanced features to expand your store’s payment options and transaction management:
+**Unlock More with the PRO Version**
+Beyond the capabilities of the free version, the [Cielo API PRO for WooCommerce](https://www.linknacional.com.br/wordpress/woocommerce/cielo/) offers an extensive array of advanced features to broaden your store’s payment options and refine your transaction management:
 
-- **Full and partial refunds** directly from the WooCommerce dashboard;
-- Support for **international currency payments**;
-- **Recurring payments**, ideal for subscriptions and payment plans;
-- Integration with **Pix**, an instant payment solution;
-- The ability to offer **installments up to 18x**;
-- Configuration of the **maximum number of installments** and **minimum installment amount**, providing greater flexibility in offering payment terms.
+* **Full and partial refunds** managed effortlessly from the WooCommerce dashboard;
+* Support for **international currency payments**, expanding your global reach;
+* **Recurring payments**, perfect for subscriptions, memberships, and installment plans;
+* Advanced **PIX integration** for instant payments with additional controls;
+* The flexibility to offer **installments up to 18x**, providing more choice for customers;
+* Precise configuration of the **maximum number of installments** and **minimum installment amount**, giving you greater control over payment terms;
+* Integration with Boleto Bancário, a popular offline payment method in Brazil;
+* And many more features and frequent updates to keep your store at the cutting edge.
 
-With the [PRO version](https://www.linknacional.com.br/wordpress/woocommerce/cielo/), you'll have access to a robust and complete solution to manage all types of transactions, providing a more convenient and personalized shopping experience for your customers.
+With the [CIELO PRO version](https://www.linknacional.com.br/wordpress/woocommerce/cielo/), you gain access to a comprehensive and powerful solution designed to manage all transaction types efficiently, delivering a more convenient and personalized shopping experience for your customers.
 
 [youtube https://www.youtube.com/watch?v=5mYIEC9V254]
+
+** Recommended Plugins **
+* [Link Invoice Payment for WooCommerce](https://wordpress.org/plugins/invoice-payment-for-woocommerce/) - Integrate custom payment methods and offer invoice-based payments in your WooCommerce store.
+* [Shipping Calculator for Brazil](https://wordpress.org/plugins/woo-better-shipping-calculator-for-brazil/) - Provide accurate freight calculation for Brazilian addresses directly in your WooCommerce checkout.
 
 **Dependencies**
 
