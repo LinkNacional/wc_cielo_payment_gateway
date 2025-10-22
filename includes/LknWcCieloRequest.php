@@ -9,6 +9,7 @@ final class LknWcCieloRequest
     private $urls = array('https://apisandbox.cieloecommerce.cielo.com.br', 'https://api.cieloecommerce.cielo.com.br/');
     private $queryUrl = array('https://apiquerysandbox.cieloecommerce.cielo.com.br/', 'https://apiquery.cieloecommerce.cielo.com.br/');
     private $log;
+    private const WC_STATUS_PENDING = 'pending';
 
     public function __construct()
     {
