@@ -157,6 +157,7 @@ final class LknWCCieloPayment
         $this->loader->add_action('admin_notices', $this, 'lkn_admin_notice');
         $this->loader->add_filter('plugin_action_links_' . LKN_WC_CIELO_FILE_BASENAME, $this, 'lkn_wc_cielo_plugin_row_meta', 10, 2);
         $this->loader->add_filter('plugin_action_links_' . LKN_WC_CIELO_FILE_BASENAME, $this, 'lkn_wc_cielo_plugin_row_meta_pro', 10, 2);
+        $this->loader->add_action('lkn_schedule_check_free_pix_payment_hook', LknWcCieloRequest::class, 'check_payment', 10, 2);
         // Admin settings card for specific sections
         $this->setup_admin_settings_card();
     }

@@ -421,7 +421,7 @@ final class LknWcCieloPix extends WC_Payment_Gateway
             }
 
             if (! wp_next_scheduled('lkn_schedule_check_free_pix_payment_hook', array($response["response"]["paymentId"], $order_id))) {
-                wp_schedule_event(time(), "pix_free_every_minute", 'lkn_schedule_check_free_pix_payment_hook', array($response["response"]["paymentId"], $order_id));
+                wp_schedule_event(time(), "every_minute", 'lkn_schedule_check_free_pix_payment_hook', array($response["response"]["paymentId"], $order_id));
             }
 
             $order->update_meta_data('_wc_cielo_qrcode_image', $response['response']['qrcodeImage']);
