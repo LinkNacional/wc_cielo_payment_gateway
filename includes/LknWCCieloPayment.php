@@ -448,8 +448,9 @@ final class LknWCCieloPayment
             if ($interest_amount) {
                 $label_positive = esc_html__('Installment Interest:', 'lkn-wc-gateway-cielo');
                 $label_negative = esc_html__('Installment Discount:', 'lkn-wc-gateway-cielo');
+                $interest_label = $interest_amount > 0 ? $label_positive : $label_negative;
                 $total_rows['interest'] = array(
-                    'label' => esc_html__($interest_amount > 0 ? $label_positive : $label_negative, 'lkn-wc-gateway-cielo'),
+                    'label' => $interest_label,
                     'value' => wc_price($interest_amount),
                 );
             }
