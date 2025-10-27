@@ -13,6 +13,8 @@ use Lkn\WCCieloPaymentGateway\Includes\LknWcCieloPixBlocks;
 use Lkn\WCCieloPaymentGateway\Includes\LknWCGatewayCieloGooglePay;
 use Lkn\WCCieloPaymentGateway\Includes\LknWCGatewayCieloGooglePayBlocks;
 
+use Lkn\LknCieloApiPro\Includes\LknCieloApiProLicenseHelper;
+
 /**
  * The file that defines the core plugin class
  *
@@ -69,6 +71,15 @@ final class LknWCCieloPayment
      * @var      string    $version    The current version of the plugin.
      */
     protected $version;
+
+    /**
+     * The empty value in base_64.
+     *
+     * @since    1.26.0
+     * @access   protected
+     * @var      string    $EMPTY_VALUE    The empty value in base_64.
+     */
+    protected $EMPTY_VALUE = 'ZW1wdHk=';
 
     /**
      * Define the core functionality of the plugin.
@@ -178,6 +189,90 @@ final class LknWCCieloPayment
         // WooCommerce Blocks compatibility
         $this->loader->add_action('before_woocommerce_init', $this, 'wcEditorBlocksActive');
         $this->loader->add_action('woocommerce_blocks_payment_method_type_registration', $this, 'wcEditorBlocksAddPaymentMethod');
+
+        $this->loader->add_filter('woocommerce_cart_calculate_fees', $this, 'add_checkout_fee_or_discount_in_credit_card', 100);
+
+        $this->loader->add_action('wp_ajax_lkn_update_payment_fees', $this, 'ajax_update_payment_fees');
+        $this->loader->add_action('wp_ajax_nopriv_lkn_update_payment_fees', $this, 'ajax_update_payment_fees');
+    }
+
+    /**
+     * Handler AJAX para atualizar taxas de pagamento
+     */
+    public function ajax_update_payment_fees() 
+    {
+        // Verificar nonce
+        if (!wp_verify_nonce(wp_unslash($_POST['nonce']), 'lkn_payment_fees_nonce')) {
+            wp_send_json_error('Invalid nonce');
+        }
+        
+        $payment_method = sanitize_text_field(wp_unslash($_POST['payment_method']));
+        $installment = sanitize_text_field(wp_unslash($_POST['installment']));
+
+        // TODO falta ajustar a função principal para o calculo.
+        error_log($payment_method);
+        error_log($installment);
+        
+        WC()->session->set('lkn_' . $payment_method . '_installment', $installment);
+        
+        // Forçar recálculo das taxas
+        WC()->cart->calculate_totals();
+        
+        wp_send_json_success(['message' => 'Fees updated']);
+    }
+
+    public function add_checkout_fee_or_discount_in_credit_card() 
+    {
+        if (is_plugin_active('lkn-cielo-api-pro/lkn-cielo-api-pro.php')) {
+            $licenseResult = base64_decode(get_option('lknCieloProApiLicense', $this->EMPTY_VALUE), true);
+
+            if ('empty' === $licenseResult) {
+                if (class_exists('Lkn\LknCieloApiPro\Includes\LknCieloApiProLicenseHelper')) {
+                    $licenseResult = LknCieloApiProLicenseHelper::cron_check_license();
+                    $licenseResult = $licenseResult ? 'active' : 'inactive';
+                } else {
+                    return;
+                }
+                $licenseResult = $licenseResult ? 'active' : 'inactive';
+            }
+            $licenseResult = ('active' === $licenseResult) ? true : false;
+
+            if($licenseResult) {
+                $chosen_payment_method = WC()->session->get('chosen_payment_method');
+                if(isset($chosen_payment_method) && ($chosen_payment_method === 'lkn_cielo_debit' || $chosen_payment_method === 'lkn_cielo_credit')) {
+                    $settings = get_option('woocommerce_' . $chosen_payment_method . '_settings', array());
+
+                    if (count($settings) === 0) {
+                        return;
+                    }
+
+                    $installment_limit = isset($settings['installment_discount_limit']) ? (int) $settings['installment_discount_limit'] : 12;
+                    $installment_min = isset($settings['installment_min']) ? (float) $settings['installment_min'] : 5.00;
+
+                    switch ($settings['interest_or_discount']) {
+                        case 'discount':
+                            if (isset($settings['installment_discount']) && $settings['installment_discount'] === 'yes') {
+                                WC()->cart->add_fee('Desconto do cartão', -10);
+                                break;
+                            }
+                            break;
+                        case 'interest':
+                            if (isset($settings['installment_interest']) && $settings['installment_interest'] === 'yes') {
+                                WC()->cart->add_fee('Juros do cartão', 10);
+                                break;
+                            }
+                            break;
+                            
+                        default:
+                            break;
+                    }
+                } else {
+                    return;
+                }
+            }
+        } else {
+            return;
+        }
     }
 
     /**

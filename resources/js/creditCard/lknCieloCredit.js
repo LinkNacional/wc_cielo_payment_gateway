@@ -274,7 +274,7 @@ const lknCCContentCielo = props => {
       id: 'lkn_cc_installments',
       label: lknCCTranslationsCielo.installments,
       value: creditObject.lkn_cc_installments,
-      className: 'lkn-cielo-credit-custom-select',
+      className: 'lkn_cielo_credit_select lkn-cielo-credit-custom-select',
       onChange: event => {
         updateCreditObject('lkn_cc_installments', event.target.value)
       },
