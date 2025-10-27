@@ -168,6 +168,7 @@ final class LknWCCieloPayment
         $this->loader->add_action('admin_notices', $this, 'lkn_admin_notice');
         $this->loader->add_filter('plugin_action_links_' . LKN_WC_CIELO_FILE_BASENAME, $this, 'lkn_wc_cielo_plugin_row_meta', 10, 2);
         $this->loader->add_filter('plugin_action_links_' . LKN_WC_CIELO_FILE_BASENAME, $this, 'lkn_wc_cielo_plugin_row_meta_pro', 10, 2);
+        $this->loader->add_action('lkn_schedule_check_free_pix_payment_hook', LknWcCieloRequest::class, 'check_payment', 10, 2);
         // Admin settings card for specific sections
         $this->setup_admin_settings_card();
     }
@@ -457,7 +458,7 @@ final class LknWCCieloPayment
     public function lkn_wc_cielo_dependency_notice(): void
     {
         echo '<div class="notice notice-error"><p>';
-        echo __('Payment Gateway for Cielo API on WooCommerce requires WooCommerce to be installed and active.', 'lkn-wc-gateway-cielo');
+        echo esc_html__('Payment Gateway for Cielo API on WooCommerce requires WooCommerce to be installed and active.', 'lkn-wc-gateway-cielo');
         echo '</p></div>';
     }
 
@@ -540,8 +541,11 @@ final class LknWCCieloPayment
             }
 
             if ($interest_amount) {
+                $label_positive = esc_html__('Installment Interest:', 'lkn-wc-gateway-cielo');
+                $label_negative = esc_html__('Installment Discount:', 'lkn-wc-gateway-cielo');
+                $interest_label = $interest_amount > 0 ? $label_positive : $label_negative;
                 $total_rows['interest'] = array(
-                    'label' => __($interest_amount > 0 ? 'Juros de parcelamento:' : 'Desconto de Parcelamento:', 'lkn-wc-gateway-cielo'),
+                    'label' => $interest_label,
                     'value' => wc_price($interest_amount),
                 );
             }
@@ -550,22 +554,22 @@ final class LknWCCieloPayment
             }
 
             $total_rows['order_id'] = array(
-                'label' => __('Order ID', 'lkn-wc-gateway-cielo'),
+                'label' => esc_html__('Order ID', 'lkn-wc-gateway-cielo'),
                 'value' => $order_id,
             );
             if ($installment) {
                 $valorParcela = number_format(($order->get_total() / $installment), 2, ',', '.');
                 $total_rows['installment'] = array(
-                    'label' => __('Installment', 'lkn-wc-gateway-cielo'),
+                    'label' => esc_html__('Installment', 'lkn-wc-gateway-cielo'),
                     'value' => $installment . 'x de R$ ' . $valorParcela
                 );
             }
             $total_rows['payment_id'] = array(
-                'label' => __('Payment ID', 'lkn-wc-gateway-cielo'),
+                'label' => esc_html__('Payment ID', 'lkn-wc-gateway-cielo'),
                 'value' => $payment_id ?: 'N/A',
             );
             $total_rows['authorization'] = array(
-                'label' => __('Authorization', 'lkn-wc-gateway-cielo'),
+                'label' => esc_html__('Authorization', 'lkn-wc-gateway-cielo'),
                 'value' => $nsu ?: 'N/A',
             );
             $total_rows['payment_method'] = $payment_method_row;

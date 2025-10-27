@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', function () {
   function initializeGooglePay() {
     const methodDiv = document.querySelector('.payment_box.payment_method_lkn_cielo_google_pay');
     const googleButtonElement = methodDiv.querySelector('#gpay-button-online-api-id');
-    
+
     if (methodDiv && !googleButtonElement) {
       const paymentsClient = new google.payments.api.PaymentsClient({
         environment: lknWcCieloGooglePayVars.env === 'PRODUCTION' ? 'PRODUCTION' : 'TEST'
@@ -26,11 +26,11 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       }];
 
-      if(lknWcCieloGooglePayVars.require3ds === 'yes'){
+      if (lknWcCieloGooglePayVars.require3ds === 'yes') {
         // Remove o 'Pan Only' para forçar o 3DS
         allowedPaymentMethods[0].parameters.allowedAuthMethods = ['CRYPTOGRAM_3DS'];
       }
-    
+
       const button = paymentsClient.createButton({
         buttonColor: 'default',
         buttonType: lknWcCieloGooglePayVars.buttonText || 'pay',
@@ -41,25 +41,25 @@ document.addEventListener('DOMContentLoaded', function () {
           // Pegar o valor total do elemento HTML
           const totalElement = document.querySelector('tr.order-total .woocommerce-Price-amount bdi');
           let totalAmount = '0';
-          
+
           if (totalElement) {
             const totalText = totalElement.textContent.trim();
-            
+
             // Criar regex para manter apenas números, separador decimal e separador de milhares
             const thousandSeparator = lknWcCieloGooglePayVars.thousandSeparator || '.';
             const decimalSeparator = lknWcCieloGooglePayVars.decimalSeparator || ',';
-            
+
             // Escapar caracteres especiais para regex
             const escapedThousand = thousandSeparator.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             const escapedDecimal = decimalSeparator.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            
+
             // Criar regex que mantém apenas dígitos e os separadores configurados
             const keepRegex = new RegExp('[^\\d' + escapedThousand + escapedDecimal + ']', 'g');
             const cleanAmount = totalText.replace(keepRegex, '');
             totalAmount = cleanAmount.replace(lknWcCieloGooglePayVars.thousandSeparator, '');
             totalAmount = totalAmount.replace(lknWcCieloGooglePayVars.decimalSeparator, '.');
           }
-          
+
           const paymentDataRequest = {
             apiVersion: 2,
             apiVersionMinor: 0,
@@ -76,45 +76,43 @@ document.addEventListener('DOMContentLoaded', function () {
           };
 
           paymentsClient.loadPaymentData(paymentDataRequest)
-            .then(function(paymentData) {
-              console.log('Payment data received:', paymentData);
-              
+            .then(function (paymentData) {
               window.googlePayPaymentData = paymentData;
-              
+
               let originalXHROpen = XMLHttpRequest.prototype.open;
               let originalXHRSend = XMLHttpRequest.prototype.send;
-            
+
               XMLHttpRequest.prototype.open = function (method, url, async, user, password) {
                 this._requestURL = url; // Armazena a URL da requisição
                 originalXHROpen.apply(this, arguments);
               };
-            
+
               XMLHttpRequest.prototype.send = function (body) {
                 if (this._requestURL && this._requestURL.includes('?wc-ajax=checkout')) {
                   let xhr = this; // Armazena referência ao objeto XMLHttpRequest
-            
+
                   // Converter URLSearchParams para objeto JavaScript
                   let params = new URLSearchParams(body);
                   let bodyObject = {};
-                  
+
                   for (let [key, value] of params) {
                     bodyObject[key] = value;
                   }
-                  
+
                   // Adicionar dados do Google Pay
                   if (window.googlePayPaymentData) {
                     bodyObject.google_pay_data = JSON.stringify(window.googlePayPaymentData);
                     bodyObject.nonce_lkn_cielo_google_pay = lknWcCieloGooglePayVars.nonce
                   }
-                  
+
                   // Converter de volta para URLSearchParams
                   let newParams = new URLSearchParams();
                   for (let [key, value] of Object.entries(bodyObject)) {
                     newParams.append(key, value);
                   }
-                  
+
                   body = newParams.toString();
-          
+
                   originalXHRSend.call(xhr, body);
                 } else {
                   originalXHRSend.apply(this, arguments);
@@ -123,18 +121,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
               document.querySelector('#place_order')?.click()
             })
-            .catch(function(err) {
+            .catch(function (err) {
               console.error(err);
             });
-        }, 
+        },
         allowedPaymentMethods: allowedPaymentMethods
       });
-    
+
       methodDiv.appendChild(button);
-      
+
       // Definir largura 100% para o botão
       button.firstChild.style.width = '100%';
-      
+
       // Para de observar uma vez que o elemento foi encontrado e processado
       if (observer) {
         observer.disconnect();
@@ -143,8 +141,8 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // Configura o observer para aguardar o elemento aparecer
-  observer = new MutationObserver(function(mutations) {
-    mutations.forEach(function(mutation) {
+  observer = new MutationObserver(function (mutations) {
+    mutations.forEach(function (mutation) {
       if (mutation.type === 'childList') {
         initializeGooglePay();
       }

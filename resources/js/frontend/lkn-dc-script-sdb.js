@@ -27,7 +27,7 @@ const { __ } = wp.i18n;
     }
   }
 
-  function checkBinCard(){
+  function checkBinCard() {
     const debitPaymethod = document.getElementById('payment_method_lkn_cielo_debit')
     const debitForm = document.getElementById('wc-lkn_cielo_debit-cc-form')
     const paymentBox = document.getElementById('payment')
@@ -141,7 +141,7 @@ const { __ } = wp.i18n;
 
 })(jQuery)
 
-function submitForm (e) {
+function submitForm(e) {
   const cavv = e.Cavv
   const xid = e.Xid
   const eci = e.Eci
@@ -195,7 +195,7 @@ function submitForm (e) {
   }
 }
 
-function bpmpi_config () {
+function bpmpi_config() {
   return {
     onReady: function () {
     },
@@ -216,9 +216,9 @@ function bpmpi_config () {
       // Card is not eligible for authentication (unauthenticable)
       console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage)
       //aqui
-      if(lknDCScriptAllowCardIneligible == 'yes'){
+      if (lknDCScriptAllowCardIneligible == 'yes') {
         submitForm(e)
-      }else{
+      } else {
         alert(__('Card Ineligible for Authentication', 'lkn-wc-gateway-cielo'))
       }
     },
@@ -226,9 +226,9 @@ function bpmpi_config () {
       // Store don't require bearer authentication (class "bpmpi_auth" false -> disabled authentication).
       console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage)
       //aqui
-      if(lknDCScriptAllowCardIneligible == 'yes'){
+      if (lknDCScriptAllowCardIneligible == 'yes') {
         submitForm(e)
-      }else{
+      } else {
         alert(__('Authentication disabled by the store', 'lkn-wc-gateway-cielo'))
       }
     },
@@ -245,9 +245,9 @@ function bpmpi_config () {
       // Provider not supported for authentication
       console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage)
       //aqui
-      if(lknDCScriptAllowCardIneligible == 'yes'){
+      if (lknDCScriptAllowCardIneligible == 'yes') {
         submitForm(e)
-      }else{
+      } else {
         alert(__('Provider not supported by Cielo 3DS authentication', 'lkn-wc-gateway-cielo'))
       }
     },
@@ -257,7 +257,7 @@ function bpmpi_config () {
   }
 }
 
-function lknDCProccessButton () {
+function lknDCProccessButton() {
   try {
     const cardNumber = document.getElementById('lkn_dcno').value.replace(/\D/g, '')
     let expDate = document.getElementById('lkn_dc_expdate').value
@@ -274,7 +274,6 @@ function lknDCProccessButton () {
 
     bpmpi_authenticate()
   } catch (error) {
-    console.log(error)
     alert(__('Authentication failed check the card information and try again', 'lkn-wc-gateway-cielo'))
   }
 }
@@ -298,7 +297,7 @@ document.addEventListener('DOMContentLoaded', function () {
     subtree: true,   // Monitoramento em todo o DOM, não apenas no nível imediato
   });
 
-  function lknWcGatewayCieloLoadScript () {
+  function lknWcGatewayCieloLoadScript() {
     const scriptUrlBpmpi = lknDCDirScript3DSCieloShortCode
     const existingScriptBpmpi = document.querySelector(`script[src="${scriptUrlBpmpi}"]`)
 
