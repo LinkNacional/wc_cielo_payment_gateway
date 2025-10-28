@@ -243,17 +243,45 @@ final class LknWCCieloPayment
                         return;
                     }
 
-                    $installment_limit = isset($settings['installment_discount_limit']) ? (int) $settings['installment_discount_limit'] : 12;
-                    $installment_min = isset($settings['installment_min']) ? (int) $settings['installment_min'] : 12;
+                    $installment_limit = isset($settings['installment_limit']) ? (int) $settings['installment_limit'] : 12;
+                    $installment_min = isset($settings['installment_min']) ? (int) $settings['installment_min'] : 5;
 
                     switch ($settings['interest_or_discount']) {
                         case 'discount':
                             if (isset($settings['installment_discount']) && $settings['installment_discount'] === 'yes') {
-                                WC()->cart->add_fee('Desconto do cartão', -10);
+                                $installment = WC()->session->get($chosen_payment_method . '_installment');
+                                if(isset($installment) && $installment > 0) {
+                                    $installment_rate = $settings[$installment . 'x_discount'];
+
+                                    // Verifica se há produtos no carrinho com interesse específico
+                                    $product_interest_min = $this->get_cart_products_interest_minimum();
+                                    if(isset($product_interest_min) && $product_interest_min > 0) {
+                                        $installment_limit = $product_interest_min;
+                                    }
+
+                                    if(isset($installment_rate) && $installment_rate > 0 && $installment <= $installment_limit) {
+                                                                                
+                                        // Calcula o valor base (total do carrinho excluindo juros anteriores)
+                                        $cart_total = $this->get_cart_total_excluding_interest_fees();
+                                        
+                                        // Verifica se o valor total atende o mínimo para parcelamento
+                                        if ($cart_total >= $installment_min) {
+                                            // Calcula os descontos como porcentagem do valor total
+                                            $discount_amount = ($cart_total * $installment_rate) / 100;
+                                            WC()->cart->add_fee('Desconto do cartão', -$discount_amount);
+                                        } else {
+                                            return;
+                                        }
+                                    } else {
+                                        return;
+                                    }
+                                } else {
+                                    return;
+                                }
                                 break;
                             }
                             break;
-                        case 'interest':
+                        case 'interest':                            
                             if (isset($settings['installment_interest']) && $settings['installment_interest'] === 'yes') {
                                 $installment = WC()->session->get($chosen_payment_method . '_installment');
                                 if(isset($installment) && $installment > 0) {
@@ -275,6 +303,8 @@ final class LknWCCieloPayment
                                             // Calcula os juros como porcentagem do valor total
                                             $interest_amount = ($cart_total * $installment_rate) / 100;
                                             WC()->cart->add_fee('Juros do cartão', $interest_amount);
+                                        } else {
+                                            return;
                                         }
                                     } else {
                                         return;
@@ -320,7 +350,6 @@ final class LknWCCieloPayment
             
             // Verifica se o produto tem a meta 'lknCieloApiProProdutctInterest'
             $product_interest = get_post_meta($product_id, 'lknCieloApiProProdutctInterest', true);
-            error_log($product_interest);
             
             if (!empty($product_interest) && is_numeric($product_interest)) {
                 $interest_value = (int) $product_interest;

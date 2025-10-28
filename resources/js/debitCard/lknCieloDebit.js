@@ -455,7 +455,7 @@ const lknDCContentCielo = props => {
     id: 'lkn_cc_dc_installments',
     label: lknDCTranslationsCielo.installments,
     value: debitObject.lkn_cc_dc_installments,
-    className: 'lkn-cielo-credit-debit-custom-select',
+    className: 'lkn_cielo_debit_select lkn-cielo-credit-debit-custom-select',
     onChange: event => {
       updatedebitObject('lkn_cc_dc_installments', event.target.value)
     },

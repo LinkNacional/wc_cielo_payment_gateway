@@ -6,9 +6,9 @@ jQuery(document).ready(function ($) {
     class CieloSelectDetector {
         constructor() {
             // Constants dentro da classe
-            this.PAYMENT_METHOD = 'lkn_cielo_credit';
-            this.SELECTOR = '.lkn_cielo_credit_select select';
-            this.MARKER_CLASS = 'lkn-credit-card-cielo-initialized';
+            this.PAYMENT_METHOD = 'lkn_cielo_debit';
+            this.SELECTOR = '.lkn_cielo_debit_select select';
+            this.MARKER_CLASS = 'lkn-debit-card-cielo-initialized';
             this.observer = null;
             this.init();
         }
@@ -70,13 +70,13 @@ jQuery(document).ready(function ($) {
     class AjaxService {
         updateFees(paymentMethod, installment) {
             $.ajax({
-                url: lkn_cielo_credit_card_ajax_params.ajax_url,
+                url: lkn_cielo_debit_card_ajax_params.ajax_url,
                 type: 'POST',
                 data: {
                     action: 'lkn_update_payment_fees',
                     payment_method: paymentMethod,
                     installment: installment,
-                    nonce: lkn_cielo_credit_card_ajax_params.nonce
+                    nonce: lkn_cielo_debit_card_ajax_params.nonce
                 },
                 success: (response) => {
                     if (response.success) {
