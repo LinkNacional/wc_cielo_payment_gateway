@@ -268,7 +268,7 @@ final class LknWCCieloPayment
                                         if ($cart_total >= $installment_min) {
                                             // Calcula os descontos como porcentagem do valor total
                                             $discount_amount = ($cart_total * $installment_rate) / 100;
-                                            WC()->cart->add_fee('Desconto do cartão', -$discount_amount);
+                                            WC()->cart->add_fee(__('Card Discount', 'lkn-wc-gateway-cielo'), -$discount_amount);
                                         } else {
                                             return;
                                         }
@@ -302,7 +302,7 @@ final class LknWCCieloPayment
                                         if ($cart_total >= $installment_min) {
                                             // Calcula os juros como porcentagem do valor total
                                             $interest_amount = ($cart_total * $installment_rate) / 100;
-                                            WC()->cart->add_fee('Juros do cartão', $interest_amount);
+                                            WC()->cart->add_fee(__('Card Interest', 'lkn-wc-gateway-cielo'), $interest_amount);
                                         } else {
                                             return;
                                         }
@@ -395,8 +395,11 @@ final class LknWCCieloPayment
         // Adiciona taxas externas (excluindo juros do cartão)
         foreach ($cart->get_fees() as $fee) {
             // Ignora taxas que são juros ou descontos do cartão
-            if (strpos($fee->name, 'Juros do cartão') === false && 
-                strpos($fee->name, 'Desconto do cartão') === false) {
+            $card_interest_label = __('Card Interest', 'lkn-wc-gateway-cielo');
+            $card_discount_label = __('Card Discount', 'lkn-wc-gateway-cielo');
+            
+            if (strpos($fee->name, $card_interest_label) === false && 
+                strpos($fee->name, $card_discount_label) === false) {
                 $subtotal += $fee->amount;
             }
         }
