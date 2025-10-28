@@ -210,11 +210,7 @@ final class LknWCCieloPayment
         $payment_method = sanitize_text_field(wp_unslash($_POST['payment_method']));
         $installment = sanitize_text_field(wp_unslash($_POST['installment']));
 
-        // TODO falta ajustar a função principal para o calculo.
-        error_log($payment_method);
-        error_log($installment);
-        
-        WC()->session->set('lkn_' . $payment_method . '_installment', $installment);
+        WC()->session->set($payment_method . '_installment', $installment);
         
         // Forçar recálculo das taxas
         WC()->cart->calculate_totals();
@@ -248,7 +244,7 @@ final class LknWCCieloPayment
                     }
 
                     $installment_limit = isset($settings['installment_discount_limit']) ? (int) $settings['installment_discount_limit'] : 12;
-                    $installment_min = isset($settings['installment_min']) ? (float) $settings['installment_min'] : 5.00;
+                    $installment_min = isset($settings['installment_min']) ? (int) $settings['installment_min'] : 12;
 
                     switch ($settings['interest_or_discount']) {
                         case 'discount':
@@ -259,7 +255,33 @@ final class LknWCCieloPayment
                             break;
                         case 'interest':
                             if (isset($settings['installment_interest']) && $settings['installment_interest'] === 'yes') {
-                                WC()->cart->add_fee('Juros do cartão', 10);
+                                $installment = WC()->session->get($chosen_payment_method . '_installment');
+                                if(isset($installment) && $installment > 0) {
+                                    $installment_rate = $settings[$installment . 'x'];
+
+                                    // Verifica se há produtos no carrinho com interesse específico
+                                    $product_interest_min = $this->get_cart_products_interest_minimum();
+                                    if(isset($product_interest_min) && $product_interest_min > 0) {
+                                        $installment_limit = $product_interest_min;
+                                    }
+
+                                    if(isset($installment_rate) && $installment_rate > 0 && $installment <= $installment_limit) {
+                                                                                
+                                        // Calcula o valor base (total do carrinho excluindo juros anteriores)
+                                        $cart_total = $this->get_cart_total_excluding_interest_fees();
+                                        
+                                        // Verifica se o valor total atende o mínimo para parcelamento
+                                        if ($cart_total >= $installment_min) {
+                                            // Calcula os juros como porcentagem do valor total
+                                            $interest_amount = ($cart_total * $installment_rate) / 100;
+                                            WC()->cart->add_fee('Juros do cartão', $interest_amount);
+                                        }
+                                    } else {
+                                        return;
+                                    }
+                                } else {
+                                    return;
+                                }
                                 break;
                             }
                             break;
@@ -274,6 +296,83 @@ final class LknWCCieloPayment
         } else {
             return;
         }
+    }
+
+    /**
+     * Obtém o valor mínimo de interesse dos produtos no carrinho
+     * 
+     * @return float
+     */
+    public function get_cart_products_interest_minimum()
+    {
+        $cart = WC()->cart;
+        $max_interest_min = 0;
+
+        if (empty($cart)) {
+            return $max_interest_min;
+        }
+
+        $cart_items = $cart->get_cart();
+        
+        foreach ($cart_items as $cart_item_key => $cart_item) {
+            $product = $cart_item['data'];
+            $product_id = $product->get_id();
+            
+            // Verifica se o produto tem a meta 'lknCieloApiProProdutctInterest'
+            $product_interest = get_post_meta($product_id, 'lknCieloApiProProdutctInterest', true);
+            error_log($product_interest);
+            
+            if (!empty($product_interest) && is_numeric($product_interest)) {
+                $interest_value = (int) $product_interest;
+                
+                if ($interest_value < $max_interest_min || $max_interest_min === 0) {
+                    $max_interest_min = $interest_value;
+                }
+            }
+        }
+        
+        return $max_interest_min;
+    }
+
+    /**
+     * Obtém o valor total do carrinho excluindo taxas de juros
+     * 
+     * @return float
+     */
+    public function get_cart_total_excluding_interest_fees()
+    {
+        $cart = WC()->cart;
+        
+        if (empty($cart)) {
+            return 0;
+        }
+        
+        // Valor dos produtos + variações
+        $subtotal = $cart->get_subtotal();
+        
+        // Adiciona impostos dos produtos se incluídos
+        if ($cart->display_prices_including_tax()) {
+            $subtotal += $cart->get_subtotal_tax();
+        }
+        
+        // Adiciona frete
+        $subtotal += $cart->get_shipping_total();
+        
+        // Adiciona impostos de frete se incluídos
+        if ($cart->display_prices_including_tax()) {
+            $subtotal += $cart->get_shipping_tax();
+        }
+        
+        // Adiciona taxas externas (excluindo juros do cartão)
+        foreach ($cart->get_fees() as $fee) {
+            // Ignora taxas que são juros ou descontos do cartão
+            if (strpos($fee->name, 'Juros do cartão') === false && 
+                strpos($fee->name, 'Desconto do cartão') === false) {
+                $subtotal += $fee->amount;
+            }
+        }
+        
+        return $subtotal;
     }
 
     /**
