@@ -82,7 +82,7 @@ final class LknWcCieloCreditBlocks extends AbstractPaymentMethodType
             );
             wp_localize_script('lkn-wc-gateway-credit-checkout-installment-select', 'lkn_cielo_credit_card_ajax_params', array(
                 'ajax_url' => admin_url('admin-ajax.php'),
-                'nonce' => wp_create_nonce('lkn_payment_fees_nonce')
+                'fees_nonce' => wp_create_nonce('lkn_payment_fees_nonce')
             ));
         }
         

@@ -81,6 +81,7 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
                 WC()->session->set('lkn_cielo_credit_installment', '1');
                 WC()->session->set('lkn_cielo_debit_installment', '1');
             }
+
             wp_enqueue_script(
                 'lkn-wc-gateway-debit-checkout-installment-select', 
                 plugin_dir_url(__FILE__) . '../resources/js/debitCard/lkn-wc-gateway-checkout-installment-select.js',
@@ -90,7 +91,7 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
             );
             wp_localize_script('lkn-wc-gateway-debit-checkout-installment-select', 'lkn_cielo_debit_card_ajax_params', array(
                 'ajax_url' => admin_url('admin-ajax.php'),
-                'nonce' => wp_create_nonce('lkn_payment_fees_nonce')
+                'fees_nonce' => wp_create_nonce('lkn_payment_fees_nonce')
             ));
         }
 
