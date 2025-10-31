@@ -191,127 +191,69 @@ final class LknWCCieloPayment
         $this->loader->add_action('before_woocommerce_init', $this, 'wcEditorBlocksActive');
         $this->loader->add_action('woocommerce_blocks_payment_method_type_registration', $this, 'wcEditorBlocksAddPaymentMethod');
 
-        $this->loader->add_filter('woocommerce_cart_calculate_fees', $this, 'add_checkout_fee_or_discount_in_credit_card', 100);
+        $this->loader->add_filter('woocommerce_cart_calculate_fees', $this, 'add_checkout_fee_or_discount_in_credit_card', 9999);
 
         $this->loader->add_action('wp_ajax_lkn_update_payment_fees', $this, 'ajax_update_payment_fees');
         $this->loader->add_action('wp_ajax_nopriv_lkn_update_payment_fees', $this, 'ajax_update_payment_fees');
+        
+        $this->loader->add_action('wp_ajax_lkn_update_tax_total', $this, 'ajax_update_tax_total');
+        $this->loader->add_action('wp_ajax_nopriv_lkn_update_tax_total', $this, 'ajax_update_tax_total');
     }
 
     /**
-     * Handler AJAX para atualizar taxas de pagamento
+     * Handler AJAX para definir parcela na sessão
      */
     public function ajax_update_payment_fees() 
     {
-        // Validações e geração de opções
-        if (!is_plugin_active('lkn-cielo-api-pro/lkn-cielo-api-pro.php')) {
-            wp_send_json_success(array());
-        }
-
-        $licenseResult = base64_decode(get_option('lknCieloProApiLicense', $this->EMPTY_VALUE), true);
-
-        if ('empty' === $licenseResult) {
-            if (class_exists('Lkn\LknCieloApiPro\Includes\LknCieloApiProLicenseHelper')) {
-                $licenseResult = LknCieloApiProLicenseHelper::cron_check_license();
-                $licenseResult = $licenseResult ? 'active' : 'inactive';
-            } else {
-                wp_send_json_success(array());
-            }
-        }
-
-        if ('active' !== $licenseResult) {
-            wp_send_json_success(array());
-        }
-
         // Verificar nonce
         if (!wp_verify_nonce(wp_unslash($_POST['nonce']), 'lkn_payment_fees_nonce')) {
-            error_log('entrou aqui');
-            wp_send_json_error(array());
+            wp_send_json_error(array('message' => 'Invalid nonce'));
         }
 
-        // Pega o método de pagamento da sessão
-        $current_payment_method = WC()->session->get('chosen_payment_method');
-
-        if (!in_array($current_payment_method, ['lkn_cielo_debit', 'lkn_cielo_credit'])) {
-            wp_send_json_success(array());
-        }
-
-        $settings = get_option('woocommerce_' . $current_payment_method . '_settings', array());
-
-        if (empty($settings)) {
-            wp_send_json_success(array());
-        }
-
-        $installment_limit = isset($settings['installment_limit']) ? (int) $settings['installment_limit'] : 12;
-        $installment_min = isset($settings['installment_min']) ? (int) $settings['installment_min'] : 5;
-
-        // Calcula o valor base (total do carrinho excluindo juros/descontos anteriores)
-        $cart_total = $this->get_cart_total_excluding_interest_fees();
-        
-        if ($cart_total < $installment_min) {
-            wp_send_json_success(array());
-        }
-
-        // Verifica se há produtos no carrinho com interesse específico
-        $product_interest_min = $this->get_cart_products_interest_minimum();
-        if (isset($product_interest_min) && $product_interest_min > 0) {
-            $installment_limit = $product_interest_min;
-        }
-
-        $installment_options = array();
-        $interest_or_discount = $settings['interest_or_discount'] ?? '';
-
-        for ($i = 1; $i <= $installment_limit; $i++) {
-            $installment_value = $cart_total;
-            $fee_text = __('sem juros', 'lkn-wc-gateway-cielo');
-            
-            // Verifica se há configuração para esta parcela
-            if ($interest_or_discount === 'interest' && 
-                isset($settings['installment_interest']) && 
-                $settings['installment_interest'] === 'yes') {
-                
-                $rate_key = $i . 'x';
-                $installment_rate = isset($settings[$rate_key]) ? (float) $settings[$rate_key] : 0;
-                
-                if ($installment_rate > 0) {
-                    $interest_amount = ($cart_total * $installment_rate) / 100;
-                    $installment_value = $cart_total + $interest_amount;
-                    $fee_text = sprintf(__('(%s%% de juros)', 'lkn-wc-gateway-cielo'), (int)$installment_rate);
-                }
-                
-            } elseif ($interest_or_discount === 'discount' && 
-                      isset($settings['installment_discount']) && 
-                      $settings['installment_discount'] === 'yes') {
-                
-                $rate_key = $i . 'x_discount';
-                $installment_rate = isset($settings[$rate_key]) ? (float) $settings[$rate_key] : 0;
-                
-                if ($installment_rate > 0) {
-                    $discount_amount = ($cart_total * $installment_rate) / 100;
-                    $installment_value = $cart_total - $discount_amount;
-                    $fee_text = sprintf(__('(%s%% de desconto)', 'lkn-wc-gateway-cielo'), (int)$installment_rate);
-                }
-            }
-
-            // Calcula o valor da parcela
-            $installment_amount = $installment_value / $i;
-            
-            $installment_options[] = array(
-                'value' => $i,
-                'label' => sprintf(
-                    __('%dx de %s %s', 'lkn-wc-gateway-cielo'),
-                    $i,
-                    strip_tags(wc_price($installment_amount)),
-                    $fee_text
-                )
-            );
-        }
-
+        // Sanitizar dados
         $payment_method = sanitize_text_field(wp_unslash($_POST['payment_method']));
         $installment = sanitize_text_field(wp_unslash($_POST['installment']));
 
+        // Validar método de pagamento
+        if (!in_array($payment_method, ['lkn_cielo_debit', 'lkn_cielo_credit'])) {
+            wp_send_json_error(array('message' => 'Invalid payment method'));
+        }
+
+        // Definir na sessão
         WC()->session->set($payment_method . '_installment', $installment);
 
-        wp_send_json_success($installment_options);
+        wp_send_json_success(array(
+            'message' => 'Installment set successfully',
+            'installment' => $installment,
+            'payment_method' => $payment_method
+        ));
+    }
+
+    /**
+     * Handler AJAX para definir valor total de taxa na sessão
+     */
+    public function ajax_update_tax_total() 
+    {
+        // Verificar nonce
+        if (!wp_verify_nonce(wp_unslash($_POST['nonce']), 'lkn_tax_total_nonce')) {
+            wp_send_json_error(array('message' => 'Invalid nonce'));
+        }
+
+        // Sanitizar dados
+        $tax_total = floatval(wp_unslash($_POST['tax_total']));
+
+        // Validar valor da taxa
+        if ($tax_total < 0) {
+            wp_send_json_error(array('message' => 'Invalid tax total value'));
+        }
+
+        // Definir na sessão
+        WC()->session->set('lkn_tax_total', $tax_total);
+
+        wp_send_json_success(array(
+            'message' => 'Tax total set successfully',
+            'tax_total' => $tax_total
+        ));
     }
 
     public function add_checkout_fee_or_discount_in_credit_card() 
@@ -364,7 +306,6 @@ final class LknWCCieloPayment
                                         if ($cart_total >= $installment_min) {
                                             // Calcula os descontos como porcentagem do valor total
                                             $discount_amount = ($cart_total * $installment_rate) / 100;
-                                            error_log($discount_amount);
                                             WC()->cart->add_fee(__('Card Discount', 'lkn-wc-gateway-cielo'), -$discount_amount);
                                         } else {
                                             return;
@@ -473,37 +414,40 @@ final class LknWCCieloPayment
             return 0;
         }
 
-        error_log(json_encode($cart));
-
-        // Calcula manualmente o total base
         $cart_total = $cart->get_subtotal();
+        error_log('Subtotal: ' . $cart->get_subtotal());
         
-        // Adiciona frete
         $cart_total += $cart->get_shipping_total();
+        error_log('Shipping: ' . $cart->get_shipping_total());
+        
+        $taxes_total = WC()->session->get('lkn_tax_total', 0);
+        error_log('Taxes Total from session: ' . $taxes_total);
 
-        $total_tax = $cart->get_total_tax();
-
-        error_log($total_tax);
-
-        if($total_tax > 0){
-            $cart_total += $total_tax;
-            WC()->session->set('lkn_cielo_skip_tax_calculation', $total_tax);
+        if ($taxes_total > 0) {
+            $custom_tax_total = floatval(WC()->session->get('lkn_tax_total'));
+            $cart_total += $custom_tax_total;
         } else {
-            $cart_total += WC()->session->get('lkn_cielo_skip_tax_calculation', 0);
+            $taxes_total = floatval($cart->get_taxes_total());
+            $cart_total += $taxes_total;
         }
-
+ 
         // Adiciona apenas fees que NÃO são do Cielo
         $card_interest_label = __('Card Interest', 'lkn-wc-gateway-cielo');
         $card_discount_label = __('Card Discount', 'lkn-wc-gateway-cielo');
         
+        error_log('Verificando fees...');
         foreach ($cart->get_fees() as $fee) {
+            error_log('Fee encontrada: ' . $fee->name . ' = ' . $fee->amount);
             if (strpos($fee->name, $card_interest_label) === false && 
                 strpos($fee->name, $card_discount_label) === false) {
                 $cart_total += $fee->amount;
+                error_log('Fee adicionada ao total: ' . $fee->name . ' = ' . $fee->amount);
+            } else {
+                error_log('Fee ignorada (é do Cielo): ' . $fee->name);
             }
         }
         
-        error_log($cart_total);
+        error_log('Cart Total Final: ' . $cart_total);
         return max(0, $cart_total);
     }
 

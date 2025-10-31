@@ -270,9 +270,10 @@ const lknDCContentCielo = props => {
   }, [debitObject, emitResponse.responseTypes.ERROR, emitResponse.responseTypes.SUCCESS, onPaymentSetup])
   const calculateInstallments = lknDCTotalCartCielo => {
     const installmentMin = parseFloat(lknDCInstallmentMinAmount)
-    // Verifica se 'lknCCActiveInstallmentCielo' é 'yes' e o valor total é maior que 10
+
+    // Verifica se 'lknDCActiveInstallmentCielo' é 'yes' e o valor total é maior que 10
     if (lknDCActiveInstallmentCielo === 'yes' && lknDCTotalCartCielo > 10) {
-      const maxInstallments = lknDCInstallmentLimitCielo // Limita o parcelamento até 12 vezes, deixei fixo para teste
+      const maxInstallments = lknDCInstallmentLimitCielo // Limita o parcelamento
 
       for (let index = 1; index <= maxInstallments; index++) {
         const installmentAmount = (lknDCTotalCartCielo / index).toLocaleString('pt-BR', {
@@ -280,30 +281,35 @@ const lknDCContentCielo = props => {
           maximumFractionDigits: 2
         })
         let nextInstallmentAmount = parseFloat(lknDCTotalCartCielo) / index
+
         if (nextInstallmentAmount < installmentMin) {
           break
         }
+
         let formatedInterest = false
-        let typeText = '';
+        let typeText = ''
+
         for (let t = 0; t < lknCC3DSinstallmentsCielo.length; t++) {
-          const interestOrDiscount = lknDCsettingsCielo.interestOrDiscount;
+          const interestOrDiscount = lknDCsettingsCielo.interestOrDiscount
           const installmentObj = lknCC3DSinstallmentsCielo[t]
+
           if (interestOrDiscount === 'discount' && lknDCsettingsCielo.activeDiscount == "yes" && installmentObj.id === index) {
             nextInstallmentAmount = (lknDCTotalCartCielo - lknDCTotalCartCielo * (parseFloat(installmentObj.interest) / 100)) / index
             formatedInterest = new Intl.NumberFormat('pt-br', {
               style: 'currency',
               currency: 'BRL'
             }).format(nextInstallmentAmount)
-            typeText = ` (${installmentObj.interest}% de desconto)`;
+            typeText = ` (${installmentObj.interest}% de desconto)`
           } else if (interestOrDiscount === "interest" && lknDCsettingsCielo.activeInstallment == "yes" && installmentObj.id === index) {
             nextInstallmentAmount = (lknDCTotalCartCielo + lknDCTotalCartCielo * (parseFloat(installmentObj.interest) / 100)) / index
             formatedInterest = new Intl.NumberFormat('pt-br', {
               style: 'currency',
               currency: 'BRL'
             }).format(nextInstallmentAmount)
-            typeText = ` (${installmentObj.interest}% de juros)`;
+            typeText = ` (${installmentObj.interest}% de juros)`
           }
         }
+
         if (formatedInterest) {
           setOptions(prevOptions => [...prevOptions, {
             key: index,
@@ -329,45 +335,89 @@ const lknDCContentCielo = props => {
     }
   }
   window.wp.element.useEffect(() => {
+    // Executa apenas uma vez no carregamento inicial
     calculateInstallments(lknDCTotalCartCielo)
-    const intervalId = setInterval(() => {
-      const targetNode = document.querySelector('.wc-block-formatted-money-amount.wc-block-components-formatted-money-amount.wc-block-components-totals-footer-item-tax-value')
-      // Configuração do observer: quais mudanças serão observadas
-      if (targetNode) {
-        const config = {
-          childList: true,
-          subtree: true,
-          characterData: true
-        }
-        const changeValue = () => {
-          setOptions([])
-          // Remover tudo exceto os números e a vírgula
-          let valorNumerico = targetNode.textContent.replace(/[^\d,]/g, '')
 
-          // Substituir a vírgula por um ponto
-          valorNumerico = valorNumerico.replace(',', '.')
+    // Intercepta as requisições batch do WooCommerce
+    const originalFetch = window.fetch
 
-          // Converter para número
-          valorNumerico = parseFloat(valorNumerico)
-          calculateInstallments(valorNumerico)
-        }
-        changeValue()
+    window.fetch = async (...args) => {
+      const [resource, config] = args
+      const url = typeof resource === 'string' ? resource : resource.url
 
-        // Função de callback que será executada quando ocorrerem mudanças
-        const callback = function (mutationsList, observer) {
-          for (const mutation of mutationsList) {
-            if (mutation.type === 'childList' || mutation.type === 'characterData') {
-              changeValue()
+      // Monitora requisições para a API do WooCommerce Store
+      if (url && url.includes('/wp-json/wc/store/v1/batch')) {
+        try {
+          const response = await originalFetch.apply(window, args)
+
+          // Clone a resposta para poder lê-la sem afetar o fluxo original
+          const responseClone = response.clone()
+          const data = await responseClone.json()
+
+          // Extrai o total correto da resposta batch
+          if (data && data.responses && data.responses[0] && data.responses[0].body && data.responses[0].body.totals) {
+            const totals = data.responses[0].body.totals
+            console.log(totals)
+
+            // Calcula o total real: items + shipping + tax (sem fees do Cielo)
+            const totalItems = parseFloat(totals.total_items) || 0
+            const totalShipping = parseFloat(totals.total_shipping) || 0
+            const totalTax = parseFloat(totals.total_tax) || 0
+
+            // Total base sem fees do Cielo (que serão recalculadas conforme a parcela)
+            const cartTotal = (totalItems + totalShipping + totalTax) / 100 // WooCommerce usa centavos
+
+            console.log('Batch response - Cart total calculated:', cartTotal, {
+              items: totalItems / 100,
+              shipping: totalShipping / 100,
+              tax: totalTax / 100
+            })
+
+            // Chama a rota AJAX para atualizar o valor total da taxa
+            if (window.lknCieloDebitConfig && window.lknCieloDebitConfig.tax_nonce) {
+              const taxTotalValue = totalTax / 100 // Converte de centavos para reais
+
+              console.log('Enviando totalTax via AJAX:', taxTotalValue)
+
+              const formData = new FormData()
+              formData.append('action', 'lkn_update_tax_total')
+              formData.append('tax_total', taxTotalValue)
+              formData.append('nonce', window.lknCieloDebitConfig.tax_nonce)
+
+              fetch(window.lknCieloDebitConfig.ajax_url, {
+                method: 'POST',
+                body: formData
+              })
+                .then(response => response.json())
+                .then(data => {
+                  console.log('Resposta da requisição de tax total:', data)
+                })
+                .catch(error => {
+                  console.error('Erro na requisição de tax total:', error)
+                })
+            }
+
+            // Atualiza as opções de parcelamento com o novo total
+            if (cartTotal > 0) {
+              setOptions([]) // Limpa opções antigas
+              calculateInstallments(cartTotal)
             }
           }
-        }
 
-        // Cria uma instância do observer e o conecta ao nó alvo
-        const observer = new MutationObserver(callback)
-        observer.observe(targetNode, config)
-        clearInterval(intervalId)
+          return response
+        } catch (error) {
+          console.error('Erro ao processar batch response:', error)
+          return originalFetch.apply(window, args)
+        }
       }
-    }, 500)
+
+      return originalFetch.apply(window, args)
+    }
+
+    // Cleanup: restaura o fetch original quando o componente é desmontado
+    return () => {
+      window.fetch = originalFetch
+    }
   }, [])
   return /* #__PURE__ */React.createElement(React.Fragment, null, lknDCshowCard !== 'no' && /* #__PURE__ */React.createElement(Cards, {
     number: debitObject.lkn_dcno,
@@ -457,7 +507,37 @@ const lknDCContentCielo = props => {
     value: debitObject.lkn_cc_dc_installments,
     className: 'lkn_cielo_debit_select lkn-cielo-credit-debit-custom-select',
     onChange: event => {
-      updatedebitObject('lkn_cc_dc_installments', event.target.value)
+      const installmentValue = event.target.value
+      updatedebitObject('lkn_cc_dc_installments', installmentValue)
+
+      // Faz a requisição AJAX para atualizar as fees quando a parcela mudar
+      if (window.lknCieloDebitConfig) {
+        console.log('Fazendo requisição AJAX - mudança de parcela:', installmentValue)
+
+        const formData = new FormData()
+        formData.append('action', 'lkn_update_payment_fees')
+        formData.append('payment_method', 'lkn_cielo_debit')
+        formData.append('installment', installmentValue)
+        formData.append('nonce', window.lknCieloDebitConfig.fees_nonce)
+
+        fetch(window.lknCieloDebitConfig.ajax_url, {
+          method: 'POST',
+          body: formData
+        })
+          .then(response => response.json())
+          .then(data => {
+            console.log('Resposta da requisição de parcela:', data)
+            if (data.success) {
+              // Força recálculo do carrinho
+              if (window.wp && window.wp.data) {
+                window.wp.data.dispatch('wc/store/cart').invalidateResolutionForStore()
+              }
+            }
+          })
+          .catch(error => {
+            console.error('Erro na requisição de parcela:', error)
+          })
+      }
     },
     options
   }), lknDCActiveInstallmentCielo === 'cielo' && /* #__PURE__ */React.createElement(wcComponents.CheckboxControl, {
