@@ -420,16 +420,16 @@ final class LknWCCieloPayment
         $cart_total += $cart->get_shipping_total();
         error_log('Shipping: ' . $cart->get_shipping_total());
         
-        $taxes_total = WC()->session->get('lkn_tax_total', 0);
-        error_log('Taxes Total from session: ' . $taxes_total);
+        // $taxes_total = WC()->session->get('lkn_tax_total', 0);
+        // error_log('Taxes Total from session: ' . $taxes_total);
 
-        if ($taxes_total > 0) {
-            $custom_tax_total = floatval(WC()->session->get('lkn_tax_total'));
-            $cart_total += $custom_tax_total;
-        } else {
-            $taxes_total = floatval($cart->get_taxes_total());
-            $cart_total += $taxes_total;
-        }
+        // if ($taxes_total > 0) {
+        //     $custom_tax_total = floatval(WC()->session->get('lkn_tax_total'));
+        //     $cart_total += $custom_tax_total;
+        // } else {
+        //     $taxes_total = floatval($cart->get_taxes_total());
+        //     $cart_total += $taxes_total;
+        // }
  
         // Adiciona apenas fees que NÃO são do Cielo
         $card_interest_label = __('Card Interest', 'lkn-wc-gateway-cielo');

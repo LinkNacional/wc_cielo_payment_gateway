@@ -2,6 +2,7 @@ import React from 'react'
 import Cards from 'react-credit-cards'
 import 'react-credit-cards/es/styles-compiled.css'
 const lknDCsettingsCielo = window.wc.wcSettings.getSetting('lkn_cielo_debit_data', {})
+console.log('lknDCsettingsCielo:', lknDCsettingsCielo)
 const lknDCLabelCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.title)
 const lknDCDescriptionCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.description)
 const lknDCAccessTokenCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.accessToken)
@@ -82,6 +83,93 @@ const lknDCContentCielo = props => {
     lkn_cc_type: 'Credit'
   })
   const [focus, setFocus] = window.wp.element.useState('')
+
+  // Nova função para buscar dados do carrinho diretamente
+  const fetchCartData = async () => {
+    try {
+      const response = await fetch('/wp-json/wc/store/v1/cart', {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const cartData = await response.json()
+      console.log('Cart data fetched:', cartData)
+
+      if (cartData && cartData.totals) {
+        const totals = cartData.totals
+
+        // Separa os valores para o cálculo correto:
+        // Base para cálculo de parcelas = Subtotal + Shipping (sem fees, pois fees são calculadas por parcela)
+        // Tax é aplicada no final, após o cálculo das parcelas
+        const subtotal = parseFloat(totals.total_items) || 0
+        const shipping = parseFloat(totals.total_shipping) || 0
+        const fees = parseFloat(totals.total_fees) || 0 // Não entra no cálculo base
+        const tax = parseFloat(totals.total_tax) || 0
+
+        // Total base para cálculo de parcelas (sem fees e sem tax)
+        const baseTotal = (subtotal + shipping) / 100 // WooCommerce usa centavos
+
+        // Tax para ser aplicada no final
+        const taxAmount = tax / 100
+
+        console.log('Cart totals calculated:', {
+          subtotal: subtotal / 100,
+          shipping: shipping / 100,
+          fees: fees / 100,
+          tax: taxAmount,
+          baseTotal,
+          taxAmount
+        })
+
+        // Atualiza as opções de parcelamento com o total base e tax separados
+        if (baseTotal > 0) {
+          setOptions([]) // Limpa opções antigas
+          calculateInstallments(baseTotal, taxAmount)
+        }
+
+        return {
+          subtotal: subtotal / 100,
+          shipping: shipping / 100,
+          fees: fees / 100,
+          tax: taxAmount,
+          baseTotal,
+          taxAmount
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao buscar dados do carrinho:', error)
+      return null
+    }
+  }
+
+  // Função para executar múltiplas requisições com delay
+  const fetchCartDataWithRetries = async (retries = 4, delay = 2000) => {
+    console.log(`Iniciando busca do carrinho - tentativa ${5 - retries}/4`)
+
+    for (let i = 0; i < retries; i++) {
+      const cartData = await fetchCartData()
+
+      if (cartData) {
+        console.log(`Dados do carrinho obtidos na tentativa ${i + 1}`)
+        return cartData
+      }
+
+      if (i < retries - 1) {
+        console.log(`Aguardando ${delay}ms para próxima tentativa...`)
+        await new Promise(resolve => setTimeout(resolve, delay))
+      }
+    }
+
+    console.log('Todas as tentativas de busca do carrinho falharam')
+    return null
+  }
   const formatDebitCardNumber = value => {
     if (value?.length > 24) return debitObject.lkn_dcno
     // Remove caracteres não numéricos
@@ -268,7 +356,22 @@ const lknDCContentCielo = props => {
       unsubscribe()
     }
   }, [debitObject, emitResponse.responseTypes.ERROR, emitResponse.responseTypes.SUCCESS, onPaymentSetup])
-  const calculateInstallments = lknDCTotalCartCielo => {
+  // Função para recalcular as opções de parcelas com os dados atuais do carrinho
+  const recalculateInstallments = async () => {
+    console.log('Recalculando parcelas com dados atuais do carrinho...')
+
+    // Limpa as opções atuais
+    setOptions([])
+
+    // Busca os dados atuais do carrinho
+    const cartData = await fetchCartData()
+
+    if (cartData) {
+      calculateInstallments(cartData.baseTotal, cartData.taxAmount)
+    }
+  }
+
+  const calculateInstallments = (lknDCTotalCartCielo, taxAmount = 0) => {
     const installmentMin = parseFloat(lknDCInstallmentMinAmount)
 
     // Verifica se 'lknDCActiveInstallmentCielo' é 'yes' e o valor total é maior que 10
@@ -276,12 +379,11 @@ const lknDCContentCielo = props => {
       const maxInstallments = lknDCInstallmentLimitCielo // Limita o parcelamento
 
       for (let index = 1; index <= maxInstallments; index++) {
-        const installmentAmount = (lknDCTotalCartCielo / index).toLocaleString('pt-BR', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2
-        })
-        let nextInstallmentAmount = parseFloat(lknDCTotalCartCielo) / index
+        // Valor base para cálculo (subtotal + shipping, sem fees)
+        let baseValue = parseFloat(lknDCTotalCartCielo)
+        let nextInstallmentAmount = baseValue / index
 
+        // Verifica se atende o valor mínimo antes de aplicar descontos/juros
         if (nextInstallmentAmount < installmentMin) {
           break
         }
@@ -289,24 +391,37 @@ const lknDCContentCielo = props => {
         let formatedInterest = false
         let typeText = ''
 
-        for (let t = 0; t < lknCC3DSinstallmentsCielo.length; t++) {
-          const interestOrDiscount = lknDCsettingsCielo.interestOrDiscount
-          const installmentObj = lknCC3DSinstallmentsCielo[t]
+        // Busca a configuração específica para esta parcela no array installments
+        const installmentConfig = lknDCsettingsCielo.installments.find(inst => inst.id === index)
 
-          if (interestOrDiscount === 'discount' && lknDCsettingsCielo.activeDiscount == "yes" && installmentObj.id === index) {
-            nextInstallmentAmount = (lknDCTotalCartCielo - lknDCTotalCartCielo * (parseFloat(installmentObj.interest) / 100)) / index
+        if (installmentConfig) {
+          const interestOrDiscount = lknDCsettingsCielo.interestOrDiscount
+          const interestPercent = parseFloat(installmentConfig.interest)
+
+          if (interestOrDiscount === 'discount' && lknDCsettingsCielo.activeDiscount == "yes") {
+            // Fórmula correta: (((subtotal + frete) * desconto) + tax) / parcelas
+            console.log('Aplicando desconto para parcela', index, ':', interestPercent, '%')
+            const discountMultiplier = 1 - (interestPercent / 100)
+            const baseWithDiscount = baseValue * discountMultiplier
+            nextInstallmentAmount = (baseWithDiscount + taxAmount) / index
+            console.log('Cálculo desconto:', baseValue, '*', discountMultiplier, '=', baseWithDiscount, '+', taxAmount, '=', (baseWithDiscount + taxAmount), '/', index, '=', nextInstallmentAmount)
             formatedInterest = new Intl.NumberFormat('pt-br', {
               style: 'currency',
               currency: 'BRL'
             }).format(nextInstallmentAmount)
-            typeText = ` (${installmentObj.interest}% de desconto)`
-          } else if (interestOrDiscount === "interest" && lknDCsettingsCielo.activeInstallment == "yes" && installmentObj.id === index) {
-            nextInstallmentAmount = (lknDCTotalCartCielo + lknDCTotalCartCielo * (parseFloat(installmentObj.interest) / 100)) / index
+            typeText = ` (${interestPercent}% de desconto)`
+          } else if (interestOrDiscount === "interest" && lknDCsettingsCielo.activeInstallment == "yes") {
+            // Fórmula correta: (((subtotal + frete) * juros) + tax) / parcelas
+            console.log('Aplicando juros para parcela', index, ':', interestPercent, '%')
+            const interestMultiplier = 1 + (interestPercent / 100)
+            const baseWithInterest = baseValue * interestMultiplier
+            nextInstallmentAmount = (baseWithInterest + taxAmount) / index
+            console.log('Cálculo juros:', baseValue, '*', interestMultiplier, '=', baseWithInterest, '+', taxAmount, '=', (baseWithInterest + taxAmount), '/', index, '=', nextInstallmentAmount)
             formatedInterest = new Intl.NumberFormat('pt-br', {
               style: 'currency',
               currency: 'BRL'
             }).format(nextInstallmentAmount)
-            typeText = ` (${installmentObj.interest}% de juros)`
+            typeText = ` (${interestPercent}% de juros)`
           }
         }
 
@@ -315,103 +430,78 @@ const lknDCContentCielo = props => {
             key: index,
             label: `${index}x de ${formatedInterest}${typeText}`
           }])
-        } else if (lknDCsettingsCielo.activeDiscount == 'yes') {
-          setOptions(prevOptions => [...prevOptions, {
-            key: index,
-            label: `${index}x de R$ ${installmentAmount}${lknDCsettingsCielo.interestOrDiscount == 'interest' ? ' sem juros' : ' sem desconto'}`
-          }])
         } else {
-          setOptions(prevOptions => [...prevOptions, {
-            key: index,
-            label: `${index}x de R$ ${installmentAmount} sem juros`
-          }])
+          // Sem juros/desconto: (baseValue + tax) / parcelas
+          console.log('Sem desconto/juros para parcela', index)
+          const totalWithTax = baseValue + taxAmount
+          const finalAmount = totalWithTax / index
+          console.log('Cálculo sem desconto:', baseValue, '+', taxAmount, '=', totalWithTax, '/', index, '=', finalAmount)
+          const installmentAmount = finalAmount.toLocaleString('pt-BR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          })
+
+          if (lknDCsettingsCielo.activeDiscount == 'yes') {
+            setOptions(prevOptions => [...prevOptions, {
+              key: index,
+              label: `${index}x de R$ ${installmentAmount}${lknDCsettingsCielo.interestOrDiscount == 'interest' ? ' sem juros' : ' sem desconto'}`
+            }])
+          } else {
+            setOptions(prevOptions => [...prevOptions, {
+              key: index,
+              label: `${index}x de R$ ${installmentAmount} sem juros`
+            }])
+          }
         }
       }
     } else {
+      // À vista: baseValue + tax
+      const totalAmount = (lknDCTotalCartCielo + taxAmount).toLocaleString('pt-BR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      })
       setOptions(prevOptions => [...prevOptions, {
         key: '1',
-        label: `1x de R$ ${lknDCTotalCartCielo} (à vista)`
+        label: `1x de R$ ${totalAmount} (à vista)`
       }])
     }
   }
   window.wp.element.useEffect(() => {
-    // Executa apenas uma vez no carregamento inicial
-    calculateInstallments(lknDCTotalCartCielo)
+    // Executa a primeira busca no carregamento
+    fetchCartDataWithRetries()
 
-    // Intercepta as requisições batch do WooCommerce
+    // Intercepta as requisições para detectar mudanças
     const originalFetch = window.fetch
 
     window.fetch = async (...args) => {
       const [resource, config] = args
       const url = typeof resource === 'string' ? resource : resource.url
 
-      // Monitora requisições para a API do WooCommerce Store
-      if (url && url.includes('/wp-json/wc/store/v1/batch')) {
-        try {
-          const response = await originalFetch.apply(window, args)
+      console.log('Intercepted request:', url)
 
-          // Clone a resposta para poder lê-la sem afetar o fluxo original
-          const responseClone = response.clone()
-          const data = await responseClone.json()
+      // Detecta mudanças no carrinho que requerem recálculo
+      const shouldRecalculate = url && (
+        url.includes('/wp-json/wc/store/v1/cart/select-shipping-rate') ||
+        url.includes('/wp-json/wc/store/v1/batch') ||
+        url.includes('/wp-json/wc/store/v1/cart/update-item') ||
+        url.includes('/wp-json/wc/store/v1/cart/add-item') ||
+        url.includes('/wp-json/wc/store/v1/cart/remove-item') ||
+        url.includes('/wp-json/wc/store/v1/cart/apply-coupon') ||
+        url.includes('/wp-json/wc/store/v1/cart/remove-coupon')
+      )
 
-          // Extrai o total correto da resposta batch
-          if (data && data.responses && data.responses[0] && data.responses[0].body && data.responses[0].body.totals) {
-            const totals = data.responses[0].body.totals
-            console.log(totals)
+      const response = await originalFetch.apply(window, args)
 
-            // Calcula o total real: items + shipping + tax (sem fees do Cielo)
-            const totalItems = parseFloat(totals.total_items) || 0
-            const totalShipping = parseFloat(totals.total_shipping) || 0
-            const totalTax = parseFloat(totals.total_tax) || 0
+      if (shouldRecalculate) {
+        console.log('Detected cart change, recalculating installments...')
 
-            // Total base sem fees do Cielo (que serão recalculadas conforme a parcela)
-            const cartTotal = (totalItems + totalShipping + totalTax) / 100 // WooCommerce usa centavos
-
-            console.log('Batch response - Cart total calculated:', cartTotal, {
-              items: totalItems / 100,
-              shipping: totalShipping / 100,
-              tax: totalTax / 100
-            })
-
-            // Chama a rota AJAX para atualizar o valor total da taxa
-            if (window.lknCieloDebitConfig && window.lknCieloDebitConfig.tax_nonce) {
-              const taxTotalValue = totalTax / 100 // Converte de centavos para reais
-
-              console.log('Enviando totalTax via AJAX:', taxTotalValue)
-
-              const formData = new FormData()
-              formData.append('action', 'lkn_update_tax_total')
-              formData.append('tax_total', taxTotalValue)
-              formData.append('nonce', window.lknCieloDebitConfig.tax_nonce)
-
-              fetch(window.lknCieloDebitConfig.ajax_url, {
-                method: 'POST',
-                body: formData
-              })
-                .then(response => response.json())
-                .then(data => {
-                  console.log('Resposta da requisição de tax total:', data)
-                })
-                .catch(error => {
-                  console.error('Erro na requisição de tax total:', error)
-                })
-            }
-
-            // Atualiza as opções de parcelamento com o novo total
-            if (cartTotal > 0) {
-              setOptions([]) // Limpa opções antigas
-              calculateInstallments(cartTotal)
-            }
-          }
-
-          return response
-        } catch (error) {
-          console.error('Erro ao processar batch response:', error)
-          return originalFetch.apply(window, args)
-        }
+        // Aguarda um pouco para o WooCommerce processar a mudança
+        setTimeout(() => {
+          recalculateInstallments()
+        }, 500) // 500ms de delay inicial
       }
 
-      return originalFetch.apply(window, args)
+      return response
     }
 
     // Cleanup: restaura o fetch original quando o componente é desmontado
@@ -527,15 +617,32 @@ const lknDCContentCielo = props => {
           .then(response => response.json())
           .then(data => {
             console.log('Resposta da requisição de parcela:', data)
-            if (data.success) {
-              // Força recálculo do carrinho
+
+            // Após a resposta AJAX, recalcula as parcelas com os novos dados do carrinho
+            setTimeout(() => {
+              console.log('Recalculando parcelas após mudança...')
+              recalculateInstallments()
+
+              // Também força recálculo do carrinho para manter consistência
               if (window.wp && window.wp.data) {
+                console.log('Forçando recálculo do carrinho após AJAX...')
                 window.wp.data.dispatch('wc/store/cart').invalidateResolutionForStore()
               }
-            }
+            }, 100) // 100ms de delay para processar
           })
           .catch(error => {
             console.error('Erro na requisição de parcela:', error)
+
+            // Mesmo em caso de erro, recalcula e força o recálculo para manter consistência
+            setTimeout(() => {
+              console.log('Recalculando parcelas após erro...')
+              recalculateInstallments()
+
+              if (window.wp && window.wp.data) {
+                console.log('Forçando recálculo do carrinho após erro AJAX...')
+                window.wp.data.dispatch('wc/store/cart').invalidateResolutionForStore()
+              }
+            }, 100) // 100ms de delay
           })
       }
     },
