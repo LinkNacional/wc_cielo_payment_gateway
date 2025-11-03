@@ -149,26 +149,37 @@ const lknDCContentCielo = props => {
     }
   }
 
-  // Função para executar múltiplas requisições com delay
-  const fetchCartDataWithRetries = async (retries = 4, delay = 2000) => {
-    console.log(`Iniciando busca do carrinho - tentativa ${5 - retries}/4`)
+  // Função para executar múltiplas requisições com delay (sempre faz todas as tentativas)
+  const fetchCartDataWithRetries = async (retries = 4, delay = 1500) => {
+    console.log(`Iniciando busca do carrinho - ${retries} tentativas com delay de ${delay}ms`)
+
+    let lastCartData = null
 
     for (let i = 0; i < retries; i++) {
+      console.log(`Tentativa ${i + 1}/${retries}`)
       const cartData = await fetchCartData()
 
       if (cartData) {
-        console.log(`Dados do carrinho obtidos na tentativa ${i + 1}`)
-        return cartData
+        console.log(`Dados do carrinho obtidos na tentativa ${i + 1}:`, cartData.baseTotal)
+        lastCartData = cartData
+      } else {
+        console.log(`Tentativa ${i + 1} falhou`)
       }
 
+      // Sempre aguarda o delay (exceto na última tentativa)
       if (i < retries - 1) {
         console.log(`Aguardando ${delay}ms para próxima tentativa...`)
         await new Promise(resolve => setTimeout(resolve, delay))
       }
     }
 
-    console.log('Todas as tentativas de busca do carrinho falharam')
-    return null
+    if (lastCartData) {
+      console.log('Usando dados da última tentativa bem-sucedida:', lastCartData.baseTotal)
+    } else {
+      console.log('Todas as tentativas de busca do carrinho falharam')
+    }
+
+    return lastCartData
   }
   const formatDebitCardNumber = value => {
     if (value?.length > 24) return debitObject.lkn_dcno
@@ -357,22 +368,50 @@ const lknDCContentCielo = props => {
     }
   }, [debitObject, emitResponse.responseTypes.ERROR, emitResponse.responseTypes.SUCCESS, onPaymentSetup])
   // Função para recalcular as opções de parcelas com os dados atuais do carrinho
-  const recalculateInstallments = async () => {
+  const recalculateInstallments = async (useRetries = false) => {
     console.log('Recalculando parcelas com dados atuais do carrinho...')
 
     // Limpa as opções atuais
     setOptions([])
 
-    // Busca os dados atuais do carrinho
-    const cartData = await fetchCartData()
+    let cartData
+    if (useRetries) {
+      // Para mudanças dinâmicas, sempre faz todas as tentativas para garantir valores corretos
+      console.log('Usando retries para mudanças dinâmicas...')
+      let lastCartData = null
+      const retries = 3
+      const delay = 1000
+
+      for (let i = 0; i < retries; i++) {
+        console.log(`Recálculo - tentativa ${i + 1}/${retries}`)
+        const data = await fetchCartData()
+
+        if (data) {
+          console.log(`Recálculo - dados obtidos na tentativa ${i + 1}:`, data.baseTotal)
+          lastCartData = data
+        }
+
+        // Sempre aguarda o delay (exceto na última tentativa)
+        if (i < retries - 1) {
+          await new Promise(resolve => setTimeout(resolve, delay))
+        }
+      }
+
+      cartData = lastCartData
+    } else {
+      // Uma única tentativa para mudanças rápidas
+      cartData = await fetchCartData()
+    }
 
     if (cartData) {
+      console.log('Calculando parcelas com total:', cartData.baseTotal)
       calculateInstallments(cartData.baseTotal, cartData.taxAmount)
     }
   }
 
   const calculateInstallments = (lknDCTotalCartCielo, taxAmount = 0) => {
     const installmentMin = parseFloat(lknDCInstallmentMinAmount)
+    const newOptions = [] // Array local para construir as opções
 
     // Verifica se 'lknDCActiveInstallmentCielo' é 'yes' e o valor total é maior que 10
     if (lknDCActiveInstallmentCielo === 'yes' && lknDCTotalCartCielo > 10) {
@@ -426,10 +465,10 @@ const lknDCContentCielo = props => {
         }
 
         if (formatedInterest) {
-          setOptions(prevOptions => [...prevOptions, {
+          newOptions.push({
             key: index,
             label: `${index}x de ${formatedInterest}${typeText}`
-          }])
+          })
         } else {
           // Sem juros/desconto: (baseValue + tax) / parcelas
           console.log('Sem desconto/juros para parcela', index)
@@ -442,15 +481,15 @@ const lknDCContentCielo = props => {
           })
 
           if (lknDCsettingsCielo.activeDiscount == 'yes') {
-            setOptions(prevOptions => [...prevOptions, {
+            newOptions.push({
               key: index,
               label: `${index}x de R$ ${installmentAmount}${lknDCsettingsCielo.interestOrDiscount == 'interest' ? ' sem juros' : ' sem desconto'}`
-            }])
+            })
           } else {
-            setOptions(prevOptions => [...prevOptions, {
+            newOptions.push({
               key: index,
               label: `${index}x de R$ ${installmentAmount} sem juros`
-            }])
+            })
           }
         }
       }
@@ -460,11 +499,14 @@ const lknDCContentCielo = props => {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       })
-      setOptions(prevOptions => [...prevOptions, {
+      newOptions.push({
         key: '1',
         label: `1x de R$ ${totalAmount} (à vista)`
-      }])
+      })
     }
+
+    // Define todas as opções de uma vez
+    setOptions(newOptions)
   }
   window.wp.element.useEffect(() => {
     // Executa a primeira busca no carregamento
@@ -497,8 +539,8 @@ const lknDCContentCielo = props => {
 
         // Aguarda um pouco para o WooCommerce processar a mudança
         setTimeout(() => {
-          recalculateInstallments()
-        }, 500) // 500ms de delay inicial
+          recalculateInstallments(true) // usa retry leve para mudanças do carrinho
+        }, 800) // 800ms de delay para dar tempo do WooCommerce processar
       }
 
       return response
@@ -618,31 +660,31 @@ const lknDCContentCielo = props => {
           .then(data => {
             console.log('Resposta da requisição de parcela:', data)
 
-            // Após a resposta AJAX, recalcula as parcelas com os novos dados do carrinho
+            // Após a resposta AJAX, força recálculo do carrinho
+            if (window.wp && window.wp.data) {
+              console.log('Forçando recálculo do carrinho após AJAX...')
+              window.wp.data.dispatch('wc/store/cart').invalidateResolutionForStore()
+            }
+
+            // Aguarda um pouco e depois recalcula as parcelas
             setTimeout(() => {
               console.log('Recalculando parcelas após mudança...')
               recalculateInstallments()
-
-              // Também força recálculo do carrinho para manter consistência
-              if (window.wp && window.wp.data) {
-                console.log('Forçando recálculo do carrinho após AJAX...')
-                window.wp.data.dispatch('wc/store/cart').invalidateResolutionForStore()
-              }
-            }, 100) // 100ms de delay para processar
+            }, 500)
           })
           .catch(error => {
             console.error('Erro na requisição de parcela:', error)
 
-            // Mesmo em caso de erro, recalcula e força o recálculo para manter consistência
+            // Mesmo em caso de erro, força o recálculo para manter consistência
+            if (window.wp && window.wp.data) {
+              console.log('Forçando recálculo do carrinho após erro AJAX...')
+              window.wp.data.dispatch('wc/store/cart').invalidateResolutionForStore()
+            }
+
             setTimeout(() => {
               console.log('Recalculando parcelas após erro...')
               recalculateInstallments()
-
-              if (window.wp && window.wp.data) {
-                console.log('Forçando recálculo do carrinho após erro AJAX...')
-                window.wp.data.dispatch('wc/store/cart').invalidateResolutionForStore()
-              }
-            }, 100) // 100ms de delay
+            }, 500)
           })
       }
     },

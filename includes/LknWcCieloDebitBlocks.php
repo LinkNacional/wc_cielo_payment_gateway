@@ -54,8 +54,7 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
         wp_localize_script('lkn_cielo_debit-blocks-integration', 'lknCieloDebitConfig', array(
             'isProPluginValid' => $is_pro_plugin_valid,
             'ajax_url' => admin_url('admin-ajax.php'),
-            'fees_nonce' => wp_create_nonce('lkn_payment_fees_nonce'),
-            'tax_nonce' => wp_create_nonce('lkn_tax_total_nonce'),
+            'fees_nonce' => wp_create_nonce('lkn_payment_fees_nonce')
         ));
 
         if (function_exists('wp_set_script_translations')) {
