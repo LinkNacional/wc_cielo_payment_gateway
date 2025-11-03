@@ -25,6 +25,17 @@ final class LknWcCieloCreditBlocks extends AbstractPaymentMethodType
 
     public function get_payment_method_script_handles()
     {
+        $custom_layout = isset($this->settings['checkout_layout']) ? $this->settings['checkout_layout'] : 'default';
+        $pro_plugin_active = function_exists('is_plugin_active') && is_plugin_active('lkn-cielo-api-pro/lkn-cielo-api-pro.php');
+        $pro_license_active = get_option('lkn_cielo_pro_license_boolean', false);
+        $pro_plugin_version_valid = defined('LKN_CIELO_API_PRO_VERSION') && version_compare(LKN_CIELO_API_PRO_VERSION, '1.20.2', '>=');
+
+        if ($custom_layout === 'default' && $pro_plugin_active && $pro_license_active) {
+            $custom_layout = "yes";
+        }
+
+        $is_pro_plugin_valid = $pro_plugin_active && $pro_license_active && $custom_layout === 'yes' && $pro_plugin_version_valid;
+
         wp_register_script(
             'lkn_cielo_credit-blocks-integration',
             plugin_dir_url(__FILE__) . '../resources/js/creditCard/lknCieloCreditCompiled.js',
@@ -38,20 +49,18 @@ final class LknWcCieloCreditBlocks extends AbstractPaymentMethodType
             '1.0.0',
             true
         );
+
+        wp_localize_script('lkn_cielo_credit-blocks-integration', 'lknCieloCreditConfig', array(
+            'isProPluginValid' => $is_pro_plugin_valid,
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'fees_nonce' => wp_create_nonce('lkn_payment_fees_nonce')
+        ));
+
         if (function_exists('wp_set_script_translations')) {
             wp_set_script_translations('lkn_cielo_credit-blocks-integration');
         }
 
-        $custom_layout = isset($this->settings['checkout_layout']) ? $this->settings['checkout_layout'] : 'default';
-        $pro_plugin_active = function_exists('is_plugin_active') && is_plugin_active('lkn-cielo-api-pro/lkn-cielo-api-pro.php');
-        $pro_license_active = get_option('lkn_cielo_pro_license_boolean', false);
-        $pro_plugin_version_valid = defined('LKN_CIELO_API_PRO_VERSION') && version_compare(LKN_CIELO_API_PRO_VERSION, '1.20.2', '>=');
-
-        if ($custom_layout === 'default' && $pro_plugin_active && $pro_license_active) {
-            $custom_layout = "yes";
-        }
-
-        if ($pro_plugin_active && $pro_license_active && $custom_layout === 'yes' && $pro_plugin_version_valid) {
+        if ($is_pro_plugin_valid) {
             wp_enqueue_script('lkn-wc-gateway-credit-checkout-layout', plugin_dir_url(__FILE__) . '../resources/js/creditCard/lkn-wc-gateway-checkout-layout.js', array(), LKN_WC_CIELO_VERSION, false);
             wp_localize_script('lkn-wc-gateway-credit-checkout-layout', 'lknCieloCardIcons', array(
                 'visa'       => plugin_dir_url(__FILE__) . '../resources/img/visa-icon.svg',
@@ -73,17 +82,6 @@ final class LknWcCieloCreditBlocks extends AbstractPaymentMethodType
                 WC()->session->set('lkn_cielo_credit_installment', '1');
                 WC()->session->set('lkn_cielo_debit_installment', '1');
             }
-            wp_enqueue_script(
-                'lkn-wc-gateway-credit-checkout-installment-select', 
-                plugin_dir_url(__FILE__) . '../resources/js/creditCard/lkn-wc-gateway-checkout-installment-select.js', 
-                array('jquery'), 
-                LKN_WC_CIELO_VERSION, 
-                false
-            );
-            wp_localize_script('lkn-wc-gateway-credit-checkout-installment-select', 'lkn_cielo_credit_card_ajax_params', array(
-                'ajax_url' => admin_url('admin-ajax.php'),
-                'fees_nonce' => wp_create_nonce('lkn_payment_fees_nonce')
-            ));
         }
         
 

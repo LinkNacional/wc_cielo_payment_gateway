@@ -2,7 +2,6 @@ import React from 'react'
 import Cards from 'react-credit-cards'
 import 'react-credit-cards/es/styles-compiled.css'
 const lknDCsettingsCielo = window.wc.wcSettings.getSetting('lkn_cielo_debit_data', {})
-console.log('lknDCsettingsCielo:', lknDCsettingsCielo)
 const lknDCLabelCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.title)
 const lknDCDescriptionCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.description)
 const lknDCAccessTokenCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.accessToken)
@@ -101,7 +100,6 @@ const lknDCContentCielo = props => {
       }
 
       const cartData = await response.json()
-      console.log('Cart data fetched:', cartData)
 
       if (cartData && cartData.totals) {
         const totals = cartData.totals
@@ -119,15 +117,6 @@ const lknDCContentCielo = props => {
 
         // Tax para ser aplicada no final
         const taxAmount = tax / 100
-
-        console.log('Cart totals calculated:', {
-          subtotal: subtotal / 100,
-          shipping: shipping / 100,
-          fees: fees / 100,
-          tax: taxAmount,
-          baseTotal,
-          taxAmount
-        })
 
         // Atualiza as opções de parcelamento com o total base e tax separados
         if (baseTotal > 0) {
@@ -152,40 +141,24 @@ const lknDCContentCielo = props => {
 
   // Função para executar múltiplas requisições com delay (para o loading na primeira resposta)
   const fetchCartDataWithRetries = async (retries = 4, delay = 1500, onFirstData = null) => {
-    console.log(`Iniciando busca do carrinho - ${retries} tentativas com delay de ${delay}ms`)
-
     let lastCartData = null
     let firstDataSent = false
 
     for (let i = 0; i < retries; i++) {
-      console.log(`Tentativa ${i + 1}/${retries}`)
       const cartData = await fetchCartData()
 
       if (cartData) {
-        console.log(`Dados do carrinho obtidos na tentativa ${i + 1}:`, cartData.baseTotal)
         lastCartData = cartData
 
         // Na primeira vez que obtém dados, chama o callback para parar o loading
         if (!firstDataSent && onFirstData) {
-          console.log('Primeira resposta obtida - parando loading e populando')
           onFirstData(cartData)
           firstDataSent = true
         }
-      } else {
-        console.log(`Tentativa ${i + 1} falhou`)
-      }
-
-      // Sempre aguarda o delay (exceto na última tentativa)
+      }      // Sempre aguarda o delay (exceto na última tentativa)
       if (i < retries - 1) {
-        console.log(`Aguardando ${delay}ms para próxima tentativa...`)
         await new Promise(resolve => setTimeout(resolve, delay))
       }
-    }
-
-    if (lastCartData) {
-      console.log('Usando dados da última tentativa bem-sucedida:', lastCartData.baseTotal)
-    } else {
-      console.log('Todas as tentativas de busca do carrinho falharam')
     }
 
     return lastCartData
@@ -378,8 +351,6 @@ const lknDCContentCielo = props => {
   }, [debitObject, emitResponse.responseTypes.ERROR, emitResponse.responseTypes.SUCCESS, onPaymentSetup])
   // Função para recalcular as opções de parcelas com os dados atuais do carrinho
   const recalculateInstallments = async (useRetries = false) => {
-    console.log('Recalculando parcelas com dados atuais do carrinho...')
-
     // Ativa o loading e limpa as opções atuais
     setIsLoadingOptions(true)
     setOptions([])
@@ -387,13 +358,11 @@ const lknDCContentCielo = props => {
     let cartData
     if (useRetries) {
       // Para mudanças dinâmicas, usa retries com callback para parar loading rapidamente
-      console.log('Usando retries para mudanças dinâmicas...')
       let firstDataProcessed = false
 
       cartData = await fetchCartDataWithRetries(3, 1000, (firstData) => {
         // Para o loading na primeira resposta válida
         if (!firstDataProcessed) {
-          console.log('Primeira resposta no recálculo - parando loading')
           calculateInstallments(firstData.baseTotal, firstData.taxAmount)
           setIsLoadingOptions(false)
           firstDataProcessed = true
@@ -402,7 +371,6 @@ const lknDCContentCielo = props => {
 
       // Se obteve dados finais diferentes, atualiza silenciosamente
       if (cartData && firstDataProcessed) {
-        console.log('Atualizando com dados finais do recálculo se necessário')
         calculateInstallments(cartData.baseTotal, cartData.taxAmount)
       }
     } else {
@@ -410,11 +378,8 @@ const lknDCContentCielo = props => {
       cartData = await fetchCartData()
 
       if (cartData) {
-        console.log('Calculando parcelas com total (mudança rápida):', cartData.baseTotal)
         calculateInstallments(cartData.baseTotal, cartData.taxAmount)
-      }
-
-      // Desativa o loading após processar mudanças rápidas
+      }      // Desativa o loading após processar mudanças rápidas
       setIsLoadingOptions(false)
     }
   }
@@ -443,17 +408,16 @@ const lknDCContentCielo = props => {
         // Busca a configuração específica para esta parcela no array installments
         const installmentConfig = lknDCsettingsCielo.installments.find(inst => inst.id === index)
 
-        if (installmentConfig) {
+        // Se o plugin PRO não está válido, não aplica desconto nem juros
+        if (lknCieloDebitConfig.isProPluginValid && installmentConfig) {
           const interestOrDiscount = lknDCsettingsCielo.interestOrDiscount
           const interestPercent = parseFloat(installmentConfig.interest)
 
           if (interestOrDiscount === 'discount' && lknDCsettingsCielo.activeDiscount == "yes") {
             // Fórmula correta: (((subtotal + frete) * desconto) + tax) / parcelas
-            console.log('Aplicando desconto para parcela', index, ':', interestPercent, '%')
             const discountMultiplier = 1 - (interestPercent / 100)
             const baseWithDiscount = baseValue * discountMultiplier
             nextInstallmentAmount = (baseWithDiscount + taxAmount) / index
-            console.log('Cálculo desconto:', baseValue, '*', discountMultiplier, '=', baseWithDiscount, '+', taxAmount, '=', (baseWithDiscount + taxAmount), '/', index, '=', nextInstallmentAmount)
             formatedInterest = new Intl.NumberFormat('pt-br', {
               style: 'currency',
               currency: 'BRL'
@@ -461,11 +425,9 @@ const lknDCContentCielo = props => {
             typeText = ` (${interestPercent}% de desconto)`
           } else if (interestOrDiscount === "interest" && lknDCsettingsCielo.activeInstallment == "yes") {
             // Fórmula correta: (((subtotal + frete) * juros) + tax) / parcelas
-            console.log('Aplicando juros para parcela', index, ':', interestPercent, '%')
             const interestMultiplier = 1 + (interestPercent / 100)
             const baseWithInterest = baseValue * interestMultiplier
             nextInstallmentAmount = (baseWithInterest + taxAmount) / index
-            console.log('Cálculo juros:', baseValue, '*', interestMultiplier, '=', baseWithInterest, '+', taxAmount, '=', (baseWithInterest + taxAmount), '/', index, '=', nextInstallmentAmount)
             formatedInterest = new Intl.NumberFormat('pt-br', {
               style: 'currency',
               currency: 'BRL'
@@ -481,24 +443,31 @@ const lknDCContentCielo = props => {
           })
         } else {
           // Sem juros/desconto: (baseValue + tax) / parcelas
-          console.log('Sem desconto/juros para parcela', index)
           const totalWithTax = baseValue + taxAmount
           const finalAmount = totalWithTax / index
-          console.log('Cálculo sem desconto:', baseValue, '+', taxAmount, '=', totalWithTax, '/', index, '=', finalAmount)
           const installmentAmount = finalAmount.toLocaleString('pt-BR', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
           })
 
-          if (lknDCsettingsCielo.activeDiscount == 'yes') {
-            newOptions.push({
-              key: index,
-              label: `${index}x de R$ ${installmentAmount}${lknDCsettingsCielo.interestOrDiscount == 'interest' ? ' sem juros' : ' sem desconto'}`
-            })
+          // Se o plugin PRO está válido, usa as configurações originais
+          if (lknCieloDebitConfig.isProPluginValid) {
+            if (lknDCsettingsCielo.activeDiscount == 'yes') {
+              newOptions.push({
+                key: index,
+                label: `${index}x de R$ ${installmentAmount}${lknDCsettingsCielo.interestOrDiscount == 'interest' ? ' sem juros' : ' sem desconto'}`
+              })
+            } else {
+              newOptions.push({
+                key: index,
+                label: `${index}x de R$ ${installmentAmount} sem juros`
+              })
+            }
           } else {
+            // Se o plugin PRO não está válido, mostra apenas o valor sem texto adicional
             newOptions.push({
               key: index,
-              label: `${index}x de R$ ${installmentAmount} sem juros`
+              label: `${index}x de R$ ${installmentAmount}`
             })
           }
         }
@@ -523,14 +492,12 @@ const lknDCContentCielo = props => {
     const loadInitialData = async () => {
       const finalCartData = await fetchCartDataWithRetries(4, 1500, (firstData) => {
         // Callback chamado na primeira resposta - para o loading imediatamente
-        console.log('Primeira resposta - parando loading')
         calculateInstallments(firstData.baseTotal, firstData.taxAmount)
         setIsLoadingOptions(false)
       })
 
       // Se os dados finais são diferentes dos primeiros, atualiza silenciosamente
       if (finalCartData && !isLoadingOptions) {
-        console.log('Atualizando com dados finais se necessário')
         calculateInstallments(finalCartData.baseTotal, finalCartData.taxAmount)
       }
     }
@@ -543,8 +510,6 @@ const lknDCContentCielo = props => {
     window.fetch = async (...args) => {
       const [resource, config] = args
       const url = typeof resource === 'string' ? resource : resource.url
-
-      console.log('Intercepted request:', url)
 
       // Detecta mudanças no carrinho que requerem recálculo
       const shouldRecalculate = url && (
@@ -560,8 +525,6 @@ const lknDCContentCielo = props => {
       const response = await originalFetch.apply(window, args)
 
       if (shouldRecalculate) {
-        console.log('Detected cart change, recalculating installments...')
-
         // Aguarda um pouco para o WooCommerce processar a mudança
         setTimeout(() => {
           recalculateInstallments(true) // usa retry leve para mudanças do carrinho
@@ -675,8 +638,6 @@ const lknDCContentCielo = props => {
 
       // Faz a requisição AJAX para atualizar as fees quando a parcela mudar
       if (window.lknCieloDebitConfig) {
-        console.log('Fazendo requisição AJAX - mudança de parcela:', installmentValue)
-
         const formData = new FormData()
         formData.append('action', 'lkn_update_payment_fees')
         formData.append('payment_method', 'lkn_cielo_debit')
@@ -689,31 +650,23 @@ const lknDCContentCielo = props => {
         })
           .then(response => response.json())
           .then(data => {
-            console.log('Resposta da requisição de parcela:', data)
-
             // Após a resposta AJAX, força recálculo do carrinho
             if (window.wp && window.wp.data) {
-              console.log('Forçando recálculo do carrinho após AJAX...')
               window.wp.data.dispatch('wc/store/cart').invalidateResolutionForStore()
             }
 
             // Aguarda um pouco e depois recalcula as parcelas
             setTimeout(() => {
-              console.log('Recalculando parcelas após mudança...')
               recalculateInstallments()
             }, 500)
           })
           .catch(error => {
-            console.error('Erro na requisição de parcela:', error)
-
             // Mesmo em caso de erro, força o recálculo para manter consistência
             if (window.wp && window.wp.data) {
-              console.log('Forçando recálculo do carrinho após erro AJAX...')
               window.wp.data.dispatch('wc/store/cart').invalidateResolutionForStore()
             }
 
             setTimeout(() => {
-              console.log('Recalculando parcelas após erro...')
               recalculateInstallments()
             }, 500)
           })
