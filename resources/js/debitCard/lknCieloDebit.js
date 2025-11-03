@@ -65,6 +65,7 @@ const lknDCContentCielo = props => {
     onPaymentSetup
   } = eventRegistration
   const [options, setOptions] = window.wp.element.useState([])
+  const [isLoadingOptions, setIsLoadingOptions] = window.wp.element.useState(true)
   const [cardBinState, setCardBinState] = window.wp.element.useState(0)
   const [cardTypeOptions, setCardTypeOptions] = window.wp.element.useState([{
     key: 'Credit',
@@ -149,11 +150,12 @@ const lknDCContentCielo = props => {
     }
   }
 
-  // Função para executar múltiplas requisições com delay (sempre faz todas as tentativas)
-  const fetchCartDataWithRetries = async (retries = 4, delay = 1500) => {
+  // Função para executar múltiplas requisições com delay (para o loading na primeira resposta)
+  const fetchCartDataWithRetries = async (retries = 4, delay = 1500, onFirstData = null) => {
     console.log(`Iniciando busca do carrinho - ${retries} tentativas com delay de ${delay}ms`)
 
     let lastCartData = null
+    let firstDataSent = false
 
     for (let i = 0; i < retries; i++) {
       console.log(`Tentativa ${i + 1}/${retries}`)
@@ -162,6 +164,13 @@ const lknDCContentCielo = props => {
       if (cartData) {
         console.log(`Dados do carrinho obtidos na tentativa ${i + 1}:`, cartData.baseTotal)
         lastCartData = cartData
+
+        // Na primeira vez que obtém dados, chama o callback para parar o loading
+        if (!firstDataSent && onFirstData) {
+          console.log('Primeira resposta obtida - parando loading e populando')
+          onFirstData(cartData)
+          firstDataSent = true
+        }
       } else {
         console.log(`Tentativa ${i + 1} falhou`)
       }
@@ -371,41 +380,42 @@ const lknDCContentCielo = props => {
   const recalculateInstallments = async (useRetries = false) => {
     console.log('Recalculando parcelas com dados atuais do carrinho...')
 
-    // Limpa as opções atuais
+    // Ativa o loading e limpa as opções atuais
+    setIsLoadingOptions(true)
     setOptions([])
 
     let cartData
     if (useRetries) {
-      // Para mudanças dinâmicas, sempre faz todas as tentativas para garantir valores corretos
+      // Para mudanças dinâmicas, usa retries com callback para parar loading rapidamente
       console.log('Usando retries para mudanças dinâmicas...')
-      let lastCartData = null
-      const retries = 3
-      const delay = 1000
+      let firstDataProcessed = false
 
-      for (let i = 0; i < retries; i++) {
-        console.log(`Recálculo - tentativa ${i + 1}/${retries}`)
-        const data = await fetchCartData()
-
-        if (data) {
-          console.log(`Recálculo - dados obtidos na tentativa ${i + 1}:`, data.baseTotal)
-          lastCartData = data
+      cartData = await fetchCartDataWithRetries(3, 1000, (firstData) => {
+        // Para o loading na primeira resposta válida
+        if (!firstDataProcessed) {
+          console.log('Primeira resposta no recálculo - parando loading')
+          calculateInstallments(firstData.baseTotal, firstData.taxAmount)
+          setIsLoadingOptions(false)
+          firstDataProcessed = true
         }
+      })
 
-        // Sempre aguarda o delay (exceto na última tentativa)
-        if (i < retries - 1) {
-          await new Promise(resolve => setTimeout(resolve, delay))
-        }
+      // Se obteve dados finais diferentes, atualiza silenciosamente
+      if (cartData && firstDataProcessed) {
+        console.log('Atualizando com dados finais do recálculo se necessário')
+        calculateInstallments(cartData.baseTotal, cartData.taxAmount)
       }
-
-      cartData = lastCartData
     } else {
       // Uma única tentativa para mudanças rápidas
       cartData = await fetchCartData()
-    }
 
-    if (cartData) {
-      console.log('Calculando parcelas com total:', cartData.baseTotal)
-      calculateInstallments(cartData.baseTotal, cartData.taxAmount)
+      if (cartData) {
+        console.log('Calculando parcelas com total (mudança rápida):', cartData.baseTotal)
+        calculateInstallments(cartData.baseTotal, cartData.taxAmount)
+      }
+
+      // Desativa o loading após processar mudanças rápidas
+      setIsLoadingOptions(false)
     }
   }
 
@@ -510,7 +520,22 @@ const lknDCContentCielo = props => {
   }
   window.wp.element.useEffect(() => {
     // Executa a primeira busca no carregamento
-    fetchCartDataWithRetries()
+    const loadInitialData = async () => {
+      const finalCartData = await fetchCartDataWithRetries(4, 1500, (firstData) => {
+        // Callback chamado na primeira resposta - para o loading imediatamente
+        console.log('Primeira resposta - parando loading')
+        calculateInstallments(firstData.baseTotal, firstData.taxAmount)
+        setIsLoadingOptions(false)
+      })
+
+      // Se os dados finais são diferentes dos primeiros, atualiza silenciosamente
+      if (finalCartData && !isLoadingOptions) {
+        console.log('Atualizando com dados finais se necessário')
+        calculateInstallments(finalCartData.baseTotal, finalCartData.taxAmount)
+      }
+    }
+
+    loadInitialData()
 
     // Intercepta as requisições para detectar mudanças
     const originalFetch = window.fetch
@@ -637,9 +662,15 @@ const lknDCContentCielo = props => {
     id: 'lkn_cc_dc_installments',
     label: lknDCTranslationsCielo.installments,
     value: debitObject.lkn_cc_dc_installments,
-    className: 'lkn_cielo_debit_select lkn-cielo-credit-debit-custom-select',
+    className: `lkn_cielo_debit_select lkn-cielo-credit-debit-custom-select ${isLoadingOptions ? 'loading-options' : ''}`,
+    disabled: isLoadingOptions,
+    style: isLoadingOptions ? { opacity: 0.7, cursor: 'wait' } : {},
     onChange: event => {
       const installmentValue = event.target.value
+
+      // Ignora se está selecionando a opção de loading
+      if (installmentValue === 'loading') return
+
       updatedebitObject('lkn_cc_dc_installments', installmentValue)
 
       // Faz a requisição AJAX para atualizar as fees quando a parcela mudar
@@ -688,7 +719,7 @@ const lknDCContentCielo = props => {
           })
       }
     },
-    options
+    options: isLoadingOptions ? [{ key: 'loading', label: '🔄 Calculando parcelas...' }] : options
   }), lknDCActiveInstallmentCielo === 'cielo' && /* #__PURE__ */React.createElement(wcComponents.CheckboxControl, {
     id: 'lkn_save_debit_credit_card',
     label: 'Salvar cartão para compra segura e rápida.',
