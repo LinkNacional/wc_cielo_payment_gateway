@@ -57,6 +57,7 @@
     // Remove installment options and repopulate installments
     if (lknInstallmentSelect && lknTotal) {
       const amount = parseFloat(lknTotal.value)
+      console.log('Loading installments for amount:', amount)
       for (let c = 1; c < lknInstallmentSelect.childNodes.length; c + 2) {
         const childNode = lknInstallmentSelect.childNodes[c]
         lknInstallmentSelect.removeChild(childNode)
@@ -67,7 +68,7 @@
         const formatedInstallment = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(installment)
         const option = document.createElement('option')
         let text = document.createTextNode(i + 'x ' + formatedInstallment + ' sem juros')
-        if(lknWCCielo3dsDiscount == 'yes'){
+        if (lknWCCielo3dsDiscount == 'yes') {
           text = document.createTextNode(i + 'x ' + formatedInstallment)
         }
         for (let t = 0; t < lknInstallmentInterest.length; t++) {
@@ -76,12 +77,12 @@
           if (installmentObj.id === i) {
             if (installmentObj.label) {
               text = document.createTextNode(installmentObj.label)
-            } else if(installmentObj.interest) {
+            } else if (installmentObj.interest) {
               const interest = (amount + (amount * (installmentObj.interest / 100))) / i
               const formatedInterest = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(interest)
 
               text = document.createTextNode(i + 'x ' + formatedInterest)
-            } else if(installmentObj.discount) {
+            } else if (installmentObj.discount) {
               const discount = (amount - (amount * (installmentObj.discount / 100))) / i
               const formatedDiscount = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(discount)
 

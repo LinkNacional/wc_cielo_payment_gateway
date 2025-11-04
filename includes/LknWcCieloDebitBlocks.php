@@ -92,6 +92,10 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
             wp_enqueue_script('lkn-installment-label', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-installment-label.js', array(), LKN_WC_CIELO_VERSION, true);
         }
 
+        if (is_checkout() && has_shortcode(get_the_content(), 'woocommerce_checkout') && !wp_script_is('lkn-payment-method-shortcode', 'enqueued') && !wp_script_is('lkn-payment-method-shortcode', 'done')) {
+            wp_enqueue_script('lkn-payment-method-shortcode', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-payment-method-shortcode.js', array('jquery'), LKN_WC_CIELO_VERSION, true);
+        }
+
         do_action('lkn_wc_cielo_remove_cardholder_name_3ds', $this->gateway);
         return array('lkn_cielo_debit-blocks-integration');
     }

@@ -191,7 +191,7 @@ final class LknWCCieloPayment
         $this->loader->add_action('before_woocommerce_init', $this, 'wcEditorBlocksActive');
         $this->loader->add_action('woocommerce_blocks_payment_method_type_registration', $this, 'wcEditorBlocksAddPaymentMethod');
 
-        $this->loader->add_filter('woocommerce_cart_calculate_fees', $this, 'add_checkout_fee_or_discount_in_credit_card', 9999);
+        $this->loader->add_filter('woocommerce_cart_calculate_fees', $this, 'add_checkout_fee_or_discount_in_credit_card', 10);
 
         $this->loader->add_action('wp_ajax_lkn_update_payment_fees', $this, 'ajax_update_payment_fees');
         $this->loader->add_action('wp_ajax_nopriv_lkn_update_payment_fees', $this, 'ajax_update_payment_fees');
@@ -238,6 +238,7 @@ final class LknWCCieloPayment
 
     public function add_checkout_fee_or_discount_in_credit_card() 
     {
+        error_log('add_checkout_fee_or_discount_in_credit_card called');
         // Verificar se WooCommerce está ativo e o carrinho existe
         if (!function_exists('WC') || !WC()->cart || !WC()->session) {
             return;
@@ -287,6 +288,7 @@ final class LknWCCieloPayment
                                                                                 
                                         // Calcula o valor base (total do carrinho excluindo juros anteriores)
                                         $cart_total = $this->get_cart_total_excluding_interest_fees();
+                                        error_log($cart_total);
                                         
                                         // Verifica se o valor total atende o mínimo para parcelamento
                                         if ($cart_total >= $installment_min) {

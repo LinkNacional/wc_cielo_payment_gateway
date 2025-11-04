@@ -325,13 +325,7 @@ const lknCCContentCielo = props => {
 
       // Detecta mudanças no carrinho que requerem recálculo
       const shouldRecalculate = url && (
-        url.includes('/wp-json/wc/store/v1/cart/select-shipping-rate') ||
-        url.includes('/wp-json/wc/store/v1/batch') ||
-        url.includes('/wp-json/wc/store/v1/cart/update-item') ||
-        url.includes('/wp-json/wc/store/v1/cart/add-item') ||
-        url.includes('/wp-json/wc/store/v1/cart/remove-item') ||
-        url.includes('/wp-json/wc/store/v1/cart/apply-coupon') ||
-        url.includes('/wp-json/wc/store/v1/cart/remove-coupon')
+        url.includes('/wp-json/wc/store/v1/cart/select-shipping-rate')
       )
 
       const response = await originalFetch.apply(window, args)
