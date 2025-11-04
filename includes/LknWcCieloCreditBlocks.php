@@ -60,9 +60,6 @@ final class LknWcCieloCreditBlocks extends AbstractPaymentMethodType
             wp_set_script_translations('lkn_cielo_credit-blocks-integration');
         }
 
-        // Script de teste para WooCommerce Blocks
-        wp_enqueue_script('lkn-cielo-blocks-test', plugin_dir_url(__FILE__) . '../resources/js/creditCard/lkn-cielo-blocks-test.js', array(), LKN_WC_CIELO_VERSION, false);
-
         if ($is_pro_plugin_valid) {
             wp_enqueue_script('lkn-wc-gateway-credit-checkout-layout', plugin_dir_url(__FILE__) . '../resources/js/creditCard/lkn-wc-gateway-checkout-layout.js', array(), LKN_WC_CIELO_VERSION, false);
             wp_localize_script('lkn-wc-gateway-credit-checkout-layout', 'lknCieloCardIcons', array(
@@ -86,7 +83,10 @@ final class LknWcCieloCreditBlocks extends AbstractPaymentMethodType
                 WC()->session->set('lkn_cielo_debit_installment', '1');
             }
         }
-        
+
+        if (has_block('woocommerce/checkout') && !wp_script_is('lkn-installment-label', 'enqueued') && !wp_script_is('lkn-installment-label', 'done')) {
+            wp_enqueue_script('lkn-installment-label', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-installment-label.js', array(), LKN_WC_CIELO_VERSION, true);
+        }
 
         do_action('lkn_wc_cielo_remove_cardholder_name', $this->gateway);
         return array('lkn_cielo_credit-blocks-integration');
