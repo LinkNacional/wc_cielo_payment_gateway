@@ -37,30 +37,28 @@ final class LknWcCieloCreditBlocks extends AbstractPaymentMethodType
 
         $is_pro_plugin_valid = $pro_plugin_active && $pro_license_active && $custom_layout === 'yes' && $pro_plugin_version_valid;
 
-        if(has_block('woocommerce/checkout')) {
-            wp_register_script(
-                'lkn_cielo_credit-blocks-integration',
-                plugin_dir_url(__FILE__) . '../resources/js/creditCard/lknCieloCreditCompiled.js',
-                array(
-                    'wc-blocks-registry',
-                    'wc-settings',
-                    'wp-element',
-                    'wp-html-entities',
-                    'wp-i18n',
-                ),
-                '1.0.0',
-                true
-            );
-    
-            wp_localize_script('lkn_cielo_credit-blocks-integration', 'lknCieloCreditConfig', array(
-                'isProPluginValid' => $is_pro_plugin_valid,
-                'ajax_url' => admin_url('admin-ajax.php'),
-                'fees_nonce' => wp_create_nonce('lkn_payment_fees_nonce')
-            ));
-    
-            if (function_exists('wp_set_script_translations')) {
-                wp_set_script_translations('lkn_cielo_credit-blocks-integration');
-            }
+        wp_register_script(
+            'lkn_cielo_credit-blocks-integration',
+            plugin_dir_url(__FILE__) . '../resources/js/creditCard/lknCieloCreditCompiled.js',
+            array(
+                'wc-blocks-registry',
+                'wc-settings',
+                'wp-element',
+                'wp-html-entities',
+                'wp-i18n',
+            ),
+            '1.0.0',
+            true
+        );
+
+        wp_localize_script('lkn_cielo_credit-blocks-integration', 'lknCieloCreditConfig', array(
+            'isProPluginValid' => $is_pro_plugin_valid,
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'fees_nonce' => wp_create_nonce('lkn_payment_fees_nonce')
+        ));
+
+        if (function_exists('wp_set_script_translations')) {
+            wp_set_script_translations('lkn_cielo_credit-blocks-integration');
         }
 
         if (has_block('woocommerce/checkout') && $is_pro_plugin_valid) {

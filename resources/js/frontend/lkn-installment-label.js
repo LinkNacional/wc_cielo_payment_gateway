@@ -51,6 +51,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     let cleanText = optionText
                         .replace(/\s*\(.*?\)\s*/g, '') // Remove tudo entre parênteses
                         .replace(/\s*sem\s+juros\s*/gi, '') // Remove "sem juros"
+                        .replace(/\s*sem\s+desconto\s*/gi, '') // Remove "sem desconto"
                         .replace(/\s*à\s+vista\s*/gi, '') // Remove "à vista"
                         .replace(/&nbsp;/g, ' ') // Replace HTML space
                         .replace(/🔄/g, '') // Remove emoji de loading
