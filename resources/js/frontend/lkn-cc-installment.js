@@ -88,7 +88,6 @@
     if (lknInstallmentSelect && lknTotal) {
       // Separar os valores para cálculo correto
       const subtotalShipping = parseFloat(lknTotal.value) || 0 // produto + frete (para cálculo de juros)
-      console.log(subtotalShipping)
       const feesTotal = lknFeesTotal ? parseFloat(lknFeesTotal.value) || 0 : 0 // fees (somado no final)
       const discountsTotal = lknDiscountsTotal ? parseFloat(lknDiscountsTotal.value) || 0 : 0 // discounts (subtraído antes dos taxes)
       const taxesTotal = lknTaxesTotal ? parseFloat(lknTaxesTotal.value) || 0 : 0 // taxes (somado no final)
@@ -112,8 +111,6 @@
         if (typeof lknWCCieloCreditConfig !== 'undefined' && lknWCCieloCreditConfig.interest_or_discount === 'discount') {
           defaultText = ' sem desconto'
         }
-
-        console.log(defaultText)
 
         let text = document.createTextNode(i + 'x de ' + formatedInstallment + defaultText)
 
@@ -146,8 +143,6 @@
           // Se a licença NÃO está ativa, remove o texto "sem juros"/"sem desconto"
           text = document.createTextNode(i + 'x de ' + formatedInstallment)
         }
-
-        console.log(formatedInstallment)
 
         option.value = i
         option.appendChild(text)

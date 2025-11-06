@@ -195,6 +195,8 @@ final class LknWCCieloPayment
 
         $this->loader->add_action('wp_ajax_lkn_update_payment_fees', $this, 'ajax_update_payment_fees');
         $this->loader->add_action('wp_ajax_nopriv_lkn_update_payment_fees', $this, 'ajax_update_payment_fees');
+        
+        $this->loader->add_action('woocommerce_review_order_after_order_total', $this, 'display_payment_installment_info');
     }
 
     /**
@@ -238,7 +240,6 @@ final class LknWCCieloPayment
 
     public function add_checkout_fee_or_discount_in_credit_card() 
     {
-        error_log('add_checkout_fee_or_discount_in_credit_card called');
         // Verificar se WooCommerce está ativo e o carrinho existe
         if (!function_exists('WC') || !WC()->cart || !WC()->session) {
             return;
@@ -360,6 +361,73 @@ final class LknWCCieloPayment
         } else {
             return;
         }
+    }
+
+    /**
+     * Exibe informações sobre o pagamento parcelado na revisão do pedido
+     */
+    public function display_payment_installment_info()
+    {
+        // Verificar se WooCommerce está ativo e a sessão existe
+        if (!function_exists('WC') || !WC()->session) {
+            return;
+        }
+
+        $chosen_payment_method = WC()->session->get('chosen_payment_method');
+        
+        // Verificar se é um método de pagamento Cielo
+        if (!in_array($chosen_payment_method, ['lkn_cielo_debit', 'lkn_cielo_credit'])) {
+            return;
+        }
+
+        // Obter a parcela selecionada da sessão
+        $installment = WC()->session->get($chosen_payment_method . '_installment');
+        
+        if (!$installment || $installment <= 0) {
+            return;
+        }
+
+        // Obter o total do carrinho
+        $cart_total = WC()->cart->get_total('raw');
+        
+        if ($cart_total <= 0) {
+            return;
+        }
+
+        // Obter configurações do gateway para verificar o tipo de juros/desconto
+        $settings = get_option('woocommerce_' . $chosen_payment_method . '_settings', array());
+        $interest_or_discount = isset($settings['interest_or_discount']) ? $settings['interest_or_discount'] : '';
+
+        // Determinar o nome do método de pagamento
+        $payment_method_name = '';
+        if ($chosen_payment_method === 'lkn_cielo_credit') {
+            $payment_method_name = __('Credit Card', 'lkn-wc-gateway-cielo');
+        } elseif ($chosen_payment_method === 'lkn_cielo_debit') {
+            $payment_method_name = __('Debit Card', 'lkn-wc-gateway-cielo');
+        }
+
+        // Gerar a informação de pagamento e label dinâmico
+        if ($installment == 1) {
+            $payment_label = __('Payment', 'lkn-wc-gateway-cielo');
+            $payment_info = __('Cash Payment', 'lkn-wc-gateway-cielo');
+        } else {
+            $payment_label = __('Installment', 'lkn-wc-gateway-cielo');
+            // Calcular valor da parcela (simples divisão)
+            $installment_value = $cart_total / $installment;
+            $formatted_value = wc_price($installment_value);
+
+            $payment_info = sprintf(
+                __('%dx of %s', 'lkn-wc-gateway-cielo'),
+                $installment,
+                $formatted_value
+            );
+        }
+
+        // Exibir a informação
+        echo '<tr>';
+        echo '<th>' . esc_html($payment_label) . '</th>';
+        echo '<td>' . wp_kses_post($payment_info) . '</td>';
+        echo '</tr>';
     }
 
     /**

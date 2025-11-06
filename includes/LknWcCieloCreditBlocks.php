@@ -25,7 +25,6 @@ final class LknWcCieloCreditBlocks extends AbstractPaymentMethodType
 
     public function get_payment_method_script_handles()
     {
-        error_log('isso aqui chamou');
         $custom_layout = isset($this->settings['checkout_layout']) ? $this->settings['checkout_layout'] : 'default';
         $pro_plugin_active = function_exists('is_plugin_active') && is_plugin_active('lkn-cielo-api-pro/lkn-cielo-api-pro.php');
         $pro_license_active = get_option('lkn_cielo_pro_license_boolean', false);
