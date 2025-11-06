@@ -5,10 +5,62 @@
   $(window).on('load', () => {
     lknWCCieloLoadInstallments()
     $('body').on('updated_checkout', lknWCCieloLoadInstallments)
+    lknWCCieloInitInstallmentEvents()
   })
 
   lknWCCieloLoadInstallments()
-  $('body').on('updated_checkout', lknWCCieloLoadInstallments)
+  $('body').on('updated_checkout', function () {
+    lknWCCieloLoadInstallments()
+    lknWCCieloInitInstallmentEvents()
+  })
+
+  // Inicializar eventos de change para parcelas
+  function lknWCCieloInitInstallmentEvents() {
+    $(document).on('change', '#lkn_cc_installments', function () {
+      const installment = $(this).val()
+      const paymentMethod = 'lkn_cielo_credit'
+
+      if (installment && typeof lknWCCieloCreditAjax !== 'undefined') {
+        lknWCCieloUpdateInstallmentSession(paymentMethod, installment)
+      }
+    })
+  }
+
+  // Função para atualizar a sessão com a parcela selecionada
+  function lknWCCieloUpdateInstallmentSession(paymentMethod, installment) {
+    if (typeof lknWCCieloCreditAjax === 'undefined') {
+      return
+    }
+
+    // Verificar se a parcela já é a mesma da sessão (evitar trigger desnecessário)
+    if (lknWCCieloCreditAjax.current_installment === installment) {
+      return
+    }
+
+    $.ajax({
+      url: lknWCCieloCreditAjax.ajaxurl,
+      type: 'POST',
+      data: {
+        action: 'lkn_update_payment_fees',
+        nonce: lknWCCieloCreditAjax.nonce,
+        payment_method: paymentMethod,
+        installment: installment
+      },
+      success: function (response) {
+        if (response.success) {
+          // Atualizar a parcela atual em memória
+          lknWCCieloCreditAjax.current_installment = installment
+          // Trigger para atualizar o checkout após definir a parcela
+          $('body').trigger('update_checkout')
+        } else {
+          console.error('Erro ao atualizar parcela:', response.data.message)
+        }
+      },
+      error: function (xhr, status, error) {
+        console.error('Erro na requisição AJAX:', error)
+      }
+    })
+  }
 
   function lknWCCieloLoadInstallments() {
     const lknInstallmentSelect = document.getElementById('lkn_cc_installments')
@@ -100,6 +152,14 @@
         option.value = i
         option.appendChild(text)
         lknInstallmentSelect.appendChild(option)
+
+        // Verificar se é a parcela atual da sessão e selecionar
+        if (typeof lknWCCieloCreditAjax !== 'undefined' &&
+          lknWCCieloCreditAjax.current_installment &&
+          i === parseInt(lknWCCieloCreditAjax.current_installment)) {
+          option.selected = true
+        }
+
         if ((subtotalShipping / (i + 1)) < lknInstallmentMin) {
           break
         }

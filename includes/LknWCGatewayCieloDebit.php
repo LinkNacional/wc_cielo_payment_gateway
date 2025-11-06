@@ -200,6 +200,13 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         $installmentArgs = array();
         $installmentArgs = apply_filters('lkn_wc_cielo_js_3ds_args', array('installment_min' => '5'));
 
+        if (WC()->session) {
+            WC()->session->set('lkn_cielo_debit_installment', '1');
+        }
+
+        // Recuperar parcela atual da sessão
+        $current_installment = WC()->session ? WC()->session->get('lkn_cielo_debit_installment', '1') : '1';
+
         if ('production' === $env) {
             wp_enqueue_script('lkn-dc-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-dc-script-prd.js', array('wp-i18n', 'jquery', 'wp-api'), $this->version, false);
             wp_set_script_translations('lkn-dc-script', 'lkn-wc-gateway-cielo', LKN_WC_CIELO_TRANSLATION_PATH);
@@ -217,6 +224,11 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         wp_localize_script('lkn-cc-dc-installment-script', 'lknWCCielo3dsConfig', array(
             'interest_or_discount' => $this->get_option('interest_or_discount'),
             'installment_discount' => $this->get_option('installment_discount')
+        ));
+        wp_localize_script('lkn-cc-dc-installment-script', 'lknWCCielo3dsAjax', array(
+            'ajaxurl' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('lkn_payment_fees_nonce'),
+            'current_installment' => $current_installment
         ));
 
         wp_enqueue_style('lkn-dc-style', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-dc-style.css', array(), $this->version, 'all');
@@ -770,6 +782,8 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         wp_enqueue_style('lknWCGatewayCieloFixIconsStyle', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-fix-icons-styles.css', array(), $this->version, 'all');
         $activeInstallment = $this->get_option('installment_payment');
         $total_cart = number_format($this->get_subtotal_plus_shipping(), 2, '.', '');
+        // Para 3DS 2.2, o valor deve estar em centavos (sem vírgula decimal)
+        $total_cart_3ds = number_format($this->get_subtotal_plus_shipping(), 2, '', '');
         $fees_total = number_format($this->get_fees_total(), 2, '.', '');
         $taxes_total = number_format($this->get_taxes_total(), 2, '.', '');
         $discounts_total = number_format($this->get_discounts_total(), 2, '.', '');
@@ -826,6 +840,8 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                 $order_id = wc_get_order_id_by_order_key($key);
                 $order = wc_get_order($order_id);
                 $total_cart = number_format($order->get_total(), 2, '.', '');
+                // Para 3DS 2.2, o valor deve estar em centavos (sem vírgula decimal)
+                $total_cart_3ds = number_format($order->get_total(), 2, '', '');
             }
         }
 
@@ -914,7 +930,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                 id="lkn_cielo_3ds_value"
                 name="lkn_amount"
                 class="bpmpi_totalamount"
-                value="<?php echo esc_attr($total_cart); ?>" />
+                value="<?php echo esc_attr($total_cart_3ds); ?>" />
             <input
                 type="hidden"
                 size="2"

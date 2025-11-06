@@ -5,10 +5,62 @@
   $(window).on('load', () => {
     lknWCCieloLoadInstallments()
     $('body').on('updated_checkout', lknWCCieloLoadInstallments)
+    lknWCCieloInitInstallmentEvents()
   })
 
   lknWCCieloLoadInstallments()
-  $('body').on('updated_checkout', lknWCCieloLoadInstallments)
+  $('body').on('updated_checkout', function () {
+    lknWCCieloLoadInstallments()
+    lknWCCieloInitInstallmentEvents()
+  })
+
+  // Inicializar eventos de change para parcelas
+  function lknWCCieloInitInstallmentEvents() {
+    $(document).on('change', '#lkn_cc_dc_installments', function () {
+      const installment = $(this).val()
+      const paymentMethod = 'lkn_cielo_debit'
+
+      if (installment && typeof lknWCCielo3dsAjax !== 'undefined') {
+        lknWCCieloUpdateInstallmentSession(paymentMethod, installment)
+      }
+    })
+  }
+
+  // Função para atualizar a sessão com a parcela selecionada
+  function lknWCCieloUpdateInstallmentSession(paymentMethod, installment) {
+    if (typeof lknWCCielo3dsAjax === 'undefined') {
+      return
+    }
+
+    // Verificar se a parcela já é a mesma da sessão (evitar trigger desnecessário)
+    if (lknWCCielo3dsAjax.current_installment === installment) {
+      return
+    }
+
+    $.ajax({
+      url: lknWCCielo3dsAjax.ajaxurl,
+      type: 'POST',
+      data: {
+        action: 'lkn_update_payment_fees',
+        nonce: lknWCCielo3dsAjax.nonce,
+        payment_method: paymentMethod,
+        installment: installment
+      },
+      success: function (response) {
+        if (response.success) {
+          // Atualizar a parcela atual em memória
+          lknWCCielo3dsAjax.current_installment = installment
+          // Trigger para atualizar o checkout após definir a parcela
+          $('body').trigger('update_checkout')
+        } else {
+          console.error('Erro ao atualizar parcela:', response.data.message)
+        }
+      },
+      error: function (xhr, status, error) {
+        console.error('Erro na requisição AJAX:', error)
+      }
+    })
+  }
 
   function lknWCCieloShowInstallments() {
     const installmentShow = $('#lkn_cielo_3ds_installment_show')
@@ -87,39 +139,47 @@
 
         let text = document.createTextNode(i + 'x de ' + formatedInstallment + defaultText)
 
-        for (let t = 0; t < lknInstallmentInterest.length; t++) {
-          const installmentObj = lknInstallmentInterest[t]
-          // Verify if it is the right installment
-          if (installmentObj.id === i) {
-            if (installmentObj.label) {
-              text = document.createTextNode(installmentObj.label)
-            } else if (installmentObj.interest) {
-              // Calcular juros apenas sobre subtotal + frete, depois somar fees, subtrair descontos e somar taxes
-              const interestAmount = subtotalShipping + (subtotalShipping * (installmentObj.interest / 100))
-              const interestInstallment = (interestAmount / i) + feesTotal - discountsTotal + taxesTotal
-              const formatedInterest = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(interestInstallment)
+        if (typeof lknWCCielo3ds !== 'undefined' && lknWCCielo3ds.licenseResult) {
+          for (let t = 0; t < lknInstallmentInterest.length; t++) {
+            const installmentObj = lknInstallmentInterest[t]
+            // Verify if it is the right installment
+            if (installmentObj.id === i) {
+              if (installmentObj.label) {
+                text = document.createTextNode(installmentObj.label)
+              } else if (installmentObj.interest) {
+                // Calcular juros apenas sobre subtotal + frete, depois somar fees, subtrair descontos e somar taxes
+                const interestAmount = subtotalShipping + (subtotalShipping * (installmentObj.interest / 100))
+                const interestInstallment = (interestAmount / i) + feesTotal - discountsTotal + taxesTotal
+                const formatedInterest = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(interestInstallment)
 
-              text = document.createTextNode(i + 'x de ' + formatedInterest + ' (' + installmentObj.interest + '% de juros)')
-            } else if (installmentObj.discount) {
-              // Calcular desconto apenas sobre subtotal + frete, depois somar fees, subtrair descontos e somar taxes
-              const discountAmount = subtotalShipping - (subtotalShipping * (installmentObj.discount / 100))
-              const discountInstallment = (discountAmount / i) + feesTotal - discountsTotal + taxesTotal
-              const formatedDiscount = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(discountInstallment)
+                text = document.createTextNode(i + 'x de ' + formatedInterest + ' (' + installmentObj.interest + '% de juros)')
+              } else if (installmentObj.discount) {
+                // Calcular desconto apenas sobre subtotal + frete, depois somar fees, subtrair descontos e somar taxes
+                const discountAmount = subtotalShipping - (subtotalShipping * (installmentObj.discount / 100))
+                const discountInstallment = (discountAmount / i) + feesTotal - discountsTotal + taxesTotal
+                const formatedDiscount = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(discountInstallment)
 
-              text = document.createTextNode(i + 'x de ' + formatedDiscount + ' (' + installmentObj.discount + '% de desconto)')
+                text = document.createTextNode(i + 'x de ' + formatedDiscount + ' (' + installmentObj.discount + '% de desconto)')
+              }
+              break // Sair do loop quando encontrar a configuração
             }
-            break // Sair do loop quando encontrar a configuração
           }
-        }
-
-        // Se installment_discount NÃO está ativado, remove o texto "sem desconto"/"sem juros"  
-        if (typeof lknWCCielo3dsConfig !== 'undefined' && lknWCCielo3dsConfig.installment_discount !== 'yes') {
+        } else {
+          // Se a licença NÃO está ativa, remove o texto "sem juros"/"sem desconto"
           text = document.createTextNode(i + 'x de ' + formatedInstallment)
         }
 
         option.value = i
         option.appendChild(text)
         lknInstallmentSelect.appendChild(option)
+
+        // Verificar se é a parcela atual da sessão e selecionar
+        if (typeof lknWCCielo3dsAjax !== 'undefined' &&
+          lknWCCielo3dsAjax.current_installment &&
+          i === parseInt(lknWCCielo3dsAjax.current_installment)) {
+          option.selected = true
+        }
+
         if ((subtotalShipping / (i + 1)) < lknInstallmentMin) {
           break
         }
