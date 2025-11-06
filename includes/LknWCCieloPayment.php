@@ -286,9 +286,8 @@ final class LknWCCieloPayment
 
                                     if(isset($installment_rate) && $installment_rate > 0 && $installment <= $installment_limit) {
                                                                                 
-                                        // Calcula o valor base (total do carrinho excluindo juros anteriores)
-                                        $cart_total = $this->get_cart_total_excluding_interest_fees();
-                                        error_log($cart_total);
+                                        // Calcula o valor base (subtotal + frete, ignorando fees)
+                                        $cart_total = $this->get_cart_subtotal_with_shipping();
                                         
                                         // Verifica se o valor total atende o mínimo para parcelamento
                                         if ($cart_total >= $installment_min) {
@@ -326,8 +325,8 @@ final class LknWCCieloPayment
 
                                     if(isset($installment_rate) && $installment_rate > 0 && $installment <= $installment_limit) {
                                                                                 
-                                        // Calcula o valor base (total do carrinho excluindo juros anteriores)
-                                        $cart_total = $this->get_cart_total_excluding_interest_fees();
+                                        // Calcula o valor base (subtotal + frete, ignorando fees)
+                                        $cart_total = $this->get_cart_subtotal_with_shipping();
                                         
                                         // Verifica se o valor total atende o mínimo para parcelamento
                                         if ($cart_total >= $installment_min) {
@@ -399,11 +398,11 @@ final class LknWCCieloPayment
     }
 
     /**
-     * Obtém o valor total do carrinho excluindo taxas de juros/descontos do Cielo
+     * Obtém o valor do subtotal do carrinho mais frete (ignorando todas as fees)
      * 
      * @return float
      */
-    public function get_cart_total_excluding_interest_fees()
+    public function get_cart_subtotal_with_shipping()
     {
         $cart = WC()->cart;
         
@@ -413,25 +412,6 @@ final class LknWCCieloPayment
 
         $cart_total = $cart->get_subtotal();
         $cart_total += $cart->get_shipping_total();
-
-        $card_interest_label = __('Card Interest', 'lkn-wc-gateway-cielo');
-        $card_discount_label = __('Card Discount', 'lkn-wc-gateway-cielo');
-        
-        $fees = $cart->get_fees();
-        if (!empty($fees) && is_array($fees)) {
-            foreach ($fees as $fee) {
-                // Verificar se o fee é um objeto válido e tem as propriedades necessárias
-                if (is_object($fee) && property_exists($fee, 'name') && property_exists($fee, 'amount')) {
-                    $fee_name = isset($fee->name) ? $fee->name : '';
-                    $fee_amount = isset($fee->amount) ? $fee->amount : 0;
-                    
-                    if (strpos($fee_name, $card_interest_label) === false && 
-                        strpos($fee_name, $card_discount_label) === false) {
-                        $cart_total += $fee_amount;
-                    }
-                }
-            }
-        }
         
         return max(0, $cart_total);
     }
