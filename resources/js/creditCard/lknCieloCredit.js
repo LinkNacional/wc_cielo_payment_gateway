@@ -12,6 +12,28 @@ const lknCCInstallmentMinAmount = window.wp.htmlEntities.decodeEntities(lknCCSet
 const lknCCinstallmentsCielo = window.wp.htmlEntities.decodeEntities(lknCCSettingsCielo.installments)
 const lknCCTranslationsCielo = lknCCSettingsCielo.translations
 const lknCCNonceCieloCredit = lknCCSettingsCielo.nonceCieloCredit
+
+// Função para formatação de moeda baseada nas configurações do WooCommerce
+const formatCurrency = (amount) => {
+  if (!window.lknCieloCreditConfig || !window.lknCieloCreditConfig.currency) {
+    // Fallback para BRL se as configurações não estiverem disponíveis
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(amount)
+  }
+
+  const currency = window.lknCieloCreditConfig.currency
+  const locale = currency.code === 'BRL' ? 'pt-BR' : 'en-US' // Pode ser expandido conforme necessário
+
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: currency.code,
+    minimumFractionDigits: currency.decimals,
+    maximumFractionDigits: currency.decimals
+  }).format(amount)
+}
+
 const lknCCContentCielo = props => {
   const wcComponents = window.wc.blocksComponents
   const {
@@ -250,20 +272,14 @@ const lknCCContentCielo = props => {
             const discountMultiplier = 1 - (interestPercent / 100)
             const totalWithDiscount = totalValue * discountMultiplier
             nextInstallmentAmount = totalWithDiscount / index
-            formatedInterest = new Intl.NumberFormat('pt-br', {
-              style: 'currency',
-              currency: 'BRL'
-            }).format(nextInstallmentAmount)
+            formatedInterest = formatCurrency(nextInstallmentAmount)
             typeText = ` (${interestPercent}% de desconto)`
           } else if (interestOrDiscount === "interest" && lknCCSettingsCielo.activeInstallment == "yes") {
             // Aplica juros adicional do plugin sobre o total já calculado
             const interestMultiplier = 1 + (interestPercent / 100)
             const totalWithInterest = totalValue * interestMultiplier
             nextInstallmentAmount = totalWithInterest / index
-            formatedInterest = new Intl.NumberFormat('pt-br', {
-              style: 'currency',
-              currency: 'BRL'
-            }).format(nextInstallmentAmount)
+            formatedInterest = formatCurrency(nextInstallmentAmount)
             typeText = ` (${interestPercent}% de juros)`
           }
         }

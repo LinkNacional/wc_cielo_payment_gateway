@@ -24,6 +24,28 @@ const lknDCClientIp = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.c
 const lknDCUserGuest = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.user_guest)
 const lknDCAuthMethod = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.authentication_method)
 const lknDCClient = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.client)
+
+// Função para formatação de moeda baseada nas configurações do WooCommerce
+const formatCurrency = (amount) => {
+  if (!window.lknCieloDebitConfig || !window.lknCieloDebitConfig.currency) {
+    // Fallback para BRL se as configurações não estiverem disponíveis
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(amount)
+  }
+
+  const currency = window.lknCieloDebitConfig.currency
+  const locale = currency.code === 'BRL' ? 'pt-BR' : 'en-US' // Pode ser expandido conforme necessário
+
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: currency.code,
+    minimumFractionDigits: currency.decimals,
+    maximumFractionDigits: currency.decimals
+  }).format(amount)
+}
+
 const lknDCHideCheckoutButton = () => {
   const lknDCElement = document.querySelectorAll('.wc-block-components-checkout-place-order-button')
   if (lknDCElement && lknDCElement[0]) {
@@ -438,20 +460,14 @@ const lknDCContentCielo = props => {
             const discountMultiplier = 1 - (interestPercent / 100)
             const totalWithDiscount = totalValue * discountMultiplier
             nextInstallmentAmount = totalWithDiscount / index
-            formatedInterest = new Intl.NumberFormat('pt-br', {
-              style: 'currency',
-              currency: 'BRL'
-            }).format(nextInstallmentAmount)
+            formatedInterest = formatCurrency(nextInstallmentAmount)
             typeText = ` (${interestPercent}% de desconto)`
           } else if (interestOrDiscount === "interest" && lknDCsettingsCielo.activeInstallment == "yes") {
             // Aplica juros adicional do plugin sobre o total já calculado
             const interestMultiplier = 1 + (interestPercent / 100)
             const totalWithInterest = totalValue * interestMultiplier
             nextInstallmentAmount = totalWithInterest / index
-            formatedInterest = new Intl.NumberFormat('pt-br', {
-              style: 'currency',
-              currency: 'BRL'
-            }).format(nextInstallmentAmount)
+            formatedInterest = formatCurrency(nextInstallmentAmount)
             typeText = ` (${interestPercent}% de juros)`
           }
         }

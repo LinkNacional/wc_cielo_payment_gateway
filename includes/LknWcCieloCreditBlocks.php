@@ -53,7 +53,15 @@ final class LknWcCieloCreditBlocks extends AbstractPaymentMethodType
         wp_localize_script('lkn_cielo_credit-blocks-integration', 'lknCieloCreditConfig', array(
             'isProPluginValid' => $is_pro_plugin_valid,
             'ajax_url' => admin_url('admin-ajax.php'),
-            'fees_nonce' => wp_create_nonce('lkn_payment_fees_nonce')
+            'fees_nonce' => wp_create_nonce('lkn_payment_fees_nonce'),
+            'currency' => array(
+                'code' => get_woocommerce_currency(),
+                'symbol' => get_woocommerce_currency_symbol(),
+                'decimals' => wc_get_price_decimals(),
+                'decimal_separator' => wc_get_price_decimal_separator(),
+                'thousand_separator' => wc_get_price_thousand_separator(),
+                'position' => get_option('woocommerce_currency_pos', 'left')
+            )
         ));
 
         if (function_exists('wp_set_script_translations')) {
