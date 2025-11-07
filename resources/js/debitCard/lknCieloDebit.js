@@ -126,8 +126,9 @@ const lknDCContentCielo = props => {
       if (cartData && cartData.totals) {
         const totals = cartData.totals
 
-        // Novo cálculo: ((subtotal + frete) + fees externos + desconto(cupom)) + taxes
-        // EXCLUINDO as fees do plugin Cielo (que são calculadas dinamicamente por parcela)
+        // Nova fórmula: base = subtotal + shipping
+        // Juros/desconto aplicado sobre a base dentro de calculateInstallments
+        // Depois soma: externalFees - discount + taxes
         const subtotal = parseFloat(totals.total_items) || 0
         const shipping = parseFloat(totals.total_shipping) || 0
         const discount = parseFloat(totals.total_discount) || 0 // Desconto de cupons (valor negativo)
@@ -149,30 +150,27 @@ const lknDCContentCielo = props => {
           })
         }
 
-        // Calcula o total base: subtotal + frete + fees externas - desconto de cupom
-        const baseWithExternalFeesAndDiscount = (subtotal + shipping + externalFees - discount) / 100
+        // Base para cálculo de juros/desconto: apenas subtotal + frete
+        const baseAmount = (subtotal + shipping) / 100
 
-        // Tax é aplicada por último
-        const taxAmount = tax / 100
+        // Valores que serão somados no final
+        const additionalValues = {
+          externalFees: externalFees / 100,
+          discount: discount / 100, // Já é negativo
+          tax: tax / 100
+        }
 
-        // Total final para parcelas (SEM as fees do plugin Cielo)
-        const finalTotal = baseWithExternalFeesAndDiscount + taxAmount
-
-        // Atualiza as opções de parcelamento com o total final
-        if (finalTotal > 0) {
+        // Atualiza as opções de parcelamento com a base e valores adicionais
+        if (baseAmount > 0) {
           setOptions([]) // Limpa opções antigas
-          calculateInstallments(finalTotal)
+          calculateInstallments(baseAmount, additionalValues)
         }
 
         return {
           subtotal: subtotal / 100,
           shipping: shipping / 100,
-          externalFees: externalFees / 100,
-          discount: discount / 100,
-          tax: taxAmount,
-          baseWithExternalFeesAndDiscount,
-          taxAmount,
-          finalTotal
+          baseAmount,
+          additionalValues
         }
       }
     } catch (error) {
@@ -405,7 +403,7 @@ const lknDCContentCielo = props => {
       cartData = await fetchCartDataWithRetries(3, 1000, (firstData) => {
         // Para o loading na primeira resposta válida
         if (!firstDataProcessed) {
-          calculateInstallments(firstData.finalTotal)
+          calculateInstallments(firstData.baseAmount, firstData.additionalValues)
           setIsLoadingOptions(false)
           firstDataProcessed = true
         }
@@ -413,36 +411,39 @@ const lknDCContentCielo = props => {
 
       // Se obteve dados finais diferentes, atualiza silenciosamente
       if (cartData && firstDataProcessed) {
-        calculateInstallments(cartData.finalTotal)
+        calculateInstallments(cartData.baseAmount, cartData.additionalValues)
       }
     } else {
       // Uma única tentativa para mudanças rápidas
       cartData = await fetchCartData()
 
       if (cartData) {
-        calculateInstallments(cartData.finalTotal)
+        calculateInstallments(cartData.baseAmount, cartData.additionalValues)
       }      // Desativa o loading após processar mudanças rápidas
       setIsLoadingOptions(false)
     }
   }
 
-  const calculateInstallments = (finalCartTotal) => {
+  const calculateInstallments = (baseAmount, additionalValues = {}) => {
+    // Valores padrão para additionalValues caso estejam undefined
+    const safeAdditionalValues = {
+      externalFees: additionalValues.externalFees || 0,
+      discount: additionalValues.discount || 0,
+      tax: additionalValues.tax || 0
+    }
+
     const installmentMin = parseFloat(lknDCInstallmentMinAmount)
     const newOptions = [] // Array local para construir as opções
 
-    // Verifica se 'lknDCActiveInstallmentCielo' é 'yes' e o valor total é maior que 10
-    if (lknDCActiveInstallmentCielo === 'yes' && finalCartTotal > 10) {
+    // Verifica se 'lknDCActiveInstallmentCielo' é 'yes' e o valor base é maior que 10
+    if (lknDCActiveInstallmentCielo === 'yes' && baseAmount > 10) {
       const maxInstallments = lknDCInstallmentLimitCielo // Limita o parcelamento
 
       for (let index = 1; index <= maxInstallments; index++) {
-        // O valor já vem com tudo calculado: subtotal + frete + fees + cupons + taxes
-        let totalValue = parseFloat(finalCartTotal)
+        // Começa com o valor base (subtotal + shipping)
+        let baseValue = parseFloat(baseAmount)
+        let totalValue = baseValue
         let nextInstallmentAmount = totalValue / index
-
-        // Verifica se atende o valor mínimo
-        if (nextInstallmentAmount < installmentMin) {
-          break
-        }
 
         let formatedInterest = false
         let typeText = ''
@@ -450,35 +451,52 @@ const lknDCContentCielo = props => {
         // Busca a configuração específica para esta parcela no array installments
         const installmentConfig = lknDCsettingsCielo.installments.find(inst => inst.id === index)
 
-        // Se o plugin PRO está válido, aplica juros/descontos ADICIONAIS do plugin
+        // Se o plugin PRO está válido, aplica juros/descontos sobre a BASE
         if (lknCieloDebitConfig.isProPluginValid && installmentConfig) {
           const interestOrDiscount = lknDCsettingsCielo.interestOrDiscount
           const interestPercent = parseFloat(installmentConfig.interest)
 
           if (interestOrDiscount === 'discount' && lknDCsettingsCielo.activeDiscount == "yes") {
-            // Aplica desconto adicional do plugin sobre o total já calculado
+            // Aplica desconto sobre a BASE (subtotal + shipping)
             const discountMultiplier = 1 - (interestPercent / 100)
-            const totalWithDiscount = totalValue * discountMultiplier
-            nextInstallmentAmount = totalWithDiscount / index
+            totalValue = baseValue * discountMultiplier
+
+            // Soma valores adicionais no final
+            totalValue += safeAdditionalValues.externalFees + safeAdditionalValues.discount + safeAdditionalValues.tax
+
+            nextInstallmentAmount = totalValue / index
             formatedInterest = formatCurrency(nextInstallmentAmount)
-            typeText = ` (${interestPercent}% de desconto)`
+            typeText = ` (${interestPercent}${lknDCTranslationsCielo.withDiscount})`
           } else if (interestOrDiscount === "interest" && lknDCsettingsCielo.activeInstallment == "yes") {
-            // Aplica juros adicional do plugin sobre o total já calculado
+            // Aplica juros sobre a BASE (subtotal + shipping)
             const interestMultiplier = 1 + (interestPercent / 100)
-            const totalWithInterest = totalValue * interestMultiplier
-            nextInstallmentAmount = totalWithInterest / index
+            totalValue = baseValue * interestMultiplier
+
+            // Soma valores adicionais no final
+            totalValue += safeAdditionalValues.externalFees + safeAdditionalValues.discount + safeAdditionalValues.tax
+
+            nextInstallmentAmount = totalValue / index
             formatedInterest = formatCurrency(nextInstallmentAmount)
-            typeText = ` (${interestPercent}% de juros)`
+            typeText = ` (${interestPercent}${lknDCTranslationsCielo.withInterest})`
           }
+        } else {
+          // Sem juros/desconto: usa apenas a base + valores adicionais
+          totalValue = baseValue + safeAdditionalValues.externalFees + safeAdditionalValues.discount + safeAdditionalValues.tax
+          nextInstallmentAmount = totalValue / index
+        }
+
+        // Verifica se atende o valor mínimo
+        if (nextInstallmentAmount < installmentMin) {
+          break
         }
 
         if (formatedInterest) {
           newOptions.push({
             key: index,
-            label: `${index}x de ${formatedInterest}${typeText}`
+            label: `${lknDCTranslationsCielo.installmentText.replace('%d', index).replace('%s', formatedInterest)}${typeText}`
           })
         } else {
-          // Sem juros/desconto adicional do plugin: usa o valor total já calculado
+          // Sem juros/desconto do plugin: usa o total calculado
           const finalAmount = totalValue / index
           const installmentAmount = finalAmount.toLocaleString('pt-BR', {
             minimumFractionDigits: 2,
@@ -490,32 +508,33 @@ const lknDCContentCielo = props => {
             if (lknDCsettingsCielo.activeDiscount == 'yes') {
               newOptions.push({
                 key: index,
-                label: `${index}x de R$ ${installmentAmount}${lknDCsettingsCielo.interestOrDiscount == 'interest' ? ' sem juros' : ' sem desconto'}`
+                label: `${lknDCTranslationsCielo.installmentText.replace('%d', index).replace('%s', `R$ ${installmentAmount}`)} ${lknDCsettingsCielo.interestOrDiscount == 'interest' ? lknDCTranslationsCielo.noInterest : lknDCTranslationsCielo.noDiscount}`
               })
             } else {
               newOptions.push({
                 key: index,
-                label: `${index}x de R$ ${installmentAmount} sem juros`
+                label: `${lknDCTranslationsCielo.installmentText.replace('%d', index).replace('%s', `R$ ${installmentAmount}`)} ${lknDCTranslationsCielo.noInterest}`
               })
             }
           } else {
             // Se o plugin PRO não está válido, mostra apenas o valor sem texto adicional
             newOptions.push({
               key: index,
-              label: `${index}x de R$ ${installmentAmount}`
+              label: lknDCTranslationsCielo.installmentText.replace('%d', index).replace('%s', `R$ ${installmentAmount}`)
             })
           }
         }
       }
     } else {
-      // À vista: usa o valor total já calculado com tudo incluído
-      const totalAmount = finalCartTotal.toLocaleString('pt-BR', {
+      // À vista: usa o valor base + valores adicionais
+      const totalAmountValue = baseAmount + safeAdditionalValues.externalFees + safeAdditionalValues.discount + safeAdditionalValues.tax
+      const totalAmount = totalAmountValue.toLocaleString('pt-BR', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       })
       newOptions.push({
         key: '1',
-        label: `1x de R$ ${totalAmount} (à vista)`
+        label: `${lknDCTranslationsCielo.installmentText.replace('%d', '1').replace('%s', `R$ ${totalAmount}`)} ${lknDCTranslationsCielo.cashPayment}`
       })
     }
 
@@ -527,13 +546,13 @@ const lknDCContentCielo = props => {
     const loadInitialData = async () => {
       const finalCartData = await fetchCartDataWithRetries(4, 1500, (firstData) => {
         // Callback chamado na primeira resposta - para o loading imediatamente
-        calculateInstallments(firstData.finalTotal)
+        calculateInstallments(firstData.baseAmount, firstData.additionalValues)
         setIsLoadingOptions(false)
       })
 
       // Se os dados finais são diferentes dos primeiros, atualiza silenciosamente
       if (finalCartData && !isLoadingOptions) {
-        calculateInstallments(finalCartData.finalTotal)
+        calculateInstallments(finalCartData.baseAmount, finalCartData.additionalValues)
       }
     }
 
@@ -701,7 +720,7 @@ const lknDCContentCielo = props => {
           })
       }
     },
-    options: isLoadingOptions ? [{ key: 'loading', label: '🔄 Calculando parcelas...' }] : options
+    options: isLoadingOptions ? [{ key: 'loading', label: `🔄 ${lknDCTranslationsCielo.calculatingInstallments}` }] : options
   }), lknDCActiveInstallmentCielo === 'cielo' && /* #__PURE__ */React.createElement(wcComponents.CheckboxControl, {
     id: 'lkn_save_debit_credit_card',
     label: 'Salvar cartão para compra segura e rápida.',

@@ -98,6 +98,21 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
 
         if (has_block('woocommerce/checkout') && !wp_script_is('lkn-installment-label', 'enqueued') && !wp_script_is('lkn-installment-label', 'done')) {
             wp_enqueue_script('lkn-installment-label', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-installment-label.js', array(), LKN_WC_CIELO_VERSION, true);
+            
+            // Configuração de tradução para o script de label de parcelamento
+            wp_localize_script('lkn-installment-label', 'lknInstallmentLabelTranslations', array(
+                'payment' => __('Payment', 'lkn-wc-gateway-cielo'),
+                'installment' => __('Installment', 'lkn-wc-gateway-cielo'),
+                'loading' => __('Loading...', 'lkn-wc-gateway-cielo'),
+                'calculatingInstallments' => __('Calculating installments...', 'lkn-wc-gateway-cielo'),
+                'cashPayment' => __('Cash payment', 'lkn-wc-gateway-cielo'),
+                'noInterest' => __('no interest', 'lkn-wc-gateway-cielo'),
+                'noDiscount' => __('no discount', 'lkn-wc-gateway-cielo'),
+                'withDiscount' => __('% discount', 'lkn-wc-gateway-cielo'),
+                'withInterest' => __('% interest', 'lkn-wc-gateway-cielo'),
+                'fallbackInstallment' => __('2x installments', 'lkn-wc-gateway-cielo'),
+                'loadingPrice' => __('Loading price...', 'lkn-wc-gateway-cielo')
+            ));
         }
 
         if (is_checkout() && has_shortcode(get_the_content(), 'woocommerce_checkout') && !wp_script_is('lkn-payment-method-shortcode', 'enqueued') && !wp_script_is('lkn-payment-method-shortcode', 'done')) {
@@ -204,6 +219,13 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
                 'creditCard' => __('Credit card', 'lkn-wc-gateway-cielo'),
                 'debitCard' => __('Debit card', 'lkn-wc-gateway-cielo'),
                 'cardType' => __('Card type', 'lkn-wc-gateway-cielo'),
+                'installmentText' => __('%dx of %s', 'lkn-wc-gateway-cielo'),
+                'cashPayment' => __('(cash payment)', 'lkn-wc-gateway-cielo'),
+                'noInterest' => __('no interest', 'lkn-wc-gateway-cielo'),
+                'noDiscount' => __('no discount', 'lkn-wc-gateway-cielo'),
+                'withDiscount' => __('% discount', 'lkn-wc-gateway-cielo'),
+                'withInterest' => __('% interest', 'lkn-wc-gateway-cielo'),
+                'calculatingInstallments' => __('Calculating installments...', 'lkn-wc-gateway-cielo'),
             )
         );
     }

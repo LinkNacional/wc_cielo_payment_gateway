@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // Verificar se está carregando (skeleton)
             const skeleton = cieloDiv.querySelector('.wc-block-components-skeleton__element');
             if (skeleton) {
-                return { text: 'Carregando...', isLoading: true };
+                return { text: lknInstallmentLabelTranslations.loading, isLoading: true };
             }
 
             // Buscar o select dentro da div
@@ -43,8 +43,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     const selectedValue = selectedOption.value;
 
                     // Verificar se ainda está com texto de loading
-                    if (optionText.includes('Calculando parcelas') || optionText.includes('🔄') || selectedValue === 'loading') {
-                        return { text: 'Calculando parcelas...', isLoading: true };
+                    if (selectedValue === 'loading' || optionText.includes('🔄') ||
+                        optionText.includes('Calculando parcelas') || optionText.includes('Calculating installments')) {
+                        return { text: lknInstallmentLabelTranslations.calculatingInstallments, isLoading: true };
                     }
 
                     // Extrair apenas a parte do parcelamento, removendo juros/descontos
@@ -59,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     // Se for valor 1, mostrar como "À vista"
                     if (selectedValue === '1') {
-                        return { text: 'À vista', isLoading: false, value: selectedValue };
+                        return { text: lknInstallmentLabelTranslations.cashPayment, isLoading: false, value: selectedValue };
                     } else {
                         return { text: cleanText, isLoading: false, value: selectedValue };
                     }
@@ -67,7 +68,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
-        return { text: '2x de R$ 15,00', isLoading: false, value: '2' }; // fallback
+        return { text: lknInstallmentLabelTranslations.fallbackInstallment, isLoading: false, value: '2' }; // fallback
     }
 
     // Função para inserir skeleton de loading
@@ -125,9 +126,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         loadingSkeleton.innerHTML = `
-            <span class="wc-block-components-totals-item__label">Parcelamento</span>
+            <span class="wc-block-components-totals-item__label">${lknInstallmentLabelTranslations.installment}</span>
             <div class="wc-block-components-totals-item__value">
-                <div class="wc-block-components-skeleton__element" aria-live="polite" aria-label="Loading price..." style="width: 80px; height: 1em;"></div>
+                <div class="wc-block-components-skeleton__element" aria-live="polite" aria-label="${lknInstallmentLabelTranslations.loadingPrice}" style="width: 80px; height: 1em;"></div>
             </div>
             <div class="wc-block-components-totals-item__description"></div>
         `;
@@ -172,9 +173,9 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             // Determinar o label baseado na opção selecionada
-            let labelText = 'Parcelamento';
+            let labelText = lknInstallmentLabelTranslations.installment;
             if (installmentInfo.value === '1') {
-                labelText = 'Pagamento';
+                labelText = lknInstallmentLabelTranslations.payment;
             }
 
             // Criar no formato exato do WooCommerce Blocks
@@ -233,9 +234,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Função para atualizar um elemento (skeleton ou parcelamento existente)
                 function updateElement(element) {
                     // Determinar o label baseado na opção selecionada
-                    let labelText = 'Parcelamento';
+                    let labelText = lknInstallmentLabelTranslations.installment;
                     if (installmentInfo.value === '1') {
-                        labelText = 'Pagamento';
+                        labelText = lknInstallmentLabelTranslations.payment;
                     }
 
                     // Atualizar o conteúdo do elemento
@@ -282,9 +283,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 // Atualizar conteúdo para skeleton
                 parcelamento.innerHTML = `
-                    <span class="wc-block-components-totals-item__label">Parcelamento</span>
+                    <span class="wc-block-components-totals-item__label">${lknInstallmentLabelTranslations.installment}</span>
                     <div class="wc-block-components-totals-item__value">
-                        <div class="wc-block-components-skeleton__element" aria-live="polite" aria-label="Loading price..." style="width: 80px; height: 1em;"></div>
+                        <div class="wc-block-components-skeleton__element" aria-live="polite" aria-label="${lknInstallmentLabelTranslations.loadingPrice}" style="width: 80px; height: 1em;"></div>
                     </div>
                     <div class="wc-block-components-totals-item__description"></div>
                 `;
@@ -331,7 +332,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     lastText = currentText;
 
                     // Verificar se entrou em estado de loading
-                    if (installmentInfo.isLoading && (currentValue === 'loading' || currentText.includes('🔄') || currentText.includes('Calculando'))) {
+                    if (installmentInfo.isLoading && (currentValue === 'loading' || currentText.includes('🔄') ||
+                        currentText.includes('Calculando') || currentText.includes('Calculating'))) {
                         activateLoadingSkeleton();
                     }
                     // Verificar se saiu do estado de loading
