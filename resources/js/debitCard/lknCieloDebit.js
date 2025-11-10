@@ -24,6 +24,28 @@ const lknDCClientIp = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.c
 const lknDCUserGuest = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.user_guest)
 const lknDCAuthMethod = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.authentication_method)
 const lknDCClient = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.client)
+
+// Função para formatação de moeda baseada nas configurações do WooCommerce
+const formatCurrency = (amount) => {
+  if (!window.lknCieloDebitConfig || !window.lknCieloDebitConfig.currency) {
+    // Fallback para BRL se as configurações não estiverem disponíveis
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(amount)
+  }
+
+  const currency = window.lknCieloDebitConfig.currency
+  const locale = currency.code === 'BRL' ? 'pt-BR' : 'en-US' // Pode ser expandido conforme necessário
+
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: currency.code,
+    minimumFractionDigits: currency.decimals,
+    maximumFractionDigits: currency.decimals
+  }).format(amount)
+}
+
 const lknDCHideCheckoutButton = () => {
   const lknDCElement = document.querySelectorAll('.wc-block-components-checkout-place-order-button')
   if (lknDCElement && lknDCElement[0]) {
@@ -64,6 +86,7 @@ const lknDCContentCielo = props => {
     onPaymentSetup
   } = eventRegistration
   const [options, setOptions] = window.wp.element.useState([])
+  const [isLoadingOptions, setIsLoadingOptions] = window.wp.element.useState(true)
   const [cardBinState, setCardBinState] = window.wp.element.useState(0)
   const [cardTypeOptions, setCardTypeOptions] = window.wp.element.useState([{
     key: 'Credit',
@@ -82,6 +105,104 @@ const lknDCContentCielo = props => {
     lkn_cc_type: 'Credit'
   })
   const [focus, setFocus] = window.wp.element.useState('')
+
+  // Nova função para buscar dados do carrinho diretamente
+  const fetchCartData = async () => {
+    try {
+      const response = await fetch('/wp-json/wc/store/v1/cart', {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const cartData = await response.json()
+
+      if (cartData && cartData.totals) {
+        const totals = cartData.totals
+
+        // Nova fórmula: base = subtotal + shipping
+        // Juros/desconto aplicado sobre a base dentro de calculateInstallments
+        // Depois soma: externalFees - discount + taxes
+        const subtotal = parseFloat(totals.total_items) || 0
+        const shipping = parseFloat(totals.total_shipping) || 0
+        const discount = parseFloat(totals.total_discount) || 0 // Desconto de cupons (valor negativo)
+        const tax = parseFloat(totals.total_tax) || 0
+
+        // Calcula fees externas (excluindo as do plugin Cielo)
+        let externalFees = 0
+        if (cartData.totals.total_fees && cartData.fees) {
+          // Filtra apenas fees que NÃO são do plugin Cielo
+          const cardInterestLabel = 'Card Interest'
+          const cardDiscountLabel = 'Card Discount'
+
+          cartData.fees.forEach(fee => {
+            const feeName = fee.name || ''
+            // Se a fee NÃO contém os labels do plugin Cielo, é uma fee externa
+            if (!feeName.includes(cardInterestLabel) && !feeName.includes(cardDiscountLabel)) {
+              externalFees += parseFloat(fee.totals.total) || 0
+            }
+          })
+        }
+
+        // Base para cálculo de juros/desconto: apenas subtotal + frete
+        const baseAmount = (subtotal + shipping) / 100
+
+        // Valores que serão somados no final
+        const additionalValues = {
+          externalFees: externalFees / 100,
+          discount: discount / 100, // Já é negativo
+          tax: tax / 100
+        }
+
+        // Atualiza as opções de parcelamento com a base e valores adicionais
+        if (baseAmount > 0) {
+          setOptions([]) // Limpa opções antigas
+          calculateInstallments(baseAmount, additionalValues)
+        }
+
+        return {
+          subtotal: subtotal / 100,
+          shipping: shipping / 100,
+          baseAmount,
+          additionalValues
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao buscar dados do carrinho:', error)
+      return null
+    }
+  }
+
+  // Função para executar múltiplas requisições com delay (para o loading na primeira resposta)
+  const fetchCartDataWithRetries = async (retries = 4, delay = 1500, onFirstData = null) => {
+    let lastCartData = null
+    let firstDataSent = false
+
+    for (let i = 0; i < retries; i++) {
+      const cartData = await fetchCartData()
+
+      if (cartData) {
+        lastCartData = cartData
+
+        // Na primeira vez que obtém dados, chama o callback para parar o loading
+        if (!firstDataSent && onFirstData) {
+          onFirstData(cartData)
+          firstDataSent = true
+        }
+      }      // Sempre aguarda o delay (exceto na última tentativa)
+      if (i < retries - 1) {
+        await new Promise(resolve => setTimeout(resolve, delay))
+      }
+    }
+
+    return lastCartData
+  }
   const formatDebitCardNumber = value => {
     if (value?.length > 24) return debitObject.lkn_dcno
     // Remove caracteres não numéricos
@@ -268,106 +389,203 @@ const lknDCContentCielo = props => {
       unsubscribe()
     }
   }, [debitObject, emitResponse.responseTypes.ERROR, emitResponse.responseTypes.SUCCESS, onPaymentSetup])
-  const calculateInstallments = lknDCTotalCartCielo => {
+  // Função para recalcular as opções de parcelas com os dados atuais do carrinho
+  const recalculateInstallments = async (useRetries = false) => {
+    // Ativa o loading e limpa as opções atuais
+    setIsLoadingOptions(true)
+    setOptions([])
+
+    let cartData
+    if (useRetries) {
+      // Para mudanças dinâmicas, usa retries com callback para parar loading rapidamente
+      let firstDataProcessed = false
+
+      cartData = await fetchCartDataWithRetries(3, 1000, (firstData) => {
+        // Para o loading na primeira resposta válida
+        if (!firstDataProcessed) {
+          calculateInstallments(firstData.baseAmount, firstData.additionalValues)
+          setIsLoadingOptions(false)
+          firstDataProcessed = true
+        }
+      })
+
+      // Se obteve dados finais diferentes, atualiza silenciosamente
+      if (cartData && firstDataProcessed) {
+        calculateInstallments(cartData.baseAmount, cartData.additionalValues)
+      }
+    } else {
+      // Uma única tentativa para mudanças rápidas
+      cartData = await fetchCartData()
+
+      if (cartData) {
+        calculateInstallments(cartData.baseAmount, cartData.additionalValues)
+      }      // Desativa o loading após processar mudanças rápidas
+      setIsLoadingOptions(false)
+    }
+  }
+
+  const calculateInstallments = (baseAmount, additionalValues = {}) => {
+    // Valores padrão para additionalValues caso estejam undefined
+    const safeAdditionalValues = {
+      externalFees: additionalValues.externalFees || 0,
+      discount: additionalValues.discount || 0,
+      tax: additionalValues.tax || 0
+    }
+
     const installmentMin = parseFloat(lknDCInstallmentMinAmount)
-    // Verifica se 'lknCCActiveInstallmentCielo' é 'yes' e o valor total é maior que 10
-    if (lknDCActiveInstallmentCielo === 'yes' && lknDCTotalCartCielo > 10) {
-      const maxInstallments = lknDCInstallmentLimitCielo // Limita o parcelamento até 12 vezes, deixei fixo para teste
+    const newOptions = [] // Array local para construir as opções
+
+    // Verifica se 'lknDCActiveInstallmentCielo' é 'yes' e o valor base é maior que 10
+    if (lknDCActiveInstallmentCielo === 'yes' && baseAmount > 10) {
+      const maxInstallments = lknDCInstallmentLimitCielo // Limita o parcelamento
 
       for (let index = 1; index <= maxInstallments; index++) {
-        const installmentAmount = (lknDCTotalCartCielo / index).toLocaleString('pt-BR', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2
-        })
-        let nextInstallmentAmount = parseFloat(lknDCTotalCartCielo) / index
+        // Começa com o valor base (subtotal + shipping)
+        let baseValue = parseFloat(baseAmount)
+        let totalValue = baseValue
+        let nextInstallmentAmount = totalValue / index
+
+        let formatedInterest = false
+        let typeText = ''
+
+        // Busca a configuração específica para esta parcela no array installments
+        const installmentConfig = lknDCsettingsCielo.installments.find(inst => inst.id === index)
+
+        // Se o plugin PRO está válido, aplica juros/descontos sobre a BASE
+        if (lknCieloDebitConfig.isProPluginValid && installmentConfig) {
+          const interestOrDiscount = lknDCsettingsCielo.interestOrDiscount
+          const interestPercent = parseFloat(installmentConfig.interest)
+
+          if (interestOrDiscount === 'discount' && lknDCsettingsCielo.activeDiscount == "yes") {
+            // Aplica desconto sobre a BASE (subtotal + shipping)
+            const discountMultiplier = 1 - (interestPercent / 100)
+            totalValue = baseValue * discountMultiplier
+
+            // Soma valores adicionais no final
+            totalValue += safeAdditionalValues.externalFees + safeAdditionalValues.discount + safeAdditionalValues.tax
+
+            nextInstallmentAmount = totalValue / index
+            formatedInterest = formatCurrency(nextInstallmentAmount)
+            typeText = ` (${interestPercent}${lknDCTranslationsCielo.withDiscount})`
+          } else if (interestOrDiscount === "interest" && lknDCsettingsCielo.activeInstallment == "yes") {
+            // Aplica juros sobre a BASE (subtotal + shipping)
+            const interestMultiplier = 1 + (interestPercent / 100)
+            totalValue = baseValue * interestMultiplier
+
+            // Soma valores adicionais no final
+            totalValue += safeAdditionalValues.externalFees + safeAdditionalValues.discount + safeAdditionalValues.tax
+
+            nextInstallmentAmount = totalValue / index
+            formatedInterest = formatCurrency(nextInstallmentAmount)
+            typeText = ` (${interestPercent}${lknDCTranslationsCielo.withInterest})`
+          }
+        } else {
+          // Sem juros/desconto: usa apenas a base + valores adicionais
+          totalValue = baseValue + safeAdditionalValues.externalFees + safeAdditionalValues.discount + safeAdditionalValues.tax
+          nextInstallmentAmount = totalValue / index
+        }
+
+        // Verifica se atende o valor mínimo
         if (nextInstallmentAmount < installmentMin) {
           break
         }
-        let formatedInterest = false
-        let typeText = '';
-        for (let t = 0; t < lknCC3DSinstallmentsCielo.length; t++) {
-          const interestOrDiscount = lknDCsettingsCielo.interestOrDiscount;
-          const installmentObj = lknCC3DSinstallmentsCielo[t]
-          if (interestOrDiscount === 'discount' && lknDCsettingsCielo.activeDiscount == "yes" && installmentObj.id === index) {
-            nextInstallmentAmount = (lknDCTotalCartCielo - lknDCTotalCartCielo * (parseFloat(installmentObj.interest) / 100)) / index
-            formatedInterest = new Intl.NumberFormat('pt-br', {
-              style: 'currency',
-              currency: 'BRL'
-            }).format(nextInstallmentAmount)
-            typeText = ` (${installmentObj.interest}% de desconto)`;
-          } else if (interestOrDiscount === "interest" && lknDCsettingsCielo.activeInstallment == "yes" && installmentObj.id === index) {
-            nextInstallmentAmount = (lknDCTotalCartCielo + lknDCTotalCartCielo * (parseFloat(installmentObj.interest) / 100)) / index
-            formatedInterest = new Intl.NumberFormat('pt-br', {
-              style: 'currency',
-              currency: 'BRL'
-            }).format(nextInstallmentAmount)
-            typeText = ` (${installmentObj.interest}% de juros)`;
-          }
-        }
+
         if (formatedInterest) {
-          setOptions(prevOptions => [...prevOptions, {
+          newOptions.push({
             key: index,
-            label: `${index}x de ${formatedInterest}${typeText}`
-          }])
-        } else if (lknDCsettingsCielo.activeDiscount == 'yes') {
-          setOptions(prevOptions => [...prevOptions, {
-            key: index,
-            label: `${index}x de R$ ${installmentAmount}${lknDCsettingsCielo.interestOrDiscount == 'interest' ? ' sem juros' : ' sem desconto'}`
-          }])
+            label: `${lknDCTranslationsCielo.installmentText.replace('%d', index).replace('%s', formatedInterest)}${typeText}`
+          })
         } else {
-          setOptions(prevOptions => [...prevOptions, {
-            key: index,
-            label: `${index}x de R$ ${installmentAmount} sem juros`
-          }])
+          // Sem juros/desconto do plugin: usa o total calculado
+          const finalAmount = totalValue / index
+          const installmentAmount = finalAmount.toLocaleString('pt-BR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          })
+
+          // Se o plugin PRO está válido, usa as configurações originais
+          if (lknCieloDebitConfig.isProPluginValid) {
+            if (lknDCsettingsCielo.activeDiscount == 'yes') {
+              newOptions.push({
+                key: index,
+                label: `${lknDCTranslationsCielo.installmentText.replace('%d', index).replace('%s', `R$ ${installmentAmount}`)} ${lknDCsettingsCielo.interestOrDiscount == 'interest' ? lknDCTranslationsCielo.noInterest : lknDCTranslationsCielo.noDiscount}`
+              })
+            } else {
+              newOptions.push({
+                key: index,
+                label: `${lknDCTranslationsCielo.installmentText.replace('%d', index).replace('%s', `R$ ${installmentAmount}`)} ${lknDCTranslationsCielo.noInterest}`
+              })
+            }
+          } else {
+            // Se o plugin PRO não está válido, mostra apenas o valor sem texto adicional
+            newOptions.push({
+              key: index,
+              label: lknDCTranslationsCielo.installmentText.replace('%d', index).replace('%s', `R$ ${installmentAmount}`)
+            })
+          }
         }
       }
     } else {
-      setOptions(prevOptions => [...prevOptions, {
+      // À vista: usa o valor base + valores adicionais
+      const totalAmountValue = baseAmount + safeAdditionalValues.externalFees + safeAdditionalValues.discount + safeAdditionalValues.tax
+      const totalAmount = totalAmountValue.toLocaleString('pt-BR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      })
+      newOptions.push({
         key: '1',
-        label: `1x de R$ ${lknDCTotalCartCielo} (à vista)`
-      }])
+        label: `${lknDCTranslationsCielo.installmentText.replace('%d', '1').replace('%s', `R$ ${totalAmount}`)} ${lknDCTranslationsCielo.cashPayment}`
+      })
     }
+
+    // Define todas as opções de uma vez
+    setOptions(newOptions)
   }
   window.wp.element.useEffect(() => {
-    calculateInstallments(lknDCTotalCartCielo)
-    const intervalId = setInterval(() => {
-      const targetNode = document.querySelector('.wc-block-formatted-money-amount.wc-block-components-formatted-money-amount.wc-block-components-totals-footer-item-tax-value')
-      // Configuração do observer: quais mudanças serão observadas
-      if (targetNode) {
-        const config = {
-          childList: true,
-          subtree: true,
-          characterData: true
-        }
-        const changeValue = () => {
-          setOptions([])
-          // Remover tudo exceto os números e a vírgula
-          let valorNumerico = targetNode.textContent.replace(/[^\d,]/g, '')
+    // Executa a primeira busca no carregamento
+    const loadInitialData = async () => {
+      const finalCartData = await fetchCartDataWithRetries(4, 1500, (firstData) => {
+        // Callback chamado na primeira resposta - para o loading imediatamente
+        calculateInstallments(firstData.baseAmount, firstData.additionalValues)
+        setIsLoadingOptions(false)
+      })
 
-          // Substituir a vírgula por um ponto
-          valorNumerico = valorNumerico.replace(',', '.')
-
-          // Converter para número
-          valorNumerico = parseFloat(valorNumerico)
-          calculateInstallments(valorNumerico)
-        }
-        changeValue()
-
-        // Função de callback que será executada quando ocorrerem mudanças
-        const callback = function (mutationsList, observer) {
-          for (const mutation of mutationsList) {
-            if (mutation.type === 'childList' || mutation.type === 'characterData') {
-              changeValue()
-            }
-          }
-        }
-
-        // Cria uma instância do observer e o conecta ao nó alvo
-        const observer = new MutationObserver(callback)
-        observer.observe(targetNode, config)
-        clearInterval(intervalId)
+      // Se os dados finais são diferentes dos primeiros, atualiza silenciosamente
+      if (finalCartData && !isLoadingOptions) {
+        calculateInstallments(finalCartData.baseAmount, finalCartData.additionalValues)
       }
-    }, 500)
+    }
+
+    loadInitialData()
+
+    // Intercepta as requisições para detectar mudanças
+    const originalFetch = window.fetch
+
+    window.fetch = async (...args) => {
+      const [resource, config] = args
+      const url = typeof resource === 'string' ? resource : resource.url
+
+      // Detecta mudanças no carrinho que requerem recálculo
+      const shouldRecalculate = url && (
+        url.includes('/wp-json/wc/store/v1/cart/select-shipping-rate')
+      )
+
+      const response = await originalFetch.apply(window, args)
+
+      if (shouldRecalculate) {
+        // Aguarda um pouco para o WooCommerce processar a mudança
+        setTimeout(() => {
+          recalculateInstallments(true) // usa retry leve para mudanças do carrinho
+        }, 800) // 800ms de delay para dar tempo do WooCommerce processar
+      }
+
+      return response
+    }
+
+    // Cleanup: restaura o fetch original quando o componente é desmontado
+    return () => {
+      window.fetch = originalFetch
+    }
   }, [])
   return /* #__PURE__ */React.createElement(React.Fragment, null, lknDCshowCard !== 'no' && /* #__PURE__ */React.createElement(Cards, {
     number: debitObject.lkn_dcno,
@@ -455,11 +673,54 @@ const lknDCContentCielo = props => {
     id: 'lkn_cc_dc_installments',
     label: lknDCTranslationsCielo.installments,
     value: debitObject.lkn_cc_dc_installments,
-    className: 'lkn-cielo-credit-debit-custom-select',
+    className: `lkn_cielo_debit_select lkn-cielo-credit-debit-custom-select ${isLoadingOptions ? 'loading-options' : ''}`,
+    disabled: isLoadingOptions,
+    style: isLoadingOptions ? { opacity: 0.7, cursor: 'wait' } : {},
     onChange: event => {
-      updatedebitObject('lkn_cc_dc_installments', event.target.value)
+      const installmentValue = event.target.value
+
+      // Ignora se está selecionando a opção de loading
+      if (installmentValue === 'loading') return
+
+      updatedebitObject('lkn_cc_dc_installments', installmentValue)
+
+      // Faz a requisição AJAX para atualizar as fees quando a parcela mudar
+      if (window.lknCieloDebitConfig) {
+        const formData = new FormData()
+        formData.append('action', 'lkn_update_payment_fees')
+        formData.append('payment_method', 'lkn_cielo_debit')
+        formData.append('installment', installmentValue)
+        formData.append('nonce', window.lknCieloDebitConfig.fees_nonce)
+
+        fetch(window.lknCieloDebitConfig.ajax_url, {
+          method: 'POST',
+          body: formData
+        })
+          .then(response => response.json())
+          .then(data => {
+            // Após a resposta AJAX, força recálculo do carrinho
+            if (window.wp && window.wp.data) {
+              window.wp.data.dispatch('wc/store/cart').invalidateResolutionForStore()
+            }
+
+            // Aguarda um pouco e depois recalcula as parcelas
+            setTimeout(() => {
+              recalculateInstallments()
+            }, 500)
+          })
+          .catch(error => {
+            // Mesmo em caso de erro, força o recálculo para manter consistência
+            if (window.wp && window.wp.data) {
+              window.wp.data.dispatch('wc/store/cart').invalidateResolutionForStore()
+            }
+
+            setTimeout(() => {
+              recalculateInstallments()
+            }, 500)
+          })
+      }
     },
-    options
+    options: isLoadingOptions ? [{ key: 'loading', label: `🔄 ${lknDCTranslationsCielo.calculatingInstallments}` }] : options
   }), lknDCActiveInstallmentCielo === 'cielo' && /* #__PURE__ */React.createElement(wcComponents.CheckboxControl, {
     id: 'lkn_save_debit_credit_card',
     label: 'Salvar cartão para compra segura e rápida.',

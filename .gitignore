@@ -5,4 +5,5 @@ sftp.json
 vendor
 .vscode/functions
 .vscode/mcp.json
+.vscode/wordpress-mcp.json
 

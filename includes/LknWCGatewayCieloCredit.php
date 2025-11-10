@@ -191,12 +191,27 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
 
         $installmentArgs['currency'] = $currency;
 
+        if (WC()->session) {
+            WC()->session->set('lkn_cielo_credit_installment', '1');
+        }
+
+        // Recuperar parcela atual da sessão
+        $current_installment = WC()->session ? WC()->session->get('lkn_cielo_credit_installment', '1') : '1';
+
         wp_enqueue_script('lkn-mask-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/formatter.js', array('jquery'), $this->version, false);
         wp_enqueue_script('lkn-mask-script-load', plugin_dir_url(__FILE__) . '../resources/js/frontend/define-mask.js', array('lkn-mask-script', 'jquery'), $this->version, false);
 
         wp_enqueue_script('lkn-installment-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-cc-installment.js', array('jquery'), $this->version, false);
         wp_localize_script('lkn-installment-script', 'lknWCCieloCredit', $installmentArgs);
-        wp_localize_script('lkn-installment-script', 'lknWCCieloCreditDiscount', $this->get_option('installment_discount'));
+        wp_localize_script('lkn-installment-script', 'lknWCCieloCreditConfig', array(
+            'interest_or_discount' => $this->get_option('interest_or_discount'),
+            'installment_discount' => $this->get_option('installment_discount')
+        ));
+        wp_localize_script('lkn-installment-script', 'lknWCCieloCreditAjax', array(
+            'ajaxurl' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('lkn_payment_fees_nonce'),
+            'current_installment' => $current_installment
+        ));
 
         wp_enqueue_style('lkn-cc-style', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-cc-style.css', array(), $this->version, 'all');
 
@@ -460,7 +475,10 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
     {
         wp_enqueue_style('lknWCGatewayCieloFixIconsStyle', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-fix-icons-styles.css', array(), $this->version, 'all');
         $activeInstallment = $this->get_option('installment_payment');
-        $total_cart = number_format($this->get_order_total(), 2, '.', '');
+        $total_cart = number_format($this->get_subtotal_plus_shipping(), 2, '.', '');
+        $fees_total = number_format($this->get_fees_total(), 2, '.', '');
+        $taxes_total = number_format($this->get_taxes_total(), 2, '.', '');
+        $discounts_total = number_format($this->get_discounts_total(), 2, '.', '');
         $noLoginCheckout = isset($_GET['pay_for_order']) ? sanitize_text_field(wp_unslash($_GET['pay_for_order'])) : 'false';
         $installmentLimit = $this->get_option('installment_limit', 12);
         $installments = array();
@@ -476,14 +494,33 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         }
 
         for ($c = 1; $c <= $installmentLimit; ++$c) {
-            $interest = $this->get_option($c . 'x', 0);
-            if ($interest > 0) {
-                $installments[] = array('id' => $c, 'interest' => $interest);
-            } elseif ($this->get_option('installment_discount') == 'yes') {
-                $discount = $this->get_option($c . 'x_discount', 0);
-                if ($discount > 0) {
-                    $installments[] = array('id' => $c, 'discount' => $discount);
-                }
+            // Usar a lógica correta baseada na configuração interest_or_discount
+            switch ($this->get_option('interest_or_discount')) {
+                case 'discount':
+                    if ($this->get_option('installment_discount') == 'yes') {
+                        $discount = $this->get_option($c . 'x_discount', 0);
+                        if ($discount > 0) {
+                            $installments[] = array('id' => $c, 'discount' => $discount);
+                        }
+                    }
+                    break;
+                    
+                case 'interest':
+                    if ($this->get_option('installment_interest') == 'yes') {
+                        $interest = $this->get_option($c . 'x', 0);
+                        if ($interest > 0) {
+                            $installments[] = array('id' => $c, 'interest' => $interest);
+                        }
+                    }
+                    break;
+                    
+                default:
+                    // Fallback para compatibilidade com configurações antigas
+                    $interest = $this->get_option($c . 'x', 0);
+                    if ($interest > 0) {
+                        $installments[] = array('id' => $c, 'interest' => $interest);
+                    }
+                    break;
             }
         }
 
@@ -592,6 +629,18 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
                     id="lkn_cc_installment_interest"
                     type="hidden"
                     value="<?php echo esc_attr(wp_json_encode($installments)); ?>">
+                <input
+                    id="lkn_cc_fees_total"
+                    type="hidden"
+                    value="<?php echo esc_attr($fees_total); ?>">
+                <input
+                    id="lkn_cc_taxes_total"
+                    type="hidden"
+                    value="<?php echo esc_attr($taxes_total); ?>">
+                <input
+                    id="lkn_cc_discounts_total"
+                    type="hidden"
+                    value="<?php echo esc_attr($discounts_total); ?>">
 
                 <div class="form-row form-row-wide">
                     <select
@@ -952,6 +1001,126 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         }
         return number_format($total, 2, '', '');
 
+        return 0;
+    }
+
+    /**
+     * Get cart subtotal plus shipping total.
+     */
+    private function get_subtotal_plus_shipping()
+    {
+        // Se estiver no pay_for_order, pegar do pedido específico
+        if (isset($_GET['pay_for_order'])) {
+            $key = isset($_GET['key']) ? sanitize_text_field(wp_unslash($_GET['key'])) : '';
+            $order_id = wc_get_order_id_by_order_key($key);
+            $order = wc_get_order($order_id);
+            
+            if ($order) {
+                return $order->get_subtotal() + $order->get_shipping_total();
+            }
+        }
+        
+        // Para checkout normal, usar o carrinho
+        if (WC()->cart) {
+            return WC()->cart->get_subtotal() + WC()->cart->get_shipping_total();
+        }
+        
+        return 0;
+    }
+
+    /**
+     * Get fees total (excluding plugin-generated fees like card interest/discount).
+     */
+    private function get_fees_total()
+    {
+        // Se estiver no pay_for_order, pegar do pedido específico
+        if (isset($_GET['pay_for_order'])) {
+            $key = isset($_GET['key']) ? sanitize_text_field(wp_unslash($_GET['key'])) : '';
+            $order_id = wc_get_order_id_by_order_key($key);
+            $order = wc_get_order($order_id);
+            
+            if ($order) {
+                // Para pedidos, filtrar fees excluindo as do plugin
+                $fees = $order->get_fees();
+                $external_fees_total = 0;
+                
+                foreach ($fees as $fee) {
+                    $fee_name = $fee->get_name();
+                    // Excluir fees criadas pelo plugin Cielo
+                    if ($fee_name !== __('Card Interest', 'lkn-wc-gateway-cielo') && 
+                        $fee_name !== __('Card Discount', 'lkn-wc-gateway-cielo')) {
+                        $external_fees_total += $fee->get_total();
+                    }
+                }
+                
+                return $external_fees_total;
+            }
+        }
+        
+        // Para checkout normal, usar o carrinho
+        if (WC()->cart) {
+            $fees = WC()->cart->get_fees();
+            $external_fees_total = 0;
+            
+            foreach ($fees as $fee) {
+                // Excluir fees criadas pelo plugin Cielo
+                if ($fee->name !== __('Card Interest', 'lkn-wc-gateway-cielo') && 
+                    $fee->name !== __('Card Discount', 'lkn-wc-gateway-cielo')) {
+                    $external_fees_total += $fee->amount;
+                }
+            }
+            
+            return $external_fees_total;
+        }
+        
+        return 0;
+    }
+
+    /**
+     * Get taxes total.
+     */
+    private function get_taxes_total()
+    {
+        // Se estiver no pay_for_order, pegar do pedido específico
+        if (isset($_GET['pay_for_order'])) {
+            $key = isset($_GET['key']) ? sanitize_text_field(wp_unslash($_GET['key'])) : '';
+            $order_id = wc_get_order_id_by_order_key($key);
+            $order = wc_get_order($order_id);
+            
+            if ($order) {
+                return $order->get_total_tax();
+            }
+        }
+        
+        // Para checkout normal, usar o carrinho
+        if (WC()->cart) {
+            return WC()->cart->get_total_tax();
+        }
+        
+        return 0;
+    }
+
+    /**
+     * Get discounts total.
+     */
+    private function get_discounts_total()
+    {
+        // Se estiver no pay_for_order, pegar do pedido específico
+        if (isset($_GET['pay_for_order'])) {
+            $key = isset($_GET['key']) ? sanitize_text_field(wp_unslash($_GET['key'])) : '';
+            $order_id = wc_get_order_id_by_order_key($key);
+            $order = wc_get_order($order_id);
+            
+            if ($order) {
+                return $order->get_total_discount();
+            }
+        }
+        
+        // Para checkout normal, usar o carrinho
+        if (WC()->cart) {
+            return WC()->cart->get_discount_total();
+        }
+        
         return 0;
     }
 

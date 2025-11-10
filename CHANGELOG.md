@@ -1,3 +1,6 @@
+# 1.27.0 - 10/11/2025
+* Adição dos calculos de juros/desconto nos parcelamentos dos cartões de crédito(Editor de blocos + Shortcode).
+
 # 1.26.0 - 17/10/2025
 * Ajustes no resumo do pedido.
 * Adição da porcentagem de juros nas parcelas
