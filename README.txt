@@ -100,6 +100,10 @@ This plugin uses the [React Credit Cards](https://github.com/amaroteam/react-cre
 7. Debit card front page with payment fields.
 
 == Changelog ==
+= 1.27.0 =
+** 10/11/2025 **
+* Addition of interest/discount calculations for credit card installments (Block Editor + Shortcode).
+
 = 1.26.0 =
 ** 17/10/2025 **
 * Adjustments to the order summary.
