@@ -123,52 +123,63 @@
       }
 
       for (let i = 1; i <= lknInstallmentLimit; i++) {
-        // Calcular parcela base: (subtotal + frete) / parcelas + fees externo - descontos + taxes
-        let installmentBase = subtotalShipping / i
-        // Valor final da parcela (fees somados, descontos subtraídos, taxes somados)
-        let finalInstallment = installmentBase + feesTotal - discountsTotal + taxesTotal
+        let finalInstallment
+        let formatedInstallment
+        let text
 
-        const formatedInstallment = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(finalInstallment)
-        const option = document.createElement('option')
-
-        // Texto dinâmico baseado na configuração
-        let defaultText = ' sem juros' // padrão
-        if (typeof lknWCCielo3dsConfig !== 'undefined' && lknWCCielo3dsConfig.interest_or_discount === 'discount') {
-          defaultText = ' sem desconto'
-        }
-
-        let text = document.createTextNode(i + 'x de ' + formatedInstallment + defaultText)
-
+        // Se a versão PRO está ativa, usar cálculo complexo
         if (typeof lknWCCielo3ds !== 'undefined' && lknWCCielo3ds.licenseResult) {
+          // Calcular parcela base: (subtotal + frete) / parcelas + fees externo - descontos + taxes
+          let installmentBase = subtotalShipping / i
+          // Valor final da parcela (fees somados, descontos subtraídos, taxes somados)
+          finalInstallment = installmentBase + feesTotal - discountsTotal + taxesTotal
+
+          // Verificar se tem configuração específica de juros/desconto para esta parcela
+          let hasCustomConfig = false
           for (let t = 0; t < lknInstallmentInterest.length; t++) {
             const installmentObj = lknInstallmentInterest[t]
-            // Verify if it is the right installment
             if (installmentObj.id === i) {
               if (installmentObj.label) {
                 text = document.createTextNode(installmentObj.label)
+                hasCustomConfig = true
               } else if (installmentObj.interest) {
                 // Calcular juros apenas sobre subtotal + frete, depois somar fees, subtrair descontos e somar taxes
                 const interestAmount = subtotalShipping + (subtotalShipping * (installmentObj.interest / 100))
                 const interestInstallment = (interestAmount / i) + feesTotal - discountsTotal + taxesTotal
-                const formatedInterest = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(interestInstallment)
-
-                text = document.createTextNode(i + 'x de ' + formatedInterest + ' (' + installmentObj.interest + '% de juros)')
+                formatedInstallment = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(interestInstallment)
+                text = document.createTextNode(i + 'x de ' + formatedInstallment + ' (' + installmentObj.interest + '% de juros)')
+                hasCustomConfig = true
               } else if (installmentObj.discount) {
                 // Calcular desconto apenas sobre subtotal + frete, depois somar fees, subtrair descontos e somar taxes
                 const discountAmount = subtotalShipping - (subtotalShipping * (installmentObj.discount / 100))
                 const discountInstallment = (discountAmount / i) + feesTotal - discountsTotal + taxesTotal
-                const formatedDiscount = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(discountInstallment)
-
-                text = document.createTextNode(i + 'x de ' + formatedDiscount + ' (' + installmentObj.discount + '% de desconto)')
+                formatedInstallment = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(discountInstallment)
+                text = document.createTextNode(i + 'x de ' + formatedInstallment + ' (' + installmentObj.discount + '% de desconto)')
+                hasCustomConfig = true
               }
-              break // Sair do loop quando encontrar a configuração
+              break
             }
           }
+
+          // Se não tem configuração customizada, usar o texto padrão
+          if (!hasCustomConfig) {
+            formatedInstallment = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(finalInstallment)
+            // Texto dinâmico baseado na configuração
+            let defaultText = ' sem juros' // padrão
+            if (typeof lknWCCielo3dsConfig !== 'undefined' && lknWCCielo3dsConfig.interest_or_discount === 'discount') {
+              defaultText = ' sem desconto'
+            }
+            text = document.createTextNode(i + 'x de ' + formatedInstallment + defaultText)
+          }
         } else {
-          // Se a licença NÃO está ativa, remove o texto "sem juros"/"sem desconto"
+          // Versão gratuita: inclui fees externos, descontos e taxes, mas não aplica juros/desconto do plugin
+          // Calcular: (subtotal + frete + fees externos - descontos + taxes) / parcelas
+          finalInstallment = (subtotalShipping + feesTotal - discountsTotal + taxesTotal) / i
+          formatedInstallment = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(finalInstallment)
           text = document.createTextNode(i + 'x de ' + formatedInstallment)
         }
 
+        const option = document.createElement('option')
         option.value = i
         option.appendChild(text)
         lknInstallmentSelect.appendChild(option)
@@ -180,7 +191,10 @@
           option.selected = true
         }
 
-        if ((subtotalShipping / (i + 1)) < lknInstallmentMin) {
+        // Para versão gratuita, usar o total completo para verificar mínimo
+        const checkValue = (typeof lknWCCielo3ds !== 'undefined' && lknWCCielo3ds.licenseResult) ?
+          subtotalShipping : (subtotalShipping + feesTotal - discountsTotal + taxesTotal)
+        if ((checkValue / (i + 1)) < lknInstallmentMin) {
           break
         }
       }
