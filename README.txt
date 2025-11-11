@@ -278,7 +278,7 @@ This plugin uses the [React Credit Cards](https://github.com/amaroteam/react-cre
 
 = 1.11.0 =
 **02/09/2024**
-* Add translations for CPF field for Pix payments.
+* Add translations for CPF field for Pix payments;
 * Add compatibility with configuration to change status when the order is paid.
 
 = 1.10.0 =
