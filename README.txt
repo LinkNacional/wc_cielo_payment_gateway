@@ -1,4 +1,4 @@
-=== Cielo for WooCommerce PIX, Debit Card and Credit Card ===
+=== Payment Gateway for Cielo API on WooCommerce ===
 Contributors: linknacional
 Donate link: https://www.linknacional.com.br/wordpress/woocommerce/cielo/
 Tags: pagamento, cielo, pix, woocommerce, creditcard
