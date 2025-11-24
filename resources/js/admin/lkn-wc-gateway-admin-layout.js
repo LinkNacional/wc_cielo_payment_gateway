@@ -337,6 +337,22 @@
               }
             }
 
+            if(checkboxInput) {
+            const mergeCheckbox = checkboxInput.getAttribute('merge-checkbox') ? checkboxInput.getAttribute('merge-checkbox') : false;
+              if (mergeCheckbox) {
+                const parentInput = document.getElementById(mergeCheckbox).closest('div.lkn-body-cart');
+                if (parentInput) {
+                    checkboxInput.style.display = 'block';
+                    checkboxInput.style.margin = '0px';
+                    checkboxInput.style.marginRight = '5px';
+                    const labelCheckbox = checkboxInput.closest('label');
+                    labelCheckbox.style.display = 'flex';
+                    tr.style.display = 'none';
+                    parentInput.appendChild(labelCheckbox);
+                }
+              }
+            }
+
             // Limpa o fieldset e insere os novos containers
             fieldset.innerHTML = ''
             fieldset.appendChild(headerDiv)
