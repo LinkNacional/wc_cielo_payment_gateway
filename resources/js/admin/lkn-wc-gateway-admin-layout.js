@@ -276,6 +276,12 @@
               if (titleText) {
                 descBlock.innerHTML = titleText
               }
+
+              const numberLabel = inputElement.getAttribute('type-number-label') ? inputElement.getAttribute('type-number-label') : false;
+              if (numberLabel) {
+                  inputElement.style.marginRight = '10px'
+                  inputElement.outerHTML = `<div style="display: flex;">${inputElement.outerHTML}<label style="color: #2C3338;">${numberLabel}</label></div>`;
+              }
             }
 
             const checkboxInput = bodyDiv.querySelector('input[type="checkbox"]')
