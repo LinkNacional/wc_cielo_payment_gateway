@@ -1,3 +1,6 @@
+# 1.27.1 - 25/11/2025
+* Novos atributos personalizados para configurações.
+
 # 1.27.0 - 10/11/2025
 * Adição dos calculos de juros/desconto nos parcelamentos dos cartões de crédito(Editor de blocos + Shortcode).
 
