@@ -69,9 +69,6 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
             wp_set_script_translations('lkn_cielo_debit-blocks-integration');
         }
 
-        // Script de teste para WooCommerce Blocks
-        wp_enqueue_script('lkn-cielo-blocks-test-debit', plugin_dir_url(__FILE__) . '../resources/js/creditCard/lkn-cielo-blocks-test.js', array(), LKN_WC_CIELO_VERSION, false);
-
         if ($is_pro_plugin_valid) {
             wp_enqueue_script('lkn-wc-gateway-debit-checkout-layout', plugin_dir_url(__FILE__) . '../resources/js/debitCard/lkn-wc-gateway-checkout-layout.js', array(), LKN_WC_CIELO_VERSION, false);
             wp_localize_script('lkn-wc-gateway-debit-checkout-layout', 'lknCieloCardIcons', array(
