@@ -107,7 +107,7 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
                 'noDiscount' => __('no discount', 'lkn-wc-gateway-cielo'),
                 'withDiscount' => __('% discount', 'lkn-wc-gateway-cielo'),
                 'withInterest' => __('% interest', 'lkn-wc-gateway-cielo'),
-                'fallbackInstallment' => __('payment', 'lkn-wc-gateway-cielo'),
+                'fallbackInstallment' => __('Cash payment', 'lkn-wc-gateway-cielo'),
                 'loadingPrice' => __('Loading price...', 'lkn-wc-gateway-cielo')
             ));
         }
