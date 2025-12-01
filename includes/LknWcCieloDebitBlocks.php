@@ -69,9 +69,6 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
             wp_set_script_translations('lkn_cielo_debit-blocks-integration');
         }
 
-        // Script de teste para WooCommerce Blocks
-        wp_enqueue_script('lkn-cielo-blocks-test-debit', plugin_dir_url(__FILE__) . '../resources/js/creditCard/lkn-cielo-blocks-test.js', array(), LKN_WC_CIELO_VERSION, false);
-
         if ($is_pro_plugin_valid) {
             wp_enqueue_script('lkn-wc-gateway-debit-checkout-layout', plugin_dir_url(__FILE__) . '../resources/js/debitCard/lkn-wc-gateway-checkout-layout.js', array(), LKN_WC_CIELO_VERSION, false);
             wp_localize_script('lkn-wc-gateway-debit-checkout-layout', 'lknCieloCardIcons', array(
@@ -110,7 +107,7 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
                 'noDiscount' => __('no discount', 'lkn-wc-gateway-cielo'),
                 'withDiscount' => __('% discount', 'lkn-wc-gateway-cielo'),
                 'withInterest' => __('% interest', 'lkn-wc-gateway-cielo'),
-                'fallbackInstallment' => __('2x installments', 'lkn-wc-gateway-cielo'),
+                'fallbackInstallment' => __('payment', 'lkn-wc-gateway-cielo'),
                 'loadingPrice' => __('Loading price...', 'lkn-wc-gateway-cielo')
             ));
         }
@@ -219,7 +216,8 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
                 'creditCard' => __('Credit card', 'lkn-wc-gateway-cielo'),
                 'debitCard' => __('Debit card', 'lkn-wc-gateway-cielo'),
                 'cardType' => __('Card type', 'lkn-wc-gateway-cielo'),
-                'installmentText' => __('%dx of %s', 'lkn-wc-gateway-cielo'),
+                // translators: %1$d is the number of installments, %2$s is the installment amount
+                'installmentText' => __('%1$dx of %2$s', 'lkn-wc-gateway-cielo'),
                 'cashPayment' => __('(cash payment)', 'lkn-wc-gateway-cielo'),
                 'noInterest' => __('no interest', 'lkn-wc-gateway-cielo'),
                 'noDiscount' => __('no discount', 'lkn-wc-gateway-cielo'),

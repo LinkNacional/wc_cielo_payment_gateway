@@ -21,6 +21,7 @@ final class LknWcCieloPix extends WC_Payment_Gateway
     private static $request;
     private $log;
     private $instructions;
+    private $debug;
 
     public function __construct()
     {

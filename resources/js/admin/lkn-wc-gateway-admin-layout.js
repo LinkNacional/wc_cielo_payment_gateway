@@ -276,6 +276,12 @@
               if (titleText) {
                 descBlock.innerHTML = titleText
               }
+
+              const numberLabel = inputElement.getAttribute('type-number-label') ? inputElement.getAttribute('type-number-label') : false;
+              if (numberLabel) {
+                  inputElement.style.marginRight = '10px'
+                  inputElement.outerHTML = `<div style="display: flex;">${inputElement.outerHTML}<label style="color: #2C3338;">${numberLabel}</label></div>`;
+              }
             }
 
             const checkboxInput = bodyDiv.querySelector('input[type="checkbox"]')
@@ -334,6 +340,22 @@
                 // Adiciona os radios
                 bodyDiv.insertBefore(radioNo, bodyDiv.firstChild)
                 bodyDiv.insertBefore(radioYes, bodyDiv.firstChild)
+              }
+            }
+
+            if(checkboxInput) {
+            const mergeCheckbox = checkboxInput.getAttribute('merge-checkbox') ? checkboxInput.getAttribute('merge-checkbox') : false;
+              if (mergeCheckbox) {
+                const parentInput = document.getElementById(mergeCheckbox).closest('div.lkn-body-cart');
+                if (parentInput) {
+                    checkboxInput.style.display = 'block';
+                    checkboxInput.style.margin = '0px';
+                    checkboxInput.style.marginRight = '5px';
+                    const labelCheckbox = checkboxInput.closest('label');
+                    labelCheckbox.style.display = 'flex';
+                    tr.style.display = 'none';
+                    parentInput.appendChild(labelCheckbox);
+                }
               }
             }
 

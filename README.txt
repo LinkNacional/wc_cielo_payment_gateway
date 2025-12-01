@@ -4,7 +4,7 @@ Donate link: https://www.linknacional.com.br/wordpress/woocommerce/cielo/
 Tags: pagamento, cielo, pix, woocommerce, creditcard
 Requires at least: 5.7
 Tested up to: 6.8
-Stable tag: 1.27.0
+Stable tag: 1.27.1
 Requires PHP: 7.2
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -108,6 +108,10 @@ This plugin uses the [React Credit Cards](https://github.com/amaroteam/react-cre
 7. Debit card front page with payment fields.
 
 == Changelog ==
+= 1.27.1 =
+** 25/11/2025 **
+* New custom attributes for settings
+
 = 1.27.0 =
 ** 10/11/2025 **
 * Addition of interest/discount calculations for credit card installments (Block Editor + Shortcode).
