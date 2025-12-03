@@ -14,3 +14,10 @@
     display: flex;
     flex-direction: column;
 }
+
+.lknWcGatewayCieloInput{
+    width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 8px 45px !important;
+    line-height: 1.6em;
+}
