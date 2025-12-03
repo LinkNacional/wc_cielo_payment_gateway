@@ -559,7 +559,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
                     required
                     placeholder="<?php echo $placeholderEnabled ? esc_attr('John Doe') : ''; ?>"
                     data-placeholder="<?php echo $placeholderEnabled ? esc_attr('John Doe') : ''; ?>"
-                    class="lknWcGatewayCieloInput">
+                    class="lkn-wc-gateway-cielo-input">
             </div>
 
             <div class="form-row form-row-wide">
@@ -571,7 +571,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
                     name="lkn_ccno"
                     type="tel"
                     inputmode="numeric"
-                    class="lkn-card-num lknWcGatewayCieloInput"
+                    class="lkn-card-num lkn-wc-gateway-cielo-input"
                     maxlength="24"
                     required
                     placeholder="<?php echo $placeholderEnabled ? esc_attr('XXXX XXXX XXXX XXXX') : ''; ?>"
@@ -586,7 +586,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
                     name="lkn_cc_expdate"
                     type="tel"
                     inputmode="numeric"
-                    class="lkn-card-exp lknWcGatewayCieloInput"
+                    class="lkn-card-exp lkn-wc-gateway-cielo-input"
                     maxlength="7"
                     required
                     placeholder="<?php echo $placeholderEnabled ? esc_attr('MM/YY') : ''; ?>"
@@ -601,7 +601,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
                     name="lkn_cc_cvc"
                     type="tel"
                     inputmode="numeric"
-                    class="lkn-cvv lknWcGatewayCieloInput"
+                    class="lkn-cvv lkn-wc-gateway-cielo-input"
                     maxlength="8"
                     required
                     placeholder="<?php echo $placeholderEnabled ? esc_attr('CVV') : ''; ?>"
