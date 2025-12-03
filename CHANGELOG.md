@@ -1,3 +1,6 @@
+# 1.27.2 - 03/12/2025
+* Ajuste visual na tela de pagamento do cliente cielo credito e cielo debito.
+
 # 1.27.1 - 25/11/2025
 * Novos atributos personalizados para configurações.
 
