@@ -305,7 +305,7 @@ const lknCCContentCielo = props => {
         if (formatedInterest) {
           newOptions.push({
             key: index,
-            label: `${lknCCTranslationsCielo.installmentText.replace('%d', index).replace('%s', formatedInterest)}${typeText}`
+            label: `${lknCCTranslationsCielo.installmentText.replace('%1$d', index).replace('%2$s', formatedInterest)}${typeText}`
           })
         } else {
           // Sem juros/desconto do plugin: usa o total calculado
@@ -320,19 +320,19 @@ const lknCCContentCielo = props => {
             if (lknCCSettingsCielo.activeDiscount == 'yes') {
               newOptions.push({
                 key: index,
-                label: `${lknCCTranslationsCielo.installmentText.replace('%d', index).replace('%s', `R$ ${installmentAmount}`)} ${lknCCSettingsCielo.interestOrDiscount == 'interest' ? lknCCTranslationsCielo.noInterest : lknCCTranslationsCielo.noDiscount}`
+                label: `${lknCCTranslationsCielo.installmentText.replace('%1$d', index).replace('%2$s', `R$ ${installmentAmount}`)} ${lknCCSettingsCielo.interestOrDiscount == 'interest' ? lknCCTranslationsCielo.noInterest : lknCCTranslationsCielo.noDiscount}`
               })
             } else {
               newOptions.push({
                 key: index,
-                label: `${lknCCTranslationsCielo.installmentText.replace('%d', index).replace('%s', `R$ ${installmentAmount}`)} ${lknCCTranslationsCielo.noInterest}`
+                label: `${lknCCTranslationsCielo.installmentText.replace('%1$d', index).replace('%2$s', `R$ ${installmentAmount}`)} ${lknCCTranslationsCielo.noInterest}`
               })
             }
           } else {
             // Se o plugin PRO não está válido, mostra apenas o valor sem texto adicional
             newOptions.push({
               key: index,
-              label: lknCCTranslationsCielo.installmentText.replace('%d', index).replace('%s', `R$ ${installmentAmount}`)
+              label: lknCCTranslationsCielo.installmentText.replace('%1$d', index).replace('%2$s', `R$ ${installmentAmount}`)
             })
           }
         }
@@ -346,7 +346,7 @@ const lknCCContentCielo = props => {
       })
       newOptions.push({
         key: '1',
-        label: `${lknCCTranslationsCielo.installmentText.replace('%d', '1').replace('%s', `R$ ${totalAmount}`)} ${lknCCTranslationsCielo.cashPayment}`
+        label: `${lknCCTranslationsCielo.installmentText.replace('%1$d', '1').replace('%2$s', `R$ ${totalAmount}`)} ${lknCCTranslationsCielo.cashPayment}`
       })
     }
 

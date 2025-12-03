@@ -417,7 +417,8 @@ final class LknWCCieloPayment
             $formatted_value = wc_price($installment_value);
 
             $payment_info = sprintf(
-                __('%dx of %s', 'lkn-wc-gateway-cielo'),
+                // translators: %1$d is the number of installments, %2$s is the installment amount
+                __('%1$dx of %2$s', 'lkn-wc-gateway-cielo'),
                 $installment,
                 $formatted_value
             );

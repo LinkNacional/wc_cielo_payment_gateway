@@ -106,7 +106,7 @@ final class LknWcCieloCreditBlocks extends AbstractPaymentMethodType
                 'noDiscount' => __('no discount', 'lkn-wc-gateway-cielo'),
                 'withDiscount' => __('% discount', 'lkn-wc-gateway-cielo'),
                 'withInterest' => __('% interest', 'lkn-wc-gateway-cielo'),
-                'fallbackInstallment' => __('2x installments', 'lkn-wc-gateway-cielo'),
+                'fallbackInstallment' => __('Cash payment', 'lkn-wc-gateway-cielo'),
                 'loadingPrice' => __('Loading price...', 'lkn-wc-gateway-cielo')
             ));
         }
@@ -160,7 +160,8 @@ final class LknWcCieloCreditBlocks extends AbstractPaymentMethodType
                 'securityCode' => __('Security Code', 'lkn-wc-gateway-cielo'),
                 'installments' => __('Installments', 'lkn-wc-gateway-cielo'),
                 'cardHolder' => __('Card Holder Name', 'lkn-wc-gateway-cielo'),
-                'installmentText' => __('%dx of %s', 'lkn-wc-gateway-cielo'),
+                // translators: %1$d is the number of installments, %2$s is the installment amount
+                'installmentText' => __('%1$dx of %2$s', 'lkn-wc-gateway-cielo'),
                 'cashPayment' => __('(cash payment)', 'lkn-wc-gateway-cielo'),
                 'noInterest' => __('no interest', 'lkn-wc-gateway-cielo'),
                 'noDiscount' => __('no discount', 'lkn-wc-gateway-cielo'),
