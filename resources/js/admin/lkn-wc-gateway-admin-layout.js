@@ -16,7 +16,7 @@
       parentFlexDiv.id = 'lknWcCieloBlocksSettingsFlexContainer'
       parentFlexDiv.style.display = 'flex'
       parentFlexDiv.style.flexDirection = 'row' // opcional: padrão
-      parentFlexDiv.style.gap = '20px'
+      parentFlexDiv.style.gap = '1px'
       parentFlexDiv.style.flexWrap = 'wrap'
       parentFlexDiv.style.position = 'relative'
       parentFlexDiv.style.justifyContent = 'center'
@@ -281,6 +281,75 @@
               if (numberLabel) {
                   inputElement.style.marginRight = '10px'
                   inputElement.outerHTML = `<div style="display: flex;">${inputElement.outerHTML}<label style="color: #2C3338;">${numberLabel}</label></div>`;
+              }
+
+              const btnCopy = inputElement.getAttribute('btn-copy')
+              if (btnCopy){
+
+                const button = document.createElement('button')
+                button.type = 'button'
+                button.textContent = 'Copiar'
+                button.classList.add('lkn-btn-copy-input')
+
+                const copyContainer = document.createElement('div')
+                copyContainer.classList.add('lkn-input-copy-container')
+
+                const div = document.createElement('div');
+                div.classList.add('lkn-input-btn-input-container');
+
+                const label = document.createElement('label')
+                label.classList.add('lkn-input-copy-label')
+                label.textContent = btnCopy
+
+                inputElement.style.flex = '1'
+
+                bodyDiv.insertBefore(copyContainer, inputElement)
+
+                copyContainer.appendChild(label)
+                copyContainer.appendChild(div)
+                div.append(inputElement)
+                div.append(button)
+                
+                button.addEventListener('click', () =>{
+                  navigator.clipboard.writeText(inputElement.value)
+
+                  button.textContent = 'Copiado!'
+                  button.disabled = true;
+                  setTimeout(() => {
+                    button.textContent = 'Copiar'
+                    button.disabled = false;
+                  }, 2000);
+                })
+              }
+
+              const mergeInputs = inputElement.getAttribute('merge-inputs')
+              if (mergeInputs) {
+                const titleSetting = tr.querySelector('th label')
+
+                const inputParent = document.querySelector('#' + mergeInputs)
+                const divBodyCart = inputParent.closest('div.lkn-body-cart')
+                if (divBodyCart){
+                  let divMerge = divBodyCart.querySelector('div.lkn-merge-inputs');
+                  if(!divMerge){
+                    divMerge = document.createElement('div');
+                    divMerge.classList.add('lkn-merge-inputs');
+                    divBodyCart.insertBefore(divMerge, divBodyCart.lastElementChild);
+                  }
+                  const copyContainer = inputElement.closest('.lkn-input-copy-container')
+
+                  if(titleSetting){
+                    const divTittle = document.createElement('div')
+                    divTittle.innerHTML = titleSetting.textContent
+                    divTittle.style.fontWeight = 'bold'
+                    divTittle.style.fontSize = '16px'
+
+                    divMerge.appendChild(divTittle)
+                  }
+                  divMerge.appendChild(copyContainer);
+                  
+                  tr.style.display = 'none';
+                }
+
               }
             }
 
