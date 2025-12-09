@@ -309,17 +309,26 @@
                 copyContainer.appendChild(div)
                 div.append(inputElement)
                 div.append(button)
+
+                button.id = 'lkn-btn-copy-'+inputElement.id;
                 
                 button.addEventListener('click', () =>{
                   navigator.clipboard.writeText(inputElement.value)
 
                   button.textContent = 'Copiado!'
                   button.disabled = true;
+                  button.style.cursor = 'default';
                   setTimeout(() => {
                     button.textContent = 'Copiar'
                     button.disabled = false;
+                    button.style.cursor = 'pointer';
                   }, 2000);
                 })
+
+                if(inputElement.getAttribute('type') === 'password')
+                {
+                  button.style.display = 'none';
+                }
               }
 
               const mergeInputs = inputElement.getAttribute('merge-inputs')
@@ -350,6 +359,20 @@
                   tr.style.display = 'none';
                 }
 
+              }
+
+              const btnGenerateNew = inputElement.getAttribute('btn-generate-new')
+              if (btnGenerateNew) {
+                const mergeContainer = inputElement.closest('div.lkn-merge-inputs')
+                if(mergeContainer){
+                  const generateButton = document.createElement('button')
+                  generateButton.type = 'button'
+                  generateButton.textContent = btnGenerateNew
+                  generateButton.classList.add('lkn-btn-generate-new')
+                  mergeContainer.appendChild(generateButton)
+                  let id = 'lkn-btn-generate-'+inputElement.id
+                  generateButton.id = id
+                }
               }
             }
 
