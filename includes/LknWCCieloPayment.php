@@ -274,8 +274,6 @@ final class LknWCCieloPayment
                     // Verificar se a chave interest_or_discount existe
                     $interest_or_discount = isset($settings['interest_or_discount']) ? $settings['interest_or_discount'] : '';
 
-                    error_log(json_encode($settings));
-
                     switch ($interest_or_discount) {
                         case 'discount':
                             if (isset($settings['installment_discount']) && $settings['installment_discount'] === 'yes') {
