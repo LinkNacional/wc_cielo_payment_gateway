@@ -271,7 +271,10 @@ final class LknWCCieloPayment
                     $installment_limit = isset($settings['installment_limit']) ? (int) $settings['installment_limit'] : 12;
                     $installment_min = isset($settings['installment_min']) ? (int) $settings['installment_min'] : 5;
 
-                    switch ($settings['interest_or_discount']) {
+                    // Verificar se a chave interest_or_discount existe
+                    $interest_or_discount = isset($settings['interest_or_discount']) ? $settings['interest_or_discount'] : '';
+
+                    switch ($interest_or_discount) {
                         case 'discount':
                             if (isset($settings['installment_discount']) && $settings['installment_discount'] === 'yes') {
                                 $installment = WC()->session->get($chosen_payment_method . '_installment');
