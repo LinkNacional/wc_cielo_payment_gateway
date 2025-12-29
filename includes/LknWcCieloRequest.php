@@ -75,7 +75,7 @@ final class LknWcCieloRequest
         if (
             $response == null ||
             (is_array($response) && isset($response[0]) && isset($response[0]['Code']) &&
-            ($response[0]['Code'] == '129' || $response[0]['Code'] == '132' || $response[0]['Code'] == '101'))
+                ($response[0]['Code'] == '129' || $response[0]['Code'] == '132' || $response[0]['Code'] == '101'))
         ) {
             return array(
                 'sucess' => false,
@@ -110,7 +110,7 @@ final class LknWcCieloRequest
         $header['MerchantKey'] = $this->maskSensitiveData($header['MerchantKey']);
 
         // Registrar o log completo com os dados mascarados
-        if ('yes' == $instance->debug) {
+        if ('yes' == $instance->get_option('debug')) {
             $this->log->log('info', 'pixRequest', array(
                 'request' => array(
                     'url' => $postUrl . '/1/sales/',
@@ -243,7 +243,7 @@ final class LknWcCieloRequest
         return $response;
     }
 
-    public function lkn_remove_custom_cron_job($paymentId, $orderId): void
+    public static function lkn_remove_custom_cron_job($paymentId, $orderId): void
     {
         $timestamp = wp_next_scheduled('lkn_schedule_check_free_pix_payment_hook', array($paymentId, $orderId));
         if ($timestamp !== false) {
