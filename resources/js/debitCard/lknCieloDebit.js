@@ -56,24 +56,36 @@ const lknDCInitCieloPaymentForm = () => {
   document.addEventListener('DOMContentLoaded', lknDCHideCheckoutButton)
   lknDCHideCheckoutButton()
 
-  // Load Cielo 3DS BpMPI Script
-  const scriptUrlBpmpi = lknDCDirScript3DSCielo
-  const existingScriptBpmpi = document.querySelector(`script[src="${scriptUrlBpmpi}"]`)
-  if (!existingScriptBpmpi) {
-    const scriptBpmpi = document.createElement('script')
-    scriptBpmpi.src = scriptUrlBpmpi
-    scriptBpmpi.async = true
-    document.body.appendChild(scriptBpmpi)
-  }
-
-  // Load Cielo 3DS Config Script
+  // Load Cielo 3DS Config Script FIRST
   const scriptUrl = lknDCDirScriptConfig3DSCielo
   const existingScript = document.querySelector(`script[src="${scriptUrl}"]`)
+  
   if (!existingScript) {
     const script = document.createElement('script')
     script.src = scriptUrl
-    script.async = true
+    script.async = false // Load synchronously to ensure bpmpi_config is defined
+    script.onload = () => {
+      // Only load BP.Mpi after config script is loaded
+      const scriptUrlBpmpi = lknDCDirScript3DSCielo
+      const existingScriptBpmpi = document.querySelector(`script[src="${scriptUrlBpmpi}"]`)
+      if (!existingScriptBpmpi) {
+        const scriptBpmpi = document.createElement('script')
+        scriptBpmpi.src = scriptUrlBpmpi
+        scriptBpmpi.async = true
+        document.body.appendChild(scriptBpmpi)
+      }
+    }
     document.body.appendChild(script)
+  } else {
+    // Config script already exists, load BP.Mpi
+    const scriptUrlBpmpi = lknDCDirScript3DSCielo
+    const existingScriptBpmpi = document.querySelector(`script[src="${scriptUrlBpmpi}"]`)
+    if (!existingScriptBpmpi) {
+      const scriptBpmpi = document.createElement('script')
+      scriptBpmpi.src = scriptUrlBpmpi
+      scriptBpmpi.async = true
+      document.body.appendChild(scriptBpmpi)
+    }
   }
 }
 const lknDCContentCielo = props => {
