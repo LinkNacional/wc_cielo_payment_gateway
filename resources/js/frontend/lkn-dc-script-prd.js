@@ -2,6 +2,9 @@
 // Implements script internationalization
 const { __ } = wp.i18n;
 
+// Flag global para controlar se 3DS já foi completado
+let lkn3DSCompleted = false;
+
 (function ($) {
   'use strict'
 
@@ -140,6 +143,9 @@ function submitForm (e) {
   const referenceId = e.ReferenceId
   const Form3dsButton = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0]?.closest('form')
 
+  // Marcar que 3DS foi completado
+  lkn3DSCompleted = true;
+
   if (Form3dsButton) {
     Form3dsButton.setAttribute('data-payment-cavv', cavv)
     Form3dsButton.setAttribute('data-payment-eci', eci)
@@ -153,36 +159,22 @@ function submitForm (e) {
       view: window
     })
     Button3ds.dispatchEvent(event)
+    return;
   }
 
+  // Configurar os valores dos campos hidden para checkout clássico
   document.getElementById('lkn_cavv').value = cavv
   document.getElementById('lkn_eci').value = eci
   document.getElementById('lkn_ref_id').value = referenceId
   document.getElementById('lkn_version').value = version
   document.getElementById('lkn_xid').value = xid
 
-  const Button3ds = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0]
-  const formCartWC = document.getElementsByName('checkout')[0] ? document.getElementsByName('checkout')[0] : document.querySelector('#order_review')
-
-  if (formCartWC) {
-    const btnSubmit = document.getElementById('place_order')
-
-    if (btnSubmit) {
-      btnSubmit.removeEventListener('click', lknDCProccessButton, true)
-      btnSubmit.setAttribute('type', 'submit')
-      btnSubmit.click()
-    }
-  } else if (Button3ds) {
-    if (formCartWC) {
-      const btnSubmit = document.getElementById('place_order')
-      btnSubmit.removeEventListener('click', lknDCProccessButton, true)
-      btnSubmit.setAttribute('type', 'submit')
-      btnSubmit.click()
-    } else {
-      if (Button3ds) {
-        Button3ds.click()
-      }
-    }
+  // Fazer clique no botão para continuar o processo
+  const btnSubmit = document.getElementById('place_order')
+  if (btnSubmit) {
+    btnSubmit.removeEventListener('click', lknDCProccessButton, true)
+    btnSubmit.setAttribute('type', 'submit')
+    btnSubmit.click()
   }
 }
 
@@ -250,6 +242,17 @@ function bpmpi_config () {
 
 function lknDCProccessButton () {
   try {
+    // Se 3DS já foi completado, submeter diretamente
+    if (lkn3DSCompleted) {
+      const btnSubmit = document.getElementById('place_order')
+      if (btnSubmit) {
+        btnSubmit.removeEventListener('click', lknDCProccessButton, true)
+        btnSubmit.setAttribute('type', 'submit')
+        btnSubmit.click()
+      }
+      return;
+    }
+
     const cardNumber = document.getElementById('lkn_dcno').value.replace(/\D/g, '')
     let expDate = document.getElementById('lkn_dc_expdate').value
 
