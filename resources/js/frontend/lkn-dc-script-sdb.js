@@ -5,8 +5,62 @@ const { __ } = wp.i18n;
 // Flag global para controlar se 3DS já foi completado
 let lkn3DSCompleted = false;
 
+// Função para resetar o status 3DS
+function resetLkn3DSStatus() {
+  lkn3DSCompleted = false;
+  
+  // Reconfigurar o botão para tipo button (caso tenha sido alterado)
+  const btnSubmit = document.getElementById('place_order');
+  if (btnSubmit) {
+    btnSubmit.setAttribute('type', 'button');
+    btnSubmit.removeEventListener('click', lknDCProccessButton, true);
+    btnSubmit.addEventListener('click', lknDCProccessButton, true);
+  }
+}
+
+// Detectar erros de checkout e resetar 3DS
+function setupErrorDetection() {
+  // Garantir que o document.body existe
+  if (!document.body) {
+    // Se o body não existe ainda, aguardar o DOM estar pronto
+    document.addEventListener('DOMContentLoaded', setupErrorDetection);
+    return;
+  }
+
+  // Observar mensagens de erro do WooCommerce
+  const observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+      mutation.addedNodes.forEach(function(node) {
+        if (node.nodeType === 1) {
+          // Detectar notices de erro
+          const errorElements = node.querySelectorAll ? 
+            node.querySelectorAll('.woocommerce-error, .woocommerce-message, .wc-block-components-notice-banner--error') : [];
+          
+          if (errorElements.length > 0 || 
+              (node.classList && (node.classList.contains('woocommerce-error') || 
+               node.classList.contains('wc-block-components-notice-banner--error')))) {
+            resetLkn3DSStatus();
+          }
+        }
+      });
+    });
+  });
+  
+  observer.observe(document.body, { childList: true, subtree: true });
+  
+  // Detectar quando o checkout é atualizado (falha de validação) - usando jQuery global
+  if (typeof jQuery !== 'undefined') {
+    jQuery(document.body).on('checkout_error updated_checkout', function() {
+      setTimeout(resetLkn3DSStatus, 100); // Pequeno delay para garantir que o erro foi processado
+    });
+  }
+}
+
 (function ($) {
   'use strict'
+  
+  // Inicializar detecção de erros dentro do contexto jQuery
+  setupErrorDetection();
 
   const lknLoadDebitFunctions = function () {
     const btnSubmit = document.getElementById('place_order')
@@ -183,6 +237,14 @@ function submitForm(e) {
   if (btnSubmit) {
     btnSubmit.removeEventListener('click', lknDCProccessButton, true)
     btnSubmit.setAttribute('type', 'submit')
+    
+    // Timeout para detectar se o envio falhou
+    setTimeout(function() {
+      if (document.getElementById('place_order') && window.location.pathname.includes('checkout')) {
+        resetLkn3DSStatus();
+      }
+    }, 5000);
+    
     btnSubmit.click()
   }
 }
@@ -257,6 +319,15 @@ function lknDCProccessButton() {
       if (btnSubmit) {
         btnSubmit.removeEventListener('click', lknDCProccessButton, true)
         btnSubmit.setAttribute('type', 'submit')
+        
+        // Timeout para detectar se o envio falhou (se ainda estamos na mesma página após 5 segundos)
+        setTimeout(function() {
+          // Se ainda estamos na página de checkout, provavelmente o envio falhou
+          if (document.getElementById('place_order') && window.location.pathname.includes('checkout')) {
+            resetLkn3DSStatus();
+          }
+        }, 5000);
+        
         btnSubmit.click()
       }
       return;
@@ -277,6 +348,7 @@ function lknDCProccessButton() {
 
     bpmpi_authenticate()
   } catch (error) {
+    resetLkn3DSStatus(); // Reset em caso de erro
     alert(__('Authentication failed check the card information and try again', 'lkn-wc-gateway-cielo'))
   }
 }
