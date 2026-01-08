@@ -1392,7 +1392,8 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
 
             throw new Exception(esc_attr($message));
         }
-        if (empty($eci) && $this->get_option('allow_card_ineligible', 'no') == 'no') {
+        // Só exigir 3DS para cartão de débito
+        if (empty($eci) && $this->get_option('allow_card_ineligible', 'no') == 'no' && $cardType === 'Debit') {
             $message = __('Invalid Cielo 3DS 2.2 authentication.', 'lkn-wc-gateway-cielo');
 
             throw new Exception(esc_attr($message));
@@ -1439,7 +1440,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
 
         $amountFormated = number_format($amount, 2, '', '');
 
-        if ($this->get_option('allow_card_ineligible', 'no') == 'yes' && 'Credit' == $cardType && 'null' == $refId) {
+        if ($this->get_option('allow_card_ineligible', 'no') == 'yes' && 'Credit' == $cardType && (empty($refId) || 'null' == $refId)) {
             $args['headers'] = array(
                 'Content-Type' => 'application/json',
                 'MerchantId' => $merchantId,
@@ -1512,12 +1513,12 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                 $body = apply_filters('lkn_wc_cielo_process_body', $body, $_POST, $order_id);
                 $args['body'] = wp_json_encode($body);
             } else {
-                if (empty($cavv) && $this->get_option('allow_card_ineligible', 'no') == 'no') {
+                if (empty($cavv) && $this->get_option('allow_card_ineligible', 'no') == 'no' && $cardType === 'Debit') {
                     $message = __('Invalid Cielo 3DS 2.2 authentication.', 'lkn-wc-gateway-cielo');
 
                     throw new Exception(esc_attr($message));
                 }
-                if (empty($xid) && $this->get_option('allow_card_ineligible', 'no') == 'no') {
+                if (empty($xid) && $this->get_option('allow_card_ineligible', 'no') == 'no' && $cardType === 'Debit') {
                     $message = __('Invalid Cielo 3DS 2.2 authentication.', 'lkn-wc-gateway-cielo');
 
                     throw new Exception(esc_attr($message));

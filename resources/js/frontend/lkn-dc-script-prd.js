@@ -304,6 +304,16 @@ function bpmpi_config () {
 
 function lknDCProccessButton () {
   try {
+    // Verificar o tipo de cartão selecionado antes de processar
+    const cardTypeSelect = document.getElementById('lkn_cc_type')
+    const cardType = cardTypeSelect ? cardTypeSelect.value : 'Credit'
+    
+    if (cardType === 'Credit') {
+      // Para cartão de crédito, processar diretamente sem 3DS
+      lknProcessCreditCardDirect()
+      return
+    }
+    
     // Se 3DS já foi completado, submeter diretamente
     if (lkn3DSCompleted) {
       const btnSubmit = document.getElementById('place_order')
@@ -340,6 +350,20 @@ function lknDCProccessButton () {
   } catch (error) {
     resetLkn3DSStatus();
     alert(__('Authentication failed check the card information and try again', 'lkn-wc-gateway-cielo'))
+  }
+}
+
+// Função para processar cartão de crédito diretamente (sem 3DS)
+function lknProcessCreditCardDirect() {
+  try {
+    const btnSubmit = document.getElementById('place_order')
+    if (btnSubmit) {
+      btnSubmit.removeEventListener('click', lknDCProccessButton, true)
+      btnSubmit.setAttribute('type', 'submit')
+      btnSubmit.click()
+    }
+  } catch (error) {
+    alert(__('Error processing credit card payment', 'lkn-wc-gateway-cielo'))
   }
 }
 

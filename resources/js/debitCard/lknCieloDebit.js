@@ -25,6 +25,9 @@ const lknDCUserGuest = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.
 const lknDCAuthMethod = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.authentication_method)
 const lknDCClient = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.client)
 
+// Definir variável global para comunicar com o script 3DS
+window.lknCurrentCardType = 'Credit'
+
 // Função para formatação de moeda baseada nas configurações do WooCommerce
 const formatCurrency = (amount) => {
   if (!window.lknCieloDebitConfig || !window.lknCieloDebitConfig.currency) {
@@ -52,6 +55,31 @@ const lknDCHideCheckoutButton = () => {
     lknDCElement[0].style.display = 'none'
   }
 }
+
+// Função para processar cartão de crédito diretamente (sem 3DS)
+const lknProcessCreditCardDirect = () => {
+  try {
+    // Definir dados vazios para 3DS (não utilizados em crédito)
+    const form = document.querySelector('.wc-block-components-checkout-place-order-button').closest('form')
+    if (form) {
+      form.setAttribute('data-payment-cavv', '')
+      form.setAttribute('data-payment-eci', '')
+      form.setAttribute('data-payment-ref_id', '')
+      form.setAttribute('data-payment-version', '')
+      form.setAttribute('data-payment-xid', '')
+    }
+    
+    // Clicar no botão de finalizar pedido
+    const checkoutButton = document.querySelector('.wc-block-components-checkout-place-order-button')
+    if (checkoutButton) {
+      checkoutButton.click()
+    }
+  } catch (error) {
+    console.log(error)
+    alert('Erro ao processar pagamento com cartão de crédito')
+  }
+}
+
 const lknDCInitCieloPaymentForm = () => {
   document.addEventListener('DOMContentLoaded', lknDCHideCheckoutButton)
   lknDCHideCheckoutButton()
@@ -224,6 +252,11 @@ const lknDCContentCielo = props => {
     return formattedValue
   }
   const updatedebitObject = (key, value) => {
+    // Atualizar variável global imediatamente quando o tipo de cartão mudar
+    if (key === 'lkn_cc_type') {
+      window.lknCurrentCardType = value
+    }
+    
     switch (key) {
       case 'lkn_dc_cardholder_name':
         // Atualiza o estado
@@ -320,6 +353,12 @@ const lknDCContentCielo = props => {
       [key]: value
     })
   }
+  
+  // useEffect para atualizar a variável global quando o tipo de cartão mudar
+  window.wp.element.useEffect(() => {
+    window.lknCurrentCardType = debitObject.lkn_cc_type
+  }, [debitObject.lkn_cc_type])
+  
   window.wp.element.useEffect(() => {
     const lknDCElement = document.querySelectorAll('.wc-block-components-checkout-place-order-button')
     if (lknDCElement && lknDCElement[0]) {
@@ -348,7 +387,14 @@ const lknDCContentCielo = props => {
     cvvInput?.classList.remove('has-error')
     cardHolder?.classList.remove('has-error')
     if (allFieldsFilled) {
-      lknDCProccessButton()
+      // Verifica o tipo de cartão antes de processar
+      if (debitObject.lkn_cc_type === 'Credit') {
+        // Para cartão de crédito, processar diretamente sem 3DS
+        lknProcessCreditCardDirect()
+      } else {
+        // Para cartão de débito, executar 3DS normalmente
+        lknDCProccessButton()
+      }
     } else {
       // Adiciona classes de erro aos campos vazios
       if (debitObject.lkn_dcno.trim() === '') {
@@ -369,11 +415,26 @@ const lknDCContentCielo = props => {
     lknDCInitCieloPaymentForm()
     const unsubscribe = onPaymentSetup(async () => {
       const Button3dsEnviar = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0].closest('form')
-      const paymentCavv = Button3dsEnviar?.getAttribute('data-payment-cavv')
-      const paymentEci = Button3dsEnviar?.getAttribute('data-payment-eci')
-      const paymentReferenceId = Button3dsEnviar?.getAttribute('data-payment-ref_id')
-      const paymentVersion = Button3dsEnviar?.getAttribute('data-payment-version')
-      const paymentXid = Button3dsEnviar?.getAttribute('data-payment-xid')
+      
+      // Para cartão de crédito, não enviar dados 3DS
+      let paymentCavv, paymentEci, paymentReferenceId, paymentVersion, paymentXid
+      
+      if (debitObject.lkn_cc_type === 'Debit') {
+        // Apenas para débito, capturar dados 3DS
+        paymentCavv = Button3dsEnviar?.getAttribute('data-payment-cavv')
+        paymentEci = Button3dsEnviar?.getAttribute('data-payment-eci')
+        paymentReferenceId = Button3dsEnviar?.getAttribute('data-payment-ref_id')
+        paymentVersion = Button3dsEnviar?.getAttribute('data-payment-version')
+        paymentXid = Button3dsEnviar?.getAttribute('data-payment-xid')
+      } else {
+        // Para crédito, enviar valores vazios ou null
+        paymentCavv = ''
+        paymentEci = ''
+        paymentReferenceId = ''
+        paymentVersion = ''
+        paymentXid = ''
+      }
+      
       return {
         type: emitResponse.responseTypes.SUCCESS,
         meta: {
