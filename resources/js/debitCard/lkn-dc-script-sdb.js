@@ -94,25 +94,11 @@ function bpmpi_config () {
 
 function lknDCProccessButton () {
   // Verificar o tipo de cartão selecionado antes de processar
-  let cardType = window.lknCurrentCardType || 'Credit' // usar variável global do React
-  
-  // SEMPRE verificar o DOM também como backup
-  const cardTypeSelect = document.querySelector('.lkn-credit-debit-card-type-select select') || // Seletor por classe
-                        document.getElementById('lkn_cc_type') || // Checkout clássico
-                        document.querySelector('select[id="lkn_cc_type"]') ||
-                        document.querySelector('#lkn_cc_type') ||
-                        document.querySelector('select[name="lkn_cc_type"]')
-  
-  if (cardTypeSelect) {
-    const domCardType = cardTypeSelect.value
-    
-    // Se o DOM tem um valor diferente, usar o DOM (mais confiável)
-    if (domCardType && domCardType !== cardType) {
-      cardType = domCardType
-      window.lknCurrentCardType = cardType // atualizar global
-    }
-  } else {
-    cardType = 'Credit'
+  const cardTypeSelect = document.querySelector('.lkn-credit-debit-card-type-select select')
+  let cardType = 'Credit' // valor padrão
+
+  if (cardTypeSelect && cardTypeSelect.value) {
+    cardType = cardTypeSelect.value
   }
   
   if (cardType === 'Credit') {
