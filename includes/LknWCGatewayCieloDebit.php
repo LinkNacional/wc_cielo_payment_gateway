@@ -202,6 +202,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
 
         if (WC()->session) {
             WC()->session->set('lkn_cielo_debit_installment', '1');
+            WC()->session->set('lkn_cielo_debit_card_type', 'Credit');
         }
 
         // Recuperar parcela atual da sessão
@@ -228,7 +229,8 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         wp_localize_script('lkn-cc-dc-installment-script', 'lknWCCielo3dsAjax', array(
             'ajaxurl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('lkn_payment_fees_nonce'),
-            'current_installment' => $current_installment
+            'current_installment' => $current_installment,
+            'current_card_type' => WC()->session ? WC()->session->get('lkn_cielo_debit_card_type', 'Credit') : 'Credit'
         ));
 
         wp_enqueue_style('lkn-dc-style', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-dc-style.css', array(), $this->version, 'all');
@@ -1132,7 +1134,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                     type="text"
                     autocomplete="cc-name"
                     required
-                    placeholder="<?php echo $placeholderEnabled ? esc_attr('John Doeeee') : ''; ?>"
+                    placeholder="<?php echo $placeholderEnabled ? esc_attr('John Doe') : ''; ?>"
                     data-placeholder="<?php echo $placeholderEnabled ? esc_attr('John Doe') : ''; ?>"
                     class="lkn-wc-gateway-cielo-input">
             </div>
@@ -1425,29 +1427,24 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
 
             $order->add_order_note(__('Installments quantity', 'lkn-wc-gateway-cielo') . ' ' . $installments);
             $order->add_meta_data('installments', $installments, true);
-            if ($this->get_option('installment_interest') === 'yes' || $this->get_option('installment_discount') === 'yes') {
-                $original_amount = $amount;
-                $interest = $this->get_option($installments . 'x', 0);
-                $amount = apply_filters('lkn_wc_cielo_calculate_interest', $amount, $interest, $order, $this, $installments);
-                $interest_amount = $amount - $original_amount;
-
-                $order->add_meta_data('interest_amount', $interest_amount, true);
-
-                $order->set_total($amount);
-                $order->save();
-            }
         }
 
         $amountFormated = number_format($amount, 2, '', '');
 
-        if ($this->get_option('allow_card_ineligible', 'no') == 'yes' && 'Credit' == $cardType && (empty($refId) || 'null' == $refId)) {
+        error_log($installments);
+        error_log($amountFormated);
+        error_log($merchantOrderId);
+        error_log($cardType);
+
+        // Cartão de crédito sempre processa sem 3DS obrigatório
+        if ('Credit' == $cardType) {
             $args['headers'] = array(
                 'Content-Type' => 'application/json',
                 'MerchantId' => $merchantId,
                 'MerchantKey' => $merchantSecret,
                 'RequestId' => uniqid(),
             );
-
+            
             $body = array(
                 'MerchantOrderId' => $merchantOrderId,
                 'Payment' => array(
@@ -1469,9 +1466,41 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
 
             $args['body'] = wp_json_encode($body);
 
-            $order->add_order_note(__('Payment made without 3DS validation', 'lkn-wc-gateway-cielo'));
+            $order->add_order_note(__('Credit card payment processed', 'lkn-wc-gateway-cielo'));
+        } 
+        // Cartão de débito - verificar se permite cartão inelegível ou se tem validação 3DS
+        elseif ('Debit' == $cardType && $this->get_option('allow_card_ineligible', 'no') == 'yes' && (empty($refId) || 'null' == $refId)) {
+            $args['headers'] = array(
+                'Content-Type' => 'application/json',
+                'MerchantId' => $merchantId,
+                'MerchantKey' => $merchantSecret,
+                'RequestId' => uniqid(),
+            );
+            
+            $body = array(
+                'MerchantOrderId' => $merchantOrderId,
+                'Payment' => array(
+                    'Type' => $cardType . "Card",
+                    'Amount' => (int) $amountFormated,
+                    'Installments' => $installments,
+                    'Capture' => (bool) $capture,
+                    'SoftDescriptor' => $description,
+                    $cardType . "Card" => array(
+                        'CardNumber' => $cardNum,
+                        'ExpirationDate' => $cardExp,
+                        'SecurityCode' => $cardCvv,
+                        'Brand' => $provider,
+                    ),
+                ),
+            );
+
+            $body = apply_filters('lkn_wc_cielo_process_body', $body, $_POST, $order_id);
+
+            $args['body'] = wp_json_encode($body);
+
+            $order->add_order_note(__('Debit card payment processed without 3DS validation', 'lkn-wc-gateway-cielo'));
         } else {
-            $order->add_order_note(__('Payment made with 3DS validation', 'lkn-wc-gateway-cielo'));
+            $order->add_order_note(__('Debit card payment processed with 3DS validation', 'lkn-wc-gateway-cielo'));
 
             // Verify if authentication is data-only
             // @see {https://developercielo.github.io/manual/3ds}
@@ -1599,8 +1628,11 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                 'response' => json_decode(json_encode($responseDecoded), true) // Certificar que responseDecoded é um array associativo
             );
 
-            // Censurar o número do cartão de crédito
-            $orderLogsArray['body']['Payment']['CreditCard']['CardNumber'] = substr($orderLogsArray['body']['Payment']['CreditCard']['CardNumber'], 0, 6) . '******' . substr($orderLogsArray['body']['Payment']['CreditCard']['CardNumber'], -4);
+            // Censurar o número do cartão - detectar se é crédito ou débito
+            $cardTypeKey = isset($orderLogsArray['body']['Payment']['CreditCard']) ? 'CreditCard' : 'DebitCard';
+            if (isset($orderLogsArray['body']['Payment'][$cardTypeKey]['CardNumber'])) {
+                $orderLogsArray['body']['Payment'][$cardTypeKey]['CardNumber'] = substr($orderLogsArray['body']['Payment'][$cardTypeKey]['CardNumber'], 0, 6) . '******' . substr($orderLogsArray['body']['Payment'][$cardTypeKey]['CardNumber'], -4);
+            }
 
             // Remover a parte de "Links"
             unset($orderLogsArray['response']['Payment']['Links']);

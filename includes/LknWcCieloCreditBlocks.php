@@ -90,6 +90,8 @@ final class LknWcCieloCreditBlocks extends AbstractPaymentMethodType
         if (function_exists('WC') && WC()->session) {
             WC()->session->set('lkn_cielo_credit_installment', '1');
             WC()->session->set('lkn_cielo_debit_installment', '1');
+            // Força sempre Credit na inicialização para ambos gateways
+            WC()->session->set('lkn_cielo_debit_card_type', 'Credit');
         }
 
         if (has_block('woocommerce/checkout') && !wp_script_is('lkn-installment-label', 'enqueued') && !wp_script_is('lkn-installment-label', 'done')) {

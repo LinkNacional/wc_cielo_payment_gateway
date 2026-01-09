@@ -62,17 +62,59 @@
     })
   }
 
+  // Função para atualizar o tipo de cartão
+  function lknWCCieloUpdateCardType(cardType) {
+    if (typeof lknWCCielo3dsAjax === 'undefined') {
+      return
+    }
+
+    // Verificar se o tipo já é o mesmo da sessão (evitar trigger desnecessário)
+    if (lknWCCielo3dsAjax.current_card_type === cardType) {
+      return
+    }
+
+    $.ajax({
+      url: lknWCCielo3dsAjax.ajaxurl,
+      type: 'POST',
+      data: {
+        action: 'lkn_update_card_type',
+        payment_method: 'lkn_cielo_debit',
+        card_type: cardType,
+        nonce: lknWCCielo3dsAjax.nonce
+      },
+      success: function (response) {
+        if (response.success) {
+          // Atualizar o tipo de cartão atual em memória
+          lknWCCielo3dsAjax.current_card_type = cardType
+          // Trigger para atualizar o checkout após definir o tipo
+          $('body').trigger('update_checkout')
+        } else {
+          console.error('Erro ao atualizar tipo de cartão:', response.data.message)
+        }
+      },
+      error: function (xhr, status, error) {
+        console.error('Erro na requisição AJAX:', error)
+      }
+    })
+  }
+
   function lknWCCieloShowInstallments() {
     const installmentShow = $('#lkn_cielo_3ds_installment_show')
     const installmentRow = $('#lkn-cc-dc-installment-row')
+    const typeCard = $('#lkn_cc_type')
 
-    if (installmentShow && installmentRow) {
-      if (installmentShow.length && installmentShow.val() === 'no') {
+    if (installmentShow && installmentRow && typeCard.length) {
+      const cardType = typeCard.val()
+      
+      // Se é cartão de crédito, mostrar parcelas
+      if (cardType === 'Credit') {
         if (installmentRow.length) {
           installmentRow.show()
           installmentShow.val('yes')
         }
-      } else {
+      } 
+      // Se é cartão de débito, esconder parcelas
+      else if (cardType === 'Debit') {
         if (installmentRow.length) {
           installmentRow.hide()
           installmentShow.val('no')
@@ -93,7 +135,20 @@
     let lknInstallmentMin = document.getElementById('lkn_cc_dc_installment_min')
 
     if (typeCard.length) {
-      typeCard.on('change', lknWCCieloShowInstallments)
+      typeCard.on('change', function() {
+        const cardType = $(this).val()
+        lknWCCieloShowInstallments()
+        if (cardType && typeof lknWCCielo3dsAjax !== 'undefined') {
+          lknWCCieloUpdateCardType(cardType)
+        }
+      })
+      
+      // Definir o valor correto do tipo de cartão da sessão PRIMEIRO
+      if (typeof lknWCCielo3dsAjax !== 'undefined' && lknWCCielo3dsAjax.current_card_type) {
+        typeCard.val(lknWCCielo3dsAjax.current_card_type)
+      }
+      
+      // Depois chamar showInstallments com o valor correto
       lknWCCieloShowInstallments()
     }
 

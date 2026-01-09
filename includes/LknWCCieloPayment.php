@@ -197,6 +197,9 @@ final class LknWCCieloPayment
         $this->loader->add_action('wp_ajax_lkn_update_payment_fees', $this, 'ajax_update_payment_fees');
         $this->loader->add_action('wp_ajax_nopriv_lkn_update_payment_fees', $this, 'ajax_update_payment_fees');
 
+        $this->loader->add_action('wp_ajax_lkn_update_card_type', $this, 'ajax_update_card_type');
+        $this->loader->add_action('wp_ajax_nopriv_lkn_update_card_type', $this, 'ajax_update_card_type');
+
         $this->loader->add_action('woocommerce_review_order_after_order_total', $this, 'display_payment_installment_info');
     }
 
@@ -229,12 +232,70 @@ final class LknWCCieloPayment
             wp_send_json_error(array('message' => 'WooCommerce session not available'));
         }
 
-        // Definir na sessão
+        // Definir parcela na sessão
         WC()->session->set($payment_method . '_installment', $installment);
 
-        wp_send_json_success(array(
+        // Verificar e definir tipo de cartão se fornecido
+        $response_data = array(
             'message' => 'Installment set successfully',
             'installment' => $installment,
+            'payment_method' => $payment_method
+        );
+
+        if (isset($_POST['card_type'])) {
+            $card_type = sanitize_text_field(wp_unslash($_POST['card_type']));
+            
+            // Validar tipo de cartão
+            if (in_array($card_type, ['Credit', 'Debit'])) {
+                WC()->session->set($payment_method . '_card_type', $card_type);
+                $response_data['card_type'] = $card_type;
+                $response_data['message'] = 'Installment and card type set successfully';
+            }
+        }
+
+        wp_send_json_success($response_data);
+    }
+
+    /**
+     * Handler AJAX para definir tipo de cartão na sessão
+     */
+    public function ajax_update_card_type()
+    {
+        // Verificar se os dados POST existem
+        if (!isset($_POST['nonce']) || !isset($_POST['payment_method']) || !isset($_POST['card_type'])) {
+            wp_send_json_error(array('message' => 'Missing required data'));
+        }
+
+        // Verificar nonce
+        if (!wp_verify_nonce(wp_unslash($_POST['nonce']), 'lkn_payment_fees_nonce')) {
+            wp_send_json_error(array('message' => 'Invalid nonce'));
+        }
+
+        // Sanitizar dados
+        $payment_method = sanitize_text_field(wp_unslash($_POST['payment_method']));
+        $card_type = sanitize_text_field(wp_unslash($_POST['card_type']));
+
+        // Validar método de pagamento
+        if (!in_array($payment_method, ['lkn_cielo_debit', 'lkn_cielo_credit'])) {
+            wp_send_json_error(array('message' => 'Invalid payment method'));
+        }
+
+        // Validar tipo de cartão
+        if (!in_array($card_type, ['Credit', 'Debit'])) {
+            wp_send_json_error(array('message' => 'Invalid card type'));
+        }
+
+        // Verificar se WC()->session existe
+        if (!WC()->session) {
+            wp_send_json_error(array('message' => 'WooCommerce session not available'));
+        }
+
+        // Definir na sessão
+        WC()->session->set($payment_method . '_card_type', $card_type);
+
+        wp_send_json_success(array(
+            'message' => 'Card type set successfully',
+            'card_type' => $card_type,
             'payment_method' => $payment_method
         ));
     }
@@ -264,6 +325,21 @@ final class LknWCCieloPayment
                 $chosen_payment_method = WC()->session->get('chosen_payment_method');
                 if (isset($chosen_payment_method) && ($chosen_payment_method === 'lkn_cielo_debit' || $chosen_payment_method === 'lkn_cielo_credit')) {
                     $settings = get_option('woocommerce_' . $chosen_payment_method . '_settings', array());
+
+                    if (!is_array($settings) || empty($settings)) {
+                        return;
+                    }
+
+                    // Para o gateway debit, verificar se o tipo de cartão selecionado é "Credit"
+                    // Só aplicar parcelamento/juros se for cartão de crédito
+                    if ($chosen_payment_method === 'lkn_cielo_debit') {
+                        $card_type = WC()->session->get('lkn_cielo_debit_card_type');
+                        // Se não está definido na sessão, assume "Credit" como padrão (estado inicial)
+                        // Só bloqueia se explicitamente for "Debit"
+                        if (isset($card_type) && $card_type === 'Debit') {
+                            return; // Se é débito, não aplica parcelamento/juros
+                        }
+                    }
 
                     if (!is_array($settings) || empty($settings)) {
                         return;
@@ -384,6 +460,15 @@ final class LknWCCieloPayment
         // Verificar se é um método de pagamento Cielo
         if (!in_array($chosen_payment_method, ['lkn_cielo_debit', 'lkn_cielo_credit'])) {
             return;
+        }
+
+        // Para o gateway debit, verificar o tipo de cartão
+        if ($chosen_payment_method === 'lkn_cielo_debit') {
+            $card_type = WC()->session->get('lkn_cielo_debit_card_type');
+            // Se é cartão de débito, não exibir informações de parcela
+            if (isset($card_type) && $card_type === 'Debit') {
+                return;
+            }
         }
 
         // Obter a parcela selecionada da sessão
@@ -734,7 +819,6 @@ final class LknWCCieloPayment
             $payment_id = $order->get_meta('paymentId');
             $order_id = $order->get_id();
             $nsu = $order->get_meta('lkn_nsu');
-            $interest_amount = $order->get_meta('interest_amount');
 
             // Verifica se é um pagamento Cielo (tem pelo menos payment_id ou nsu)
             $is_cielo_payment = $payment_id || $nsu;
@@ -754,16 +838,6 @@ final class LknWCCieloPayment
 
             if (isset($total_rows['payment_method'])) {
                 unset($total_rows['payment_method']);
-            }
-
-            if ($interest_amount) {
-                $label_positive = esc_html__('Installment Interest:', 'lkn-wc-gateway-cielo');
-                $label_negative = esc_html__('Installment Discount:', 'lkn-wc-gateway-cielo');
-                $interest_label = $interest_amount > 0 ? $label_positive : $label_negative;
-                $total_rows['interest'] = array(
-                    'label' => $interest_label,
-                    'value' => wc_price($interest_amount),
-                );
             }
 
             if (!empty($order_total_row)) {

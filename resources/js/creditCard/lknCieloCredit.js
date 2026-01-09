@@ -356,6 +356,25 @@ const lknCCContentCielo = props => {
   window.wp.element.useEffect(() => {
     // Executa a primeira busca no carregamento
     const loadInitialData = async () => {
+      // Chama lkn_update_payment_fees uma única vez na inicialização
+      if (window.lknCieloCreditConfig) {
+        const formData = new FormData()
+        formData.append('action', 'lkn_update_payment_fees')
+        formData.append('payment_method', 'lkn_cielo_credit')
+        formData.append('installment', creditObject.lkn_cc_installments)
+        formData.append('card_type', 'Credit')
+        formData.append('nonce', window.lknCieloCreditConfig.fees_nonce)
+
+        try {
+          await fetch(window.lknCieloCreditConfig.ajax_url, {
+            method: 'POST',
+            body: formData
+          })
+        } catch (error) {
+          console.error('Erro ao inicializar sessão de pagamento:', error)
+        }
+      }
+
       const finalCartData = await fetchCartDataWithRetries(4, 1500, (firstData) => {
         // Callback chamado na primeira resposta - para o loading imediatamente
         calculateInstallments(firstData.baseAmount, firstData.additionalValues)
@@ -509,6 +528,7 @@ const lknCCContentCielo = props => {
         formData.append('action', 'lkn_update_payment_fees')
         formData.append('payment_method', 'lkn_cielo_credit')
         formData.append('installment', installmentValue)
+        formData.append('card_type', 'Credit')
         formData.append('nonce', window.lknCieloCreditConfig.fees_nonce)
 
         fetch(window.lknCieloCreditConfig.ajax_url, {

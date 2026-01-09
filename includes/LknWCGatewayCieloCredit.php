@@ -644,6 +644,10 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
                     value="<?php echo esc_attr($discounts_total); ?>">
 
                 <div class="form-row form-row-wide">
+                    <label
+                        for="lkn_cc_installments"><?php esc_html_e('Installments', 'lkn-wc-gateway-cielo'); ?>
+                        <span class="required">*</span>
+                    </label>
                     <select
                         id="lkn_cc_installments"
                         name="lkn_cc_installments">
@@ -749,17 +753,6 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         $activeInstallment = $this->get_option('installment_payment');
 
         $order->add_meta_data('installments', $installments, true);
-        if ($this->get_option('installment_interest') === 'yes' || $this->get_option('installment_discount') === 'yes') {
-            $original_amount = $amount;
-            $interest = $this->get_option($installments . 'x', 0);
-            $amount = apply_filters('lkn_wc_cielo_calculate_interest', $amount, $interest, $order, $this, $installments);
-            $interest_amount = $amount - $original_amount;
-
-            $order->add_meta_data('interest_amount', $interest_amount, true);
-
-            $order->set_total($amount);
-            $order->save();
-        }
 
         if ($this->validate_card_holder_name($cardName, false) === false) {
             $message = __('Card Holder Name is required!', 'lkn-wc-gateway-cielo');
@@ -814,10 +807,6 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
             'MerchantId' => $merchantId,
             'MerchantKey' => $merchantSecret,
         );
-
-        error_log($installments);
-        error_log($amountFormated);
-        error_log($merchantOrderId);
 
         $body = array(
             'MerchantOrderId' => $merchantOrderId,

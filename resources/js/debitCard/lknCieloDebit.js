@@ -598,6 +598,25 @@ const lknDCContentCielo = props => {
   window.wp.element.useEffect(() => {
     // Executa a primeira busca no carregamento
     const loadInitialData = async () => {
+      // Chama lkn_update_payment_fees uma única vez na inicialização
+      if (window.lknCieloDebitConfig) {
+        const formData = new FormData()
+        formData.append('action', 'lkn_update_payment_fees')
+        formData.append('payment_method', 'lkn_cielo_debit')
+        formData.append('installment', debitObject.lkn_cc_dc_installments)
+        formData.append('card_type', 'Credit') // Sempre força Credit na inicialização
+        formData.append('nonce', window.lknCieloDebitConfig.fees_nonce)
+
+        try {
+          await fetch(window.lknCieloDebitConfig.ajax_url, {
+            method: 'POST',
+            body: formData
+          })
+        } catch (error) {
+          console.error('Erro ao inicializar sessão de pagamento:', error)
+        }
+      }
+
       const finalCartData = await fetchCartDataWithRetries(4, 1500, (firstData) => {
         // Callback chamado na primeira resposta - para o loading imediatamente
         calculateInstallments(firstData.baseAmount, firstData.additionalValues)
@@ -682,6 +701,50 @@ const lknDCContentCielo = props => {
     className: 'lkn-credit-debit-card-type-select',
     onChange: event => {
       updatedebitObject('lkn_cc_type', event.target.value)
+      
+      // Chamar AJAX para salvar o tipo de cartão na sessão
+      if (window.lknCieloDebitConfig) {
+        const formData = new FormData()
+        formData.append('action', 'lkn_update_card_type')
+        formData.append('payment_method', 'lkn_cielo_debit')
+        formData.append('card_type', event.target.value)
+        formData.append('nonce', window.lknCieloDebitConfig.fees_nonce)
+
+        fetch(window.lknCieloDebitConfig.ajax_url, {
+          method: 'POST',
+          body: formData
+        })
+          .then(response => response.json())
+          .then(data => {
+            // Após salvar o tipo, força recálculo do carrinho
+            if (window.wp && window.wp.data) {
+              window.wp.data.dispatch('wc/store/cart').invalidateResolutionForStore()
+            }
+
+            setTimeout(() => {
+              recalculateInstallments()
+            }, 500)
+          })
+          .catch(error => {
+            // Mesmo em caso de erro, força o recálculo para manter consistência
+            if (window.wp && window.wp.data) {
+              window.wp.data.dispatch('wc/store/cart').invalidateResolutionForStore()
+            }
+
+            setTimeout(() => {
+              recalculateInstallments()
+            }, 500)
+          })
+      } else {
+        // Fallback se não tem config - só força recálculo
+        if (window.wp && window.wp.data) {
+          window.wp.data.dispatch('wc/store/cart').invalidateResolutionForStore()
+        }
+
+        setTimeout(() => {
+          recalculateInstallments()
+        }, 500)
+      }
     },
     options: cardTypeOptions
   }), /* #__PURE__ */React.createElement(wcComponents.TextInput, {
@@ -716,6 +779,50 @@ const lknDCContentCielo = props => {
     className: 'lkn-credit-debit-card-type-select',
     onChange: event => {
       updatedebitObject('lkn_cc_type', event.target.value)
+      
+      // Chamar AJAX para salvar o tipo de cartão na sessão
+      if (window.lknCieloDebitConfig) {
+        const formData = new FormData()
+        formData.append('action', 'lkn_update_card_type')
+        formData.append('payment_method', 'lkn_cielo_debit')
+        formData.append('card_type', event.target.value)
+        formData.append('nonce', window.lknCieloDebitConfig.fees_nonce)
+
+        fetch(window.lknCieloDebitConfig.ajax_url, {
+          method: 'POST',
+          body: formData
+        })
+          .then(response => response.json())
+          .then(data => {
+            // Após salvar o tipo, força recálculo do carrinho
+            if (window.wp && window.wp.data) {
+              window.wp.data.dispatch('wc/store/cart').invalidateResolutionForStore()
+            }
+
+            setTimeout(() => {
+              recalculateInstallments()
+            }, 500)
+          })
+          .catch(error => {
+            // Mesmo em caso de erro, força o recálculo para manter consistência
+            if (window.wp && window.wp.data) {
+              window.wp.data.dispatch('wc/store/cart').invalidateResolutionForStore()
+            }
+
+            setTimeout(() => {
+              recalculateInstallments()
+            }, 500)
+          })
+      } else {
+        // Fallback se não tem config - só força recálculo
+        if (window.wp && window.wp.data) {
+          window.wp.data.dispatch('wc/store/cart').invalidateResolutionForStore()
+        }
+
+        setTimeout(() => {
+          recalculateInstallments()
+        }, 500)
+      }
     },
     options: cardTypeOptions
   }), /* #__PURE__ */React.createElement('div', {
@@ -744,6 +851,7 @@ const lknDCContentCielo = props => {
         formData.append('action', 'lkn_update_payment_fees')
         formData.append('payment_method', 'lkn_cielo_debit')
         formData.append('installment', installmentValue)
+        formData.append('card_type', debitObject.lkn_cc_type)
         formData.append('nonce', window.lknCieloDebitConfig.fees_nonce)
 
         fetch(window.lknCieloDebitConfig.ajax_url, {
