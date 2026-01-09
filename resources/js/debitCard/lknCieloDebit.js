@@ -70,7 +70,6 @@ const lknProcessCreditCardDirect = () => {
       checkoutButton.click()
     }
   } catch (error) {
-    console.log(error)
     alert('Erro ao processar pagamento com cartão de crédito')
   }
 }
