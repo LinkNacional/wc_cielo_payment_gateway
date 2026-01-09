@@ -49,12 +49,7 @@ const formatCurrency = (amount) => {
   }).format(amount)
 }
 
-const lknDCHideCheckoutButton = () => {
-  const lknDCElement = document.querySelectorAll('.wc-block-components-checkout-place-order-button')
-  if (lknDCElement && lknDCElement[0]) {
-    lknDCElement[0].style.display = 'none'
-  }
-}
+
 
 // Função para processar cartão de crédito diretamente (sem 3DS)
 const lknProcessCreditCardDirect = () => {
@@ -81,8 +76,6 @@ const lknProcessCreditCardDirect = () => {
 }
 
 const lknDCInitCieloPaymentForm = () => {
-  document.addEventListener('DOMContentLoaded', lknDCHideCheckoutButton)
-  lknDCHideCheckoutButton()
 
   // Load Cielo 3DS Config Script FIRST
   const scriptUrl = lknDCDirScriptConfig3DSCielo
@@ -359,18 +352,7 @@ const lknDCContentCielo = props => {
     window.lknCurrentCardType = debitObject.lkn_cc_type
   }, [debitObject.lkn_cc_type])
   
-  window.wp.element.useEffect(() => {
-    const lknDCElement = document.querySelectorAll('.wc-block-components-checkout-place-order-button')
-    if (lknDCElement && lknDCElement[0]) {
-      // Hides the checkout button on cielo debit select
-      lknDCElement[0].style.display = 'none'
 
-      // Shows the checkout button on payment change
-      return () => {
-        lknDCElement[0].style.display = ''
-      }
-    }
-  })
   const handleButtonClick = () => {
     // Verifica se todos os campos do debitObject estão preenchidos
     const allFieldsFilled = Object.keys(debitObject).filter(key => key !== 'lkn_dc_cardholder_name' && key !== 'lkn_save_debit_credit_card').every(key => debitObject[key].trim() !== '')
