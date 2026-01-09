@@ -1,6 +1,4 @@
 /* eslint-disable no-undef */
-// Implements script internationalization
-const { __ } = wp.i18n;
 
 // Flag global para controlar se 3DS já foi completado
 let lkn3DSCompleted = false;
@@ -263,7 +261,7 @@ function bpmpi_config() {
 
       const lknDebitCCForm = document.getElementById('wc-lkn_cielo_debit-cc-form')
       if (lknDebitCCForm) {
-        alert(__('Authentication failed check the card information and try again', 'lkn-wc-gateway-cielo'))
+        alert(wp.i18n.__('Authentication failed check the card information and try again', 'lkn-wc-gateway-cielo'))
       }
     },
     onUnenrolled: function (e) {
@@ -273,7 +271,7 @@ function bpmpi_config() {
       if (lknDCScriptAllowCardIneligible == 'yes') {
         submitForm(e)
       } else {
-        alert(__('Card Ineligible for Authentication', 'lkn-wc-gateway-cielo'))
+        alert(wp.i18n.__('Card Ineligible for Authentication', 'lkn-wc-gateway-cielo'))
       }
     },
     onDisabled: function () {
@@ -283,7 +281,7 @@ function bpmpi_config() {
       if (lknDCScriptAllowCardIneligible == 'yes') {
         submitForm(e)
       } else {
-        alert(__('Authentication disabled by the store', 'lkn-wc-gateway-cielo'))
+        alert(wp.i18n.__('Authentication disabled by the store', 'lkn-wc-gateway-cielo'))
       }
     },
     onError: function (e) {
@@ -292,7 +290,7 @@ function bpmpi_config() {
 
       const lknDebitCCForm = document.getElementById('wc-lkn_cielo_debit-cc-form')
       if (lknDebitCCForm) {
-        alert(__('Error in the 3DS 2.2 authentication process check that your credentials are filled in correctly', 'lkn-wc-gateway-cielo'))
+        alert(wp.i18n.__('Error in the 3DS 2.2 authentication process check that your credentials are filled in correctly', 'lkn-wc-gateway-cielo'))
       }
     },
     onUnsupportedBrand: function (e) {
@@ -302,7 +300,7 @@ function bpmpi_config() {
       if (lknDCScriptAllowCardIneligible == 'yes') {
         submitForm(e)
       } else {
-        alert(__('Provider not supported by Cielo 3DS authentication', 'lkn-wc-gateway-cielo'))
+        alert(wp.i18n.__('Provider not supported by Cielo 3DS authentication', 'lkn-wc-gateway-cielo'))
       }
     },
 
@@ -359,7 +357,7 @@ function lknDCProccessButton() {
     bpmpi_authenticate()
   } catch (error) {
     resetLkn3DSStatus(); // Reset em caso de erro
-    alert(__('Authentication failed check the card information and try again', 'lkn-wc-gateway-cielo'))
+    alert(wp.i18n.__('Authentication failed check the card information and try again', 'lkn-wc-gateway-cielo'))
   }
 }
 
@@ -374,7 +372,7 @@ function lknProcessCreditCardDirect() {
     }
   } catch (error) {
     console.log('Erro ao processar cartão de crédito:', error)
-    alert(__('Error processing credit card payment', 'lkn-wc-gateway-cielo'))
+    alert(wp.i18n.__('Error processing credit card payment', 'lkn-wc-gateway-cielo'))
   }
 }
 

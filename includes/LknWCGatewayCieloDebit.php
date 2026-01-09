@@ -187,6 +187,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
             && ! is_add_payment_method_page()
             && ! isset($_GET['change_payment_method']) // wpcs: csrf ok.
             || is_order_received_page()
+            || ! (get_post() && has_shortcode(get_post()->post_content, 'woocommerce_checkout'))
         ) {
             return;
         }
@@ -1430,11 +1431,6 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         }
 
         $amountFormated = number_format($amount, 2, '', '');
-
-        error_log($installments);
-        error_log($amountFormated);
-        error_log($merchantOrderId);
-        error_log($cardType);
 
         // Cartão de crédito sempre processa sem 3DS obrigatório
         if ('Credit' == $cardType) {
