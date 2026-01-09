@@ -1341,7 +1341,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         $url = ($this->get_option('env') == 'production') ? 'https://api.cieloecommerce.cielo.com.br/' : 'https://apisandbox.cieloecommerce.cielo.com.br/';
         $merchantId = sanitize_text_field($this->get_option('merchant_id'));
         $merchantSecret = sanitize_text_field($this->get_option('merchant_key'));
-        $merchantOrderId = uniqid('invoice_');
+        $merchantOrderId = $order_id . '-' . time();
         $amount = $order->get_total();
         $capture = ($this->get_option('capture', 'yes') == 'yes') ? true : false;
         $description = sanitize_text_field($this->get_option('invoiceDesc'));

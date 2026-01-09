@@ -736,7 +736,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         $url = ($this->get_option('env') == 'production') ? 'https://api.cieloecommerce.cielo.com.br/' : 'https://apisandbox.cieloecommerce.cielo.com.br/';
         $merchantId = sanitize_text_field($this->get_option('merchant_id'));
         $merchantSecret = sanitize_text_field($this->get_option('merchant_key'));
-        $merchantOrderId = uniqid('invoice_');
+        $merchantOrderId = $order_id . '-' . time();
         $amount = $order->get_total();
         $capture = ($this->get_option('capture', 'yes') == 'yes') ? true : false;
         $saveCard = ($this->get_option('save_card_token', 'yes') == 'yes') ? true : false;
@@ -814,6 +814,10 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
             'MerchantId' => $merchantId,
             'MerchantKey' => $merchantSecret,
         );
+
+        error_log($installments);
+        error_log($amountFormated);
+        error_log($merchantOrderId);
 
         $body = array(
             'MerchantOrderId' => $merchantOrderId,
