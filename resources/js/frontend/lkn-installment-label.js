@@ -22,8 +22,37 @@ document.addEventListener('DOMContentLoaded', function () {
         return false;
     }
 
+    // Função para verificar se é cartão de débito (deve mostrar "À vista")
+    function isDebitCardSelected() {
+        const selectedPaymentRadio = document.querySelector('input[name="radio-control-wc-payment-method-options"]:checked');
+        if (!selectedPaymentRadio) {
+            return false;
+        }
+        
+        const selectedMethod = selectedPaymentRadio.value;
+        
+        // Se é cielo_credit, sempre é crédito (mostrar parcelamento normal)
+        if (selectedMethod === 'lkn_cielo_credit') {
+            return false;
+        }
+        
+        // Se é cielo_debit, verificar o select de tipo
+        if (selectedMethod === 'lkn_cielo_debit') {
+            const cardTypeSelect = document.querySelector('.lkn-credit-debit-card-type-select select');
+            const isDebit = cardTypeSelect && cardTypeSelect.value === 'Debit';
+            return isDebit;
+        }
+        
+        return false;
+    }
+
     // Função para obter informações de parcelamento do select
     function getInstallmentInfo() {
+        // Se é cartão de débito, NÃO mostrar nenhuma label
+        if (isDebitCardSelected()) {
+            return null;
+        }
+        
         // Buscar pelas divs dos métodos Cielo
         const cieloSelects = document.querySelectorAll('.lkn_cielo_credit_select, .lkn_cielo_debit_select');
 
@@ -53,6 +82,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         .replace(/\s*\(.*?\)\s*/g, '') // Remove tudo entre parênteses
                         .replace(/\s*sem\s+juros\s*/gi, '') // Remove "sem juros"
                         .replace(/\s*sem\s+desconto\s*/gi, '') // Remove "sem desconto"
+                        .replace(/\s*no\s+interest\s*/gi, '') // Remove "no interest"
+                        .replace(/\s*no\s+discount\s*/gi, '') // Remove "no discount"
                         .replace(/\s*à\s+vista\s*/gi, '') // Remove "à vista"
                         .replace(/&nbsp;/g, ' ') // Replace HTML space
                         .replace(/🔄/g, '') // Remove emoji de loading
@@ -147,7 +178,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // Processar cada total encontrado
-        totalItemDivs.forEach((totalDiv) => {
+        totalItemDivs.forEach((totalDiv, index) => {
             // Marcar como processado
             totalDiv.classList.add('cielo-processed');
 
@@ -165,6 +196,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Obter informações de parcelamento do select
             const installmentInfo = getInstallmentInfo();
+
+            // Se é cartão de débito, não criar nenhuma label
+            if (!installmentInfo) {
+                return;
+            }
 
             // Se ainda está carregando, inserir skeleton de loading
             if (installmentInfo.isLoading) {
@@ -201,13 +237,10 @@ document.addEventListener('DOMContentLoaded', function () {
     function removeCieloInfo() {
         const existingInfos = document.querySelectorAll('.cielo-payment-info-blocks');
 
-        existingInfos.forEach(function (existingInfo) {
-            existingInfo.style.animation = 'fadeOut 0.3s ease-out';
-            setTimeout(() => {
-                if (existingInfo && existingInfo.parentNode) {
-                    existingInfo.remove();
-                }
-            }, 300);
+        existingInfos.forEach(function (existingInfo, index) {
+            if (existingInfo && existingInfo.parentNode) {
+                existingInfo.remove();
+            }
         });
 
         // Remover a classe de processamento de todos os totais
@@ -229,6 +262,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (totalElements > 0) {
             const installmentInfo = getInstallmentInfo();
+
+            // Se installmentInfo é null (débito), remover elementos existentes
+            if (!installmentInfo) {
+                loadingSkeletons.forEach(function (skeleton) {
+                    if (skeleton && skeleton.parentNode) {
+                        skeleton.remove();
+                    }
+                });
+                existingParcelamentos.forEach(function (parcelamento) {
+                    if (parcelamento && parcelamento.parentNode) {
+                        parcelamento.remove();
+                    }
+                });
+                return;
+            }
 
             if (!installmentInfo.isLoading) {
                 // Função para atualizar um elemento (skeleton ou parcelamento existente)
@@ -303,6 +351,25 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // Função para observar mudanças no tipo de cartão
+    function observeCardTypeSelects() {
+        const cardTypeSelect = document.querySelector('.lkn-credit-debit-card-type-select select');
+        
+        if (cardTypeSelect && !cardTypeSelect.dataset.cardTypeObserverAdded) {
+            cardTypeSelect.addEventListener('change', function() {
+                // Remover informações existentes e recriar
+                removeCieloInfo();
+                setTimeout(() => {
+                    insertCieloInfo();
+                }, 100);
+            });
+            
+            cardTypeSelect.dataset.cardTypeObserverAdded = 'true';
+        } else if (cardTypeSelect) {
+            // Observer já existe
+        }
+    }
+
     // Função para observar mudanças nos selects de parcelamento
     function observeInstallmentSelects() {
         const cieloSelects = document.querySelectorAll('.lkn_cielo_credit_select select, .lkn_cielo_debit_select select');
@@ -323,6 +390,12 @@ document.addEventListener('DOMContentLoaded', function () {
             function checkAndUpdate() {
                 checkCount++;
                 const installmentInfo = getInstallmentInfo();
+                
+                // Se installmentInfo é null (débito), parar observação
+                if (!installmentInfo) {
+                    return;
+                }
+                
                 const currentValue = installmentInfo.value;
                 const currentText = installmentInfo.text;
 
@@ -402,17 +475,28 @@ document.addEventListener('DOMContentLoaded', function () {
         const checkedInput = document.querySelector('input[name="radio-control-wc-payment-method-options"]:checked');
         const selectedMethod = checkedInput ? checkedInput.value : null;
 
-        // Processar sempre que for método Cielo, mesmo se não mudou (para capturar novos totals)
+        // Processar sempre que for método Cielo
         if (selectedMethod === 'lkn_cielo_credit' || selectedMethod === 'lkn_cielo_debit') {
-            insertCieloInfo();
-
-            // Verificar se há skeletons de loading para substituir
-            updateLoadingSkeletons();
+            // Se mudou de método, limpar e forçar recriação
+            if (selectedMethod !== lastSelectedMethod) {
+                removeCieloInfo();
+                // Forçar recriação removendo classe de processado
+                setTimeout(() => {
+                    const processedTotals = document.querySelectorAll('.cielo-processed');
+                    processedTotals.forEach(total => total.classList.remove('cielo-processed'));
+                    insertCieloInfo();
+                }, 150);
+            } else {
+                // Mesmo método, apenas atualizar
+                insertCieloInfo();
+                updateLoadingSkeletons();
+            }
 
             // Inicializar observação dos selects de parcelamento
             setTimeout(() => {
                 observeInstallmentSelects();
-            }, 500); // Delay para garantir que os selects estejam carregados
+                observeCardTypeSelects();
+            }, 500);
 
             lastSelectedMethod = selectedMethod;
         } else if (selectedMethod !== lastSelectedMethod) {

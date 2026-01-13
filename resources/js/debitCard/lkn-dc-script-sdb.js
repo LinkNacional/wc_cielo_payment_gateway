@@ -43,8 +43,32 @@ function bpmpi_config () {
     onUnenrolled: function (e) {
       console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage + ' raw: ' + JSON.stringify(e))
 
-      // Card is not eligible for authentication (unauthenticable)
-      alert(__('Card Ineligible for Authentication', 'lkn-wc-gateway-cielo'))
+      // Verificar se a opção allow_card_ineligible está habilitada
+      const allowCardIneligible = window.lknDCScriptAllowCardIneligible === 'yes'
+      
+      if (allowCardIneligible) {
+        
+        // Continuar processamento sem 3DS - simular dados vazios
+        const Form3dsButton = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0].closest('form')
+        
+        Form3dsButton.setAttribute('data-payment-cavv', '')
+        Form3dsButton.setAttribute('data-payment-eci', '')
+        Form3dsButton.setAttribute('data-payment-ref_id', e.ReferenceId || '')
+        Form3dsButton.setAttribute('data-payment-version', e.Version || '')
+        Form3dsButton.setAttribute('data-payment-xid', '')
+        
+        // Clicar no botão de finalizar pedido
+        const Button3ds = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0]
+        const event = new MouseEvent('click', {
+          bubbles: true,
+          cancelable: true,
+          view: window
+        })
+        Button3ds.dispatchEvent(event)
+      } else {
+        // Card is not eligible for authentication (unauthenticable)
+        alert(__('Card Ineligible for Authentication', 'lkn-wc-gateway-cielo'))
+      }
     },
     onDisabled: function () {
       // Store don't require bearer authentication (class "bpmpi_auth" false -> disabled authentication).
@@ -69,6 +93,49 @@ function bpmpi_config () {
 }
 
 function lknDCProccessButton () {
+  // Verificar o tipo de cartão selecionado antes de processar
+  const cardTypeSelect = document.querySelector('.lkn-credit-debit-card-type-select select')
+  let cardType = 'Credit' // valor padrão
+
+  if (cardTypeSelect && cardTypeSelect.value) {
+    cardType = cardTypeSelect.value
+  }
+  
+  if (cardType === 'Credit') {
+    // Para cartão de crédito, pular 3DS e processar diretamente
+    lknProcessCreditCard()
+  } else {
+    // Para cartão de débito, executar 3DS normalmente
+    lknProcessDebitCard()
+  }
+}
+
+// Função para processar cartão de crédito (sem 3DS)
+function lknProcessCreditCard () {
+  try {
+    // Simular dados de autenticação para crédito (sem 3DS real)
+    const form = document.querySelector('.wc-block-components-checkout-place-order-button').closest('form')
+    
+    // Definir dados vazios para 3DS (não utilizados em crédito)
+    form.setAttribute('data-payment-cavv', '')
+    form.setAttribute('data-payment-eci', '')
+    form.setAttribute('data-payment-ref_id', '')
+    form.setAttribute('data-payment-version', '')
+    form.setAttribute('data-payment-xid', '')
+    
+    // Clicar no botão de finalizar pedido
+    const checkoutButton = document.querySelector('.wc-block-components-checkout-place-order-button')
+    if (checkoutButton) {
+      checkoutButton.click()
+    }
+  } catch (error) {
+    console.log(error)
+    alert(__('Error processing credit card payment', 'lkn-wc-gateway-cielo'))
+  }
+}
+
+// Função para processar cartão de débito (com 3DS)
+function lknProcessDebitCard () {
   try {
     const cardNumber = document.getElementById('lkn_dcno').value.replace(/\D/g, '')
     const cardHolder = document.getElementById('lkn_dc_cardholder_name')

@@ -1,3 +1,6 @@
+# 1.27.4 - 09/01/2026
+* Ajuste na verificação do tipo de cartão no 3DS.
+
 # 1.27.3 - 29/12/2025
 * Ajuste no Cron de verificação de pagamento Pix
 

@@ -25,6 +25,9 @@ const lknDCUserGuest = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.
 const lknDCAuthMethod = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.authentication_method)
 const lknDCClient = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.client)
 
+// Definir variável global para comunicar com o script 3DS
+window.lknCurrentCardType = 'Credit'
+
 // Função para formatação de moeda baseada nas configurações do WooCommerce
 const formatCurrency = (amount) => {
   if (!window.lknCieloDebitConfig || !window.lknCieloDebitConfig.currency) {
@@ -46,15 +49,32 @@ const formatCurrency = (amount) => {
   }).format(amount)
 }
 
-const lknDCHideCheckoutButton = () => {
-  const lknDCElement = document.querySelectorAll('.wc-block-components-checkout-place-order-button')
-  if (lknDCElement && lknDCElement[0]) {
-    lknDCElement[0].style.display = 'none'
+
+
+// Função para processar cartão de crédito diretamente (sem 3DS)
+const lknProcessCreditCardDirect = () => {
+  try {
+    // Definir dados vazios para 3DS (não utilizados em crédito)
+    const form = document.querySelector('.wc-block-components-checkout-place-order-button').closest('form')
+    if (form) {
+      form.setAttribute('data-payment-cavv', '')
+      form.setAttribute('data-payment-eci', '')
+      form.setAttribute('data-payment-ref_id', '')
+      form.setAttribute('data-payment-version', '')
+      form.setAttribute('data-payment-xid', '')
+    }
+    
+    // Clicar no botão de finalizar pedido
+    const checkoutButton = document.querySelector('.wc-block-components-checkout-place-order-button')
+    if (checkoutButton) {
+      checkoutButton.click()
+    }
+  } catch (error) {
+    alert('Erro ao processar pagamento com cartão de crédito')
   }
 }
+
 const lknDCInitCieloPaymentForm = () => {
-  document.addEventListener('DOMContentLoaded', lknDCHideCheckoutButton)
-  lknDCHideCheckoutButton()
 
   // Load Cielo 3DS Config Script FIRST
   const scriptUrl = lknDCDirScriptConfig3DSCielo
@@ -224,6 +244,11 @@ const lknDCContentCielo = props => {
     return formattedValue
   }
   const updatedebitObject = (key, value) => {
+    // Atualizar variável global imediatamente quando o tipo de cartão mudar
+    if (key === 'lkn_cc_type') {
+      window.lknCurrentCardType = value
+    }
+    
     switch (key) {
       case 'lkn_dc_cardholder_name':
         // Atualiza o estado
@@ -320,18 +345,13 @@ const lknDCContentCielo = props => {
       [key]: value
     })
   }
+  
+  // useEffect para atualizar a variável global quando o tipo de cartão mudar
   window.wp.element.useEffect(() => {
-    const lknDCElement = document.querySelectorAll('.wc-block-components-checkout-place-order-button')
-    if (lknDCElement && lknDCElement[0]) {
-      // Hides the checkout button on cielo debit select
-      lknDCElement[0].style.display = 'none'
+    window.lknCurrentCardType = debitObject.lkn_cc_type
+  }, [debitObject.lkn_cc_type])
+  
 
-      // Shows the checkout button on payment change
-      return () => {
-        lknDCElement[0].style.display = ''
-      }
-    }
-  })
   const handleButtonClick = () => {
     // Verifica se todos os campos do debitObject estão preenchidos
     const allFieldsFilled = Object.keys(debitObject).filter(key => key !== 'lkn_dc_cardholder_name' && key !== 'lkn_save_debit_credit_card').every(key => debitObject[key].trim() !== '')
@@ -348,7 +368,14 @@ const lknDCContentCielo = props => {
     cvvInput?.classList.remove('has-error')
     cardHolder?.classList.remove('has-error')
     if (allFieldsFilled) {
-      lknDCProccessButton()
+      // Verifica o tipo de cartão antes de processar
+      if (debitObject.lkn_cc_type === 'Credit') {
+        // Para cartão de crédito, processar diretamente sem 3DS
+        lknProcessCreditCardDirect()
+      } else {
+        // Para cartão de débito, executar 3DS normalmente
+        lknDCProccessButton()
+      }
     } else {
       // Adiciona classes de erro aos campos vazios
       if (debitObject.lkn_dcno.trim() === '') {
@@ -369,11 +396,26 @@ const lknDCContentCielo = props => {
     lknDCInitCieloPaymentForm()
     const unsubscribe = onPaymentSetup(async () => {
       const Button3dsEnviar = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0].closest('form')
-      const paymentCavv = Button3dsEnviar?.getAttribute('data-payment-cavv')
-      const paymentEci = Button3dsEnviar?.getAttribute('data-payment-eci')
-      const paymentReferenceId = Button3dsEnviar?.getAttribute('data-payment-ref_id')
-      const paymentVersion = Button3dsEnviar?.getAttribute('data-payment-version')
-      const paymentXid = Button3dsEnviar?.getAttribute('data-payment-xid')
+      
+      // Para cartão de crédito, não enviar dados 3DS
+      let paymentCavv, paymentEci, paymentReferenceId, paymentVersion, paymentXid
+      
+      if (debitObject.lkn_cc_type === 'Debit') {
+        // Apenas para débito, capturar dados 3DS
+        paymentCavv = Button3dsEnviar?.getAttribute('data-payment-cavv')
+        paymentEci = Button3dsEnviar?.getAttribute('data-payment-eci')
+        paymentReferenceId = Button3dsEnviar?.getAttribute('data-payment-ref_id')
+        paymentVersion = Button3dsEnviar?.getAttribute('data-payment-version')
+        paymentXid = Button3dsEnviar?.getAttribute('data-payment-xid')
+      } else {
+        // Para crédito, enviar valores vazios ou null
+        paymentCavv = ''
+        paymentEci = ''
+        paymentReferenceId = ''
+        paymentVersion = ''
+        paymentXid = ''
+      }
+      
       return {
         type: emitResponse.responseTypes.SUCCESS,
         meta: {
@@ -556,6 +598,25 @@ const lknDCContentCielo = props => {
   window.wp.element.useEffect(() => {
     // Executa a primeira busca no carregamento
     const loadInitialData = async () => {
+      // Chama lkn_update_payment_fees uma única vez na inicialização
+      if (window.lknCieloDebitConfig) {
+        const formData = new FormData()
+        formData.append('action', 'lkn_update_payment_fees')
+        formData.append('payment_method', 'lkn_cielo_debit')
+        formData.append('installment', debitObject.lkn_cc_dc_installments)
+        formData.append('card_type', 'Credit') // Sempre força Credit na inicialização
+        formData.append('nonce', window.lknCieloDebitConfig.fees_nonce)
+
+        try {
+          await fetch(window.lknCieloDebitConfig.ajax_url, {
+            method: 'POST',
+            body: formData
+          })
+        } catch (error) {
+          console.error('Erro ao inicializar sessão de pagamento:', error)
+        }
+      }
+
       const finalCartData = await fetchCartDataWithRetries(4, 1500, (firstData) => {
         // Callback chamado na primeira resposta - para o loading imediatamente
         calculateInstallments(firstData.baseAmount, firstData.additionalValues)
@@ -640,6 +701,50 @@ const lknDCContentCielo = props => {
     className: 'lkn-credit-debit-card-type-select',
     onChange: event => {
       updatedebitObject('lkn_cc_type', event.target.value)
+      
+      // Chamar AJAX para salvar o tipo de cartão na sessão
+      if (window.lknCieloDebitConfig) {
+        const formData = new FormData()
+        formData.append('action', 'lkn_update_card_type')
+        formData.append('payment_method', 'lkn_cielo_debit')
+        formData.append('card_type', event.target.value)
+        formData.append('nonce', window.lknCieloDebitConfig.fees_nonce)
+
+        fetch(window.lknCieloDebitConfig.ajax_url, {
+          method: 'POST',
+          body: formData
+        })
+          .then(response => response.json())
+          .then(data => {
+            // Após salvar o tipo, força recálculo do carrinho
+            if (window.wp && window.wp.data) {
+              window.wp.data.dispatch('wc/store/cart').invalidateResolutionForStore()
+            }
+
+            setTimeout(() => {
+              recalculateInstallments()
+            }, 500)
+          })
+          .catch(error => {
+            // Mesmo em caso de erro, força o recálculo para manter consistência
+            if (window.wp && window.wp.data) {
+              window.wp.data.dispatch('wc/store/cart').invalidateResolutionForStore()
+            }
+
+            setTimeout(() => {
+              recalculateInstallments()
+            }, 500)
+          })
+      } else {
+        // Fallback se não tem config - só força recálculo
+        if (window.wp && window.wp.data) {
+          window.wp.data.dispatch('wc/store/cart').invalidateResolutionForStore()
+        }
+
+        setTimeout(() => {
+          recalculateInstallments()
+        }, 500)
+      }
     },
     options: cardTypeOptions
   }), /* #__PURE__ */React.createElement(wcComponents.TextInput, {
@@ -674,6 +779,50 @@ const lknDCContentCielo = props => {
     className: 'lkn-credit-debit-card-type-select',
     onChange: event => {
       updatedebitObject('lkn_cc_type', event.target.value)
+      
+      // Chamar AJAX para salvar o tipo de cartão na sessão
+      if (window.lknCieloDebitConfig) {
+        const formData = new FormData()
+        formData.append('action', 'lkn_update_card_type')
+        formData.append('payment_method', 'lkn_cielo_debit')
+        formData.append('card_type', event.target.value)
+        formData.append('nonce', window.lknCieloDebitConfig.fees_nonce)
+
+        fetch(window.lknCieloDebitConfig.ajax_url, {
+          method: 'POST',
+          body: formData
+        })
+          .then(response => response.json())
+          .then(data => {
+            // Após salvar o tipo, força recálculo do carrinho
+            if (window.wp && window.wp.data) {
+              window.wp.data.dispatch('wc/store/cart').invalidateResolutionForStore()
+            }
+
+            setTimeout(() => {
+              recalculateInstallments()
+            }, 500)
+          })
+          .catch(error => {
+            // Mesmo em caso de erro, força o recálculo para manter consistência
+            if (window.wp && window.wp.data) {
+              window.wp.data.dispatch('wc/store/cart').invalidateResolutionForStore()
+            }
+
+            setTimeout(() => {
+              recalculateInstallments()
+            }, 500)
+          })
+      } else {
+        // Fallback se não tem config - só força recálculo
+        if (window.wp && window.wp.data) {
+          window.wp.data.dispatch('wc/store/cart').invalidateResolutionForStore()
+        }
+
+        setTimeout(() => {
+          recalculateInstallments()
+        }, 500)
+      }
     },
     options: cardTypeOptions
   }), /* #__PURE__ */React.createElement('div', {
@@ -702,6 +851,7 @@ const lknDCContentCielo = props => {
         formData.append('action', 'lkn_update_payment_fees')
         formData.append('payment_method', 'lkn_cielo_debit')
         formData.append('installment', installmentValue)
+        formData.append('card_type', debitObject.lkn_cc_type)
         formData.append('nonce', window.lknCieloDebitConfig.fees_nonce)
 
         fetch(window.lknCieloDebitConfig.ajax_url, {
