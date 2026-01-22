@@ -1,4 +1,4 @@
-=== Payment Gateway for Cielo API on WooCommerce ===
+=== CIELO API PIX, credit card, debit payment for WooCommerce ===
 Contributors: linknacional
 Donate link: https://www.linknacional.com.br/wordpress/woocommerce/cielo/
 Tags: woocommerce, payment, paymethod, card, credit
@@ -47,7 +47,7 @@ JS Libraries used
 This plugin uses the [React Credit Cards](https://github.com/amaroteam/react-credit-cards#readme) library to render an animated card in the checkout page.
 
 **User instructions**
-
+CIELO API PIX, credit card, debit payment for WooCommerceCIELO API PIX, credit card, debit payment for WooCommerce
 1. Go to WooCommerce settings menu;
 
 2. Select the 'Payments' option and search for 'Cielo credit card / Cielo debit card';

@@ -1,5 +1,5 @@
 # Invoice Payment for WooCommerce tradução pt_BR
-msgid "Payment Gateway for Cielo API on WooCommerce"
+msgid "CIELO API PIX, credit card, debit payment for WooCommerce"
 msgstr "Gateway de Pagamento com API Cielo para WooCommerce"
 
 msgid "Adds the Cielo API 3.0 Payments gateway to your WooCommerce website."
@@ -194,10 +194,10 @@ msgstr "Você precisa ter"
 msgid "version"
 msgstr "versão"
 
-msgid "for the Payment Gateway for Cielo API on WooCommerce add-on to activate"
+msgid "for the CIELO API PIX, credit card, debit payment for WooCommerce add-on to activate"
 msgstr "para o plugin Gateway de Pagamento com API Cielo para WooCommerce ativar"
 
-msgid "plugin installed and activated for the Payment Gateway for Cielo API on WooCommerce add-on to activate"
+msgid "plugin installed and activated for the CIELO API PIX, credit card, debit payment for WooCommerce add-on to activate"
 msgstr "plugin instalado e ativo para o plugin Gateway de Pagamento com API Cielo para WooCommerce ativar"
 
 msgid "Credit Card number is invalid!"

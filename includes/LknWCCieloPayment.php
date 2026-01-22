@@ -758,7 +758,7 @@ final class LknWCCieloPayment
     public function lkn_wc_cielo_dependency_notice(): void
     {
         echo '<div class="notice notice-error"><p>';
-        echo esc_html__('Payment Gateway for Cielo API on WooCommerce requires WooCommerce to be installed and active.', 'lkn-wc-gateway-cielo');
+        echo esc_html__('CIELO API PIX, credit card, debit payment for WooCommerce requires WooCommerce to be installed and active.', 'lkn-wc-gateway-cielo');
         echo '</p></div>';
     }
 
