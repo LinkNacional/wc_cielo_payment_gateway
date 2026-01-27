@@ -330,9 +330,9 @@ final class LknWcCieloHelper
         $threeDSFormatted = 'N/A';
         if ($cardType === 'Debit' && (!empty($cavv) || !empty($eci) || !empty($xid))) {
             if (!empty($cavv) && !empty($eci) && !empty($xid)) {
-                $threeDSFormatted = 'CAVV: ' . substr($cavv, 0, 8) . '..., ECI: ' . $eci . ', Version: ' . $version;
+                $threeDSFormatted = 'Sucesso';
             } else {
-                $threeDSFormatted = 'Processado sem 3DS';
+                $threeDSFormatted = 'Falhou';
             }
         }
         
