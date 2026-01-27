@@ -336,17 +336,24 @@ final class LknWcCieloHelper
             }
         }
         
+        // Formatar valor das parcelas com quantidade - validação N/A
+        $installmentFormatted = 'N/A';
+        if ($installments > 0 && $installmentAmount > 0) {
+            $installmentFormatted = $installments . 'x de ' . wc_price($installmentAmount, array('currency' => $currency));
+        }
+        
         // Salvar todos os metadados da transação
         $order->add_meta_data('lkn_cielo_card_masked', $cardMasked, true);
         $order->add_meta_data('lkn_cielo_card_type', $cardType === 'Debit' ? 'Débito' : 'Crédito', true);
         $order->add_meta_data('lkn_cielo_cvv_sent', $cvvSent, true);
-        $order->add_meta_data('lkn_cielo_installments', $installments, true);
-        $order->add_meta_data('lkn_cielo_installment_amount', wc_price($installmentAmount, array('currency' => $currency)), true);
+        $order->add_meta_data('lkn_cielo_installments', $installments > 0 ? $installments : 'N/A', true);
+        $order->add_meta_data('lkn_cielo_installment_amount', $installmentFormatted, true);
         $order->add_meta_data('lkn_cielo_card_brand', !empty($provider) ? $provider : 'N/A', true);
         $order->add_meta_data('lkn_cielo_card_expiry', $cardExpiryFormatted, true);
         $order->add_meta_data('lkn_cielo_request_datetime', $requestDateTime, true);
         $order->add_meta_data('lkn_cielo_total_amount', wc_price($amount, array('currency' => $currency)), true);
         $order->add_meta_data('lkn_cielo_subtotal', wc_price($order->get_subtotal(), array('currency' => $currency)), true);
+        $order->add_meta_data('lkn_cielo_shipping', wc_price($order->get_shipping_total(), array('currency' => $currency)), true);
         $order->add_meta_data('lkn_cielo_interest_discount', wc_price($interestDiscountAmount, array('currency' => $currency)), true);
         $order->add_meta_data('lkn_cielo_currency', $currency, true);
         $order->add_meta_data('lkn_cielo_environment', $environment, true);
@@ -379,12 +386,13 @@ final class LknWcCieloHelper
         error_log('Card Type: ' . ($cardType === 'Debit' ? 'Débito' : 'Crédito'));
         error_log('CVV Sent: ' . $cvvSent);
         error_log('Installments: ' . $installments . 'x');
-        error_log('Installment Amount: ' . wc_price($installmentAmount, array('currency' => $currency)));
+        error_log('Installment Amount: ' . $installmentFormatted);
         error_log('Card Brand: ' . (!empty($provider) ? $provider : 'N/A'));
         error_log('Card Expiry: ' . $cardExpiryFormatted);
         error_log('Request DateTime: ' . $requestDateTime);
         error_log('Total Amount: ' . wc_price($amount, array('currency' => $currency)));
         error_log('Subtotal: ' . wc_price($order->get_subtotal(), array('currency' => $currency)));
+        error_log('Shipping: ' . wc_price($order->get_shipping_total(), array('currency' => $currency)));
         error_log('Interest/Discount: ' . wc_price($interestDiscountAmount, array('currency' => $currency)));
         error_log('Currency: ' . $currency);
         error_log('Environment: ' . $environment);

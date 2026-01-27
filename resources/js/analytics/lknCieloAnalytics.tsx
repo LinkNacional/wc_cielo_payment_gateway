@@ -46,6 +46,7 @@ const CieloAnalyticsPage = () => {
                     order.request_datetime,
                     order.total_amount,
                     order.subtotal,
+                    order.shipping,
                     order.interest_discount,
                     order.currency,
                     order.environment,
@@ -143,6 +144,15 @@ const CieloAnalyticsPage = () => {
                     },
                     { 
                         name: 'Subtotal',
+                        resizable: true,
+                        sort: true,
+                        width: '20%',
+                        formatter: (cell: string) => {
+                            return cell && cell.includes('<span') ? html(cell) : cell;
+                        }
+                    },
+                    { 
+                        name: 'Frete',
                         resizable: true,
                         sort: true,
                         width: '20%',

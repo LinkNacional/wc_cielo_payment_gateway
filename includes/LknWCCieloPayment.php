@@ -1031,6 +1031,7 @@ final class LknWCCieloPayment
                     'request_datetime' => $order->get_meta('lkn_cielo_request_datetime') ?: 'N/A',
                     'total_amount' => $order->get_meta('lkn_cielo_total_amount') ?: 'N/A',
                     'subtotal' => $order->get_meta('lkn_cielo_subtotal') ?: 'N/A',
+                    'shipping' => $order->get_meta('lkn_cielo_shipping') ?: 'N/A',
                     'interest_discount' => $order->get_meta('lkn_cielo_interest_discount') ?: 'N/A',
                     'currency' => $order->get_meta('lkn_cielo_currency') ?: 'N/A',
                     'environment' => $order->get_meta('lkn_cielo_environment') ?: 'N/A',
