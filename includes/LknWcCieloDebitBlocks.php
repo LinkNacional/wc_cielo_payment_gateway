@@ -122,29 +122,6 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
         return array('lkn_cielo_debit-blocks-integration');
     }
 
-    private function get_client_ip()
-    {
-        $ip_address = '';
-        $client_ip = isset($_SERVER['HTTP_CLIENT_IP']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_CLIENT_IP'])) : '';
-        $forwarded_ip = isset($_SERVER['HTTP_X_FORWARDED_FOR']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_X_FORWARDED_FOR'])) : '';
-        $real_ip = isset($_SERVER['HTTP_X_REAL_IP']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_X_REAL_IP'])) : '';
-        $remote_ip = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '';
-
-        if (! empty($client_ip)) {
-            $ip_address = $client_ip;
-        } elseif (! empty($forwarded_ip)) {
-            // Se estiver atrás de um proxy, `HTTP_X_FORWARDED_FOR` pode conter uma lista de IPs.
-            $ip_list = explode(',', $forwarded_ip);
-            $ip_address = trim($ip_list[0]); // Pega o primeiro IP da lista
-        } elseif (! empty($real_ip)) {
-            $ip_address = $real_ip;
-        } else {
-            $ip_address = $remote_ip;
-        }
-
-        return $ip_address;
-    }
-
     public function get_payment_method_data()
     {
         if ($this->gateway->get_option('env') == 'sandbox') {
@@ -193,7 +170,7 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
             'installments' => $installments,
             'installmentMinAmount' => $installmentMinAmount,
             'bec' => $this->gateway->get_option('establishment_code'),
-            'client_ip' => $this->get_client_ip(),
+            'client_ip' => LknWcCieloHelper::getClientIp(),
             'user_guest' => ! is_user_logged_in(),
             'authentication_method' => is_user_logged_in() ? '02' : '01',
             'showCard' => $this->gateway->get_option('show_card_animation'),
