@@ -2,157 +2,88 @@
  * Cielo Analytics React Component
  * Página de analytics das transações Cielo com Grid.js
  */
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { __ } from '@wordpress/i18n';
 import { addFilter } from '@wordpress/hooks';
-import { Grid } from 'gridjs';
+import { Grid, html } from 'gridjs';
 import 'gridjs/dist/theme/mermaid.css';
-
-// Dados mockados das transações Cielo
-const mockTransactions = [
-    [
-        '**** 1234', // cartão
-        'Crédito', // tipo do cartão
-        '3x', // parcelas
-        'R$ 166,67', // valor das parcelas
-        'Visa', // bandeira
-        '12/2028', // data de expiração
-        '2026-01-27 10:30:15', // data da requisição / hora
-        'R$ 500,00', // valor total
-        'R$ 500,00', // subtotal
-        'R$ 0,00', // juros/desconto
-        'BRL', // moeda
-        'Sandbox', // ambiente
-        'MERCHANT123', // merchant ID
-        'MERCKEY***', // merchant KEY
-        '4', // codigo da resposta
-        'Autorizada', // status da requisição
-        'Cielo', // gateway de pagamento
-        'Sim', // captura
-        'Não', // recorrente
-        'Não', // autenticação 3ds
-        'ORD001', // orderID
-        'REF001', // reference
-        'TID12345', // tid
-        'João Silva', // nome do portador
-        'Sim' // enviar dados
-    ],
-    [
-        '**** 5678',
-        'Débito',
-        '1x',
-        'R$ 250,00',
-        'Mastercard',
-        '06/2027',
-        '2026-01-27 09:15:42',
-        'R$ 250,00',
-        'R$ 250,00',
-        'R$ 0,00',
-        'BRL',
-        'Produção',
-        'MERCHANT123',
-        'MERCKEY***',
-        '4',
-        'Autorizada',
-        'Cielo',
-        'Sim',
-        'Não',
-        'Sim',
-        'ORD002',
-        'REF002',
-        'TID67890',
-        'Maria Santos',
-        'Sim'
-    ],
-    [
-        '**** 9012',
-        'Crédito',
-        '6x',
-        'R$ 83,33',
-        'Elo',
-        '03/2029',
-        '2026-01-27 08:45:21',
-        'R$ 500,00',
-        'R$ 500,00',
-        'R$ 15,00',
-        'BRL',
-        'Produção',
-        'MERCHANT456',
-        'MERCKEY***',
-        '4',
-        'Autorizada',
-        'Cielo',
-        'Sim',
-        'Não',
-        'Não',
-        'ORD003',
-        'REF003',
-        'TID24680',
-        'Pedro Costa',
-        'Sim'
-    ],
-    [
-        '**** 3456',
-        'Crédito',
-        '1x',
-        'R$ 150,00',
-        'American Express',
-        '09/2026',
-        '2026-01-27 14:20:33',
-        'R$ 150,00',
-        'R$ 150,00',
-        'R$ 0,00',
-        'BRL',
-        'Sandbox',
-        'MERCHANT789',
-        'MERCKEY***',
-        '5',
-        'Negada',
-        'Cielo',
-        'Não',
-        'Não',
-        'N/A',
-        'ORD004',
-        'REF004',
-        'TID13579',
-        'Ana Oliveira',
-        'Sim'
-    ],
-    [
-        '**** 7890',
-        'Crédito',
-        '12x',
-        'R$ 41,67',
-        'Visa',
-        '11/2030',
-        '2026-01-27 16:10:55',
-        'R$ 500,00',
-        'R$ 500,00',
-        'R$ 25,00',
-        'BRL',
-        'Produção',
-        'MERCHANT123',
-        'MERCKEY***',
-        '4',
-        'Autorizada',
-        'Cielo',
-        'Sim',
-        'Sim',
-        'Sim',
-        'ORD005',
-        'REF005',
-        'TID97531',
-        'Carlos Ferreira',
-        'Sim'
-    ]
-];
 
 // Componente principal para Analytics do Cielo
 const CieloAnalyticsPage = () => {
     const gridRef = useRef<HTMLDivElement>(null);
+    const [transactionData, setTransactionData] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
+    // Função para buscar dados via AJAX
+    const fetchTransactionData = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+
+            const response = await fetch((window as any).lknCieloAjax.ajax_url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    action: (window as any).lknCieloAjax.action_get_recent_orders,
+                    nonce: (window as any).lknCieloAjax.nonce
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                // Converter dados da API para o formato do Grid.js
+                const formattedData = result.data.orders.map((order: any) => [
+                    order.card_masked,
+                    order.card_type,
+                    order.installments,
+                    order.installment_amount,
+                    order.card_brand,
+                    order.card_expiry,
+                    order.request_datetime,
+                    order.total_amount,
+                    order.subtotal,
+                    order.interest_discount,
+                    order.currency,
+                    order.environment,
+                    order.merchant_id,
+                    order.merchant_key,
+                    order.return_code,
+                    order.status_http,
+                    order.gateway,
+                    order.capture,
+                    order.recurrent,
+                    order.three_ds_auth,
+                    order.order_id,
+                    order.reference,
+                    order.tid,
+                    order.cardholder_name,
+                    order.cvv_sent
+                ]);
+                
+                setTransactionData(formattedData);
+            } else {
+                setError(result.data?.message || 'Erro ao carregar dados');
+            }
+        } catch (err) {
+            setError('Erro de conexão ao carregar dados');
+            console.error('Erro na requisição AJAX:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Buscar dados quando o componente for montado
     useEffect(() => {
-        if (gridRef.current) {
+        fetchTransactionData();
+    }, []);
+
+    // Configurar e renderizar o Grid quando os dados estiverem prontos
+    useEffect(() => {
+        if (gridRef.current && !loading) {
             // Configuração do Grid.js
             const grid = new Grid({
                 columns: [
@@ -178,7 +109,10 @@ const CieloAnalyticsPage = () => {
                         name: 'Vlr. Parcela',
                         resizable: true,
                         sort: true,
-                        width: '20%'
+                        width: '20%',
+                        formatter: (cell: string) => {
+                            return cell && cell.includes('<span') ? html(cell) : cell;
+                        }
                     },
                     { 
                         name: 'Bandeira',
@@ -202,19 +136,28 @@ const CieloAnalyticsPage = () => {
                         name: 'Total',
                         resizable: true,
                         sort: true,
-                        width: '20%'
+                        width: '20%',
+                        formatter: (cell: string) => {
+                            return cell && cell.includes('<span') ? html(cell) : cell;
+                        }
                     },
                     { 
                         name: 'Subtotal',
                         resizable: true,
                         sort: true,
-                        width: '20%'
+                        width: '20%',
+                        formatter: (cell: string) => {
+                            return cell && cell.includes('<span') ? html(cell) : cell;
+                        }
                     },
                     { 
                         name: 'Juros/Desc.',
                         resizable: true,
                         sort: true,
-                        width: '20%'
+                        width: '20%',
+                        formatter: (cell: string) => {
+                            return cell && cell.includes('<span') ? html(cell) : cell;
+                        }
                     },
                     { 
                         name: 'Moeda',
@@ -307,7 +250,7 @@ const CieloAnalyticsPage = () => {
                         width: '20%'
                     }
                 ],
-                data: mockTransactions,
+                data: transactionData,
                 search: true,
                 sort: true,
                 pagination: {
@@ -318,6 +261,11 @@ const CieloAnalyticsPage = () => {
                     table: 'cielo-transactions-table',
                     header: 'cielo-table-header',
                     tbody: 'cielo-table-body'
+                },
+                style: {
+                    table: {
+                        'white-space': 'nowrap'
+                    }
                 },
                 language: {
                     search: {
@@ -349,7 +297,7 @@ const CieloAnalyticsPage = () => {
                 }
             };
         }
-    }, []);
+    }, [transactionData, loading]); // Dependências: transactionData e loading
 
     return (
         <div className="woocommerce-layout">
@@ -361,7 +309,22 @@ const CieloAnalyticsPage = () => {
                             <h2>{__('Transações Cielo', 'lkn-wc-gateway-cielo')}</h2>
                         </div>
                         <div className="woocommerce-card__body">
-                            <div ref={gridRef} className="cielo-grid-container"></div>
+                            {loading && (
+                                <div className="loading-indicator">
+                                    <p>{__('Carregando transações...', 'lkn-wc-gateway-cielo')}</p>
+                                </div>
+                            )}
+                            {error && (
+                                <div className="error-message">
+                                    <p>{__('Erro:', 'lkn-wc-gateway-cielo')} {error}</p>
+                                    <button onClick={fetchTransactionData} className="button">
+                                        {__('Tentar novamente', 'lkn-wc-gateway-cielo')}
+                                    </button>
+                                </div>
+                            )}
+                            {!loading && !error && (
+                                <div ref={gridRef} className="cielo-grid-container"></div>
+                            )}
                         </div>
                     </div>
                 </div>

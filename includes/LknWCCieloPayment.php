@@ -45,6 +45,14 @@ use Lkn\LknCieloApiPro\Includes\LknCieloApiProLicenseHelper;
 final class LknWCCieloPayment
 {
     /**
+     * Number of recent orders to fetch for Cielo metadata.
+     *
+     * @since    1.0.0
+     * @var      int    RECENT_ORDERS_LIMIT    Number of recent orders to fetch.
+     */
+    const RECENT_ORDERS_LIMIT = 10;
+
+    /**
      * The loader that's responsible for maintaining and registering all hooks that power
      * the plugin.
      *
@@ -204,6 +212,9 @@ final class LknWCCieloPayment
 
         $this->loader->add_action('wp_ajax_lkn_update_card_type', $this, 'ajax_update_card_type');
         $this->loader->add_action('wp_ajax_nopriv_lkn_update_card_type', $this, 'ajax_update_card_type');
+
+        $this->loader->add_action('wp_ajax_lkn_get_recent_cielo_orders', $this, 'ajax_get_recent_cielo_orders');
+        $this->loader->add_action('wp_ajax_nopriv_lkn_get_recent_cielo_orders', $this, 'ajax_get_recent_cielo_orders');
 
         $this->loader->add_action('woocommerce_review_order_after_order_total', $this, 'display_payment_installment_info');
     }
@@ -897,6 +908,13 @@ final class LknWCCieloPayment
 
         wp_enqueue_script('lkn-cielo-analytics');
 
+        // Localiza script com dados para AJAX
+        wp_localize_script('lkn-cielo-analytics', 'lknCieloAjax', array(
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('lkn_cielo_orders_nonce'),
+            'action_get_recent_orders' => 'lkn_get_recent_cielo_orders'
+        ));
+
         // Registra e enfileira o CSS da versão React
         wp_register_style(
             'lkn-cielo-analytics-style',
@@ -953,5 +971,98 @@ final class LknWCCieloPayment
         }
 
         return $items;
+    }
+
+    /**
+     * AJAX handler to get recent Cielo orders with metadata.
+     *
+     * @since 1.0.0
+     */
+    public function ajax_get_recent_cielo_orders()
+    {
+        // Verificar nonce se fornecido
+        if (isset($_POST['nonce']) && !wp_verify_nonce(wp_unslash($_POST['nonce']), 'lkn_cielo_orders_nonce')) {
+            wp_send_json_error(array('message' => 'Nonce inválido'));
+            return;
+        }
+
+        // Verificar se é um usuário com permissões adequadas
+        if (!current_user_can('manage_woocommerce')) {
+            wp_send_json_error(array('message' => 'Permissões insuficientes'));
+            return;
+        }
+
+        try {
+            // Buscar pedidos Cielo usando o parâmetro payment_method correto
+            $args = array(
+                'limit' => self::RECENT_ORDERS_LIMIT,
+                'orderby' => 'date',
+                'order' => 'DESC',
+                'payment_method' => array('lkn_cielo_credit', 'lkn_cielo_debit'),
+            );
+
+            $orders = wc_get_orders($args);
+            $orders_data = array();
+
+            foreach ($orders as $order) {
+                if (!$order instanceof \WC_Order) {
+                    continue;
+                }
+
+                $order_id = $order->get_id();
+                
+                // Buscar todos os metadados criados pela função saveTransactionMetadata
+                $order_data = array(
+                    'order_id' => $order_id,
+                    'order_date' => $order->get_date_created()->date('Y-m-d H:i:s'),
+                    'order_status' => $order->get_status(),
+                    'order_total' => $order->get_total(),
+                    'customer_name' => $order->get_formatted_billing_full_name() ?: 'N/A',
+                    'payment_method' => $order->get_payment_method_title() ?: 'N/A',
+                    
+                    // Metadados específicos da Cielo
+                    'card_masked' => $order->get_meta('lkn_cielo_card_masked') ?: 'N/A',
+                    'card_type' => $order->get_meta('lkn_cielo_card_type') ?: 'N/A',
+                    'cvv_sent' => $order->get_meta('lkn_cielo_cvv_sent') ?: 'N/A',
+                    'installments' => $order->get_meta('lkn_cielo_installments') ?: 'N/A',
+                    'installment_amount' => $order->get_meta('lkn_cielo_installment_amount') ?: 'N/A',
+                    'card_brand' => $order->get_meta('lkn_cielo_card_brand') ?: 'N/A',
+                    'card_expiry' => $order->get_meta('lkn_cielo_card_expiry') ?: 'N/A',
+                    'request_datetime' => $order->get_meta('lkn_cielo_request_datetime') ?: 'N/A',
+                    'total_amount' => $order->get_meta('lkn_cielo_total_amount') ?: 'N/A',
+                    'subtotal' => $order->get_meta('lkn_cielo_subtotal') ?: 'N/A',
+                    'interest_discount' => $order->get_meta('lkn_cielo_interest_discount') ?: 'N/A',
+                    'currency' => $order->get_meta('lkn_cielo_currency') ?: 'N/A',
+                    'environment' => $order->get_meta('lkn_cielo_environment') ?: 'N/A',
+                    'merchant_id' => $order->get_meta('lkn_cielo_merchant_id') ?: 'N/A',
+                    'merchant_key' => $order->get_meta('lkn_cielo_merchant_key') ?: 'N/A',
+                    'return_code' => $order->get_meta('lkn_cielo_return_code') ?: 'N/A',
+                    'status_http' => $order->get_meta('lkn_cielo_status') ?: 'N/A',
+                    'gateway' => $order->get_meta('lkn_cielo_gateway') ?: 'N/A',
+                    'capture' => $order->get_meta('lkn_cielo_capture') ?: 'N/A',
+                    'recurrent' => $order->get_meta('lkn_cielo_recurrent') ?: 'N/A',
+                    'reference' => $order->get_meta('lkn_cielo_reference') ?: 'N/A',
+                    'three_ds_auth' => $order->get_meta('lkn_cielo_3ds_auth') ?: 'N/A',
+                    'tid' => $order->get_meta('lkn_cielo_tid') ?: 'N/A',
+                    'cardholder_name' => $order->get_meta('lkn_cielo_cardholder_name') ?: 'N/A',
+                    'payment_id' => $order->get_meta('paymentId') ?: 'N/A',
+                    'nsu' => $order->get_meta('lkn_nsu') ?: 'N/A',
+                );
+
+                $orders_data[] = $order_data;
+            }
+
+            wp_send_json_success(array(
+                'message' => sprintf('Encontrados %d pedidos Cielo recentes', count($orders_data)),
+                'total_found' => count($orders_data),
+                'limit' => self::RECENT_ORDERS_LIMIT,
+                'orders' => $orders_data
+            ));
+
+        } catch (Exception $e) {
+            wp_send_json_error(array(
+                'message' => 'Erro ao buscar pedidos: ' . $e->getMessage()
+            ));
+        }
     }
 }

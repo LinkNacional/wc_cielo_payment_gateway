@@ -251,13 +251,11 @@ final class LknWcCieloHelper
         
         // Calcular juros/desconto baseado nas parcelas
         $interestDiscountAmount = 0;
-        if ($installments > 1) {
-            $totalWithFees = $amount; // Valor total já pode incluir juros
-            $originalAmount = $order->get_subtotal() + $order->get_shipping_total();
-            $difference = $totalWithFees - $originalAmount;
-            if ($difference != 0) {
-                $interestDiscountAmount = abs($difference);
-            }
+        $totalWithFees = $amount; // Valor total já pode incluir juros
+        $originalAmount = $order->get_subtotal() + $order->get_shipping_total();
+        $difference = $totalWithFees - $originalAmount;
+        if ($difference != 0) {
+            $interestDiscountAmount = abs($difference);
         }
         
         // Verificar se é pagamento recorrente
