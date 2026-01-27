@@ -1,0 +1,43 @@
+/**
+ * Cielo Analytics - CSS Básico
+ * Estilos mínimos para página de analytics com Grid.js nativo
+ */
+
+/* Layout principal */
+.woocommerce-layout {
+    /* max-width: 1400px; */
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Cards básicos */
+.woocommerce-card {
+    background: #fff;
+    border: 1px solid #e2e4e7;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    margin-bottom: 24px;
+    overflow: hidden;
+}
+
+.woocommerce-card__header {
+    background: #f8f9fa;
+    color: #1e1e1e;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e2e4e7;
+}
+
+.woocommerce-card__header h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.woocommerce-card__body {
+    padding: 24px;
+}
+
+/* Container do Grid */
+.cielo-grid-container {
+    overflow-x: auto;
+}

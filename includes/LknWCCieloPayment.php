@@ -170,6 +170,11 @@ final class LknWCCieloPayment
         $this->loader->add_filter('plugin_action_links_' . LKN_WC_CIELO_FILE_BASENAME, $this, 'lkn_wc_cielo_plugin_row_meta_pro', 10, 2);
         $this->loader->add_action('lkn_schedule_check_free_pix_payment_hook', LknWcCieloRequest::class, 'check_payment', 10, 2);
         $this->loader->add_action('lkn_remove_custom_cron_job_hook', LknWcCieloRequest::class, 'lkn_remove_custom_cron_job', 10, 2);
+        
+        // Analytics - registra script e menu do WooCommerce Admin
+        $this->loader->add_action('admin_enqueue_scripts', $this, 'register_cielo_analytics_script');
+        $this->loader->add_filter('woocommerce_analytics_report_menu_items', $this, 'add_cielo_analytics_menu_item');
+        
         // Admin settings card for specific sections
         $this->setup_admin_settings_card();
     }
@@ -867,5 +872,86 @@ final class LknWCCieloPayment
         }
 
         return $total_rows;
+    }
+
+    /**
+     * Registra o script JavaScript para analytics do Cielo
+     * Usa a versão React compilada via webpack
+     */
+    public function register_cielo_analytics_script()
+    {
+        // Só carregar em páginas do WooCommerce Admin
+        $screen = get_current_screen();
+        if (!$screen || strpos($screen->id, 'woocommerce') === false) {
+            return;
+        }
+
+        // Usar a versão React compilada
+        wp_register_script(
+            'lkn-cielo-analytics',
+            plugin_dir_url(__FILE__) . '../resources/js/analytics/lknCieloAnalyticsCompiled.js',
+            array('wp-hooks', 'wp-element', 'wp-i18n', 'wc-components', 'react', 'react-dom'),
+            LKN_WC_CIELO_VERSION,
+            true
+        );
+
+        wp_enqueue_script('lkn-cielo-analytics');
+
+        // Registra e enfileira o CSS da versão React
+        wp_register_style(
+            'lkn-cielo-analytics-style',
+            plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-cielo-analytics-react.css',
+            array(),
+            LKN_WC_CIELO_VERSION
+        );
+
+        wp_enqueue_style('lkn-cielo-analytics-style');
+
+        // Adiciona tradução se necessário
+        wp_set_script_translations('lkn-cielo-analytics', 'lkn-wc-gateway-cielo');
+    }
+
+    /**
+     * Adiciona item personalizado ao menu Analytics do WooCommerce
+     * Insere na posição correta antes das configurações
+     *
+     * @param array $items Lista de itens do menu Analytics
+     * @return array Lista modificada com o item Cielo
+     */
+    public function add_cielo_analytics_menu_item($items)
+    {
+        // Item Cielo Transações
+        $cielo_item = array(
+            'id'       => 'woocommerce-analytics-cielo-transactions',
+            'title'    => __('Cielo Transações', 'lkn-wc-gateway-cielo'),
+            'parent'   => 'woocommerce-analytics',
+            'path'     => '/analytics/cielo-transactions',
+            'icon'     => 'dashicons-chart-bar',
+            'position' => 2,
+        );
+
+        // Encontrar a posição das configurações para inserir antes
+        $settings_key = null;
+        foreach ($items as $key => $item) {
+            if (isset($item['id']) && $item['id'] === 'woocommerce-analytics-settings') {
+                $settings_key = $key;
+                break;
+            }
+        }
+
+        // Se encontrou as configurações, insere antes dela
+        if ($settings_key !== null) {
+            // Divide o array em duas partes
+            $before_settings = array_slice($items, 0, array_search($settings_key, array_keys($items)), true);
+            $from_settings = array_slice($items, array_search($settings_key, array_keys($items)), null, true);
+            
+            // Adiciona o item Cielo entre elas
+            $items = $before_settings + ['cielo-transactions' => $cielo_item] + $from_settings;
+        } else {
+            // Fallback: adiciona no final se não encontrar as configurações
+            $items['cielo-transactions'] = $cielo_item;
+        }
+
+        return $items;
     }
 }

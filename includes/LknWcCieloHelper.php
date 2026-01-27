@@ -97,6 +97,26 @@ final class LknWcCieloHelper
         return $start . $censored . $end;
     }
 
+    /**
+     * Verifica se o plugin pro está ativo e se a licença está ativa
+     * 
+     * @return bool True se o plugin pro e a licença estiverem ativos, false caso contrário
+     */
+    public static function is_pro_license_active()
+    {
+        // Verifica se o plugin pro está ativo
+        if (!is_plugin_active('lkn-wc-gateway-cielo-pro/lkn-wc-gateway-cielo-pro.php')) {
+            return false;
+        }
+
+        // Verifica o status da licença
+        $license_result = base64_decode(get_option('lknCieloProApiLicense', 'empty'), true);
+        
+        $license_result = ('active' === $license_result) ? true : false;
+
+        return $license_result;
+    }
+
     public static function getIconUrl()
     {
         return plugin_dir_url(__FILE__) . '../includes/assets/icon.svg';
