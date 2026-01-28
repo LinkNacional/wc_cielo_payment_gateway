@@ -3,6 +3,7 @@
 namespace Lkn\WCCieloPaymentGateway\Includes;
 
 use WC_Order;
+use HelgeSverre\Toon\Toon;
 
 final class LknWcCieloHelper
 {
@@ -122,6 +123,36 @@ final class LknWcCieloHelper
     public static function getIconUrl()
     {
         return plugin_dir_url(__FILE__) . '../includes/assets/icon.svg';
+    }
+
+    /**
+     * Encode data using TOON format
+     *
+     * @param array $data
+     * @return string|false
+     */
+    private static function encodeToonData($data)
+    {
+        try {
+            return Toon::encode($data);
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Decode TOON data
+     *
+     * @param string $toonString
+     * @return array|false
+     */
+    public static function decodeToonData($toonString)
+    {
+        try {
+            return Toon::decode($toonString);
+        } catch (Exception $e) {
+            return false;
+        }
     }
 
     /**
@@ -278,8 +309,8 @@ final class LknWcCieloHelper
         $returnMessage = isset($responseDecoded->Payment->ReturnMessage) ? $responseDecoded->Payment->ReturnMessage : '';
         $returnCodeFormatted = $returnCode ? $returnCode . ' - ' . $returnMessage : 'N/A';
         
-        // Gateway via pedido
-        $gatewayName = $order->get_payment_method_title();
+        // Gateway via ID do método de pagamento (mais confiável que o título)
+        $gatewayName = $order->get_payment_method();
         $gatewayName = !empty($gatewayName) ? $gatewayName : 'N/A';
         
         // Status HTTP da requisição
@@ -342,74 +373,201 @@ final class LknWcCieloHelper
             $installmentFormatted = $installments . 'x de ' . wc_price($installmentAmount, array('currency' => $currency));
         }
         
-        // Salvar todos os metadados da transação
-        $order->add_meta_data('lkn_cielo_card_masked', $cardMasked, true);
-        $order->add_meta_data('lkn_cielo_card_type', $cardType === 'Debit' ? 'Débito' : 'Crédito', true);
-        $order->add_meta_data('lkn_cielo_cvv_sent', $cvvSent, true);
-        $order->add_meta_data('lkn_cielo_installments', $installments > 0 ? $installments : 'N/A', true);
-        $order->add_meta_data('lkn_cielo_installment_amount', $installmentFormatted, true);
-        $order->add_meta_data('lkn_cielo_card_brand', !empty($provider) ? $provider : 'N/A', true);
-        $order->add_meta_data('lkn_cielo_card_expiry', $cardExpiryFormatted, true);
-        $order->add_meta_data('lkn_cielo_request_datetime', $requestDateTime, true);
-        $order->add_meta_data('lkn_cielo_total_amount', wc_price($amount, array('currency' => $currency)), true);
-        $order->add_meta_data('lkn_cielo_subtotal', wc_price($order->get_subtotal(), array('currency' => $currency)), true);
-        $order->add_meta_data('lkn_cielo_shipping', wc_price($order->get_shipping_total(), array('currency' => $currency)), true);
-        $order->add_meta_data('lkn_cielo_interest_discount', wc_price($interestDiscountAmount, array('currency' => $currency)), true);
-        $order->add_meta_data('lkn_cielo_currency', $currency, true);
-        $order->add_meta_data('lkn_cielo_environment', $environment, true);
-        $order->add_meta_data('lkn_cielo_merchant_id', $merchantIdMasked, true);
-        $order->add_meta_data('lkn_cielo_merchant_key', $merchantKeyMasked, true);
-        $order->add_meta_data('lkn_cielo_return_code', $returnCodeFormatted, true);
-        $order->add_meta_data('lkn_cielo_status', $httpStatusFormatted, true);
-        $order->add_meta_data('lkn_cielo_gateway', $gatewayName, true);
-        $order->add_meta_data('lkn_cielo_capture', $captureFormatted, true);
-        $order->add_meta_data('lkn_cielo_recurrent', $recurrentFormatted, true);
-        $order->add_meta_data('lkn_cielo_order_id', $order_id, true);
-        $order->add_meta_data('lkn_cielo_reference', !empty($merchantOrderId) ? $merchantOrderId : 'N/A', true);
-        $order->add_meta_data('lkn_cielo_3ds_auth', $threeDSFormatted, true);
-        $order->add_meta_data('lkn_cielo_tid', isset($responseDecoded->Payment->Tid) && !empty($responseDecoded->Payment->Tid) ? $responseDecoded->Payment->Tid : 'N/A', true);
-        $order->add_meta_data('lkn_cielo_cardholder_name', !empty($cardName) ? $cardName : 'N/A', true);
+        // Criar estrutura centralizada com metadados da transação
+        $transactionMetadata = [
+            'card' => [
+                'masked' => $cardMasked,
+                'type' => $cardType === 'Debit' ? 'Débito' : 'Crédito',
+                'brand' => !empty($provider) ? $provider : 'N/A',
+                'expiry' => $cardExpiryFormatted,
+                'holder_name' => !empty($cardName) ? $cardName : 'N/A'
+            ],
+            'transaction' => [
+                'cvv_sent' => $cvvSent,
+                'installments' => $installments > 0 ? $installments : 'N/A',
+                'installment_amount' => $installmentFormatted,
+                'capture' => $captureFormatted,
+                'recurrent' => $recurrentFormatted,
+                '3ds_auth' => $threeDSFormatted,
+                'tid' => isset($responseDecoded->Payment->Tid) && !empty($responseDecoded->Payment->Tid) 
+                    ? $responseDecoded->Payment->Tid : 'N/A'
+            ],
+            'amounts' => [
+                'total' => wc_price($amount, ['currency' => $currency]),
+                'subtotal' => wc_price($order->get_subtotal(), ['currency' => $currency]),
+                'shipping' => wc_price($order->get_shipping_total(), ['currency' => $currency]),
+                'interest_discount' => wc_price($interestDiscountAmount, ['currency' => $currency]),
+                'currency' => $currency
+            ],
+            'system' => [
+                'request_datetime' => $requestDateTime,
+                'environment' => $environment,
+                'gateway' => $gatewayName,
+                'order_id' => $order_id,
+                'reference' => !empty($merchantOrderId) ? $merchantOrderId : 'N/A'
+            ],
+            'merchant' => [
+                'id_masked' => $merchantIdMasked,
+                'key_masked' => $merchantKeyMasked
+            ],
+            'response' => [
+                'return_code' => $returnCodeFormatted,
+                'http_status' => $httpStatusFormatted
+            ]
+        ];
+
+        // Tentar codificar com TOON
+        $toonEncoded = self::encodeToonData($transactionMetadata);
+
+        if ($toonEncoded !== false) {
+            // Salvar dados como TOON
+            $order->add_meta_data('lkn_cielo_transaction_data', $toonEncoded, true);
+            $order->add_meta_data('lkn_cielo_data_format', 'toon', true);
+        } else {
+            // Fallback para JSON se TOON falhar
+            $jsonEncoded = wp_json_encode($transactionMetadata);
+            $order->add_meta_data('lkn_cielo_transaction_data', $jsonEncoded, true);
+            $order->add_meta_data('lkn_cielo_data_format', 'json', true);
+        }
+
+        // Manter campos críticos para compatibilidade backward  
+        $paymentId = isset($responseDecoded->Payment->PaymentId) && !empty($responseDecoded->Payment->PaymentId) 
+            ? $responseDecoded->Payment->PaymentId : '';
+        $nsu = isset($responseDecoded->Payment->ProofOfSale) && !empty($responseDecoded->Payment->ProofOfSale) 
+            ? $responseDecoded->Payment->ProofOfSale : '';
+
+        if (!empty($paymentId)) {
+            $order->add_meta_data('paymentId', $paymentId, true);
+        }
+        if (!empty($nsu)) {
+            $order->update_meta_data('lkn_nsu', $nsu);
+        }
         
-        // Adicionar metadados do pagamento (já existentes) - com validação N/A
-        $paymentId = isset($responseDecoded->Payment->PaymentId) && !empty($responseDecoded->Payment->PaymentId) ? 
-            $responseDecoded->Payment->PaymentId : 'N/A';
-        $nsuValue = isset($responseDecoded->Payment->ProofOfSale) && !empty($responseDecoded->Payment->ProofOfSale) ? 
-            $responseDecoded->Payment->ProofOfSale : 'N/A';
-            
-        $order->add_meta_data('paymentId', $paymentId, true);
-        $order->update_meta_data('lkn_nsu', $nsuValue);
-        
-        // Log para verificar se todos os metadados foram capturados
-        error_log('=== CIELO TRANSACTION METADATA TEST ===');
+        // Log para verificar estrutura TOON
+        error_log('=== CIELO TOON METADATA TEST ===');
         error_log('Order ID: ' . $order_id);
-        error_log('Card Masked: ' . $cardMasked);
-        error_log('Card Type: ' . ($cardType === 'Debit' ? 'Débito' : 'Crédito'));
-        error_log('CVV Sent: ' . $cvvSent);
-        error_log('Installments: ' . $installments . 'x');
-        error_log('Installment Amount: ' . $installmentFormatted);
-        error_log('Card Brand: ' . (!empty($provider) ? $provider : 'N/A'));
-        error_log('Card Expiry: ' . $cardExpiryFormatted);
-        error_log('Request DateTime: ' . $requestDateTime);
-        error_log('Total Amount: ' . wc_price($amount, array('currency' => $currency)));
-        error_log('Subtotal: ' . wc_price($order->get_subtotal(), array('currency' => $currency)));
-        error_log('Shipping: ' . wc_price($order->get_shipping_total(), array('currency' => $currency)));
-        error_log('Interest/Discount: ' . wc_price($interestDiscountAmount, array('currency' => $currency)));
-        error_log('Currency: ' . $currency);
-        error_log('Environment: ' . $environment);
-        error_log('Merchant ID (masked): ' . $merchantIdMasked);
-        error_log('Merchant Key (masked): ' . $merchantKeyMasked);
-        error_log('Return Code: ' . $returnCodeFormatted);
-        error_log('HTTP Status: ' . $httpStatusFormatted);
-        error_log('Gateway: ' . $gatewayName);
-        error_log('Capture: ' . $captureFormatted);
-        error_log('Recurrent: ' . $recurrentFormatted);
-        error_log('Reference: ' . (!empty($merchantOrderId) ? $merchantOrderId : 'N/A'));
-        error_log('3DS Auth: ' . $threeDSFormatted);
-        error_log('TID: ' . (isset($responseDecoded->Payment->Tid) && !empty($responseDecoded->Payment->Tid) ? $responseDecoded->Payment->Tid : 'N/A'));
-        error_log('Cardholder Name: ' . (!empty($cardName) ? $cardName : 'N/A'));
-        error_log('Payment ID: ' . $paymentId);
-        error_log('NSU: ' . $nsuValue);
-        error_log('=== END CIELO TRANSACTION METADATA TEST ===');
+        error_log('Format: ' . ($toonEncoded !== false ? 'TOON' : 'JSON'));
+        error_log('Data Structure: ' . print_r($transactionMetadata, true));
+        error_log('=== END CIELO TOON METADATA TEST ===');
+    }
+
+    /**
+     * Get structured transaction metadata from order
+     *
+     * @param WC_Order $order
+     * @return array|null
+     */
+    public static function getTransactionMetadata($order)
+    {
+        $encodedData = $order->get_meta('lkn_cielo_transaction_data');
+        $format = $order->get_meta('lkn_cielo_data_format');
+        
+        if (empty($encodedData)) {
+            return null;
+        }
+        
+        // Tentar decodificar baseado no formato
+        if ($format === 'toon') {
+            $decodedData = self::decodeToonData($encodedData);
+            if ($decodedData !== false) {
+                return $decodedData;
+            }
+        }
+        
+        // Fallback para JSON
+        $jsonDecoded = json_decode($encodedData, true);
+        return is_array($jsonDecoded) ? $jsonDecoded : null;
+    }
+
+    /**
+     * Get flattened transaction data for admin display
+     *
+     * @param WC_Order $order
+     * @return array
+     */
+    public static function getFormattedTransactionData($order)
+    {
+        $data = self::getTransactionMetadata($order);
+        
+        if (!$data) {
+            return [];
+        }
+        
+        $flatData = [];
+        
+        // Dados do cartão
+        if (isset($data['card'])) {
+            $flatData['Cartão Mascarado'] = $data['card']['masked'];
+            $flatData['Tipo do Cartão'] = $data['card']['type'];
+            $flatData['Bandeira'] = $data['card']['brand'];
+            $flatData['Vencimento'] = $data['card']['expiry'];
+            $flatData['Nome do Portador'] = $data['card']['holder_name'];
+        }
+        
+        // Dados da transação
+        if (isset($data['transaction'])) {
+            $flatData['CVV Enviado'] = $data['transaction']['cvv_sent'];
+            $flatData['Parcelas'] = $data['transaction']['installments'];
+            $flatData['Valor da Parcela'] = $data['transaction']['installment_amount'];
+            $flatData['Captura'] = $data['transaction']['capture'];
+            $flatData['Recorrente'] = $data['transaction']['recurrent'];
+            $flatData['3DS Auth'] = $data['transaction']['3ds_auth'];
+            $flatData['TID'] = $data['transaction']['tid'];
+        }
+        
+        // Valores
+        if (isset($data['amounts'])) {
+            $flatData['Valor Total'] = $data['amounts']['total'];
+            $flatData['Subtotal'] = $data['amounts']['subtotal'];
+            $flatData['Frete'] = $data['amounts']['shipping'];
+            $flatData['Juros/Desconto'] = $data['amounts']['interest_discount'];
+            $flatData['Moeda'] = $data['amounts']['currency'];
+        }
+        
+        // Sistema
+        if (isset($data['system'])) {
+            $flatData['Data/Hora'] = $data['system']['request_datetime'];
+            $flatData['Ambiente'] = $data['system']['environment'];
+            $flatData['Gateway'] = $data['system']['gateway'];
+            $flatData['ID do Pedido'] = $data['system']['order_id'];
+            $flatData['Referência'] = $data['system']['reference'];
+        }
+        
+        // Merchant
+        if (isset($data['merchant'])) {
+            $flatData['Merchant ID'] = $data['merchant']['id_masked'];
+            $flatData['Merchant Key'] = $data['merchant']['key_masked'];
+        }
+        
+        // Resposta
+        if (isset($data['response'])) {
+            $flatData['Código de Retorno'] = $data['response']['return_code'];
+            $flatData['Status HTTP'] = $data['response']['http_status'];
+        }
+        
+        return $flatData;
+    }
+
+    /**
+     * Get transaction data in JSON format for JavaScript
+     *
+     * @param WC_Order $order
+     * @return string
+     */
+    public static function getTransactionDataForJS($order)
+    {
+        $data = self::getTransactionMetadata($order);
+        $format = $order->get_meta('lkn_cielo_data_format');
+        
+        if (!$data) {
+            return wp_json_encode(['error' => 'No transaction data found']);
+        }
+        
+        return wp_json_encode([
+            'data' => $data,
+            'format' => $format ?: 'json',
+            'flattened' => self::getFormattedTransactionData($order)
+        ]);
     }
 
     /**

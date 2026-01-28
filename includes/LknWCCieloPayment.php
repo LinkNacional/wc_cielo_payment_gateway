@@ -993,70 +993,48 @@ final class LknWCCieloPayment
         }
 
         try {
-            // Buscar pedidos Cielo usando o parâmetro payment_method correto
-            $args = array(
-                'limit' => self::RECENT_ORDERS_LIMIT,
-                'orderby' => 'date',
-                'order' => 'DESC',
-                'payment_method' => array('lkn_cielo_credit', 'lkn_cielo_debit'),
-            );
+            global $wpdb;
+            
+            // Buscar dados TOON/JSON simples
+            $results = $wpdb->get_results($wpdb->prepare(
+                "SELECT order_id, meta_value as transaction_data
+                FROM {$wpdb->prefix}wc_orders_meta 
+                WHERE meta_key = 'lkn_cielo_transaction_data'
+                ORDER BY order_id DESC
+                LIMIT %d",
+                self::RECENT_ORDERS_LIMIT
+            ));
 
-            $orders = wc_get_orders($args);
             $orders_data = array();
 
-            foreach ($orders as $order) {
-                if (!$order instanceof \WC_Order) {
-                    continue;
-                }
-
-                $order_id = $order->get_id();
+            foreach ($results as $result) {
+                // Buscar formato dos dados
+                $data_format = $wpdb->get_var($wpdb->prepare(
+                    "SELECT meta_value FROM {$wpdb->prefix}wc_orders_meta 
+                    WHERE order_id = %d AND meta_key = 'lkn_cielo_data_format'",
+                    $result->order_id
+                ));
                 
-                // Buscar todos os metadados criados pela função saveTransactionMetadata
-                $order_data = array(
-                    'order_id' => $order_id,
-                    'order_date' => $order->get_date_created()->date('Y-m-d H:i:s'),
-                    'order_status' => $order->get_status(),
-                    'order_total' => $order->get_total(),
-                    'customer_name' => $order->get_formatted_billing_full_name() ?: 'N/A',
-                    'payment_method' => $order->get_payment_method_title() ?: 'N/A',
-                    
-                    // Metadados específicos da Cielo
-                    'card_masked' => $order->get_meta('lkn_cielo_card_masked') ?: 'N/A',
-                    'card_type' => $order->get_meta('lkn_cielo_card_type') ?: 'N/A',
-                    'cvv_sent' => $order->get_meta('lkn_cielo_cvv_sent') ?: 'N/A',
-                    'installments' => $order->get_meta('lkn_cielo_installments') ?: 'N/A',
-                    'installment_amount' => $order->get_meta('lkn_cielo_installment_amount') ?: 'N/A',
-                    'card_brand' => $order->get_meta('lkn_cielo_card_brand') ?: 'N/A',
-                    'card_expiry' => $order->get_meta('lkn_cielo_card_expiry') ?: 'N/A',
-                    'request_datetime' => $order->get_meta('lkn_cielo_request_datetime') ?: 'N/A',
-                    'total_amount' => $order->get_meta('lkn_cielo_total_amount') ?: 'N/A',
-                    'subtotal' => $order->get_meta('lkn_cielo_subtotal') ?: 'N/A',
-                    'shipping' => $order->get_meta('lkn_cielo_shipping') ?: 'N/A',
-                    'interest_discount' => $order->get_meta('lkn_cielo_interest_discount') ?: 'N/A',
-                    'currency' => $order->get_meta('lkn_cielo_currency') ?: 'N/A',
-                    'environment' => $order->get_meta('lkn_cielo_environment') ?: 'N/A',
-                    'merchant_id' => $order->get_meta('lkn_cielo_merchant_id') ?: 'N/A',
-                    'merchant_key' => $order->get_meta('lkn_cielo_merchant_key') ?: 'N/A',
-                    'return_code' => $order->get_meta('lkn_cielo_return_code') ?: 'N/A',
-                    'status_http' => $order->get_meta('lkn_cielo_status') ?: 'N/A',
-                    'gateway' => $order->get_meta('lkn_cielo_gateway') ?: 'N/A',
-                    'capture' => $order->get_meta('lkn_cielo_capture') ?: 'N/A',
-                    'recurrent' => $order->get_meta('lkn_cielo_recurrent') ?: 'N/A',
-                    'reference' => $order->get_meta('lkn_cielo_reference') ?: 'N/A',
-                    'three_ds_auth' => $order->get_meta('lkn_cielo_3ds_auth') ?: 'N/A',
-                    'tid' => $order->get_meta('lkn_cielo_tid') ?: 'N/A',
-                    'cardholder_name' => $order->get_meta('lkn_cielo_cardholder_name') ?: 'N/A',
-                    'payment_id' => $order->get_meta('paymentId') ?: 'N/A',
-                    'nsu' => $order->get_meta('lkn_nsu') ?: 'N/A',
-                );
-
-                $orders_data[] = $order_data;
+                // Decodificar dados
+                if ($data_format === 'toon') {
+                    $transactionData = LknWcCieloHelper::decodeToonData($result->transaction_data);
+                } else {
+                    $transactionData = json_decode($result->transaction_data, true);
+                }
+                
+                // Se decodificou com sucesso, usar os dados
+                if ($transactionData && is_array($transactionData)) {
+                    $orders_data[] = array(
+                        'order_id' => (int) $result->order_id,
+                        'data_format' => $data_format ?: 'json',
+                        'transaction_data' => $transactionData
+                    );
+                }
             }
 
             wp_send_json_success(array(
-                'message' => sprintf('Encontrados %d pedidos Cielo recentes', count($orders_data)),
+                'message' => sprintf('Encontrados %d pedidos com dados TOON/JSON', count($orders_data)),
                 'total_found' => count($orders_data),
-                'limit' => self::RECENT_ORDERS_LIMIT,
                 'orders' => $orders_data
             ));
 
@@ -1064,6 +1042,32 @@ final class LknWCCieloPayment
             wp_send_json_error(array(
                 'message' => 'Erro ao buscar pedidos: ' . $e->getMessage()
             ));
+        }
+    }
+
+    /**
+     * Decode transaction data from database string based on format
+     *
+     * @param string $dataString
+     * @param string $format
+     * @return array|null
+     */
+    private function decodeTransactionDataFromDB($dataString, $format)
+    {
+        if (empty($dataString)) {
+            return null;
+        }
+
+        try {
+            if ($format === 'toon') {
+                return LknWcCieloHelper::decodeToonData($dataString);
+            } else {
+                $decoded = json_decode($dataString, true);
+                return is_array($decoded) ? $decoded : null;
+            }
+        } catch (Exception $e) {
+            error_log('Error decoding transaction data: ' . $e->getMessage());
+            return null;
         }
     }
 }
