@@ -14,7 +14,16 @@ const CieloAnalyticsPage = () => {
     const gridRef = useRef<HTMLDivElement>(null);
     const [transactionData, setTransactionData] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
     const [error, setError] = useState(null);
+    
+    // Estados de paginação
+    const [currentPage, setCurrentPage] = useState(1);
+    const [hasNextPage, setHasNextPage] = useState(true);
+    const [totalCount, setTotalCount] = useState(0);
+    
+    // Configurações dinâmicas do backend
+    const PER_PAGE = (window as any).lknCieloAjax.per_page || 50; // Fallback para 50
 
     // Função para decodificar dados TOON usando a biblioteca @toon-format/toon
     const decodeToonData = (toonString: string) => {
@@ -104,10 +113,17 @@ const CieloAnalyticsPage = () => {
     };
 
     // Função para buscar dados via AJAX
-    const fetchTransactionData = async () => {
+    const fetchTransactionData = async (page = 1, append = false) => {
         try {
-            setLoading(true);
-            setError(null);
+            if (page === 1) {
+                setLoading(true);
+            } else {
+                setLoadingMore(true);
+            }
+            
+            if (page === 1) {
+                setError(null);
+            }
 
             const response = await fetch((window as any).lknCieloAjax.ajax_url, {
                 method: 'POST',
@@ -117,7 +133,9 @@ const CieloAnalyticsPage = () => {
                 body: new URLSearchParams({
                     action: (window as any).lknCieloAjax.action_get_recent_orders,
                     nonce: (window as any).lknCieloAjax.nonce,
-                    response_format: 'toon'
+                    response_format: 'toon',
+                    page: page.toString(),
+                    per_page: PER_PAGE.toString()
                 })
             });
 
@@ -197,7 +215,20 @@ const CieloAnalyticsPage = () => {
                     ];
                 });
                 
-                setTransactionData(formattedData);
+                if (append) {
+                    // Acumular dados existentes
+                    setTransactionData(prev => [...prev, ...formattedData]);
+                } else {
+                    // Substituir dados
+                    setTransactionData(formattedData);
+                }
+                
+                // Atualizar estado de paginação
+                const pagination = result.data.pagination;
+                setCurrentPage(pagination.page);
+                setHasNextPage(pagination.has_next);
+                setTotalCount(pagination.total_count);
+                
             } else {
                 setError(result.data?.message || 'Erro ao carregar dados');
             }
@@ -207,12 +238,20 @@ const CieloAnalyticsPage = () => {
             console.error('Erro na requisição AJAX:', err);
         } finally {
             setLoading(false);
+            setLoadingMore(false);
+        }
+    };
+
+    // Função para carregar mais dados
+    const loadMoreData = () => {
+        if (hasNextPage && !loadingMore) {
+            fetchTransactionData(currentPage + 1, true);
         }
     };
 
     // Buscar dados quando o componente for montado
     useEffect(() => {
-        fetchTransactionData();
+        fetchTransactionData(1);
     }, []);
 
     // Configurar e renderizar o Grid quando os dados estiverem prontos
@@ -456,13 +495,44 @@ const CieloAnalyticsPage = () => {
                             {error && (
                                 <div className="error-message">
                                     <p>{__('Erro:', 'lkn-wc-gateway-cielo')} {error}</p>
-                                    <button onClick={fetchTransactionData} className="button">
+                                    <button onClick={() => fetchTransactionData(1)} className="button">
                                         {__('Tentar novamente', 'lkn-wc-gateway-cielo')}
                                     </button>
                                 </div>
                             )}
                             {!loading && !error && (
-                                <div ref={gridRef} className="cielo-grid-container"></div>
+                                <>
+                                    {/* Informações de paginação */}
+                                    <div style={{ marginBottom: '15px', fontSize: '14px', color: '#666', padding: '10px', backgroundColor: '#f9f9f9', borderRadius: '4px' }}>
+                                        {__('Mostrando', 'lkn-wc-gateway-cielo')} {transactionData.length} {__('de', 'lkn-wc-gateway-cielo')} {totalCount} {__('transações', 'lkn-wc-gateway-cielo')}
+                                        {currentPage > 1 && (
+                                            <span style={{ marginLeft: '10px' }}>
+                                                ({__('Página', 'lkn-wc-gateway-cielo')} {currentPage})
+                                            </span>
+                                        )}
+                                    </div>
+                                    
+                                    <div ref={gridRef} className="cielo-grid-container"></div>
+                                    
+                                    {/* Botão carregar mais */}
+                                    {hasNextPage && (
+                                        <div style={{ textAlign: 'center', marginTop: '20px', padding: '15px' }}>
+                                            <button 
+                                                onClick={loadMoreData}
+                                                disabled={loadingMore}
+                                                className="button button-primary"
+                                                style={{
+                                                    padding: '10px 20px',
+                                                    fontSize: '14px',
+                                                    cursor: loadingMore ? 'not-allowed' : 'pointer',
+                                                    opacity: loadingMore ? 0.6 : 1
+                                                }}
+                                            >
+                                                {loadingMore ? __('Carregando...', 'lkn-wc-gateway-cielo') : __('Carregar mais transações', 'lkn-wc-gateway-cielo')}
+                                            </button>
+                                        </div>
+                                    )}
+                                </>
                             )}
                         </div>
                     </div>

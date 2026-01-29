@@ -50,7 +50,7 @@ final class LknWCCieloPayment
      * @since    1.0.0
      * @var      int    RECENT_ORDERS_LIMIT    Number of recent orders to fetch.
      */
-    const RECENT_ORDERS_LIMIT = 10;
+    const RECENT_ORDERS_LIMIT = 20;
 
     /**
      * The loader that's responsible for maintaining and registering all hooks that power
@@ -912,7 +912,8 @@ final class LknWCCieloPayment
         wp_localize_script('lkn-cielo-analytics', 'lknCieloAjax', array(
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('lkn_cielo_orders_nonce'),
-            'action_get_recent_orders' => 'lkn_get_recent_cielo_orders'
+            'action_get_recent_orders' => 'lkn_get_recent_cielo_orders',
+            'per_page' => self::RECENT_ORDERS_LIMIT
         ));
 
         // Registra e enfileira o CSS da versão React
@@ -995,17 +996,28 @@ final class LknWCCieloPayment
         // Verificar se o cliente quer resposta em formato TOON
         $response_format = isset($_POST['response_format']) ? sanitize_text_field(wp_unslash($_POST['response_format'])) : 'json';
 
+        // Parâmetros de paginação
+        $page = isset($_POST['page']) ? max(1, (int) sanitize_text_field(wp_unslash($_POST['page']))) : 1;
+        $per_page = isset($_POST['per_page']) ? max(1, min(100, (int) sanitize_text_field(wp_unslash($_POST['per_page'])))) : self::RECENT_ORDERS_LIMIT;
+        $offset = ($page - 1) * $per_page;
+
         try {
             global $wpdb;
             
-            // Buscar dados TOON/JSON simples
+            // Buscar total de registros
+            $total_count = $wpdb->get_var(
+                "SELECT COUNT(*) FROM {$wpdb->prefix}wc_orders_meta 
+                 WHERE meta_key = 'lkn_cielo_transaction_data'"
+            );
+            
+            // Buscar dados com paginação
             $results = $wpdb->get_results($wpdb->prepare(
                 "SELECT order_id, meta_value as transaction_data
                 FROM {$wpdb->prefix}wc_orders_meta 
                 WHERE meta_key = 'lkn_cielo_transaction_data'
                 ORDER BY order_id DESC
-                LIMIT %d",
-                self::RECENT_ORDERS_LIMIT
+                LIMIT %d OFFSET %d",
+                $per_page, $offset
             ));
 
             $orders_data = array();
@@ -1036,9 +1048,15 @@ final class LknWCCieloPayment
             }
 
             $response_data = array(
-                'message' => sprintf('Encontrados %d pedidos com dados TOON/JSON', count($orders_data)),
-                'total_found' => count($orders_data),
-                'orders' => $orders_data
+                'message' => sprintf('Página %d - %d pedidos de %d total', $page, count($orders_data), $total_count),
+                'orders' => $orders_data,
+                'pagination' => array(
+                    'page' => $page,
+                    'per_page' => $per_page,
+                    'total_count' => (int) $total_count,
+                    'total_pages' => ceil($total_count / $per_page),
+                    'has_next' => ($page * $per_page) < $total_count
+                )
             );
 
             // Enviar resposta no formato solicitado
