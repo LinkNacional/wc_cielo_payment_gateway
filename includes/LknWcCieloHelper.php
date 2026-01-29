@@ -126,6 +126,31 @@ final class LknWcCieloHelper
     }
 
     /**
+     * Create a standardized custom error response object
+     *
+     * @param int $httpStatus HTTP status code (e.g., 400, 401)
+     * @param string $returnCode Cielo/Braspag error code (e.g., '126', 'BP172')
+     * @param string $returnMessage Error message
+     * @param string $paymentId Payment ID (optional, defaults to empty)
+     * @param string $proofOfSale Proof of sale (optional, defaults to empty)
+     * @param string $tid Transaction ID (optional, defaults to empty)
+     * @return object Standardized error response object
+     */
+    public static function createCustomErrorResponse($httpStatus, $returnCode, $returnMessage, $paymentId = '', $proofOfSale = '', $tid = '')
+    {
+        return (object) [
+            'Payment' => (object) [
+                'Http_status' => $httpStatus,
+                'ReturnCode' => $returnCode,
+                'ReturnMessage' => $returnMessage,
+                'PaymentId' => $paymentId,
+                'ProofOfSale' => $proofOfSale,
+                'Tid' => $tid
+            ]
+        ];
+    }
+
+    /**
      * Encode data using TOON format
      *
      * @param array $data
@@ -306,6 +331,7 @@ final class LknWcCieloHelper
         
         // Return code com descrição da resposta
         $returnCode = isset($responseDecoded->Payment->ReturnCode) ? $responseDecoded->Payment->ReturnCode : '';
+        error_log($returnCode);
         $returnMessage = isset($responseDecoded->Payment->ReturnMessage) ? $responseDecoded->Payment->ReturnMessage : '';
         $returnCodeFormatted = $returnCode ? $returnCode . ' - ' . $returnMessage : 'N/A';
         
@@ -314,7 +340,7 @@ final class LknWcCieloHelper
         $gatewayName = !empty($gatewayName) ? $gatewayName : 'N/A';
         
         // Status HTTP da requisição
-        $httpStatus = wp_remote_retrieve_response_code($response);
+        $httpStatus = isset($responseDecoded->Payment->Http_status) ? $responseDecoded->Payment->Http_status : wp_remote_retrieve_response_code($response);
         $httpStatusDescription = self::getHttpStatusDescription($httpStatus);
         $httpStatusFormatted = $httpStatus ? $httpStatus . ' - ' . $httpStatusDescription : 'N/A';
         
@@ -357,13 +383,28 @@ final class LknWcCieloHelper
             $recurrentFormatted = $isRecurrent;
         }
         
-        // Validar 3DS baseado no gateway - só existe para débito/crédito com 3DS
+        // Validar 3DS baseado no gateway - só existe para débito
         $threeDSFormatted = 'N/A';
-        if ($cardType === 'Debit' && (!empty($cavv) || !empty($eci) || !empty($xid))) {
-            if (!empty($cavv) && !empty($eci) && !empty($xid)) {
-                $threeDSFormatted = 'Sucesso';
-            } else {
+        if ($cardType === 'Debit') {
+            // Verificar se houve erro relacionado a 3DS
+            $is3DSError = false;
+            if (isset($responseDecoded->Payment->ReturnCode)) {
+                $returnCode = $responseDecoded->Payment->ReturnCode;
+                // Códigos de erro relacionados ao 3DS
+                $threeDSErrorCodes = ['BP171', 'BP172', 'BP900'];
+                $is3DSError = in_array($returnCode, $threeDSErrorCodes);
+            }
+            
+            if ($is3DSError) {
+                // Se há erro específico de 3DS, marcar como falhou
                 $threeDSFormatted = 'Falhou';
+            } elseif (!empty($cavv) || !empty($eci) || !empty($xid)) {
+                // Se há dados de 3DS, verificar se está completo
+                if (!empty($cavv) && !empty($eci) && !empty($xid)) {
+                    $threeDSFormatted = 'Sucesso';
+                } else {
+                    $threeDSFormatted = 'Falhou';
+                }
             }
         }
         
@@ -419,6 +460,8 @@ final class LknWcCieloHelper
         // Tentar codificar com TOON
         $toonEncoded = self::encodeToonData($transactionMetadata);
 
+        error_log($toonEncoded);
+
         if ($toonEncoded !== false) {
             // Salvar dados como TOON
             $order->add_meta_data('lkn_cielo_transaction_data', $toonEncoded, true);
@@ -444,131 +487,14 @@ final class LknWcCieloHelper
         }
         
         // Log para verificar estrutura TOON
-        error_log('=== CIELO TOON METADATA TEST ===');
-        error_log('Order ID: ' . $order_id);
-        error_log('Format: ' . ($toonEncoded !== false ? 'TOON' : 'JSON'));
-        error_log('Data Structure: ' . print_r($transactionMetadata, true));
-        error_log('=== END CIELO TOON METADATA TEST ===');
+        // error_log('=== CIELO TOON METADATA TEST ===');
+        // error_log('Order ID: ' . $order_id);
+        // error_log('Format: ' . ($toonEncoded !== false ? 'TOON' : 'JSON'));
+        // error_log('Data Structure: ' . print_r($transactionMetadata, true));
+        // error_log('=== END CIELO TOON METADATA TEST ===');
     }
 
-    /**
-     * Get structured transaction metadata from order
-     *
-     * @param WC_Order $order
-     * @return array|null
-     */
-    public static function getTransactionMetadata($order)
-    {
-        $encodedData = $order->get_meta('lkn_cielo_transaction_data');
-        $format = $order->get_meta('lkn_cielo_data_format');
-        
-        if (empty($encodedData)) {
-            return null;
-        }
-        
-        // Tentar decodificar baseado no formato
-        if ($format === 'toon') {
-            $decodedData = self::decodeToonData($encodedData);
-            if ($decodedData !== false) {
-                return $decodedData;
-            }
-        }
-        
-        // Fallback para JSON
-        $jsonDecoded = json_decode($encodedData, true);
-        return is_array($jsonDecoded) ? $jsonDecoded : null;
-    }
 
-    /**
-     * Get flattened transaction data for admin display
-     *
-     * @param WC_Order $order
-     * @return array
-     */
-    public static function getFormattedTransactionData($order)
-    {
-        $data = self::getTransactionMetadata($order);
-        
-        if (!$data) {
-            return [];
-        }
-        
-        $flatData = [];
-        
-        // Dados do cartão
-        if (isset($data['card'])) {
-            $flatData['Cartão Mascarado'] = $data['card']['masked'];
-            $flatData['Tipo do Cartão'] = $data['card']['type'];
-            $flatData['Bandeira'] = $data['card']['brand'];
-            $flatData['Vencimento'] = $data['card']['expiry'];
-            $flatData['Nome do Portador'] = $data['card']['holder_name'];
-        }
-        
-        // Dados da transação
-        if (isset($data['transaction'])) {
-            $flatData['CVV Enviado'] = $data['transaction']['cvv_sent'];
-            $flatData['Parcelas'] = $data['transaction']['installments'];
-            $flatData['Valor da Parcela'] = $data['transaction']['installment_amount'];
-            $flatData['Captura'] = $data['transaction']['capture'];
-            $flatData['Recorrente'] = $data['transaction']['recurrent'];
-            $flatData['3DS Auth'] = $data['transaction']['3ds_auth'];
-            $flatData['TID'] = $data['transaction']['tid'];
-        }
-        
-        // Valores
-        if (isset($data['amounts'])) {
-            $flatData['Valor Total'] = $data['amounts']['total'];
-            $flatData['Subtotal'] = $data['amounts']['subtotal'];
-            $flatData['Frete'] = $data['amounts']['shipping'];
-            $flatData['Juros/Desconto'] = $data['amounts']['interest_discount'];
-            $flatData['Moeda'] = $data['amounts']['currency'];
-        }
-        
-        // Sistema
-        if (isset($data['system'])) {
-            $flatData['Data/Hora'] = $data['system']['request_datetime'];
-            $flatData['Ambiente'] = $data['system']['environment'];
-            $flatData['Gateway'] = $data['system']['gateway'];
-            $flatData['ID do Pedido'] = $data['system']['order_id'];
-            $flatData['Referência'] = $data['system']['reference'];
-        }
-        
-        // Merchant
-        if (isset($data['merchant'])) {
-            $flatData['Merchant ID'] = $data['merchant']['id_masked'];
-            $flatData['Merchant Key'] = $data['merchant']['key_masked'];
-        }
-        
-        // Resposta
-        if (isset($data['response'])) {
-            $flatData['Código de Retorno'] = $data['response']['return_code'];
-            $flatData['Status HTTP'] = $data['response']['http_status'];
-        }
-        
-        return $flatData;
-    }
-
-    /**
-     * Get transaction data in JSON format for JavaScript
-     *
-     * @param WC_Order $order
-     * @return string
-     */
-    public static function getTransactionDataForJS($order)
-    {
-        $data = self::getTransactionMetadata($order);
-        $format = $order->get_meta('lkn_cielo_data_format');
-        
-        if (!$data) {
-            return wp_json_encode(['error' => 'No transaction data found']);
-        }
-        
-        return wp_json_encode([
-            'data' => $data,
-            'format' => $format ?: 'json',
-            'flattened' => self::getFormattedTransactionData($order)
-        ]);
-    }
 
     /**
      * Get card provider from number.

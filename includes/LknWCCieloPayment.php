@@ -44,13 +44,7 @@ use Lkn\LknCieloApiPro\Includes\LknCieloApiProLicenseHelper;
  */
 final class LknWCCieloPayment
 {
-    /**
-     * Number of recent orders to fetch for Cielo metadata.
-     *
-     * @since    1.0.0
-     * @var      int    RECENT_ORDERS_LIMIT    Number of recent orders to fetch.
-     */
-    const RECENT_ORDERS_LIMIT = 20;
+
 
     /**
      * The loader that's responsible for maintaining and registering all hooks that power
@@ -912,8 +906,7 @@ final class LknWCCieloPayment
         wp_localize_script('lkn-cielo-analytics', 'lknCieloAjax', array(
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('lkn_cielo_orders_nonce'),
-            'action_get_recent_orders' => 'lkn_get_recent_cielo_orders',
-            'per_page' => self::RECENT_ORDERS_LIMIT
+            'action_get_recent_orders' => 'lkn_get_recent_cielo_orders'
         ));
 
         // Registra e enfileira o CSS da versão React
@@ -996,96 +989,121 @@ final class LknWCCieloPayment
         // Verificar se o cliente quer resposta em formato TOON
         $response_format = isset($_POST['response_format']) ? sanitize_text_field(wp_unslash($_POST['response_format'])) : 'json';
 
-        // Parâmetros de paginação
+        // Parâmetros de consulta
         $page = isset($_POST['page']) ? max(1, (int) sanitize_text_field(wp_unslash($_POST['page']))) : 1;
-        $per_page = isset($_POST['per_page']) ? max(1, min(100, (int) sanitize_text_field(wp_unslash($_POST['per_page'])))) : self::RECENT_ORDERS_LIMIT;
-        $offset = ($page - 1) * $per_page;
+        $query_limit = isset($_POST['query_limit']) ? max(1, min(1000, (int) sanitize_text_field(wp_unslash($_POST['query_limit'])))) : 50;
+        $offset = ($page - 1) * $query_limit;
 
         // Parâmetros de filtros de data
         $start_date = isset($_POST['start_date']) ? sanitize_text_field(wp_unslash($_POST['start_date'])) : '';
         $end_date = isset($_POST['end_date']) ? sanitize_text_field(wp_unslash($_POST['end_date'])) : '';
 
+        // Se não há filtros de data especificados, usar o filtro padrão de "hoje"
+        if (empty($start_date) && empty($end_date)) {
+            $today = gmdate('Y-m-d');
+            $start_date = $today;
+            $end_date = $today;
+        }
+
         try {
             global $wpdb;
             
-            // Construir WHERE clause para filtros de data
-            $date_where = '';
+            // Aplicar filtros de data (sempre há pelo menos o filtro de hoje)
+            $date_where = " WHERE 1=1";
             $date_params = array();
             
-            if (!empty($start_date) || !empty($end_date)) {
-                $date_where = " AND EXISTS (
-                    SELECT 1 FROM {$wpdb->prefix}wc_orders o 
-                    WHERE o.id = {$wpdb->prefix}wc_orders_meta.order_id";
-                
-                if (!empty($start_date)) {
-                    $date_where .= " AND o.date_created_gmt >= %s";
-                    $date_params[] = $start_date . ' 00:00:00';
-                }
-                
-                if (!empty($end_date)) {
-                    $date_where .= " AND o.date_created_gmt <= %s";
-                    $date_params[] = $end_date . ' 23:59:59';
-                }
-                
-                $date_where .= ")";
+            if (!empty($start_date)) {
+                $date_where .= " AND date_created_gmt >= %s";
+                $date_params[] = $start_date . ' 00:00:00';
             }
             
-            // Buscar total de registros com filtros
-            $count_query = "SELECT COUNT(*) FROM {$wpdb->prefix}wc_orders_meta 
-                           WHERE meta_key = 'lkn_cielo_transaction_data'" . $date_where;
-            
-            if (!empty($date_params)) {
-                $total_count = $wpdb->get_var($wpdb->prepare($count_query, $date_params));
-            } else {
-                $total_count = $wpdb->get_var($count_query);
+            if (!empty($end_date)) {
+                $date_where .= " AND date_created_gmt <= %s";
+                $date_params[] = $end_date . ' 23:59:59';
             }
-
-            // Buscar dados com paginação e filtros de data
-            $main_query = "SELECT order_id, meta_value as transaction_data
-                FROM {$wpdb->prefix}wc_orders_meta 
-                WHERE meta_key = 'lkn_cielo_transaction_data'" . $date_where . "
-                ORDER BY order_id DESC
-                LIMIT %d OFFSET %d";
             
-            $query_params = array_merge($date_params, array($per_page, $offset));
-            $results = $wpdb->get_results($wpdb->prepare($main_query, $query_params));
-
+            // PRIMEIRA ETAPA: Buscar TODOS os pedidos que têm dados Cielo no período (sem LIMIT)
+            $all_orders_query = "SELECT o.id 
+                               FROM {$wpdb->prefix}wc_orders o
+                               INNER JOIN {$wpdb->prefix}wc_orders_meta om ON o.id = om.order_id
+                               " . $date_where . "
+                               AND om.meta_key = 'lkn_cielo_transaction_data'
+                               AND om.meta_value != ''
+                               ORDER BY o.date_created_gmt DESC, o.id DESC";
+            
+            $cielo_order_ids = $wpdb->get_col($wpdb->prepare($all_orders_query, $date_params));
+            
+            // Se não há pedidos Cielo, retornar resultado vazio
+            if (empty($cielo_order_ids)) {
+                $response_data = array(
+                    'message' => 'Nenhuma transação Cielo encontrada',
+                    'orders' => array(),
+                    'pagination' => array(
+                        'page' => $page,
+                        'query_limit' => $query_limit,
+                        'total_count' => 0,
+                        'total_pages' => 0,
+                        'has_next' => false
+                    )
+                );
+                
+                if ($response_format === 'toon') {
+                    $this->send_toon_response(true, $response_data);
+                } else {
+                    wp_send_json_success($response_data);
+                }
+                return;
+            }
+            
+            // SEGUNDA ETAPA: Aplicar paginação aos pedidos Cielo
+            $total_cielo_count = count($cielo_order_ids);
+            $paginated_order_ids = array_slice($cielo_order_ids, $offset, $query_limit);
+            
+            // TERCEIRA ETAPA: Processar os pedidos paginados
             $orders_data = array();
 
-            foreach ($results as $result) {
-                // Buscar formato dos dados
-                $data_format = $wpdb->get_var($wpdb->prepare(
-                    "SELECT meta_value FROM {$wpdb->prefix}wc_orders_meta 
-                    WHERE order_id = %d AND meta_key = 'lkn_cielo_data_format'",
-                    $result->order_id
-                ));
+            foreach ($paginated_order_ids as $order_id) {
+                // Usar função nativa do WooCommerce para pegar o pedido
+                $order = wc_get_order($order_id);
                 
-                // Decodificar dados
-                if ($data_format === 'toon') {
-                    $transactionData = LknWcCieloHelper::decodeToonData($result->transaction_data);
-                } else {
-                    $transactionData = json_decode($result->transaction_data, true);
+                if (!$order) {
+                    continue; // Pular se o pedido não existe
                 }
                 
-                // Se decodificou com sucesso, usar os dados
+                // Buscar metadados específicos do Cielo
+                $transaction_data = $order->get_meta('lkn_cielo_transaction_data');
+                $data_format = $order->get_meta('lkn_cielo_data_format') ?: 'json';
+                
+                // Decodificar dados baseado no formato
+                if ($data_format === 'toon') {
+                    $transactionData = LknWcCieloHelper::decodeToonData($transaction_data);
+                } else {
+                    $transactionData = json_decode($transaction_data, true);
+                }
+                
+                // Se decodificou com sucesso, adicionar aos dados
                 if ($transactionData && is_array($transactionData)) {
                     $orders_data[] = array(
-                        'order_id' => (int) $result->order_id,
-                        'data_format' => $data_format ?: 'json',
+                        'order_id' => (int) $order_id,
+                        'data_format' => $data_format,
                         'transaction_data' => $transactionData
                     );
                 }
             }
 
             $response_data = array(
-                'message' => sprintf('Página %d - %d pedidos de %d total', $page, count($orders_data), $total_count),
+                'message' => sprintf('Página %d - %d transações Cielo encontradas de %d total', 
+                    $page, 
+                    count($orders_data), 
+                    $total_cielo_count
+                ),
                 'orders' => $orders_data,
                 'pagination' => array(
                     'page' => $page,
-                    'per_page' => $per_page,
-                    'total_count' => (int) $total_count,
-                    'total_pages' => ceil($total_count / $per_page),
-                    'has_next' => ($page * $per_page) < $total_count
+                    'query_limit' => $query_limit,
+                    'total_count' => (int) $total_cielo_count,
+                    'total_pages' => ceil($total_cielo_count / $query_limit),
+                    'has_next' => ($page * $query_limit) < $total_cielo_count
                 )
             );
 
@@ -1159,7 +1177,6 @@ final class LknWCCieloPayment
                 return is_array($decoded) ? $decoded : null;
             }
         } catch (Exception $e) {
-            error_log('Error decoding transaction data: ' . $e->getMessage());
             return null;
         }
     }

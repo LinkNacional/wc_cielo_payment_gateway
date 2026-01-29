@@ -25,9 +25,11 @@ const CieloAnalyticsPage = () => {
     // Estados para filtros de data
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
+    const [activeFilter, setActiveFilter] = useState('hoje'); // 'hoje', '7dias', '30dias', 'personalizado'
     
-    // Configurações dinâmicas do backend
-    const PER_PAGE = (window as any).lknCieloAjax.per_page || 50; // Fallback para 50
+    // Estados para configurações de paginação
+    const [queryLimit, setQueryLimit] = useState(50); // Limite de consultas do banco (mais registros para encontrar transações Cielo)
+    const [perPageLimit, setPerPageLimit] = useState(10);     // Transações por página exibidas no grid
 
     // Função para decodificar dados TOON usando a biblioteca @toon-format/toon
     const decodeToonData = (toonString: string) => {
@@ -139,7 +141,7 @@ const CieloAnalyticsPage = () => {
                     nonce: (window as any).lknCieloAjax.nonce,
                     response_format: 'toon',
                     page: page.toString(),
-                    per_page: PER_PAGE.toString(),
+                    query_limit: queryLimit.toString(),
                     start_date: startDate,
                     end_date: endDate
                 })
@@ -266,9 +268,64 @@ const CieloAnalyticsPage = () => {
     const clearDateFilters = () => {
         setStartDate('');
         setEndDate('');
+        setActiveFilter('hoje');
         setCurrentPage(1);
         setTransactionData([]);
         fetchTransactionData(1, false);
+    };
+
+    // Funções para filtros rápidos de data
+    const formatDateForInput = (date: Date) => {
+        return date.toISOString().split('T')[0];
+    };
+
+    const setDateFilter = (filterType: string) => {
+        const today = new Date();
+        let startDateValue = '';
+        let endDateValue = formatDateForInput(today);
+
+        switch (filterType) {
+            case 'hoje':
+                startDateValue = formatDateForInput(today);
+                break;
+            case '7dias':
+                const sevenDaysAgo = new Date();
+                sevenDaysAgo.setDate(today.getDate() - 7);
+                startDateValue = formatDateForInput(sevenDaysAgo);
+                break;
+            case '30dias':
+                const thirtyDaysAgo = new Date();
+                thirtyDaysAgo.setDate(today.getDate() - 30);
+                startDateValue = formatDateForInput(thirtyDaysAgo);
+                break;
+            default:
+                return;
+        }
+
+        setStartDate(startDateValue);
+        setEndDate(endDateValue);
+        setActiveFilter(filterType);
+        setCurrentPage(1);
+        setTransactionData([]);
+        
+        // Aplicar filtro automaticamente
+        setTimeout(() => {
+            fetchTransactionData(1, false);
+        }, 0);
+    };
+
+    // Função para detectar quando as datas são alteradas manualmente
+    const handleDateChange = (type: 'start' | 'end', value: string) => {
+        if (type === 'start') {
+            setStartDate(value);
+        } else {
+            setEndDate(value);
+        }
+        
+        // Mudar para personalizado quando as datas são alteradas manualmente
+        if (activeFilter !== 'personalizado') {
+            setActiveFilter('personalizado');
+        }
     };
 
     // Função para exportar dados em CSV
@@ -377,9 +434,9 @@ const CieloAnalyticsPage = () => {
             .replace(/'/g, '&#39;');
     };
 
-    // Buscar dados quando o componente for montado
+    // Buscar dados quando o componente for montado e aplicar filtro "hoje" por padrão
     useEffect(() => {
-        fetchTransactionData(1);
+        setDateFilter('hoje');
     }, []);
 
     // Configurar e renderizar o Grid quando os dados estiverem prontos
@@ -561,7 +618,7 @@ const CieloAnalyticsPage = () => {
                 sort: true,
                 pagination: {
                     enabled: true,
-                    limit: 10
+                    limit: perPageLimit
                 },
                 className: {
                     table: 'cielo-transactions-table',
@@ -582,7 +639,7 @@ const CieloAnalyticsPage = () => {
                         next: __('Próxima', 'lkn-wc-gateway-cielo'),
                         navigate: (page: number, pages: number) => `${__('Página', 'lkn-wc-gateway-cielo')} ${page} ${__('de', 'lkn-wc-gateway-cielo')} ${pages}`,
                         page: (page: number) => `${__('Página', 'lkn-wc-gateway-cielo')} ${page}`,
-                        showing: (from: number, to: number, total: number) => `${__('Mostrando', 'lkn-wc-gateway-cielo')} ${from} ${__('a', 'lkn-wc-gateway-cielo')} ${to} ${__('de', 'lkn-wc-gateway-cielo')} ${total} ${__('registros', 'lkn-wc-gateway-cielo')}`,
+                        showing: __('Mostrando', 'lkn-wc-gateway-cielo'),
                         of: __('de', 'lkn-wc-gateway-cielo'),
                         to: __('a', 'lkn-wc-gateway-cielo'),
                         results: () => __('registros', 'lkn-wc-gateway-cielo')
@@ -603,7 +660,7 @@ const CieloAnalyticsPage = () => {
                 }
             };
         }
-    }, [transactionData, loading]); // Dependências: transactionData e loading
+    }, [transactionData, loading, perPageLimit]); // Dependências: transactionData, loading e perPageLimit
 
     return (
         <div className="woocommerce-layout">
@@ -653,45 +710,188 @@ const CieloAnalyticsPage = () => {
                                     </button>
                                 </div>
                             </div>
-                            <div style={{ marginTop: '15px', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                    <label style={{ fontSize: '14px', fontWeight: '500' }}>
-                                        {__('Data Inicial:', 'lkn-wc-gateway-cielo')}
-                                    </label>
-                                    <input
-                                        type="date"
-                                        value={startDate}
-                                        onChange={(e) => setStartDate(e.target.value)}
-                                        style={{ padding: '5px', border: '1px solid #ddd', borderRadius: '4px' }}
-                                    />
+                            
+                            {/* Seção de Filtros de Data */}
+                            <div style={{ marginTop: '20px' }}>
+                                {/* Título das últimas transações */}
+                                <h3 style={{ 
+                                    fontSize: '16px', 
+                                    fontWeight: '600', 
+                                    marginBottom: '15px', 
+                                    color: '#1e1e1e',
+                                    borderBottom: '1px solid #ddd',
+                                    paddingBottom: '5px'
+                                }}>
+                                    {__('Últimas transações:', 'lkn-wc-gateway-cielo')}
+                                </h3>
+                                
+                                {/* Botões de filtro rápido */}
+                                <div style={{ marginBottom: '15px', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                                    <button
+                                        onClick={() => setDateFilter('hoje')}
+                                        className={`button ${activeFilter === 'hoje' ? 'button-primary' : ''}`}
+                                        style={{ padding: '6px 12px', fontSize: '13px' }}
+                                    >
+                                        {__('Hoje', 'lkn-wc-gateway-cielo')}
+                                    </button>
+                                    <button
+                                        onClick={() => setDateFilter('7dias')}
+                                        className={`button ${activeFilter === '7dias' ? 'button-primary' : ''}`}
+                                        style={{ padding: '6px 12px', fontSize: '13px' }}
+                                    >
+                                        {__('Últimos 7 dias', 'lkn-wc-gateway-cielo')}
+                                    </button>
+                                    <button
+                                        onClick={() => setDateFilter('30dias')}
+                                        className={`button ${activeFilter === '30dias' ? 'button-primary' : ''}`}
+                                        style={{ padding: '6px 12px', fontSize: '13px' }}
+                                    >
+                                        {__('Último 30 dias', 'lkn-wc-gateway-cielo')}
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveFilter('personalizado')}
+                                        className={`button ${activeFilter === 'personalizado' ? 'button-primary' : ''}`}
+                                        style={{ 
+                                            padding: '6px 12px', 
+                                            fontSize: '13px',
+                                            cursor: activeFilter === 'personalizado' ? 'pointer' : 'default'
+                                        }}
+                                        disabled={activeFilter !== 'personalizado'}
+                                    >
+                                        {__('Personalizado', 'lkn-wc-gateway-cielo')}
+                                    </button>
                                 </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                    <label style={{ fontSize: '14px', fontWeight: '500' }}>
-                                        {__('Data Final:', 'lkn-wc-gateway-cielo')}
-                                    </label>
-                                    <input
-                                        type="date"
-                                        value={endDate}
-                                        onChange={(e) => setEndDate(e.target.value)}
-                                        style={{ padding: '5px', border: '1px solid #ddd', borderRadius: '4px' }}
-                                    />
+                                
+                                {/* Consulta personalizada */}
+                                <div style={{ marginBottom: '15px' }}>
+                                    <h4 style={{ 
+                                        fontSize: '14px', 
+                                        fontWeight: '500', 
+                                        marginBottom: '10px',
+                                        color: '#666'
+                                    }}>
+                                        {__('Datas da consulta:', 'lkn-wc-gateway-cielo')}
+                                    </h4>
+                                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                            <label style={{ fontSize: '14px', fontWeight: '500' }}>
+                                                {__('Data Inicial:', 'lkn-wc-gateway-cielo')}
+                                            </label>
+                                            <input
+                                                type="date"
+                                                value={startDate}
+                                                onChange={(e) => handleDateChange('start', e.target.value)}
+                                                style={{ padding: '5px', border: '1px solid #ddd', borderRadius: '4px' }}
+                                            />
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                            <label style={{ fontSize: '14px', fontWeight: '500' }}>
+                                                {__('Data Final:', 'lkn-wc-gateway-cielo')}
+                                            </label>
+                                            <input
+                                                type="date"
+                                                value={endDate}
+                                                onChange={(e) => handleDateChange('end', e.target.value)}
+                                                style={{ padding: '5px', border: '1px solid #ddd', borderRadius: '4px' }}
+                                            />
+                                        </div>
+                                        <button
+                                            onClick={applyDateFilters}
+                                            disabled={loading}
+                                            className="button button-primary"
+                                            style={{ padding: '5px 15px', fontSize: '14px' }}
+                                        >
+                                            {__('Filtrar', 'lkn-wc-gateway-cielo')}
+                                        </button>
+                                        <button
+                                            onClick={clearDateFilters}
+                                            disabled={loading}
+                                            className="button"
+                                            style={{ padding: '5px 15px', fontSize: '14px' }}
+                                        >
+                                            {__('Limpar', 'lkn-wc-gateway-cielo')}
+                                        </button>
+                                    </div>
                                 </div>
-                                <button
-                                    onClick={applyDateFilters}
-                                    disabled={loading}
-                                    className="button button-primary"
-                                    style={{ padding: '5px 15px', fontSize: '14px' }}
-                                >
-                                    {__('Filtrar', 'lkn-wc-gateway-cielo')}
-                                </button>
-                                <button
-                                    onClick={clearDateFilters}
-                                    disabled={loading}
-                                    className="button"
-                                    style={{ padding: '5px 15px', fontSize: '14px' }}
-                                >
-                                    {__('Limpar', 'lkn-wc-gateway-cielo')}
-                                </button>
+                            </div>
+                            
+                            {/* Configurações de Limite */}
+                            <div style={{ marginTop: '20px', marginBottom: '15px' }}>
+                                <h4 style={{ 
+                                    fontSize: '14px', 
+                                    fontWeight: '500', 
+                                    marginBottom: '10px',
+                                    color: '#666'
+                                }}>
+                                    {__('Paginação:', 'lkn-wc-gateway-cielo')}
+                                </h4>
+                                <div style={{ display: 'flex', gap: '15px', alignItems: 'center', flexWrap: 'wrap' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                        <label htmlFor="query-limit-input" style={{ fontSize: '14px', fontWeight: '500' }}>
+                                            {__('Limite de consultas por sessão:', 'lkn-wc-gateway-cielo')}
+                                        </label>
+                                        <input
+                                            id="query-limit-input"
+                                            type="number"
+                                            value={queryLimit}
+                                            onChange={(e) => setQueryLimit(Math.max(1, parseInt(e.target.value) || 1))}
+                                            min="1"
+                                            max="1000"
+                                            style={{ 
+                                                padding: '5px', 
+                                                border: '1px solid #ddd', 
+                                                borderRadius: '4px',
+                                                width: '80px'
+                                            }}
+                                        />
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            setCurrentPage(1);
+                                            setTransactionData([]);
+                                            fetchTransactionData(1, false);
+                                        }}
+                                        disabled={loading}
+                                        className="button button-primary"
+                                        style={{ padding: '5px 15px', fontSize: '14px' }}
+                                    >
+                                        {__('Filtrar', 'lkn-wc-gateway-cielo')}
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setQueryLimit(50);
+                                            setPerPageLimit(10);
+                                        }}
+                                        disabled={loading}
+                                        className="button"
+                                        style={{ padding: '5px 15px', fontSize: '14px' }}
+                                    >
+                                        {__('Restaurar Padrão', 'lkn-wc-gateway-cielo')}
+                                    </button>
+                                </div>
+                                
+                                {/* Configuração de exibição separada */}
+                                <div style={{ marginTop: '15px', paddingTop: '15px', borderTop: '1px solid #e0e0e0' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                        <label htmlFor="per-page-limit-input" style={{ fontSize: '14px', fontWeight: '500' }}>
+                                            {__('Transações por página:', 'lkn-wc-gateway-cielo')}
+                                        </label>
+                                        <input
+                                            id="per-page-limit-input"
+                                            type="number"
+                                            value={perPageLimit}
+                                            onChange={(e) => setPerPageLimit(Math.max(1, parseInt(e.target.value) || 1))}
+                                            min="1"
+                                            max="100"
+                                            style={{ 
+                                                padding: '5px', 
+                                                border: '1px solid #ddd', 
+                                                borderRadius: '4px',
+                                                width: '80px'
+                                            }}
+                                        />
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div className="woocommerce-card__body">

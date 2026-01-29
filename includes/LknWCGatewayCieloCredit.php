@@ -757,30 +757,84 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         if ($this->validate_card_holder_name($cardName, false) === false) {
             $message = __('Card Holder Name is required!', 'lkn-wc-gateway-cielo');
 
+            // Salvar metadados da transação com dados customizados para erro de validação
+            $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
+                400,
+                '126',
+                'Credit Card Holder is required'
+            );
+            LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, null, 'Credit', 'lkn_cc_cvc', $this);
+            $order->save();
+
             throw new Exception(esc_attr($message));
         }
         if ($this->validate_card_number($cardNum, false) === false) {
             $message = __('Credit Card number is invalid!', 'lkn-wc-gateway-cielo');
+
+            // Salvar metadados da transação com dados customizados para erro de validação
+            $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
+                400,
+                'BP172',
+                'Transaction aborted during card validation'
+            );
+            LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, null, 'Credit', 'lkn_cc_cvc', $this);
+            $order->save();
 
             throw new Exception(esc_attr($message));
         }
         if ($this->validate_exp_date($cardExpShort, false) === false) {
             $message = __('Expiration date is invalid!', 'lkn-wc-gateway-cielo');
 
+            // Salvar metadados da transação com dados customizados para erro de validação
+            $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
+                400,
+                '126',
+                'Credit Card Expiration Date is required'
+            );
+            LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, null, 'Credit', 'lkn_cc_cvc', $this);
+            $order->save();
+
             throw new Exception(esc_attr($message));
         }
         if ($this->validate_cvv($cardCvv, false) === false) {
             $message = __('CVV is invalid!', 'lkn-wc-gateway-cielo');
+
+            // Salvar metadados da transação com dados customizados para erro de validação
+            $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
+                400,
+                '146',
+                'SecurityCode length exceeded'
+            );
+            LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, null, 'Credit', 'lkn_cc_cvc', $this);
+            $order->save();
 
             throw new Exception(esc_attr($message));
         }
         if (empty($merchantId)) {
             $message = __('Invalid Cielo API 3.0 credentials.', 'lkn-wc-gateway-cielo');
 
+            // Salvar metadados da transação com dados customizados para erro de validação
+            $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
+                401,
+                '126',
+                'MerchantId is required'
+            );
+            LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, null, 'Credit', 'lkn_cc_cvc', $this);
+            $order->save();
+
             throw new Exception(esc_attr($message));
         }
         if (empty($merchantSecret)) {
             $message = __('Invalid Cielo API 3.0 credentials.', 'lkn-wc-gateway-cielo');
+
+            // Salvar metadados da transação com dados customizados para erro de validação
+            $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
+                401,
+                'BP335',
+                'Cancelled due to transactional error in Payment Split'
+            );
+            LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, null, 'Credit', 'lkn_cc_cvc', $this);
+            $order->save();
 
             throw new Exception(esc_attr($message));
         }
@@ -836,6 +890,14 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
 
         $response = wp_remote_post($url . '1/sales', $args);
 
+        // Salvar metadados da transação
+        if (!is_wp_error($response)) {
+            $responseDecoded = json_decode($response['body']);
+        } else {
+            $responseDecoded = null;
+        }
+        LknWcCieloHelper::saveTransactionMetadata($order, $responseDecoded, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, $response, 'Credit', 'lkn_cc_cvc', $this);
+
         if (is_wp_error($response)) {
             if ('yes' === $debug) {
                 $this->log->log('error', var_export($response->get_error_messages(), true), array('source' => 'woocommerce-cielo-credit'));
@@ -872,9 +934,6 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         }
 
         if (isset($responseDecoded->Payment) && (1 == $responseDecoded->Payment->Status || 2 == $responseDecoded->Payment->Status)) {
-            // Salvar metadados da transação
-            LknWcCieloHelper::saveTransactionMetadata($order, $responseDecoded, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, $response, 'Credit', 'lkn_cc_cvc', $this);
-
             // Executar ações de mudança de status
             do_action("lkn_wc_cielo_change_order_status", $order, $this, $capture);
 
