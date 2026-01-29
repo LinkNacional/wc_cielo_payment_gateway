@@ -22,6 +22,10 @@ const CieloAnalyticsPage = () => {
     const [hasNextPage, setHasNextPage] = useState(true);
     const [totalCount, setTotalCount] = useState(0);
     
+    // Estados para filtros de data
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+    
     // Configurações dinâmicas do backend
     const PER_PAGE = (window as any).lknCieloAjax.per_page || 50; // Fallback para 50
 
@@ -135,7 +139,9 @@ const CieloAnalyticsPage = () => {
                     nonce: (window as any).lknCieloAjax.nonce,
                     response_format: 'toon',
                     page: page.toString(),
-                    per_page: PER_PAGE.toString()
+                    per_page: PER_PAGE.toString(),
+                    start_date: startDate,
+                    end_date: endDate
                 })
             });
 
@@ -247,6 +253,128 @@ const CieloAnalyticsPage = () => {
         if (hasNextPage && !loadingMore) {
             fetchTransactionData(currentPage + 1, true);
         }
+    };
+
+    // Função para aplicar filtros de data
+    const applyDateFilters = () => {
+        setCurrentPage(1);
+        setTransactionData([]);
+        fetchTransactionData(1, false);
+    };
+
+    // Função para limpar filtros de data  
+    const clearDateFilters = () => {
+        setStartDate('');
+        setEndDate('');
+        setCurrentPage(1);
+        setTransactionData([]);
+        fetchTransactionData(1, false);
+    };
+
+    // Função para exportar dados em CSV
+    const exportToCSV = () => {
+        if (transactionData.length === 0) {
+            alert(__('Não há dados para exportar', 'lkn-wc-gateway-cielo'));
+            return;
+        }
+
+        // Cabeçalhos das colunas (sem a coluna do botão de suporte)
+        const headers = [
+            'Cartão', 'CVV Enviado', 'Tipo', 'Parcelas', 'Vlr. Parcela', 'Bandeira', 
+            'Vencimento', 'Data/Hora', 'Total', 'Subtotal', 'Frete', 'Juros/Desc.', 
+            'Moeda', 'Ambiente', 'Merchant ID', 'Merchant KEY', 'Cód. Resp.', 'Status', 
+            'Gateway', 'Captura', 'Recorrente', '3DS Auth', 'Order ID', 'Reference', 
+            'TID', 'Portador'
+        ];
+
+        // Converter dados para CSV (removendo a última coluna do botão)
+        const csvContent = [headers, ...transactionData.map(row => row.slice(0, -1))]
+            .map(row => row.map(field => {
+                // Limpar dados HTML se necessário
+                const cleanField = typeof field === 'string' ? extractCleanValue(field) : field;
+                // Escapar aspas e envolver em aspas se contém vírgula
+                return `"${String(cleanField).replace(/"/g, '""')}"`;
+            }).join(','))
+            .join('\n');
+
+        // Download do arquivo
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `cielo-transacoes-${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    // Função para exportar dados em XLS (Excel)
+    const exportToXLS = () => {
+        if (transactionData.length === 0) {
+            alert(__('Não há dados para exportar', 'lkn-wc-gateway-cielo'));
+            return;
+        }
+
+        // Cabeçalhos das colunas (sem a coluna do botão de suporte)
+        const headers = [
+            'Cartão', 'CVV Enviado', 'Tipo', 'Parcelas', 'Vlr. Parcela', 'Bandeira', 
+            'Vencimento', 'Data/Hora', 'Total', 'Subtotal', 'Frete', 'Juros/Desc.', 
+            'Moeda', 'Ambiente', 'Merchant ID', 'Merchant KEY', 'Cód. Resp.', 'Status', 
+            'Gateway', 'Captura', 'Recorrente', '3DS Auth', 'Order ID', 'Reference', 
+            'TID', 'Portador'
+        ];
+
+        // Gerar HTML table que o Excel pode interpretar
+        let xlsContent = '<html><head><meta charset="UTF-8"></head><body><table border="1">';
+        
+        // Cabeçalho
+        xlsContent += '<tr>';
+        headers.forEach(header => {
+            xlsContent += `<th style="background-color: #f0f0f0; font-weight: bold;">${escapeHtml(header)}</th>`;
+        });
+        xlsContent += '</tr>';
+        
+        // Dados (removendo a última coluna do botão)
+        transactionData.forEach(row => {
+            xlsContent += '<tr>';
+            row.slice(0, -1).forEach((cell, index) => {
+                let cleanCell;
+                // Para a coluna de parcelas (índice 3), tratar especialmente
+                if (index === 3) {
+                    // Se for número ou string numérica, manter o valor original
+                    cleanCell = (cell && !isNaN(cell)) ? cell : extractCleanValue(cell);
+                } else {
+                    cleanCell = extractCleanValue(cell);
+                }
+                xlsContent += `<td>${escapeHtml(cleanCell)}</td>`;
+            });
+            xlsContent += '</tr>';
+        });
+        
+        xlsContent += '</table></body></html>';
+
+        // Download do arquivo
+        const blob = new Blob([xlsContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `cielo-transacoes-${new Date().toISOString().split('T')[0]}.xls`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    // Função auxiliar para escapar caracteres HTML
+    const escapeHtml = (text: any): string => {
+        if (text === null || text === undefined) return '';
+        return String(text)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
     };
 
     // Buscar dados quando o componente for montado
@@ -484,7 +612,87 @@ const CieloAnalyticsPage = () => {
                     {/* Tabela de Transações */}
                     <div className="woocommerce-card">
                         <div className="woocommerce-card__header">
-                            <h2>{__('Transações Cielo', 'lkn-wc-gateway-cielo')}</h2>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                                <h2>{__('Transações Cielo', 'lkn-wc-gateway-cielo')}</h2>
+                                <div style={{ display: 'flex', gap: '10px' }}>
+                                    <button
+                                        onClick={exportToCSV}
+                                        disabled={loading || transactionData.length === 0}
+                                        className="button"
+                                        style={{ 
+                                            padding: '8px 16px', 
+                                            fontSize: '14px',
+                                            backgroundColor: '#0073aa',
+                                            color: 'white',
+                                            border: '1px solid #0073aa',
+                                            borderRadius: '3px',
+                                            cursor: loading || transactionData.length === 0 ? 'not-allowed' : 'pointer',
+                                            opacity: loading || transactionData.length === 0 ? 0.6 : 1
+                                        }}
+                                        title={__('Exportar dados em formato CSV', 'lkn-wc-gateway-cielo')}
+                                    >
+                                        📄 {__('Exportar CSV', 'lkn-wc-gateway-cielo')}
+                                    </button>
+                                    <button
+                                        onClick={exportToXLS}
+                                        disabled={loading || transactionData.length === 0}
+                                        className="button"
+                                        style={{ 
+                                            padding: '8px 16px', 
+                                            fontSize: '14px',
+                                            backgroundColor: '#217346',
+                                            color: 'white',
+                                            border: '1px solid #217346',
+                                            borderRadius: '3px',
+                                            cursor: loading || transactionData.length === 0 ? 'not-allowed' : 'pointer',
+                                            opacity: loading || transactionData.length === 0 ? 0.6 : 1
+                                        }}
+                                        title={__('Exportar dados em formato Excel', 'lkn-wc-gateway-cielo')}
+                                    >
+                                        📊 {__('Exportar XLS', 'lkn-wc-gateway-cielo')}
+                                    </button>
+                                </div>
+                            </div>
+                            <div style={{ marginTop: '15px', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                    <label style={{ fontSize: '14px', fontWeight: '500' }}>
+                                        {__('Data Inicial:', 'lkn-wc-gateway-cielo')}
+                                    </label>
+                                    <input
+                                        type="date"
+                                        value={startDate}
+                                        onChange={(e) => setStartDate(e.target.value)}
+                                        style={{ padding: '5px', border: '1px solid #ddd', borderRadius: '4px' }}
+                                    />
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                    <label style={{ fontSize: '14px', fontWeight: '500' }}>
+                                        {__('Data Final:', 'lkn-wc-gateway-cielo')}
+                                    </label>
+                                    <input
+                                        type="date"
+                                        value={endDate}
+                                        onChange={(e) => setEndDate(e.target.value)}
+                                        style={{ padding: '5px', border: '1px solid #ddd', borderRadius: '4px' }}
+                                    />
+                                </div>
+                                <button
+                                    onClick={applyDateFilters}
+                                    disabled={loading}
+                                    className="button button-primary"
+                                    style={{ padding: '5px 15px', fontSize: '14px' }}
+                                >
+                                    {__('Filtrar', 'lkn-wc-gateway-cielo')}
+                                </button>
+                                <button
+                                    onClick={clearDateFilters}
+                                    disabled={loading}
+                                    className="button"
+                                    style={{ padding: '5px 15px', fontSize: '14px' }}
+                                >
+                                    {__('Limpar', 'lkn-wc-gateway-cielo')}
+                                </button>
+                            </div>
                         </div>
                         <div className="woocommerce-card__body">
                             {loading && (

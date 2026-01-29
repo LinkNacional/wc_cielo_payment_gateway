@@ -1001,24 +1001,54 @@ final class LknWCCieloPayment
         $per_page = isset($_POST['per_page']) ? max(1, min(100, (int) sanitize_text_field(wp_unslash($_POST['per_page'])))) : self::RECENT_ORDERS_LIMIT;
         $offset = ($page - 1) * $per_page;
 
+        // Parâmetros de filtros de data
+        $start_date = isset($_POST['start_date']) ? sanitize_text_field(wp_unslash($_POST['start_date'])) : '';
+        $end_date = isset($_POST['end_date']) ? sanitize_text_field(wp_unslash($_POST['end_date'])) : '';
+
         try {
             global $wpdb;
             
-            // Buscar total de registros
-            $total_count = $wpdb->get_var(
-                "SELECT COUNT(*) FROM {$wpdb->prefix}wc_orders_meta 
-                 WHERE meta_key = 'lkn_cielo_transaction_data'"
-            );
+            // Construir WHERE clause para filtros de data
+            $date_where = '';
+            $date_params = array();
             
-            // Buscar dados com paginação
-            $results = $wpdb->get_results($wpdb->prepare(
-                "SELECT order_id, meta_value as transaction_data
+            if (!empty($start_date) || !empty($end_date)) {
+                $date_where = " AND EXISTS (
+                    SELECT 1 FROM {$wpdb->prefix}wc_orders o 
+                    WHERE o.id = {$wpdb->prefix}wc_orders_meta.order_id";
+                
+                if (!empty($start_date)) {
+                    $date_where .= " AND o.date_created_gmt >= %s";
+                    $date_params[] = $start_date . ' 00:00:00';
+                }
+                
+                if (!empty($end_date)) {
+                    $date_where .= " AND o.date_created_gmt <= %s";
+                    $date_params[] = $end_date . ' 23:59:59';
+                }
+                
+                $date_where .= ")";
+            }
+            
+            // Buscar total de registros com filtros
+            $count_query = "SELECT COUNT(*) FROM {$wpdb->prefix}wc_orders_meta 
+                           WHERE meta_key = 'lkn_cielo_transaction_data'" . $date_where;
+            
+            if (!empty($date_params)) {
+                $total_count = $wpdb->get_var($wpdb->prepare($count_query, $date_params));
+            } else {
+                $total_count = $wpdb->get_var($count_query);
+            }
+
+            // Buscar dados com paginação e filtros de data
+            $main_query = "SELECT order_id, meta_value as transaction_data
                 FROM {$wpdb->prefix}wc_orders_meta 
-                WHERE meta_key = 'lkn_cielo_transaction_data'
+                WHERE meta_key = 'lkn_cielo_transaction_data'" . $date_where . "
                 ORDER BY order_id DESC
-                LIMIT %d OFFSET %d",
-                $per_page, $offset
-            ));
+                LIMIT %d OFFSET %d";
+            
+            $query_params = array_merge($date_params, array($per_page, $offset));
+            $results = $wpdb->get_results($wpdb->prepare($main_query, $query_params));
 
             $orders_data = array();
 
