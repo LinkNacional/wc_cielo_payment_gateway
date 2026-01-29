@@ -40,6 +40,7 @@
         "webpack-cli": "^5.1.4"
     },
     "dependencies": {
+        "@toon-format/toon": "^2.1.0",
         "gridjs": "^6.2.0",
         "react-credit-cards": "^0.8.3"
     },

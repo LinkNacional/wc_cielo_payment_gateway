@@ -6,6 +6,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { __ } from '@wordpress/i18n';
 import { addFilter } from '@wordpress/hooks';
 import { Grid, html } from 'gridjs';
+import { decode } from '@toon-format/toon';
 import 'gridjs/dist/theme/mermaid.css';
 
 // Componente principal para Analytics do Cielo
@@ -14,6 +15,16 @@ const CieloAnalyticsPage = () => {
     const [transactionData, setTransactionData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    // Função para decodificar dados TOON usando a biblioteca @toon-format/toon
+    const decodeToonData = (toonString: string) => {
+        try {
+            return decode(toonString);
+        } catch (e) {
+            console.error('Erro ao decodificar TOON:', e);
+            return null;
+        }
+    };
 
     // Função para decodificar entidades HTML corretamente
     const decodeHtmlEntities = (str: string) => {
@@ -105,11 +116,50 @@ const CieloAnalyticsPage = () => {
                 },
                 body: new URLSearchParams({
                     action: (window as any).lknCieloAjax.action_get_recent_orders,
-                    nonce: (window as any).lknCieloAjax.nonce
+                    nonce: (window as any).lknCieloAjax.nonce,
+                    response_format: 'toon'
                 })
             });
 
-            const result = await response.json();
+            // Verificar Content-Type para determinar formato da resposta
+            const contentType = response.headers.get('Content-Type') || '';
+            const isJsonResponse = contentType.includes('application/json');
+            const isTextResponse = contentType.includes('text/plain');
+            
+            let result;
+            
+            if (isTextResponse) {
+                // Resposta em formato TOON (text/plain)
+                const responseText = await response.text();
+                result = decodeToonData(responseText);
+                
+                if (!result) {
+                    throw new Error('Falha ao decodificar resposta TOON');
+                }
+            } else if (isJsonResponse) {
+                // Resposta em formato JSON padrão do WordPress
+                result = await response.json();
+                
+                // Se é um wrapper JSON com dados TOON dentro
+                if (result.success && result.data?.format === 'toon' && result.data?.toon_data) {
+                    const toonData = decodeToonData(result.data.toon_data);
+                    if (toonData) {
+                        result = toonData;
+                    }
+                }
+            } else {
+                // Fallback: tentar como JSON primeiro, depois TOON
+                try {
+                    result = await response.json();
+                } catch {
+                    const responseText = await response.text();
+                    result = decodeToonData(responseText);
+                    
+                    if (!result) {
+                        throw new Error('Formato de resposta não reconhecido');
+                    }
+                }
+            }
 
             if (result.success) {
                 // Processar dados da estrutura JSON decodificada
@@ -152,7 +202,8 @@ const CieloAnalyticsPage = () => {
                 setError(result.data?.message || 'Erro ao carregar dados');
             }
         } catch (err) {
-            setError('Erro de conexão ao carregar dados');
+            const errorMessage = err instanceof Error ? err.message : 'Erro de conexão ao carregar dados';
+            setError(errorMessage);
             console.error('Erro na requisição AJAX:', err);
         } finally {
             setLoading(false);

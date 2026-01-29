@@ -131,7 +131,7 @@ final class LknWcCieloHelper
      * @param array $data
      * @return string|false
      */
-    private static function encodeToonData($data)
+    public static function encodeToonData($data)
     {
         try {
             return Toon::encode($data);

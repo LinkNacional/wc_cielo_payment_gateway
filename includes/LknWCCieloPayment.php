@@ -992,6 +992,9 @@ final class LknWCCieloPayment
             return;
         }
 
+        // Verificar se o cliente quer resposta em formato TOON
+        $response_format = isset($_POST['response_format']) ? sanitize_text_field(wp_unslash($_POST['response_format'])) : 'json';
+
         try {
             global $wpdb;
             
@@ -1032,17 +1035,59 @@ final class LknWCCieloPayment
                 }
             }
 
-            wp_send_json_success(array(
+            $response_data = array(
                 'message' => sprintf('Encontrados %d pedidos com dados TOON/JSON', count($orders_data)),
                 'total_found' => count($orders_data),
                 'orders' => $orders_data
-            ));
+            );
+
+            // Enviar resposta no formato solicitado
+            if ($response_format === 'toon') {
+                $this->send_toon_response(true, $response_data);
+            } else {
+                wp_send_json_success($response_data);
+            }
 
         } catch (Exception $e) {
-            wp_send_json_error(array(
+            $error_data = array(
                 'message' => 'Erro ao buscar pedidos: ' . $e->getMessage()
-            ));
+            );
+            
+            if ($response_format === 'toon') {
+                $this->send_toon_response(false, $error_data);
+            } else {
+                wp_send_json_error($error_data);
+            }
         }
+    }
+
+    /**
+     * Send AJAX response in TOON format
+     *
+     * @param bool $success
+     * @param array $data
+     */
+    private function send_toon_response($success, $data)
+    {
+        // Preparar dados de resposta no formato similar ao wp_send_json
+        $response = array(
+            'success' => $success,
+            'data' => $data
+        );
+
+        // Codificar em TOON
+        $toon_response = LknWcCieloHelper::encodeToonData($response);
+
+        // Definir headers apropriados
+        if (!headers_sent()) {
+            header('Content-Type: text/plain; charset=' . get_option('blog_charset'));
+            header('X-Content-Type-Options: nosniff');
+            header('X-Robots-Tag: noindex');
+        }
+
+        // Enviar resposta e encerrar
+        echo $toon_response;
+        wp_die('', '', array('response' => null));
     }
 
     /**
