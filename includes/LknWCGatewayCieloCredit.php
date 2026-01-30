@@ -890,13 +890,20 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
 
         $response = wp_remote_post($url . '1/sales', $args);
 
-        // Salvar metadados da transação
+        error_log(json_encode($response));
+
+        // Salvar metadados da transação SEMPRE (em caso de sucesso ou erro)
         if (!is_wp_error($response)) {
             $responseDecoded = json_decode($response['body']);
         } else {
             $responseDecoded = null;
         }
+        
+        // Garantir que os metadados sejam salvos independente do resultado
         LknWcCieloHelper::saveTransactionMetadata($order, $responseDecoded, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, $response, 'Credit', 'lkn_cc_cvc', $this);
+        
+        // Salvar o pedido para garantir que os metadados sejam persistidos
+        $order->save();
 
         if (is_wp_error($response)) {
             if ('yes' === $debug) {
@@ -907,7 +914,6 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
 
             throw new Exception(esc_attr($message));
         }
-        $responseDecoded = json_decode($response['body']);
 
         if ($this->get_option('debug') === 'yes') {
             $lknWcCieloHelper = new LknWcCieloHelper();
@@ -1027,6 +1033,12 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         }
         if ('yes' === $debug) {
             $this->log->log('error', var_export($response, true), array('source' => 'woocommerce-cielo-credit'));
+        }
+
+        // Salvar metadados para qualquer outro erro não tratado antes de lançar exception
+        if (!isset($responseDecoded->Payment) || (1 != $responseDecoded->Payment->Status && 2 != $responseDecoded->Payment->Status)) {
+            // Garantir que mesmo erros não mapeados tenham seus metadados salvos
+            $order->save();
         }
 
         $message = __('Order payment failed. Make sure your credit card is valid.', 'lkn-wc-gateway-cielo');

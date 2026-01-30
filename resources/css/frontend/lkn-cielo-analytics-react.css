@@ -41,3 +41,7 @@
 .cielo-grid-container {
     overflow-x: auto;
 }
+
+.gridjs-td {
+    overflow: hidden !important;
+}

@@ -331,7 +331,6 @@ final class LknWcCieloHelper
         
         // Return code com descrição da resposta
         $returnCode = isset($responseDecoded->Payment->ReturnCode) ? $responseDecoded->Payment->ReturnCode : '';
-        error_log($returnCode);
         $returnMessage = isset($responseDecoded->Payment->ReturnMessage) ? $responseDecoded->Payment->ReturnMessage : '';
         $returnCodeFormatted = $returnCode ? $returnCode . ' - ' . $returnMessage : 'N/A';
         
@@ -460,8 +459,6 @@ final class LknWcCieloHelper
         // Tentar codificar com TOON
         $toonEncoded = self::encodeToonData($transactionMetadata);
 
-        error_log($toonEncoded);
-
         if ($toonEncoded !== false) {
             // Salvar dados como TOON
             $order->add_meta_data('lkn_cielo_transaction_data', $toonEncoded, true);
@@ -485,13 +482,6 @@ final class LknWcCieloHelper
         if (!empty($nsu)) {
             $order->update_meta_data('lkn_nsu', $nsu);
         }
-        
-        // Log para verificar estrutura TOON
-        // error_log('=== CIELO TOON METADATA TEST ===');
-        // error_log('Order ID: ' . $order_id);
-        // error_log('Format: ' . ($toonEncoded !== false ? 'TOON' : 'JSON'));
-        // error_log('Data Structure: ' . print_r($transactionMetadata, true));
-        // error_log('=== END CIELO TOON METADATA TEST ===');
     }
 
 

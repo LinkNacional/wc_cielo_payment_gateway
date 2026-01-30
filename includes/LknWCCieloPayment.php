@@ -906,7 +906,8 @@ final class LknWCCieloPayment
         wp_localize_script('lkn-cielo-analytics', 'lknCieloAjax', array(
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('lkn_cielo_orders_nonce'),
-            'action_get_recent_orders' => 'lkn_get_recent_cielo_orders'
+            'action_get_recent_orders' => 'lkn_get_recent_cielo_orders',
+            'card_brands_url' => plugin_dir_url(__FILE__) . '../resources/assets/cardBrands/'
         ));
 
         // Registra e enfileira o CSS da versão React

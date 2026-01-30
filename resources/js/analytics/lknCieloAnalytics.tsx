@@ -65,6 +65,57 @@ const CieloAnalyticsPage = () => {
         return decoded.replace(/\s+/g, ' ').trim();
     };
 
+    // Função para mapear bandeira ao arquivo de imagem
+    const getBrandImage = (brand: string) => {
+        if (!brand || brand === 'N/A' || brand.trim() === '') {
+            return null; // Não aplicar imagem
+        }
+        
+        const brandLower = brand.toLowerCase();
+        const cardBrandsUrl = (window as any).lknCieloAjax?.card_brands_url;
+        
+        if (!cardBrandsUrl) {
+            return null;
+        }
+        
+        // Mapear bandeiras conhecidas
+        if (brandLower.includes('visa')) {
+            return `${cardBrandsUrl}visa.webp`;
+        } else if (brandLower.includes('master')) {
+            return `${cardBrandsUrl}mastercard.webp`;
+        } else if (brandLower.includes('elo')) {
+            return `${cardBrandsUrl}elo.webp`;
+        } else if (brandLower.includes('amex') || brandLower.includes('american express')) {
+            return `${cardBrandsUrl}amex.webp`;
+        } else if (brandLower.includes('diners')) {
+            return `${cardBrandsUrl}diners.webp`;
+        } else if (brandLower.includes('hipercard') || brandLower.includes('hiper')) {
+            return `${cardBrandsUrl}hipercard.webp`;
+        } else if (brandLower.includes('discover')) {
+            return `${cardBrandsUrl}discover.webp`;
+        } else if (brandLower.includes('jcb')) {
+            return `${cardBrandsUrl}jcb.webp`;
+        } else if (brandLower.includes('aura')) {
+            return `${cardBrandsUrl}aura.webp`;
+        } else if (brandLower.includes('paypal')) {
+            return `${cardBrandsUrl}paypal.webp`;
+        } else {
+            // Bandeira não reconhecida mas existe valor
+            return `${cardBrandsUrl}other.webp`;
+        }
+    };
+
+    // Função para formatar bandeira com imagem
+    const formatBrandWithImage = (brand: string) => {
+        const imageUrl = getBrandImage(brand);
+        
+        if (!imageUrl) {
+            return brand; // Retorna apenas o texto se não há imagem
+        }
+        
+        return `${brand} <img src="${imageUrl}" alt="${brand}" style="width: 24px; height: 16px; margin-left: 5px; vertical-align: middle;" />`;
+    };
+
     // Função para gerar mensagem completa para debug
     const generateWhatsAppMessage = (transactionData: any) => {
         const fields = [
@@ -119,7 +170,7 @@ const CieloAnalyticsPage = () => {
     };
 
     // Função para buscar dados via AJAX
-    const fetchTransactionData = async (page = 1, append = false) => {
+    const fetchTransactionData = async (page = 1, append = false, customStartDate?: string, customEndDate?: string) => {
         try {
             if (page === 1) {
                 setLoading(true);
@@ -130,6 +181,10 @@ const CieloAnalyticsPage = () => {
             if (page === 1) {
                 setError(null);
             }
+
+            // Usar as datas customizadas se fornecidas, senão usar as do estado
+            const effectiveStartDate = customStartDate !== undefined ? customStartDate : startDate;
+            const effectiveEndDate = customEndDate !== undefined ? customEndDate : endDate;
 
             const response = await fetch((window as any).lknCieloAjax.ajax_url, {
                 method: 'POST',
@@ -142,8 +197,8 @@ const CieloAnalyticsPage = () => {
                     response_format: 'toon',
                     page: page.toString(),
                     query_limit: queryLimit.toString(),
-                    start_date: startDate,
-                    end_date: endDate
+                    start_date: effectiveStartDate,
+                    end_date: effectiveEndDate
                 })
             });
 
@@ -198,7 +253,7 @@ const CieloAnalyticsPage = () => {
                         transactionData.card?.type || 'N/A',
                         transactionData.transaction?.installments || 'N/A',
                         transactionData.transaction?.installment_amount || 'N/A',
-                        transactionData.card?.brand || 'N/A',
+                        formatBrandWithImage(transactionData.card?.brand || 'N/A'),
                         transactionData.card?.expiry || 'N/A',
                         transactionData.system?.request_datetime || 'N/A',
                         transactionData.amounts?.total || 'N/A',
@@ -266,12 +321,15 @@ const CieloAnalyticsPage = () => {
 
     // Função para limpar filtros de data  
     const clearDateFilters = () => {
-        setStartDate('');
-        setEndDate('');
+        const today = new Date();
+        const todayFormatted = formatDateForInput(today);
+        
+        setStartDate(todayFormatted);
+        setEndDate(todayFormatted);
         setActiveFilter('hoje');
         setCurrentPage(1);
         setTransactionData([]);
-        fetchTransactionData(1, false);
+        fetchTransactionData(1, false, todayFormatted, todayFormatted);
     };
 
     // Funções para filtros rápidos de data
@@ -302,15 +360,16 @@ const CieloAnalyticsPage = () => {
                 return;
         }
 
+        // Atualizar os estados
         setStartDate(startDateValue);
         setEndDate(endDateValue);
         setActiveFilter(filterType);
         setCurrentPage(1);
         setTransactionData([]);
         
-        // Aplicar filtro automaticamente
+        // Aplicar filtro automaticamente passando as datas calculadas diretamente
         setTimeout(() => {
-            fetchTransactionData(1, false);
+            fetchTransactionData(1, false, startDateValue, endDateValue);
         }, 0);
     };
 
@@ -346,9 +405,15 @@ const CieloAnalyticsPage = () => {
 
         // Converter dados para CSV (removendo a última coluna do botão)
         const csvContent = [headers, ...transactionData.map(row => row.slice(0, -1))]
-            .map(row => row.map(field => {
+            .map(row => row.map((field, index) => {
                 // Limpar dados HTML se necessário
-                const cleanField = typeof field === 'string' ? extractCleanValue(field) : field;
+                let cleanField = typeof field === 'string' ? extractCleanValue(field) : field;
+                
+                // Para a coluna Bandeira (índice 5), remover tags de imagem especificamente
+                if (index === 5 && typeof field === 'string' && field.includes('<img')) {
+                    cleanField = field.replace(/<img[^>]*>/g, '').trim();
+                }
+                
                 // Escapar aspas e envolver em aspas se contém vírgula
                 return `"${String(cleanField).replace(/"/g, '""')}"`;
             }).join(','))
@@ -401,6 +466,13 @@ const CieloAnalyticsPage = () => {
                 if (index === 3) {
                     // Se for número ou string numérica, manter o valor original
                     cleanCell = (cell && !isNaN(cell)) ? cell : extractCleanValue(cell);
+                } else if (index === 5) {
+                    // Para a coluna Bandeira (índice 5), remover tags de imagem
+                    if (typeof cell === 'string' && cell.includes('<img')) {
+                        cleanCell = cell.replace(/<img[^>]*>/g, '').trim();
+                    } else {
+                        cleanCell = extractCleanValue(cell);
+                    }
                 } else {
                     cleanCell = extractCleanValue(cell);
                 }
@@ -476,7 +548,10 @@ const CieloAnalyticsPage = () => {
                     { 
                         name: 'Bandeira',
                         resizable: true,
-                        sort: true
+                        sort: true,
+                        formatter: (cell: string) => {
+                            return cell && cell.includes('<img') ? html(cell) : cell;
+                        }
                     },
                     { 
                         name: 'Vencimento',
