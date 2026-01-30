@@ -890,8 +890,6 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
 
         $response = wp_remote_post($url . '1/sales', $args);
 
-        error_log(json_encode($response));
-
         // Salvar metadados da transação SEMPRE (em caso de sucesso ou erro)
         if (!is_wp_error($response)) {
             $responseDecoded = json_decode($response['body']);

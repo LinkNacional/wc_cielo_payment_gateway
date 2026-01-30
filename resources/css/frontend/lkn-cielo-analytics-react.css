@@ -45,3 +45,33 @@
 .gridjs-td {
     overflow: hidden !important;
 }
+
+/* Grid de configuração de colunas responsivo */
+.column-config-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+/* Media query para mobile */
+@media (max-width: 767px) {
+    .column-config-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Botão do WhatsApp - remover outline */
+.gridjs-td a[href*="wa.me"],
+.gridjs-td a[title*="WhatsApp"] {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.gridjs-td a[href*="wa.me"]:focus,
+.gridjs-td a[title*="WhatsApp"]:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}

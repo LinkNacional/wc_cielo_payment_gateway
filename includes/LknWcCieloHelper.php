@@ -304,6 +304,7 @@ final class LknWcCieloHelper
         
         // Calcular valor das parcelas
         $installmentAmount = $installments > 1 ? ($amount / $installments) : $amount;
+        $installmentAmount = round($installmentAmount, wc_get_price_decimals());
         
         // Calcular juros/desconto baseado nas parcelas
         $interestDiscountAmount = 0;
@@ -311,7 +312,7 @@ final class LknWcCieloHelper
         $originalAmount = $order->get_subtotal() + $order->get_shipping_total();
         $difference = $totalWithFees - $originalAmount;
         if ($difference != 0) {
-            $interestDiscountAmount = abs($difference);
+            $interestDiscountAmount = round(abs($difference), wc_get_price_decimals());
         }
         
         // Verificar se é pagamento recorrente
@@ -329,9 +330,21 @@ final class LknWcCieloHelper
         $cardMasked = !empty($cardNum) && strlen($cardNum) >= 8 ? 
             substr($cardNum, 0, 4) . ' **** **** ' . substr($cardNum, -4) : 'N/A';
         
-        // Return code com descrição da resposta
-        $returnCode = isset($responseDecoded->Payment->ReturnCode) ? $responseDecoded->Payment->ReturnCode : '';
-        $returnMessage = isset($responseDecoded->Payment->ReturnMessage) ? $responseDecoded->Payment->ReturnMessage : '';
+        // Return code com descrição da resposta - verificar se é erro direto da API
+        $returnCode = '';
+        $returnMessage = '';
+        
+        // Verificar se é erro direto da API (array de erros)
+        if (is_array($responseDecoded) && isset($responseDecoded[0]) && isset($responseDecoded[0]->Code)) {
+            $returnCode = (string)$responseDecoded[0]->Code;
+            $returnMessage = (string)$responseDecoded[0]->Message;
+        }
+        // Verificar se é resposta normal com Payment
+        elseif (isset($responseDecoded->Payment->ReturnCode)) {
+            $returnCode = $responseDecoded->Payment->ReturnCode;
+            $returnMessage = isset($responseDecoded->Payment->ReturnMessage) ? $responseDecoded->Payment->ReturnMessage : '';
+        }
+        
         $returnCodeFormatted = $returnCode ? $returnCode . ' - ' . $returnMessage : 'N/A';
         
         // Gateway via ID do método de pagamento (mais confiável que o título)
@@ -407,10 +420,10 @@ final class LknWcCieloHelper
             }
         }
         
-        // Formatar valor das parcelas com quantidade - validação N/A
+        // Formatar valor das parcelas - apenas valor numérico
         $installmentFormatted = 'N/A';
         if ($installments > 0 && $installmentAmount > 0) {
-            $installmentFormatted = $installments . 'x de ' . wc_price($installmentAmount, array('currency' => $currency));
+            $installmentFormatted = round((float) $installmentAmount, wc_get_price_decimals());
         }
         
         // Criar estrutura centralizada com metadados da transação
@@ -433,10 +446,10 @@ final class LknWcCieloHelper
                     ? $responseDecoded->Payment->Tid : 'N/A'
             ],
             'amounts' => [
-                'total' => wc_price($amount, ['currency' => $currency]),
-                'subtotal' => wc_price($order->get_subtotal(), ['currency' => $currency]),
-                'shipping' => wc_price($order->get_shipping_total(), ['currency' => $currency]),
-                'interest_discount' => wc_price($interestDiscountAmount, ['currency' => $currency]),
+                'total' => round((float) $amount, wc_get_price_decimals()),
+                'subtotal' => round((float) $order->get_subtotal(), wc_get_price_decimals()),
+                'shipping' => round((float) $order->get_shipping_total(), wc_get_price_decimals()),
+                'interest_discount' => round((float) $interestDiscountAmount, wc_get_price_decimals()),
                 'currency' => $currency
             ],
             'system' => [

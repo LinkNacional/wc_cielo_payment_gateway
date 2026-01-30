@@ -9,6 +9,37 @@ import { Grid, html } from 'gridjs';
 import { decode } from '@toon-format/toon';
 import 'gridjs/dist/theme/mermaid.css';
 
+// Definição das colunas padrão
+const DEFAULT_COLUMNS = [
+    { id: 'card', name: 'Cartão', visible: true },
+    { id: 'cvv_sent', name: 'CVV Enviado', visible: true },
+    { id: 'type', name: 'Tipo', visible: true },
+    { id: 'installments', name: 'Parcelas', visible: true },
+    { id: 'installment_amount', name: 'Vlr. Parcela', visible: true },
+    { id: 'brand', name: 'Bandeira', visible: true },
+    { id: 'expiry', name: 'Vencimento', visible: true },
+    { id: 'datetime', name: 'Data/Hora', visible: true },
+    { id: 'total', name: 'Total', visible: true },
+    { id: 'subtotal', name: 'Subtotal', visible: true },
+    { id: 'shipping', name: 'Frete', visible: true },
+    { id: 'interest_discount', name: 'Juros/Desc.', visible: true },
+    { id: 'currency', name: 'Moeda', visible: true },
+    { id: 'capture', name: 'Captura', visible: true },
+    { id: 'recurrent', name: 'Recorrente', visible: true },
+    { id: 'auth_3ds', name: '3DS Auth', visible: true },
+    { id: 'tid', name: 'TID', visible: true },
+    { id: 'environment', name: 'Ambiente', visible: true },
+    { id: 'gateway', name: 'Gateway', visible: true },
+    { id: 'order_id', name: 'Order ID', visible: true },
+    { id: 'reference', name: 'Reference', visible: true },
+    { id: 'merchant_id', name: 'Merchant ID', visible: true },
+    { id: 'merchant_key', name: 'Merchant Key', visible: true },
+    { id: 'return_code', name: 'Return Code', visible: true },
+    { id: 'http_status', name: 'HTTP Status', visible: true },
+    { id: 'holder_name', name: 'Portador', visible: true },
+    { id: 'whatsapp', name: 'Suporte', visible: true }
+];
+
 // Componente principal para Analytics do Cielo
 const CieloAnalyticsPage = () => {
     const gridRef = useRef<HTMLDivElement>(null);
@@ -16,6 +47,12 @@ const CieloAnalyticsPage = () => {
     const [loading, setLoading] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
     const [error, setError] = useState(null);
+    
+    // Estados para configuração de colunas
+    const [columnConfig, setColumnConfig] = useState(DEFAULT_COLUMNS);
+    const [showColumnConfig, setShowColumnConfig] = useState(false);
+    const [draggedItem, setDraggedItem] = useState<number | null>(null);
+    const [dragOverItem, setDragOverItem] = useState<number | null>(null);
     
     // Estados de paginação
     const [currentPage, setCurrentPage] = useState(1);
@@ -41,6 +78,94 @@ const CieloAnalyticsPage = () => {
         }
     };
 
+    // Funções para gerenciamento de colunas
+    const saveColumnConfig = (config: typeof DEFAULT_COLUMNS) => {
+        localStorage.setItem('cielo_analytics_columns', JSON.stringify(config));
+    };
+
+    const loadColumnConfig = () => {
+        try {
+            const saved = localStorage.getItem('cielo_analytics_columns');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                
+                // Filtrar apenas colunas válidas que existem em DEFAULT_COLUMNS
+                const validColumns = parsed.filter((savedCol: any) => 
+                    DEFAULT_COLUMNS.find(defaultCol => defaultCol.id === savedCol.id)
+                );
+                
+                // Adicionar colunas padrão que não existem na configuração salva
+                const mergedConfig = [...validColumns];
+                DEFAULT_COLUMNS.forEach(defaultCol => {
+                    if (!mergedConfig.find(col => col.id === defaultCol.id)) {
+                        mergedConfig.push(defaultCol);
+                    }
+                });
+                
+                return mergedConfig;
+            }
+        } catch (e) {
+            console.error('Erro ao carregar configuração de colunas:', e);
+        }
+        return DEFAULT_COLUMNS;
+    };
+
+    const moveColumn = (fromIndex: number, toIndex: number) => {
+        const newConfig = [...columnConfig];
+        const [movedItem] = newConfig.splice(fromIndex, 1);
+        newConfig.splice(toIndex, 0, movedItem);
+        setColumnConfig(newConfig);
+        saveColumnConfig(newConfig);
+    };
+
+    const moveColumnUp = (index: number) => {
+        if (index > 0) {
+            moveColumn(index, index - 1);
+        }
+    };
+
+    const moveColumnDown = (index: number) => {
+        if (index < columnConfig.length - 1) {
+            moveColumn(index, index + 1);
+        }
+    };
+
+    const toggleColumnVisibility = (index: number) => {
+        const newConfig = [...columnConfig];
+        newConfig[index].visible = !newConfig[index].visible;
+        setColumnConfig(newConfig);
+        saveColumnConfig(newConfig);
+    };
+
+    const resetColumnConfig = () => {
+        setColumnConfig(DEFAULT_COLUMNS);
+        saveColumnConfig(DEFAULT_COLUMNS);
+    };
+
+    // Drag and Drop handlers
+    const handleDragStart = (e: React.DragEvent, index: number) => {
+        setDraggedItem(index);
+        e.dataTransfer.effectAllowed = 'move';
+    };
+
+    const handleDragOver = (e: React.DragEvent, index: number) => {
+        e.preventDefault();
+        setDragOverItem(index);
+    };
+
+    const handleDragLeave = () => {
+        setDragOverItem(null);
+    };
+
+    const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+        e.preventDefault();
+        if (draggedItem !== null && draggedItem !== dropIndex) {
+            moveColumn(draggedItem, dropIndex);
+        }
+        setDraggedItem(null);
+        setDragOverItem(null);
+    };
+
     // Função para decodificar entidades HTML corretamente
     const decodeHtmlEntities = (str: string) => {
         if (!str) return str;
@@ -49,20 +174,6 @@ const CieloAnalyticsPage = () => {
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = str;
         return tempDiv.textContent || tempDiv.innerText || str;
-    };
-
-    // Função para extrair valor limpo de HTML
-    const extractCleanValue = (htmlString: string) => {
-        if (!htmlString || typeof htmlString !== 'string') return 'N/A';
-        
-        // Primeiro remove as tags HTML
-        const withoutTags = htmlString.replace(/<[^>]+>/g, '');
-        
-        // Depois decodifica todas as entidades HTML (incluindo moedas dinâmicas)
-        const decoded = decodeHtmlEntities(withoutTags);
-        
-        // Remove espaços extras e quebras de linha
-        return decoded.replace(/\s+/g, ' ').trim();
     };
 
     // Função para mapear bandeira ao arquivo de imagem
@@ -119,48 +230,46 @@ const CieloAnalyticsPage = () => {
     // Função para gerar mensagem completa para debug
     const generateWhatsAppMessage = (transactionData: any) => {
         const fields = [
+            // Sistema
+            `Pedido: ${transactionData.system?.order_id || 'N/A'}`,
+            `Data/Hora: ${transactionData.system?.request_datetime || 'N/A'}`,
+            `Ambiente: ${transactionData.system?.environment || 'N/A'}`,
+            `Gateway: ${transactionData.system?.gateway || 'N/A'}`,
+            `Reference: ${transactionData.system?.reference || 'N/A'}`,
+            
             // Dados do cartão
-            `Cartão:${transactionData.card?.masked || 'N/A'}`,
-            `CVV Enviado:${transactionData.transaction?.cvv_sent || 'N/A'}`,
-            `Tipo do Cartão:${transactionData.card?.type || 'N/A'}`,
-            `Bandeira:${transactionData.card?.brand || 'N/A'}`,
-            `Vencimento:${transactionData.card?.expiry || 'N/A'}`,
-            `Portador:${transactionData.card?.holder_name || 'N/A'}`,
+            `Cartão: ${transactionData.card?.masked || 'N/A'}`,
+            `CVV Enviado: ${transactionData.transaction?.cvv_sent || 'N/A'}`,
+            `Tipo do Cartão: ${transactionData.card?.type || 'N/A'}`,
+            `Bandeira: ${transactionData.card?.brand || 'N/A'}`,
+            `Vencimento: ${transactionData.card?.expiry || 'N/A'}`,
+            `Portador: ${transactionData.card?.holder_name || 'N/A'}`,
             
             // Dados da transação
-            `Parcelas:${transactionData.transaction?.installments || 'N/A'}`,
-            `Valor Parcela:${extractCleanValue(transactionData.transaction?.installment_amount)}`,
-            `Captura:${transactionData.transaction?.capture || 'N/A'}`,
-            `Recorrente:${transactionData.transaction?.recurrent || 'N/A'}`,
-            `3DS Auth:${transactionData.transaction?.['3ds_auth'] || 'N/A'}`,
-            `TID:${transactionData.transaction?.tid || 'N/A'}`,
-            `Payment ID:${transactionData.transaction?.payment_id || 'N/A'}`,
-            `NSU:${transactionData.transaction?.nsu || 'N/A'}`,
+            `Parcelas: ${transactionData.transaction?.installments || 'N/A'}`,
+            `Valor Parcela: ${transactionData.transaction?.installment_amount || 'N/A'}`,
+            `Captura: ${transactionData.transaction?.capture || 'N/A'}`,
+            `Recorrente: ${transactionData.transaction?.recurrent || 'N/A'}`,
+            `3DS Auth: ${transactionData.transaction?.['3ds_auth'] || 'N/A'}`,
+            `TID: ${transactionData.transaction?.tid || 'N/A'}`,
             
             // Valores
-            `Total:${extractCleanValue(transactionData.amounts?.total)}`,
-            `Subtotal:${extractCleanValue(transactionData.amounts?.subtotal)}`,
-            `Frete:${extractCleanValue(transactionData.amounts?.shipping)}`,
-            `Juros/Desc:${extractCleanValue(transactionData.amounts?.interest_discount)}`,
-            `Moeda:${transactionData.amounts?.currency || 'N/A'}`,
-            
-            // Sistema
-            `Data/Hora:${transactionData.system?.request_datetime || 'N/A'}`,
-            `Ambiente:${transactionData.system?.environment || 'N/A'}`,
-            `Gateway:${transactionData.system?.gateway || 'N/A'}`,
-            `Order ID:${transactionData.system?.order_id || 'N/A'}`,
-            `Reference:${transactionData.system?.reference || 'N/A'}`,
+            `Total: ${transactionData.amounts?.total || 'N/A'}`,
+            `Subtotal: ${transactionData.amounts?.subtotal || 'N/A'}`,
+            `Frete: ${transactionData.amounts?.shipping || 'N/A'}`,
+            `Juros/Desc: ${transactionData.amounts?.interest_discount || 'N/A'}`,
+            `Moeda: ${transactionData.amounts?.currency || 'N/A'}`,
             
             // Merchant
-            `Merchant ID:${transactionData.merchant?.id_masked || 'N/A'}`,
-            `Merchant Key:${transactionData.merchant?.key_masked || 'N/A'}`,
+            `Merchant ID: ${transactionData.merchant?.id_masked || 'N/A'}`,
+            `Merchant Key: ${transactionData.merchant?.key_masked || 'N/A'}`,
             
             // Resposta da API (essencial para debug)
-            `Return Code:${transactionData.response?.return_code || 'N/A'}`,
-            `HTTP Status:${transactionData.response?.http_status || 'N/A'}`
+            `Return Code: ${transactionData.response?.return_code || 'N/A'}`,
+            `HTTP Status: ${transactionData.response?.http_status || 'N/A'}`
         ];
         
-        return `PLUGIN-CIELO-PRO: ${fields.join('; ')};`;
+        return `Olá! Preciso de suporte com meu gateway de pagamento Cielo. Estou com problemas na transação e segue os dados para verificação: ${fields.join(' | ')}. Aguardo retorno, obrigado!`;
     };
 
     // Função para gerar link do WhatsApp
@@ -243,40 +352,25 @@ const CieloAnalyticsPage = () => {
             }
 
             if (result.success) {
-                // Processar dados da estrutura JSON decodificada
-                const formattedData = result.data.orders.map((order: any) => {
-                    const transactionData = order.transaction_data;
-                    
-                    return [
-                        transactionData.card?.masked || 'N/A',
-                        transactionData.transaction?.cvv_sent || 'N/A',
-                        transactionData.card?.type || 'N/A',
-                        transactionData.transaction?.installments || 'N/A',
-                        transactionData.transaction?.installment_amount || 'N/A',
-                        formatBrandWithImage(transactionData.card?.brand || 'N/A'),
-                        transactionData.card?.expiry || 'N/A',
-                        transactionData.system?.request_datetime || 'N/A',
-                        transactionData.amounts?.total || 'N/A',
-                        transactionData.amounts?.subtotal || 'N/A',
-                        transactionData.amounts?.shipping || 'N/A',
-                        transactionData.amounts?.interest_discount || 'N/A',
-                        transactionData.amounts?.currency || 'N/A',
-                        transactionData.system?.environment || 'N/A',
-                        transactionData.merchant?.id_masked || 'N/A',
-                        transactionData.merchant?.key_masked || 'N/A',
-                        transactionData.response?.return_code || 'N/A',
-                        transactionData.response?.http_status || 'N/A',
-                        transactionData.system?.gateway || 'N/A',
-                        transactionData.transaction?.capture || 'N/A',
-                        transactionData.transaction?.recurrent || 'N/A',
-                        transactionData.transaction?.['3ds_auth'] || 'N/A',
-                        transactionData.system?.order_id || 'N/A',
-                        transactionData.system?.reference || 'N/A',
-                        transactionData.transaction?.tid || 'N/A',
-                        transactionData.card?.holder_name || 'N/A',
-                        transactionData // Passa o objeto completo para a última coluna (botão WhatsApp)
-                    ];
-                });
+                // Processar os dados recebidos
+                let formattedData = [];
+                if (result.data.orders && Array.isArray(result.data.orders)) {
+                    formattedData = result.data.orders.map((order: any) => {
+                        // Se tem transaction_data, usar diretamente
+                        if (order.transaction_data) {
+                            return {
+                                ...order.transaction_data,
+                                order_id: order.order_id,
+                                data_format: order.data_format
+                            };
+                        }
+                        // Se for formato antigo, usar order diretamente
+                        return order;
+                    }).filter(item => item !== null && item !== undefined);
+                } else {
+                    console.warn('Formato de dados inesperado:', result.data);
+                    formattedData = [];
+                }
                 
                 if (append) {
                     // Acumular dados existentes
@@ -394,29 +488,104 @@ const CieloAnalyticsPage = () => {
             return;
         }
 
-        // Cabeçalhos das colunas (sem a coluna do botão de suporte)
-        const headers = [
-            'Cartão', 'CVV Enviado', 'Tipo', 'Parcelas', 'Vlr. Parcela', 'Bandeira', 
-            'Vencimento', 'Data/Hora', 'Total', 'Subtotal', 'Frete', 'Juros/Desc.', 
-            'Moeda', 'Ambiente', 'Merchant ID', 'Merchant KEY', 'Cód. Resp.', 'Status', 
-            'Gateway', 'Captura', 'Recorrente', '3DS Auth', 'Order ID', 'Reference', 
-            'TID', 'Portador'
-        ];
+        // Cabeçalhos das colunas baseados na configuração (apenas colunas visíveis)
+        const visibleColumnsConfig = columnConfig.filter(col => col.visible);
+        const headers = visibleColumnsConfig.map(col => col.name);
 
-        // Converter dados para CSV (removendo a última coluna do botão)
-        const csvContent = [headers, ...transactionData.map(row => row.slice(0, -1))]
-            .map(row => row.map((field, index) => {
-                // Limpar dados HTML se necessário
-                let cleanField = typeof field === 'string' ? extractCleanValue(field) : field;
+        // Converter dados para CSV baseado na configuração de colunas
+        const csvContent = [headers, ...transactionData.map(transaction => 
+            visibleColumnsConfig.map(colConfig => {
+                let value = '';
                 
-                // Para a coluna Bandeira (índice 5), remover tags de imagem especificamente
-                if (index === 5 && typeof field === 'string' && field.includes('<img')) {
-                    cleanField = field.replace(/<img[^>]*>/g, '').trim();
+                // Extrair valor baseado no ID da coluna
+                switch (colConfig.id) {
+                    case 'card':
+                        value = transaction.card?.masked || 'N/A';
+                        break;
+                    case 'cvv_sent':
+                        value = transaction.transaction?.cvv_sent || 'N/A';
+                        break;
+                    case 'type':
+                        value = transaction.card?.type || 'N/A';
+                        break;
+                    case 'installments':
+                        value = transaction.transaction?.installments || 'N/A';
+                        break;
+                    case 'installment_amount':
+                        value = transaction.transaction?.installment_amount || 'N/A';
+                        break;
+                    case 'brand':
+                        value = transaction.card?.brand || 'N/A';
+                        break;
+                    case 'expiry':
+                        value = transaction.card?.expiry || 'N/A';
+                        break;
+                    case 'datetime':
+                        value = transaction.system?.request_datetime || 'N/A';
+                        break;
+                    case 'total':
+                        value = transaction.amounts?.total || 'N/A';
+                        break;
+                    case 'subtotal':
+                        value = transaction.amounts?.subtotal || 'N/A';
+                        break;
+                    case 'shipping':
+                        value = transaction.amounts?.shipping || 'N/A';
+                        break;
+                    case 'interest_discount':
+                        value = transaction.amounts?.interest_discount || 'N/A';
+                        break;
+                    case 'currency':
+                        value = transaction.amounts?.currency || 'N/A';
+                        break;
+                    case 'capture':
+                        value = transaction.transaction?.capture || 'N/A';
+                        break;
+                    case 'recurrent':
+                        value = transaction.transaction?.recurrent || 'N/A';
+                        break;
+                    case 'auth_3ds':
+                        value = transaction.transaction?.['3ds_auth'] || 'N/A';
+                        break;
+                    case 'tid':
+                        value = transaction.transaction?.tid || 'N/A';
+                        break;
+                    case 'environment':
+                        value = transaction.system?.environment || 'N/A';
+                        break;
+                    case 'gateway':
+                        value = transaction.system?.gateway || 'N/A';
+                        break;
+                    case 'order_id':
+                        value = transaction.system?.order_id || 'N/A';
+                        break;
+                    case 'reference':
+                        value = transaction.system?.reference || 'N/A';
+                        break;
+                    case 'merchant_id':
+                        value = transaction.merchant?.id_masked || 'N/A';
+                        break;
+                    case 'merchant_key':
+                        value = transaction.merchant?.key_masked || 'N/A';
+                        break;
+                    case 'return_code':
+                        value = transaction.response?.return_code || 'N/A';
+                        break;
+                    case 'http_status':
+                        value = transaction.response?.http_status || 'N/A';
+                        break;
+                    case 'holder_name':
+                        value = transaction.card?.holder_name || 'N/A';
+                        break;
+                    default:
+                        value = 'N/A';
                 }
                 
                 // Escapar aspas e envolver em aspas se contém vírgula
-                return `"${String(cleanField).replace(/"/g, '""')}"`;
-            }).join(','))
+                return `"${String(value).replace(/"/g, '""')}"`;
+            })
+        )]
+            .map(row => row.join(','))
             .join('\n');
 
         // Download do arquivo
@@ -438,14 +607,9 @@ const CieloAnalyticsPage = () => {
             return;
         }
 
-        // Cabeçalhos das colunas (sem a coluna do botão de suporte)
-        const headers = [
-            'Cartão', 'CVV Enviado', 'Tipo', 'Parcelas', 'Vlr. Parcela', 'Bandeira', 
-            'Vencimento', 'Data/Hora', 'Total', 'Subtotal', 'Frete', 'Juros/Desc.', 
-            'Moeda', 'Ambiente', 'Merchant ID', 'Merchant KEY', 'Cód. Resp.', 'Status', 
-            'Gateway', 'Captura', 'Recorrente', '3DS Auth', 'Order ID', 'Reference', 
-            'TID', 'Portador'
-        ];
+        // Cabeçalhos das colunas baseados na configuração (apenas colunas visíveis)
+        const visibleColumnsConfig = columnConfig.filter(col => col.visible);
+        const headers = visibleColumnsConfig.map(col => col.name);
 
         // Gerar HTML table que o Excel pode interpretar
         let xlsContent = '<html><head><meta charset="UTF-8"></head><body><table border="1">';
@@ -457,26 +621,97 @@ const CieloAnalyticsPage = () => {
         });
         xlsContent += '</tr>';
         
-        // Dados (removendo a última coluna do botão)
-        transactionData.forEach(row => {
+        // Dados baseados na configuração de colunas
+        transactionData.forEach(transaction => {
             xlsContent += '<tr>';
-            row.slice(0, -1).forEach((cell, index) => {
-                let cleanCell;
-                // Para a coluna de parcelas (índice 3), tratar especialmente
-                if (index === 3) {
-                    // Se for número ou string numérica, manter o valor original
-                    cleanCell = (cell && !isNaN(cell)) ? cell : extractCleanValue(cell);
-                } else if (index === 5) {
-                    // Para a coluna Bandeira (índice 5), remover tags de imagem
-                    if (typeof cell === 'string' && cell.includes('<img')) {
-                        cleanCell = cell.replace(/<img[^>]*>/g, '').trim();
-                    } else {
-                        cleanCell = extractCleanValue(cell);
-                    }
-                } else {
-                    cleanCell = extractCleanValue(cell);
+            visibleColumnsConfig.forEach(colConfig => {
+                let value = '';
+                
+                // Extrair valor baseado no ID da coluna (mesmo switch do CSV)
+                switch (colConfig.id) {
+                    case 'card':
+                        value = transaction.card?.masked || 'N/A';
+                        break;
+                    case 'cvv_sent':
+                        value = transaction.transaction?.cvv_sent || 'N/A';
+                        break;
+                    case 'type':
+                        value = transaction.card?.type || 'N/A';
+                        break;
+                    case 'installments':
+                        value = transaction.transaction?.installments || 'N/A';
+                        break;
+                    case 'installment_amount':
+                        value = transaction.transaction?.installment_amount || 'N/A';
+                        break;
+                    case 'brand':
+                        value = transaction.card?.brand || 'N/A';
+                        break;
+                    case 'expiry':
+                        value = transaction.card?.expiry || 'N/A';
+                        break;
+                    case 'datetime':
+                        value = transaction.system?.request_datetime || 'N/A';
+                        break;
+                    case 'total':
+                        value = transaction.amounts?.total || 'N/A';
+                        break;
+                    case 'subtotal':
+                        value = transaction.amounts?.subtotal || 'N/A';
+                        break;
+                    case 'shipping':
+                        value = transaction.amounts?.shipping || 'N/A';
+                        break;
+                    case 'interest_discount':
+                        value = transaction.amounts?.interest_discount || 'N/A';
+                        break;
+                    case 'currency':
+                        value = transaction.amounts?.currency || 'N/A';
+                        break;
+                    case 'capture':
+                        value = transaction.transaction?.capture || 'N/A';
+                        break;
+                    case 'recurrent':
+                        value = transaction.transaction?.recurrent || 'N/A';
+                        break;
+                    case 'auth_3ds':
+                        value = transaction.transaction?.['3ds_auth'] || 'N/A';
+                        break;
+                    case 'tid':
+                        value = transaction.transaction?.tid || 'N/A';
+                        break;
+                    case 'environment':
+                        value = transaction.system?.environment || 'N/A';
+                        break;
+                    case 'gateway':
+                        value = transaction.system?.gateway || 'N/A';
+                        break;
+                    case 'order_id':
+                        value = transaction.system?.order_id || 'N/A';
+                        break;
+                    case 'reference':
+                        value = transaction.system?.reference || 'N/A';
+                        break;
+                    case 'merchant_id':
+                        value = transaction.merchant?.id_masked || 'N/A';
+                        break;
+                    case 'merchant_key':
+                        value = transaction.merchant?.key_masked || 'N/A';
+                        break;
+                    case 'return_code':
+                        value = transaction.response?.return_code || 'N/A';
+                        break;
+                    case 'http_status':
+                        value = transaction.response?.http_status || 'N/A';
+                        break;
+                    case 'holder_name':
+                        value = transaction.card?.holder_name || 'N/A';
+                        break;
+                    default:
+                        value = 'N/A';
                 }
-                xlsContent += `<td>${escapeHtml(cleanCell)}</td>`;
+                
+                xlsContent += `<td>${escapeHtml(String(value))}</td>`;
             });
             xlsContent += '</tr>';
         });
@@ -506,6 +741,179 @@ const CieloAnalyticsPage = () => {
             .replace(/'/g, '&#39;');
     };
 
+    // Função para gerar dados da linha baseados na configuração de colunas
+    const generateRowData = (transaction: any) => {
+        // Se transaction já é um array (formato antigo), usar diretamente
+        if (Array.isArray(transaction)) {
+            // Mapear array antigo para nova estrutura baseada na configuração
+            const originalData = [
+                transaction[0] || 'N/A', // Cartão
+                transaction[1] || 'N/A', // CVV Enviado
+                transaction[2] || 'N/A', // Tipo
+                transaction[3] || 'N/A', // Parcelas
+                transaction[4] || 'N/A', // Vlr. Parcela
+                transaction[5] || 'N/A', // Bandeira
+                transaction[6] || 'N/A', // Vencimento
+                transaction[7] || 'N/A', // Data/Hora
+                transaction[8] || 'N/A', // Total
+                transaction[9] || 'N/A', // Subtotal
+                transaction[10] || 'N/A', // Frete
+                transaction[11] || 'N/A', // Juros/Desc.
+                transaction[12] || 'N/A', // Moeda
+                transaction[13] || 'N/A', // Captura
+                transaction[14] || 'N/A', // Recorrente
+                transaction[15] || 'N/A', // 3DS Auth
+                transaction[16] || 'N/A', // TID
+                transaction[17] || 'N/A', // Ambiente
+                transaction[18] || 'N/A', // Gateway
+                transaction[19] || 'N/A', // Order ID
+                transaction[20] || 'N/A', // Reference
+                transaction[21] || 'N/A', // Merchant ID
+                transaction[22] || 'N/A', // Merchant Key
+                transaction[23] || 'N/A', // Return Code
+                transaction[24] || 'N/A', // HTTP Status
+                transaction[25] || 'N/A', // Portador
+                transaction[26] || html(
+                    `<a href="#" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; padding: 6px 12px; background-color: #25D366; color: white; text-decoration: none; border-radius: 4px; font-size: 12px; font-weight: bold; transition: background-color 0.3s;" title="${escapeHtml(__('Abrir WhatsApp para suporte', 'lkn-wc-gateway-cielo'))}" onmouseover="this.style.backgroundColor='#128C7E'" onmouseout="this.style.backgroundColor='#25D366'">
+                        <svg style="width: 16px; height: 16px; margin-right: 4px; fill: currentColor;" viewBox="0 0 24 24">
+                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.087z"/>
+                        </svg>
+                        ${escapeHtml(__('Suporte', 'lkn-wc-gateway-cielo'))}
+                    </a>`
+                ) // Suporte
+            ];
+
+            const rowData: any[] = [];
+            const defaultColumns = DEFAULT_COLUMNS;
+
+            columnConfig.forEach(column => {
+                if (!column.visible) return;
+                
+                const columnIndex = defaultColumns.findIndex(col => col.id === column.id);
+                if (columnIndex >= 0 && columnIndex < originalData.length) {
+                    rowData.push(originalData[columnIndex]);
+                } else {
+                    rowData.push('N/A');
+                }
+            });
+            
+            return rowData;
+        }
+        
+        // Se transaction é objeto (nova estrutura), usar a lógica anterior
+        const rowData: any[] = [];
+        
+        columnConfig.forEach(column => {
+            if (!column.visible) return;
+            
+            let value = '';
+            
+            switch (column.id) {
+                case 'card':
+                    value = (transaction && transaction.card && transaction.card.masked) ? transaction.card.masked : 'N/A';
+                    break;
+                case 'cvv_sent':
+                    value = (transaction && transaction.transaction && transaction.transaction.cvv_sent) ? transaction.transaction.cvv_sent : 'N/A';
+                    break;
+                case 'type':
+                    value = (transaction && transaction.card && transaction.card.type) ? transaction.card.type : 'N/A';
+                    break;
+                case 'installments':
+                    value = (transaction && transaction.transaction && transaction.transaction.installments) ? transaction.transaction.installments : 'N/A';
+                    break;
+                case 'installment_amount':
+                    value = (transaction && transaction.transaction && transaction.transaction.installment_amount) ? transaction.transaction.installment_amount : 'N/A';
+                    break;
+                case 'brand':
+                    value = (transaction && transaction.card && transaction.card.brand) ? formatBrandWithImage(transaction.card.brand) : 'N/A';
+                    break;
+                case 'expiry':
+                    value = (transaction && transaction.card && transaction.card.expiry) ? transaction.card.expiry : 'N/A';
+                    break;
+                case 'datetime':
+                    value = (transaction && transaction.system && transaction.system.request_datetime) ? transaction.system.request_datetime : 'N/A';
+                    break;
+                case 'total':
+                    value = transaction.amounts?.total || 'N/A';
+                    break;
+                case 'subtotal':
+                    value = transaction.amounts?.subtotal || 'N/A';
+                    break;
+                case 'shipping':
+                    value = transaction.amounts?.shipping || 'N/A';
+                    break;
+                case 'interest_discount':
+                    value = transaction.amounts?.interest_discount || 'N/A';
+                    break;
+                case 'currency':
+                    value = transaction.amounts?.currency || 'N/A';
+                    break;
+                case 'capture':
+                    value = (transaction && transaction.transaction && transaction.transaction.capture) ? transaction.transaction.capture : 'N/A';
+                    break;
+                case 'recurrent':
+                    value = (transaction && transaction.transaction && transaction.transaction.recurrent) ? transaction.transaction.recurrent : 'N/A';
+                    break;
+                case 'auth_3ds':
+                    value = (transaction && transaction.transaction && transaction.transaction['3ds_auth']) ? transaction.transaction['3ds_auth'] : 'N/A';
+                    break;
+                case 'tid':
+                    value = (transaction && transaction.transaction && transaction.transaction.tid) ? transaction.transaction.tid : 'N/A';
+                    break;
+                case 'environment':
+                    value = (transaction && transaction.system && transaction.system.environment) ? transaction.system.environment : 'N/A';
+                    break;
+                case 'gateway':
+                    value = (transaction && transaction.system && transaction.system.gateway) ? transaction.system.gateway : 'N/A';
+                    break;
+                case 'order_id':
+                    value = (transaction && transaction.system && transaction.system.order_id) ? transaction.system.order_id : 'N/A';
+                    break;
+                case 'reference':
+                    value = (transaction && transaction.system && transaction.system.reference) ? transaction.system.reference : 'N/A';
+                    break;
+                case 'merchant_id':
+                    value = (transaction && transaction.merchant && transaction.merchant.id_masked) ? transaction.merchant.id_masked : 'N/A';
+                    break;
+                case 'merchant_key':
+                    value = (transaction && transaction.merchant && transaction.merchant.key_masked) ? transaction.merchant.key_masked : 'N/A';
+                    break;
+                case 'return_code':
+                    value = (transaction && transaction.response && transaction.response.return_code) ? transaction.response.return_code : 'N/A';
+                    break;
+                case 'http_status':
+                    value = (transaction && transaction.response && transaction.response.http_status) ? transaction.response.http_status : 'N/A';
+                    break;
+                case 'holder_name':
+                    value = (transaction && transaction.card && transaction.card.holder_name) ? transaction.card.holder_name : 'N/A';
+                    break;
+                case 'whatsapp':
+                    value = html(
+                        `<a href="${generateWhatsAppLink(transaction)}" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; padding: 6px 12px; background-color: #25D366; color: white; text-decoration: none; border-radius: 4px; font-size: 12px; font-weight: bold; transition: background-color 0.3s;" title="${escapeHtml(__('Abrir WhatsApp para suporte', 'lkn-wc-gateway-cielo'))}" onmouseover="this.style.backgroundColor='#128C7E'" onmouseout="this.style.backgroundColor='#25D366'">
+                            <svg style="width: 16px; height: 16px; margin-right: 4px; fill: currentColor;" viewBox="0 0 24 24">
+                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.087z"/>
+                            </svg>
+                            ${escapeHtml(__('Suporte', 'lkn-wc-gateway-cielo'))}
+                        </a>`
+                    );
+                    break;
+                default:
+                    value = 'N/A';
+            }
+            
+            rowData.push(value);
+        });
+        
+        return rowData;
+    };
+
+    // Carregar configuração de colunas ao montar o componente
+    useEffect(() => {
+        setColumnConfig(loadColumnConfig());
+        // Garantir que o container de configuração sempre comece fechado
+        setShowColumnConfig(false);
+    }, []);
+
     // Buscar dados quando o componente for montado e aplicar filtro "hoje" por padrão
     useEffect(() => {
         setDateFilter('hoje');
@@ -514,181 +922,32 @@ const CieloAnalyticsPage = () => {
     // Configurar e renderizar o Grid quando os dados estiverem prontos
     useEffect(() => {
         if (gridRef.current && !loading) {
+            // Gerar colunas baseadas na configuração
+            const visibleColumns = columnConfig
+                .filter(col => col.visible)
+                .map(col => ({
+                    name: col.name,
+                    resizable: true,
+                    sort: true,
+                    formatter: (cell: any) => {
+                        // Formatters específicos baseados no tipo de coluna
+                        if (col.id === 'brand') {
+                            return cell && typeof cell === 'string' && cell.includes('<img') ? html(cell) : cell;
+                        }
+                        if (col.id === 'whatsapp') {
+                            return cell;
+                        }
+                        return cell;
+                    }
+                }));
+
+            // Gerar dados das linhas baseados na configuração
+            const tableData = transactionData.map(transaction => generateRowData(transaction));
+
             // Configuração do Grid.js
             const grid = new Grid({
-                columns: [
-                    { 
-                        name: 'Cartão',
-                        resizable: true,
-                        sort: true
-                    },
-                    { 
-                        name: 'CVV Enviado',
-                        resizable: true,
-                        sort: true
-                    },
-                    { 
-                        name: 'Tipo',
-                        resizable: true,
-                        sort: true
-                    },
-                    { 
-                        name: 'Parcelas',
-                        resizable: true,
-                        sort: true
-                    },
-                    { 
-                        name: 'Vlr. Parcela',
-                        resizable: true,
-                        sort: true,
-                        formatter: (cell: string) => {
-                            return cell && cell.includes('<span') ? html(cell) : cell;
-                        }
-                    },
-                    { 
-                        name: 'Bandeira',
-                        resizable: true,
-                        sort: true,
-                        formatter: (cell: string) => {
-                            return cell && cell.includes('<img') ? html(cell) : cell;
-                        }
-                    },
-                    { 
-                        name: 'Vencimento',
-                        resizable: true,
-                        sort: true
-                    },
-                    { 
-                        name: 'Data/Hora',
-                        resizable: true,
-                        sort: true
-                    },
-                    { 
-                        name: 'Total',
-                        resizable: true,
-                        sort: true,
-                        formatter: (cell: string) => {
-                            return cell && cell.includes('<span') ? html(cell) : cell;
-                        }
-                    },
-                    { 
-                        name: 'Subtotal',
-                        resizable: true,
-                        sort: true,
-                        formatter: (cell: string) => {
-                            return cell && cell.includes('<span') ? html(cell) : cell;
-                        }
-                    },
-                    { 
-                        name: 'Frete',
-                        resizable: true,
-                        sort: true,
-                        formatter: (cell: string) => {
-                            return cell && cell.includes('<span') ? html(cell) : cell;
-                        }
-                    },
-                    { 
-                        name: 'Juros/Desc.',
-                        resizable: true,
-                        sort: true,
-                        formatter: (cell: string) => {
-                            return cell && cell.includes('<span') ? html(cell) : cell;
-                        }
-                    },
-                    { 
-                        name: 'Moeda',
-                        resizable: true,
-                        sort: true
-                    },
-                    { 
-                        name: 'Ambiente',
-                        resizable: true,
-                        sort: true
-                    },
-                    { 
-                        name: 'Merchant ID',
-                        resizable: true,
-                        sort: true
-                    },
-                    { 
-                        name: 'Merchant KEY',
-                        resizable: true,
-                        sort: true
-                    },
-                    { 
-                        name: 'Cód. Resp.',
-                        resizable: true,
-                        sort: true
-                    },
-                    { 
-                        name: 'Status',
-                        resizable: true,
-                        sort: true
-                    },
-                    { 
-                        name: 'Gateway',
-                        resizable: true,
-                        sort: true
-                    },
-                    { 
-                        name: 'Captura',
-                        resizable: true,
-                        sort: true
-                    },
-                    { 
-                        name: 'Recorrente',
-                        resizable: true,
-                        sort: true
-                    },
-                    { 
-                        name: '3DS Auth',
-                        resizable: true,
-                        sort: true
-                    },
-                    { 
-                        name: 'Order ID',
-                        resizable: true,
-                        sort: true
-                    },
-                    { 
-                        name: 'Reference',
-                        resizable: true,
-                        sort: true
-                    },
-                    { 
-                        name: 'TID',
-                        resizable: true,
-                        sort: true
-                    },
-                    { 
-                        name: 'Portador',
-                        resizable: true,
-                        sort: true
-                    },
-                    { 
-                        name: 'Enviar Dados',
-                        resizable: true,
-                        sort: false,
-                        formatter: (cell: any) => {
-                            if (typeof cell === 'object' && cell) {
-                                const whatsappLink = generateWhatsAppLink(cell);
-                                return html(`
-                                    <a href="${whatsappLink}" target="_blank" rel="noopener noreferrer" 
-                                       style="display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; 
-                                              background-color: #25D366; color: white; text-decoration: none; 
-                                              border-radius: 5px; font-size: 12px;">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.893 3.384"/>
-                                        </svg>
-                                        Suporte
-                                    </a>
-                                `);
-                            }
-                            return 'N/A';
-                        }
-                    }
-                ],
-                data: transactionData,
+                columns: visibleColumns,
+                data: tableData,
                 search: true,
                 sort: true,
                 pagination: {
@@ -735,18 +994,215 @@ const CieloAnalyticsPage = () => {
                 }
             };
         }
-    }, [transactionData, loading, perPageLimit]); // Dependências: transactionData, loading e perPageLimit
+    }, [transactionData, loading, perPageLimit, columnConfig]); // Dependências: transactionData, loading, perPageLimit e columnConfig
 
     return (
         <div className="woocommerce-layout">
             <div className="woocommerce-layout__primary">
                 <div className="woocommerce-layout__main">
+                    {/* Interface de Configuração de Colunas - Fora do container principal */}
+                    {showColumnConfig === true && (
+                        <div style={{ 
+                            marginBottom: '20px', 
+                            padding: '20px', 
+                            backgroundColor: '#f8f9fa', 
+                            borderRadius: '8px',
+                            border: '1px solid #dee2e6'
+                        }}>
+                            <div style={{ 
+                                display: 'flex', 
+                                justifyContent: 'space-between', 
+                                alignItems: 'center', 
+                                marginBottom: '15px',
+                                flexWrap: 'wrap',
+                                gap: '10px'
+                            }}>
+                                <h3 style={{ 
+                                    margin: 0, 
+                                    fontSize: '16px',
+                                    minWidth: 'max-content'
+                                }}>
+                                    {__('Configuração de Colunas', 'lkn-wc-gateway-cielo')}
+                                </h3>
+                                <div style={{ 
+                                    display: 'flex', 
+                                    gap: '8px',
+                                    flexWrap: 'wrap',
+                                    justifyContent: window.innerWidth < 768 ? 'center' : 'flex-end'
+                                }}>
+                                    <button
+                                        onClick={resetColumnConfig}
+                                        className="button"
+                                        style={{ 
+                                            padding: '5px 12px', 
+                                            fontSize: '12px',
+                                            backgroundColor: 'transparent',
+                                            color: '#f44336',
+                                            border: '1px solid #f44336',
+                                            borderRadius: '3px'
+                                        }}
+                                    >
+                                        {__('Restaurar Padrão', 'lkn-wc-gateway-cielo')}
+                                    </button>
+                                    <button
+                                        onClick={() => setShowColumnConfig(false)}
+                                        className="button"
+                                        style={{ 
+                                            padding: '5px 12px', 
+                                            fontSize: '12px',
+                                            backgroundColor: '#f44336',
+                                            color: 'white',
+                                            border: '1px solid #f44336',
+                                            borderRadius: '3px'
+                                        }}
+                                    >
+                                        {__('Fechar', 'lkn-wc-gateway-cielo')}
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div className="column-config-grid">
+                                {columnConfig.map((column, index) => (
+                                    <div
+                                        key={column.id}
+                                        draggable
+                                        onDragStart={(e) => handleDragStart(e, index)}
+                                        onDragOver={(e) => handleDragOver(e, index)}
+                                        onDragLeave={handleDragLeave}
+                                        onDrop={(e) => handleDrop(e, index)}
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'space-between',
+                                            padding: '10px 12px',
+                                            backgroundColor: column.visible ? '#ffffff' : '#f1f3f4',
+                                            border: dragOverItem === index ? '2px dashed #0073aa' : '1px solid #e0e0e0',
+                                            borderRadius: '6px',
+                                            cursor: 'grab',
+                                            opacity: draggedItem === index ? 0.5 : 1,
+                                            transition: 'all 0.2s ease',
+                                            fontSize: '13px',
+                                            boxShadow: column.visible ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+                                        }}
+                                    >
+                                        <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
+                                            <span style={{ 
+                                                marginRight: '8px', 
+                                                fontSize: '12px',
+                                                color: '#666',
+                                                fontWeight: 'bold'
+                                            }}>
+                                                {index + 1}.
+                                            </span>
+                                            <label 
+                                                style={{ 
+                                                    display: 'flex', 
+                                                    alignItems: 'center', 
+                                                    cursor: 'pointer',
+                                                    flex: 1,
+                                                    minWidth: 0
+                                                }}
+                                                title={column.name}
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={column.visible}
+                                                    onChange={() => toggleColumnVisibility(index)}
+                                                    style={{ marginRight: '8px', marginTop: '0px', marginBottom: '0px' }}
+                                                />
+                                                <span style={{ 
+                                                    textOverflow: 'ellipsis',
+                                                    overflow: 'hidden',
+                                                    whiteSpace: 'nowrap',
+                                                    fontWeight: column.visible ? '500' : '400'
+                                                }}>
+                                                    {column.name}
+                                                </span>
+                                            </label>
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '4px', marginLeft: '8px' }}>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    moveColumnUp(index);
+                                                }}
+                                                disabled={index === 0}
+                                                style={{
+                                                    padding: '4px 6px',
+                                                    border: '1px solid #ccc',
+                                                    backgroundColor: index === 0 ? '#f5f5f5' : '#fff',
+                                                    borderRadius: '3px',
+                                                    cursor: index === 0 ? 'not-allowed' : 'pointer',
+                                                    fontSize: '10px',
+                                                    opacity: index === 0 ? 0.5 : 1
+                                                }}
+                                                title={__('Mover para cima', 'lkn-wc-gateway-cielo')}
+                                            >
+                                                ↑
+                                            </button>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    moveColumnDown(index);
+                                                }}
+                                                disabled={index === columnConfig.length - 1}
+                                                style={{
+                                                    padding: '4px 6px',
+                                                    border: '1px solid #ccc',
+                                                    backgroundColor: index === columnConfig.length - 1 ? '#f5f5f5' : '#fff',
+                                                    borderRadius: '3px',
+                                                    cursor: index === columnConfig.length - 1 ? 'not-allowed' : 'pointer',
+                                                    fontSize: '10px',
+                                                    opacity: index === columnConfig.length - 1 ? 0.5 : 1
+                                                }}
+                                                title={__('Mover para baixo', 'lkn-wc-gateway-cielo')}
+                                            >
+                                                ↓
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            
+                            <div style={{ 
+                                marginTop: '15px', 
+                                padding: '12px', 
+                                backgroundColor: '#e3f2fd', 
+                                borderRadius: '6px',
+                                fontSize: '12px',
+                                color: '#1565c0',
+                                border: '1px solid #bbdefb'
+                            }}>
+                                <strong>{__('💡 Dicas:', 'lkn-wc-gateway-cielo')}</strong><br/>
+                                • {__('Marque/desmarque as caixas para mostrar/ocultar colunas', 'lkn-wc-gateway-cielo')}<br/>
+                                • {__('Use ↑↓ ou arraste os cards para reordenar as colunas', 'lkn-wc-gateway-cielo')}<br/>
+                                • {__('As configurações são salvas automaticamente', 'lkn-wc-gateway-cielo')}
+                            </div>
+                        </div>
+                    )}
+
                     {/* Tabela de Transações */}
                     <div className="woocommerce-card">
                         <div className="woocommerce-card__header">
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', flexWrap: 'wrap', gap: '10px' }}>
                                 <h2>{__('Transações Cielo', 'lkn-wc-gateway-cielo')}</h2>
-                                <div style={{ display: 'flex', gap: '10px' }}>
+                                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                                    <button
+                                        onClick={() => setShowColumnConfig(!showColumnConfig)}
+                                        className="button"
+                                        style={{ 
+                                            padding: '8px 16px', 
+                                            fontSize: '14px',
+                                            backgroundColor: 'transparent',
+                                            color: '#0073aa',
+                                            border: '1px solid #0073aa',
+                                            borderRadius: '3px',
+                                            cursor: 'pointer'
+                                        }}
+                                        title={__('Configurar ordem e visibilidade das colunas', 'lkn-wc-gateway-cielo')}
+                                    >
+                                        ⚙️ {__('Configurar Colunas', 'lkn-wc-gateway-cielo')}
+                                    </button>
                                     <button
                                         onClick={exportToCSV}
                                         disabled={loading || transactionData.length === 0}
