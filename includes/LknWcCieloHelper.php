@@ -275,9 +275,9 @@ final class LknWcCieloHelper
      *
      * @param WC_Order $order
      * @param object $responseDecoded
-     * @param string $cardNum
+     * @param string $gatewayNum
      * @param string $cardExpShort
-     * @param string $cardName
+     * @param string $gatewayCardOrPix
      * @param int $installments
      * @param float $amount
      * @param string $currency
@@ -288,7 +288,7 @@ final class LknWcCieloHelper
      * @param int $order_id
      * @param bool $capture
      * @param array $response
-     * @param string $cardType
+     * @param string $gatewayType
      * @param string $cvvField
      * @param string $gatewayInstance
      * @param string $xid
@@ -297,10 +297,10 @@ final class LknWcCieloHelper
      * @param string $version
      * @param string $refId
      */
-    public static function saveTransactionMetadata($order, $responseDecoded, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, $response, $cardType = 'Credit', $cvvField = 'lkn_cc_cvc', $gatewayInstance = null, $xid = '', $cavv = '', $eci = '', $version = '', $refId = '')
+    public static function saveTransactionMetadata($order, $responseDecoded, $gatewayNum, $cardExpShort, $gatewayCardOrPix, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, $response, $gatewayType = 'Credit', $cvvField = 'lkn_cc_cvc', $gatewayInstance = null, $xid = '', $cavv = '', $eci = '', $version = '', $refId = '')
     {
-        // Extrair CVV dos dados
-        $cardCvv = isset($_POST[$cvvField]) ? sanitize_text_field(wp_unslash($_POST[$cvvField])) : '';
+        // Extrair CVV dos dados apenas se não for PIX
+        $cardCvv = ($gatewayType !== 'Pix' && isset($_POST[$cvvField])) ? sanitize_text_field(wp_unslash($_POST[$cvvField])) : '';
         
         // Calcular valor das parcelas
         $installmentAmount = $installments > 1 ? ($amount / $installments) : $amount;
@@ -317,7 +317,7 @@ final class LknWcCieloHelper
         
         // Verificar se é pagamento recorrente
         $isRecurrent = 'Não';
-        if ($cardType === 'Credit' && class_exists('WC_Subscriptions_Order') && function_exists('WC_Subscriptions_Order::order_contains_subscription')) {
+        if ($gatewayType === 'Credit' && class_exists('WC_Subscriptions_Order') && function_exists('WC_Subscriptions_Order::order_contains_subscription')) {
             if (WC_Subscriptions_Order::order_contains_subscription($order_id)) {
                 $isRecurrent = 'Sim';
             }
@@ -326,14 +326,48 @@ final class LknWcCieloHelper
         // Data da requisição
         $requestDateTime = current_time('Y-m-d H:i:s');
         
-        // Formatar cartão: 4 primeiros + 6 asteriscos + 4 últimos
-        $cardMasked = !empty($cardNum) && strlen($cardNum) >= 8 ? 
-            substr($cardNum, 0, 4) . ' **** **** ' . substr($cardNum, -4) : 'N/A';
+        // Formatar dados baseado no tipo de gateway
+        $gatewayMasked = 'N/A';
+        $pixQrCode = 'N/A';
+        $pixPaymentId = 'N/A';
+        
+        if ($gatewayType === 'Pix') {
+            // Para PIX, usar dados específicos do QR Code
+            $pixQrCode = $order->get_meta('_wc_cielo_qrcode_string');
+            $pixPaymentId = $order->get_meta('_wc_cielo_qrcode_payment_id');
+            
+            // Se não tiver nos metadados, tentar extrair da resposta
+            if (empty($pixQrCode)) {
+                if (is_array($responseDecoded) && isset($responseDecoded['response']['qrcodeString'])) {
+                    $pixQrCode = $responseDecoded['response']['qrcodeString'];
+                } elseif (is_object($responseDecoded) && isset($responseDecoded->response->qrcodeString)) {
+                    $pixQrCode = $responseDecoded->response->qrcodeString;
+                } else {
+                    $pixQrCode = 'N/A';
+                }
+            }
+            
+            if (empty($pixPaymentId)) {
+                if (is_array($responseDecoded) && isset($responseDecoded['response']['paymentId'])) {
+                    $pixPaymentId = $responseDecoded['response']['paymentId'];
+                } elseif (is_object($responseDecoded) && isset($responseDecoded->response->paymentId)) {
+                    $pixPaymentId = $responseDecoded->response->paymentId;
+                } else {
+                    $pixPaymentId = 'N/A';
+                }
+            }
+            
+            $gatewayMasked = 'PIX - ' . substr($pixPaymentId, 0, 8) . '...' . substr($pixPaymentId, -4);
+        } else {
+            // Para cartões, usar máscara tradicional: 4 primeiros + 6 asteriscos + 4 últimos
+            $gatewayMasked = !empty($gatewayNum) && strlen($gatewayNum) >= 8 ? 
+                substr($gatewayNum, 0, 4) . ' **** **** ' . substr($gatewayNum, -4) : 'N/A';
+        }
         
         // Return code com descrição da resposta - verificar se é erro direto da API
         $returnCode = '';
         $returnMessage = '';
-        
+
         // Verificar se é erro direto da API (array de erros)
         if (is_array($responseDecoded) && isset($responseDecoded[0]) && isset($responseDecoded[0]->Code)) {
             $returnCode = (string)$responseDecoded[0]->Code;
@@ -344,17 +378,58 @@ final class LknWcCieloHelper
             $returnCode = $responseDecoded->Payment->ReturnCode;
             $returnMessage = isset($responseDecoded->Payment->ReturnMessage) ? $responseDecoded->Payment->ReturnMessage : '';
         }
+        // Para PIX, verificar estrutura específica da resposta
+        elseif ($gatewayType === 'Pix') {
+            $hasSuccess = false;
+            if (is_array($responseDecoded) && isset($responseDecoded['success'])) {
+                $hasSuccess = $responseDecoded['success'];
+            } elseif (is_object($responseDecoded) && isset($responseDecoded->success)) {
+                $hasSuccess = $responseDecoded->success;
+            } elseif (is_array($responseDecoded) && isset($responseDecoded['sucess'])) {
+                // Suporte ao typo 'sucess' que aparece no código
+                $hasSuccess = $responseDecoded['sucess'];
+            } elseif (is_object($responseDecoded) && isset($responseDecoded->sucess)) {
+                $hasSuccess = $responseDecoded->sucess;
+            }
+
+            if ($hasSuccess === true) {
+                $returnCode = '12';
+                $returnMessage = 'PIX criado';
+            } else {
+                $returnCode = '0';
+                $returnMessage = isset($responseDecoded['response']) ? $responseDecoded['response'] : 'Erro ao criar PIX';
+            }
+        }
         
-        $returnCodeFormatted = $returnCode ? $returnCode . ' - ' . $returnMessage : 'N/A';
+        $returnCodeFormatted = ($returnCode !== '' && $returnCode !== null) ? $returnCode . ' - ' . $returnMessage : 'N/A';
         
         // Gateway via ID do método de pagamento (mais confiável que o título)
         $gatewayName = $order->get_payment_method();
         $gatewayName = !empty($gatewayName) ? $gatewayName : 'N/A';
-        
-        // Status HTTP da requisição
-        $httpStatus = isset($responseDecoded->Payment->Http_status) ? $responseDecoded->Payment->Http_status : wp_remote_retrieve_response_code($response);
-        $httpStatusDescription = self::getHttpStatusDescription($httpStatus);
-        $httpStatusFormatted = $httpStatus ? $httpStatus . ' - ' . $httpStatusDescription : 'N/A';
+
+        if($gatewayName === 'lkn_wc_cielo_pix') {
+            // Para PIX, verificar success tanto em array quanto objeto
+            $hasSuccess = false;
+            if (is_array($responseDecoded) && isset($responseDecoded['success'])) {
+                $hasSuccess = $responseDecoded['success'];
+            } elseif (is_object($responseDecoded) && isset($responseDecoded->success)) {
+                $hasSuccess = $responseDecoded->success;
+            } elseif (is_array($responseDecoded) && isset($responseDecoded['sucess'])) {
+                // Suporte ao typo 'sucess' que aparece no código
+                $hasSuccess = $responseDecoded['sucess'];
+            } elseif (is_object($responseDecoded) && isset($responseDecoded->sucess)) {
+                $hasSuccess = $responseDecoded->sucess;
+            }
+            
+            $httpStatus = $hasSuccess ? '201' : '400';
+            $httpStatusDescription = self::getHttpStatusDescription($httpStatus);
+            $httpStatusFormatted = $httpStatus ? $httpStatus . ' - ' . $httpStatusDescription : 'N/A';
+        } else {
+            // Status HTTP da requisição
+            $httpStatus = isset($responseDecoded->Payment->Http_status) ? $responseDecoded->Payment->Http_status : wp_remote_retrieve_response_code($response);
+            $httpStatusDescription = self::getHttpStatusDescription($httpStatus);
+            $httpStatusFormatted = $httpStatus ? $httpStatus . ' - ' . $httpStatusDescription : 'N/A';
+        }
         
         // Formatar dados 3DS
         $threeDSData = '';
@@ -379,25 +454,25 @@ final class LknWcCieloHelper
         
         // Validar CVV baseado no tipo de pagamento
         $cvvSent = 'N/A';
-        if (in_array($cardType, ['Credit', 'Debit'])) {
+        if (in_array($gatewayType, ['Credit', 'Debit'])) {
             $cvvSent = !empty($cardCvv) ? 'Sim' : 'Não';
         }
         
         // Validar Capture baseado no tipo de pagamento
         $captureFormatted = 'N/A';
-        if (in_array($cardType, ['Credit', 'Debit'])) {
+        if (in_array($gatewayType, ['Credit', 'Debit'])) {
             $captureFormatted = $capture ? 'Auto' : 'Manual';
         }
         
         // Validar Recorrente baseado no tipo de pagamento
         $recurrentFormatted = 'N/A';
-        if ($cardType === 'Credit') {
+        if ($gatewayType === 'Credit') {
             $recurrentFormatted = $isRecurrent;
         }
         
         // Validar 3DS baseado no gateway - só existe para débito
         $threeDSFormatted = 'N/A';
-        if ($cardType === 'Debit') {
+        if ($gatewayType === 'Debit') {
             // Verificar se houve erro relacionado a 3DS
             $is3DSError = false;
             if (isset($responseDecoded->Payment->ReturnCode)) {
@@ -426,19 +501,34 @@ final class LknWcCieloHelper
             $installmentFormatted = round((float) $installmentAmount, wc_get_price_decimals());
         }
         
+        // Determinar tipo de gateway/cartão para exibição
+        $displayType = 'N/A';
+        $brand = 'N/A';
+        
+        if ($gatewayType === 'Pix') {
+            $displayType = 'PIX';
+            $brand = 'PIX';
+        } elseif ($gatewayType === 'Debit') {
+            $displayType = 'Débito';
+            $brand = !empty($provider) ? $provider : 'N/A';
+        } elseif ($gatewayType === 'Credit') {
+            $displayType = 'Crédito';
+            $brand = !empty($provider) ? $provider : 'N/A';
+        }
+        
         // Criar estrutura centralizada com metadados da transação
         $transactionMetadata = [
-            'card' => [
-                'masked' => $cardMasked,
-                'type' => $cardType === 'Debit' ? 'Débito' : 'Crédito',
-                'brand' => !empty($provider) ? $provider : 'N/A',
-                'expiry' => $cardExpiryFormatted,
-                'holder_name' => !empty($cardName) ? $cardName : 'N/A'
+            'gateway' => [
+                'masked' => $gatewayMasked,
+                'type' => $displayType,
+                'brand' => $brand,
+                'expiry' => ($gatewayType === 'Pix') ? 'N/A' : $cardExpiryFormatted,
+                'holder_name' => ($gatewayType === 'Pix') ? $gatewayCardOrPix : (!empty($gatewayCardOrPix) ? $gatewayCardOrPix : 'N/A')
             ],
             'transaction' => [
                 'cvv_sent' => $cvvSent,
-                'installments' => $installments > 0 ? $installments : 'N/A',
-                'installment_amount' => $installmentFormatted,
+                'installments' => ($gatewayType === 'Pix') ? 1 : ($installments > 0 ? $installments : 'N/A'),
+                'installment_amount' => ($gatewayType === 'Pix') ? round((float) $amount, wc_get_price_decimals()) : $installmentFormatted,
                 'capture' => $captureFormatted,
                 'recurrent' => $recurrentFormatted,
                 '3ds_auth' => $threeDSFormatted,
@@ -502,15 +592,15 @@ final class LknWcCieloHelper
     /**
      * Get card provider from number.
      *
-     * @param string $cardNumber
+     * @param string $gatewayNumber
      * @param string $gatewayId
      *
      * @return string|bool
      */
-    public static function getCardProvider($cardNumber, $gatewayId = '')
+    public static function getCardProvider($gatewayNumber, $gatewayId = '')
     {
         $brand = '';
-        $brand = apply_filters('lkn_wc_cielo_get_card_brand', $brand, $cardNumber, $gatewayId);
+        $brand = apply_filters('lkn_wc_cielo_get_card_brand', $brand, $gatewayNumber, $gatewayId);
 
         if (empty($brand)) {
             // Stores regex for Card Bin Tests
@@ -540,7 +630,7 @@ final class LknWcCieloHelper
                 if ($c > 10) {
                     break;
                 }
-                if (preg_match($bin[$c], $cardNumber) == 1) {
+                if (preg_match($bin[$c], $gatewayNumber) == 1) {
                     switch ($c) {
                         case 0:
                             return 'Elo';

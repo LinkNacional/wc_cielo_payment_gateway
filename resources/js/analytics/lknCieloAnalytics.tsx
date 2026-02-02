@@ -11,7 +11,7 @@ import 'gridjs/dist/theme/mermaid.css';
 
 // Definição das colunas padrão
 const DEFAULT_COLUMNS = [
-    { id: 'card', name: 'Cartão', visible: true },
+    { id: 'gateway', name: 'Card/PIX', visible: true },
     { id: 'cvv_sent', name: 'CVV Enviado', visible: true },
     { id: 'type', name: 'Tipo', visible: true },
     { id: 'installments', name: 'Parcelas', visible: true },
@@ -29,7 +29,7 @@ const DEFAULT_COLUMNS = [
     { id: 'auth_3ds', name: '3DS Auth', visible: true },
     { id: 'tid', name: 'TID', visible: true },
     { id: 'environment', name: 'Ambiente', visible: true },
-    { id: 'gateway', name: 'Gateway', visible: true },
+    { id: 'payment_gateway', name: 'Gateway', visible: true },
     { id: 'order_id', name: 'Order ID', visible: true },
     { id: 'reference', name: 'Reference', visible: true },
     { id: 'merchant_id', name: 'Merchant ID', visible: true },
@@ -183,36 +183,38 @@ const CieloAnalyticsPage = () => {
         }
         
         const brandLower = brand.toLowerCase();
-        const cardBrandsUrl = (window as any).lknCieloAjax?.card_brands_url;
+        const gatewayBrandsUrl = (window as any).lknCieloAjax?.gateway_brands_url;
         
-        if (!cardBrandsUrl) {
+        if (!gatewayBrandsUrl) {
             return null;
         }
         
         // Mapear bandeiras conhecidas
         if (brandLower.includes('visa')) {
-            return `${cardBrandsUrl}visa.webp`;
+            return `${gatewayBrandsUrl}visa.webp`;
         } else if (brandLower.includes('master')) {
-            return `${cardBrandsUrl}mastercard.webp`;
+            return `${gatewayBrandsUrl}mastercard.webp`;
         } else if (brandLower.includes('elo')) {
-            return `${cardBrandsUrl}elo.webp`;
+            return `${gatewayBrandsUrl}elo.webp`;
         } else if (brandLower.includes('amex') || brandLower.includes('american express')) {
-            return `${cardBrandsUrl}amex.webp`;
+            return `${gatewayBrandsUrl}amex.webp`;
         } else if (brandLower.includes('diners')) {
-            return `${cardBrandsUrl}diners.webp`;
+            return `${gatewayBrandsUrl}diners.webp`;
         } else if (brandLower.includes('hipercard') || brandLower.includes('hiper')) {
-            return `${cardBrandsUrl}hipercard.webp`;
+            return `${gatewayBrandsUrl}hipercard.webp`;
         } else if (brandLower.includes('discover')) {
-            return `${cardBrandsUrl}discover.webp`;
+            return `${gatewayBrandsUrl}discover.webp`;
         } else if (brandLower.includes('jcb')) {
-            return `${cardBrandsUrl}jcb.webp`;
+            return `${gatewayBrandsUrl}jcb.webp`;
         } else if (brandLower.includes('aura')) {
-            return `${cardBrandsUrl}aura.webp`;
+            return `${gatewayBrandsUrl}aura.webp`;
         } else if (brandLower.includes('paypal')) {
-            return `${cardBrandsUrl}paypal.webp`;
+            return `${gatewayBrandsUrl}paypal.webp`;
+        } else if (brandLower.includes('pix')) {
+            return `${gatewayBrandsUrl}pix.webp`;
         } else {
             // Bandeira não reconhecida mas existe valor
-            return `${cardBrandsUrl}other.webp`;
+            return `${gatewayBrandsUrl}other.webp`;
         }
     };
 
@@ -238,12 +240,12 @@ const CieloAnalyticsPage = () => {
             `Reference: ${transactionData.system?.reference || 'N/A'}`,
             
             // Dados do cartão
-            `Cartão: ${transactionData.card?.masked || 'N/A'}`,
+            `Cartão/PIX: ${transactionData.gateway?.masked || 'N/A'}`,
             `CVV Enviado: ${transactionData.transaction?.cvv_sent || 'N/A'}`,
-            `Tipo do Cartão: ${transactionData.card?.type || 'N/A'}`,
-            `Bandeira: ${transactionData.card?.brand || 'N/A'}`,
-            `Vencimento: ${transactionData.card?.expiry || 'N/A'}`,
-            `Portador: ${transactionData.card?.holder_name || 'N/A'}`,
+            `Tipo do Cartão: ${transactionData.gateway?.type || 'N/A'}`,
+            `Bandeira: ${transactionData.gateway?.brand || 'N/A'}`,
+            `Vencimento: ${transactionData.gateway?.expiry || 'N/A'}`,
+            `Portador: ${transactionData.gateway?.holder_name || 'N/A'}`,
             
             // Dados da transação
             `Parcelas: ${transactionData.transaction?.installments || 'N/A'}`,
@@ -499,14 +501,14 @@ const CieloAnalyticsPage = () => {
                 
                 // Extrair valor baseado no ID da coluna
                 switch (colConfig.id) {
-                    case 'card':
-                        value = transaction.card?.masked || 'N/A';
+                    case 'gateway':
+                        value = transaction.gateway?.masked || 'N/A';
                         break;
                     case 'cvv_sent':
                         value = transaction.transaction?.cvv_sent || 'N/A';
                         break;
                     case 'type':
-                        value = transaction.card?.type || 'N/A';
+                        value = transaction.gateway?.type || 'N/A';
                         break;
                     case 'installments':
                         value = getValueOrDefault(transaction.transaction?.installments);
@@ -515,10 +517,10 @@ const CieloAnalyticsPage = () => {
                         value = getValueOrDefault(transaction.transaction?.installment_amount);
                         break;
                     case 'brand':
-                        value = transaction.card?.brand || 'N/A';
+                        value = transaction.gateway?.brand || 'N/A';
                         break;
                     case 'expiry':
-                        value = transaction.card?.expiry || 'N/A';
+                        value = transaction.gateway?.expiry || 'N/A';
                         break;
                     case 'datetime':
                         value = transaction.system?.request_datetime || 'N/A';
@@ -553,7 +555,7 @@ const CieloAnalyticsPage = () => {
                     case 'environment':
                         value = transaction.system?.environment || 'N/A';
                         break;
-                    case 'gateway':
+                    case 'payment_gateway':
                         value = transaction.system?.gateway || 'N/A';
                         break;
                     case 'order_id':
@@ -575,7 +577,7 @@ const CieloAnalyticsPage = () => {
                         value = transaction.response?.http_status || 'N/A';
                         break;
                     case 'holder_name':
-                        value = transaction.card?.holder_name || 'N/A';
+                        value = transaction.gateway?.holder_name || 'N/A';
                         break;
                     default:
                         value = 'N/A';
@@ -629,14 +631,14 @@ const CieloAnalyticsPage = () => {
                 
                 // Extrair valor baseado no ID da coluna (mesmo switch do CSV)
                 switch (colConfig.id) {
-                    case 'card':
-                        value = transaction.card?.masked || 'N/A';
+                    case 'gateway':
+                        value = transaction.gateway?.masked || 'N/A';
                         break;
                     case 'cvv_sent':
                         value = transaction.transaction?.cvv_sent || 'N/A';
                         break;
                     case 'type':
-                        value = transaction.card?.type || 'N/A';
+                        value = transaction.gateway?.type || 'N/A';
                         break;
                     case 'installments':
                         value = getValueOrDefault(transaction.transaction?.installments);
@@ -645,10 +647,10 @@ const CieloAnalyticsPage = () => {
                         value = getValueOrDefault(transaction.transaction?.installment_amount);
                         break;
                     case 'brand':
-                        value = transaction.card?.brand || 'N/A';
+                        value = transaction.gateway?.brand || 'N/A';
                         break;
                     case 'expiry':
-                        value = transaction.card?.expiry || 'N/A';
+                        value = transaction.gateway?.expiry || 'N/A';
                         break;
                     case 'datetime':
                         value = transaction.system?.request_datetime || 'N/A';
@@ -683,7 +685,7 @@ const CieloAnalyticsPage = () => {
                     case 'environment':
                         value = transaction.system?.environment || 'N/A';
                         break;
-                    case 'gateway':
+                    case 'payment_gateway':
                         value = transaction.system?.gateway || 'N/A';
                         break;
                     case 'order_id':
@@ -705,7 +707,7 @@ const CieloAnalyticsPage = () => {
                         value = transaction.response?.http_status || 'N/A';
                         break;
                     case 'holder_name':
-                        value = transaction.card?.holder_name || 'N/A';
+                        value = transaction.gateway?.holder_name || 'N/A';
                         break;
                     default:
                         value = 'N/A';
@@ -823,14 +825,14 @@ const CieloAnalyticsPage = () => {
             let value: any = '';
             
             switch (column.id) {
-                case 'card':
-                    value = (transaction && transaction.card && transaction.card.masked) ? transaction.card.masked : 'N/A';
+                case 'gateway':
+                    value = (transaction && transaction.gateway && transaction.gateway.masked) ? transaction.gateway.masked : 'N/A';
                     break;
                 case 'cvv_sent':
                     value = (transaction && transaction.transaction && transaction.transaction.cvv_sent) ? transaction.transaction.cvv_sent : 'N/A';
                     break;
                 case 'type':
-                    value = (transaction && transaction.card && transaction.card.type) ? transaction.card.type : 'N/A';
+                    value = (transaction && transaction.gateway && transaction.gateway.type) ? transaction.gateway.type : 'N/A';
                     break;
                 case 'installments':
                     value = getValueOrDefault((transaction && transaction.transaction && transaction.transaction.installments !== undefined) ? transaction.transaction.installments : null);
@@ -839,10 +841,10 @@ const CieloAnalyticsPage = () => {
                     value = getValueOrDefault((transaction && transaction.transaction && transaction.transaction.installment_amount !== undefined) ? transaction.transaction.installment_amount : null);
                     break;
                 case 'brand':
-                    value = (transaction && transaction.card && transaction.card.brand) ? formatBrandWithImage(transaction.card.brand) : 'N/A';
+                    value = (transaction && transaction.gateway && transaction.gateway.brand) ? formatBrandWithImage(transaction.gateway.brand) : 'N/A';
                     break;
                 case 'expiry':
-                    value = (transaction && transaction.card && transaction.card.expiry) ? transaction.card.expiry : 'N/A';
+                    value = (transaction && transaction.gateway && transaction.gateway.expiry) ? transaction.gateway.expiry : 'N/A';
                     break;
                 case 'datetime':
                     value = (transaction && transaction.system && transaction.system.request_datetime) ? transaction.system.request_datetime : 'N/A';
@@ -877,7 +879,7 @@ const CieloAnalyticsPage = () => {
                 case 'environment':
                     value = (transaction && transaction.system && transaction.system.environment) ? transaction.system.environment : 'N/A';
                     break;
-                case 'gateway':
+                case 'payment_gateway':
                     value = (transaction && transaction.system && transaction.system.gateway) ? transaction.system.gateway : 'N/A';
                     break;
                 case 'order_id':
@@ -899,7 +901,7 @@ const CieloAnalyticsPage = () => {
                     value = (transaction && transaction.response && transaction.response.http_status) ? transaction.response.http_status : 'N/A';
                     break;
                 case 'holder_name':
-                    value = (transaction && transaction.card && transaction.card.holder_name) ? transaction.card.holder_name : 'N/A';
+                    value = (transaction && transaction.gateway && transaction.gateway.holder_name) ? transaction.gateway.holder_name : 'N/A';
                     break;
                 case 'whatsapp':
                     value = html(
