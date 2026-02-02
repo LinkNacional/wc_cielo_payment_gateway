@@ -27,7 +27,7 @@ const DEFAULT_COLUMNS = [
     { id: 'capture', name: 'Captura', visible: true },
     { id: 'recurrent', name: 'Recorrente', visible: true },
     { id: 'auth_3ds', name: '3DS Auth', visible: true },
-    { id: 'tid', name: 'TID', visible: true },
+    { id: 'tid', name: 'TID/PaymentId', visible: true },
     { id: 'environment', name: 'Ambiente', visible: true },
     { id: 'payment_gateway', name: 'Gateway', visible: true },
     { id: 'order_id', name: 'Order ID', visible: true },
@@ -253,7 +253,7 @@ const CieloAnalyticsPage = () => {
             `Captura: ${transactionData.transaction?.capture || 'N/A'}`,
             `Recorrente: ${transactionData.transaction?.recurrent || 'N/A'}`,
             `3DS Auth: ${transactionData.transaction?.['3ds_auth'] || 'N/A'}`,
-            `TID: ${transactionData.transaction?.tid || 'N/A'}`,
+            `TID/PaymentId: ${transactionData.transaction?.tid || 'N/A'}`,
             
             // Valores
             `Total: ${transactionData.amounts?.total || 'N/A'}`,

@@ -301,6 +301,9 @@ final class LknWcCieloHelper
     {
         // Extrair CVV dos dados apenas se não for PIX
         $cardCvv = ($gatewayType !== 'Pix' && isset($_POST[$cvvField])) ? sanitize_text_field(wp_unslash($_POST[$cvvField])) : '';
+
+        error_log(json_encode($responseDecoded));
+        error_log(json_encode($response));
         
         // Calcular valor das parcelas
         $installmentAmount = $installments > 1 ? ($amount / $installments) : $amount;
@@ -515,6 +518,13 @@ final class LknWcCieloHelper
             $displayType = 'Crédito';
             $brand = !empty($provider) ? $provider : 'N/A';
         }
+
+        if ($gatewayType === 'Pix') {
+            $tid = $pixPaymentId;
+        } else {
+            $tid = isset($responseDecoded->Payment->Tid) && !empty($responseDecoded->Payment->Tid) 
+                    ? $responseDecoded->Payment->Tid : 'N/A';
+        }
         
         // Criar estrutura centralizada com metadados da transação
         $transactionMetadata = [
@@ -532,8 +542,7 @@ final class LknWcCieloHelper
                 'capture' => $captureFormatted,
                 'recurrent' => $recurrentFormatted,
                 '3ds_auth' => $threeDSFormatted,
-                'tid' => isset($responseDecoded->Payment->Tid) && !empty($responseDecoded->Payment->Tid) 
-                    ? $responseDecoded->Payment->Tid : 'N/A'
+                'tid' => $tid
             ],
             'amounts' => [
                 'total' => round((float) $amount, wc_get_price_decimals()),
