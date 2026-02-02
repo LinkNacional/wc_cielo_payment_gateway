@@ -400,7 +400,6 @@ final class LknWcCieloPix extends WC_Payment_Gateway
             );
 
             $amount = number_format((float) $order->get_total(), 2, '.', '');
-            $currency = $order->get_currency();
 
             if ('BRL' != $currency) {
                 $amount = apply_filters('lkn_wc_cielo_convert_amount', $amount, $currency);

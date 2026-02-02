@@ -407,7 +407,7 @@ final class LknWcCieloHelper
         $gatewayName = $order->get_payment_method();
         $gatewayName = !empty($gatewayName) ? $gatewayName : 'N/A';
 
-        if($gatewayName === 'lkn_wc_cielo_pix') {
+        if($gatewayName === 'lkn_wc_cielo_pix' || $gatewayName === 'lkn_cielo_pix' ) {
             // Para PIX, verificar success tanto em array quanto objeto
             $hasSuccess = false;
             if (is_array($responseDecoded) && isset($responseDecoded['success'])) {
