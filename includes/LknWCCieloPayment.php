@@ -102,7 +102,7 @@ final class LknWCCieloPayment
         $this->plugin_name = 'lkn-wc-cielo-payment-gateway';
 
         $this->load_dependencies();
-        $this->loader->add_action('plugins_loaded', $this, 'define_hooks');
+        $this->loader->add_action('woocommerce_init', $this, 'define_hooks');
     }
 
     // Gateway classes
@@ -885,6 +885,12 @@ final class LknWCCieloPayment
      */
     public function register_cielo_analytics_script()
     {
+        $plugin_pro_is_valid = LknWcCieloHelper::is_pro_license_active();
+
+        if(!$plugin_pro_is_valid){
+            return;
+        }
+
         // Só carregar em páginas do WooCommerce Admin
         $screen = get_current_screen();
         if (!$screen || strpos($screen->id, 'woocommerce') === false) {
@@ -933,6 +939,12 @@ final class LknWCCieloPayment
      */
     public function add_cielo_analytics_menu_item($items)
     {
+        $plugin_pro_is_valid = LknWcCieloHelper::is_pro_license_active();
+
+        if(!$plugin_pro_is_valid){
+            return $items;
+        }
+
         // Item Cielo Transações
         $cielo_item = array(
             'id'       => 'woocommerce-analytics-cielo-transactions',
