@@ -331,24 +331,10 @@ final class LknWcCieloHelper
         
         // Formatar dados baseado no tipo de gateway
         $gatewayMasked = 'N/A';
-        $pixQrCode = 'N/A';
         $pixPaymentId = 'N/A';
         
         if ($gatewayType === 'Pix') {
-            // Para PIX, usar dados específicos do QR Code
-            $pixQrCode = $order->get_meta('_wc_cielo_qrcode_string');
             $pixPaymentId = $order->get_meta('_wc_cielo_qrcode_payment_id');
-            
-            // Se não tiver nos metadados, tentar extrair da resposta
-            if (empty($pixQrCode)) {
-                if (is_array($responseDecoded) && isset($responseDecoded['response']['qrcodeString'])) {
-                    $pixQrCode = $responseDecoded['response']['qrcodeString'];
-                } elseif (is_object($responseDecoded) && isset($responseDecoded->response->qrcodeString)) {
-                    $pixQrCode = $responseDecoded->response->qrcodeString;
-                } else {
-                    $pixQrCode = 'N/A';
-                }
-            }
             
             if (empty($pixPaymentId)) {
                 if (is_array($responseDecoded) && isset($responseDecoded['response']['paymentId'])) {
