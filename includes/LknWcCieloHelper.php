@@ -386,7 +386,7 @@ final class LknWcCieloHelper
         // Validar Capture baseado no tipo de pagamento
         $captureFormatted = 'N/A';
         if (in_array($cardType, ['Credit', 'Debit'])) {
-            $captureFormatted = $capture ? 'Sim' : 'Não';
+            $captureFormatted = $capture ? 'Auto' : 'Manual';
         }
         
         // Validar Recorrente baseado no tipo de pagamento

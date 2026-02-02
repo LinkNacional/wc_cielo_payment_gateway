@@ -44,6 +44,16 @@
 
 .gridjs-td {
     overflow: hidden !important;
+    background-color: transparent !important;
+}
+
+.gridjs-tr {
+    /* background-color: #f1f3f5 !important; */
+    background-color: #fff;
+}
+
+.gridjs-tr:hover {
+    background-color: #f0f0f0 !important;
 }
 
 /* Grid de configuração de colunas responsivo */
