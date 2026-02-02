@@ -41,6 +41,146 @@ const DEFAULT_COLUMNS = [
 ];
 
 // Componente principal para Analytics do Cielo
+// Sistema de Tooltip usando DOM puro para compatibilidade com Grid.js
+class TooltipManager {
+    private static instance: TooltipManager;
+    private tooltipElement: HTMLDivElement | null = null;
+    private arrowElement: HTMLDivElement | null = null;
+    private currentTarget: HTMLElement | null = null;
+
+    static getInstance(): TooltipManager {
+        if (!TooltipManager.instance) {
+            TooltipManager.instance = new TooltipManager();
+        }
+        return TooltipManager.instance;
+    }
+
+    private createTooltipElement(): HTMLDivElement {
+        const tooltip = document.createElement('div');
+        tooltip.className = 'cielo-tooltip-manager';
+        tooltip.style.cssText = `
+            position: absolute;
+            background-color: #333;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 999999;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            pointer-events: none;
+            display: none;
+            min-width: fit-content;
+            width: auto;
+            height: auto;
+        `;
+        
+        // Adicionar div para o conteúdo (sem position absolute)
+        const content = document.createElement('div');
+        content.className = 'tooltip-content';
+        tooltip.appendChild(content);
+        
+        document.body.appendChild(tooltip);
+        return tooltip;
+    }
+
+    private createArrowElement(): HTMLDivElement {
+        const arrow = document.createElement('div');
+        arrow.className = 'cielo-tooltip-arrow';
+        arrow.style.cssText = `
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 6px solid #333;
+            z-index: 999998;
+            pointer-events: none;
+            display: none;
+        `;
+        
+        document.body.appendChild(arrow);
+        return arrow;
+    }
+
+    showTooltip(target: HTMLElement, content: string): void {
+        if (!this.tooltipElement) {
+            this.tooltipElement = this.createTooltipElement();
+        }
+        if (!this.arrowElement) {
+            this.arrowElement = this.createArrowElement();
+        }
+
+        this.currentTarget = target;
+        
+        // Definir conteúdo no div específico para o conteúdo
+        const contentDiv = this.tooltipElement.querySelector('.tooltip-content') as HTMLElement;
+        if (contentDiv) {
+            contentDiv.textContent = content;
+        } else {
+            // Fallback caso o elemento não seja encontrado
+            this.tooltipElement.textContent = content;
+        }
+        
+        // Aplicar estilo simples sem corte de texto
+        this.tooltipElement.style.whiteSpace = 'normal';
+        this.tooltipElement.style.maxWidth = '300px';
+        this.tooltipElement.style.wordBreak = 'break-word';
+        this.tooltipElement.style.display = 'block';
+        this.tooltipElement.style.overflow = 'visible';
+        this.tooltipElement.style.lineHeight = '1.4';
+        
+        // Calcular posição base
+        const rect = target.getBoundingClientRect();
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+        
+        // Posição da setinha: mais acima do elemento
+        const arrowTop = rect.top + scrollTop - 15; // 15px acima do elemento
+        const arrowLeft = rect.left + scrollLeft + (rect.width / 2);
+        
+        // Posicionar a setinha
+        this.arrowElement.style.top = arrowTop + 'px';
+        this.arrowElement.style.left = arrowLeft + 'px';
+        this.arrowElement.style.transform = 'translateX(-50%)';
+        this.arrowElement.style.display = 'block';
+        
+        const tooltipTop = Math.ceil(arrowTop);
+        const tooltipLeft = arrowLeft;
+        
+        // Posicionar o balão grudado na setinha
+        this.tooltipElement.style.top = tooltipTop + 'px';
+        this.tooltipElement.style.left = tooltipLeft + 'px';
+        this.tooltipElement.style.transform = 'translateX(-50%) translateY(-100%)';
+    }
+
+    hideTooltip(): void {
+        if (this.tooltipElement) {
+            this.tooltipElement.style.display = 'none';
+        }
+        if (this.arrowElement) {
+            this.arrowElement.style.display = 'none';
+        }
+        this.currentTarget = null;
+    }
+
+    private constructor() {
+        // Esconder tooltip quando o mouse sair da área
+        document.addEventListener('mouseover', (e) => {
+            if (this.currentTarget && !this.currentTarget.contains(e.target as Node) && e.target !== this.tooltipElement) {
+                this.hideTooltip();
+            }
+        });
+        
+        // Esconder tooltip quando Shift for pressionado (para evitar conflito com Shift+scroll)
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Shift' && this.currentTarget) {
+                this.hideTooltip();
+            }
+        });
+    }
+}
+
 const CieloAnalyticsPage = () => {
     const gridRef = useRef<HTMLDivElement>(null);
     const [transactionData, setTransactionData] = useState([]);
@@ -218,15 +358,37 @@ const CieloAnalyticsPage = () => {
         }
     };
 
-    // Função para formatar bandeira com imagem
-    const formatBrandWithImage = (brand: string) => {
+    // Função para gerar HTML de bandeira com tooltip
+    const generateBrandTooltipHTML = (brand: string): string => {
         const imageUrl = getBrandImage(brand);
         
         if (!imageUrl) {
-            return brand; // Retorna apenas o texto se não há imagem
+            return brand;
         }
-        
-        return `${brand} <img src="${imageUrl}" alt="${brand}" style="width: 24px; height: 16px; margin-left: 5px; vertical-align: middle;" />`;
+
+        return `<img src="${imageUrl}" alt="${escapeHtml(brand)}" 
+                     style="width: 24px; height: 16px; cursor: pointer; vertical-align: middle;" 
+                     class="tooltip-trigger" 
+                     data-tooltip="${escapeHtml(brand)}" />`;
+    };
+
+    // Função para gerar HTML de código com tooltip
+    const generateCodeTooltipHTML = (code: string, label: string): string => {
+        if (!code || code === 'N/A') {
+            return code;
+        }
+
+        const shortCode = escapeHtml(code.split(' - ')[0]);
+        const fullTooltip = escapeHtml(`${label}: ${code}`);
+
+        return `<div style="display: inline-flex; align-items: center; gap: 5px;">
+                    <span style="font-size: 12px;">${shortCode}</span>
+                    <div class="tooltip-trigger" 
+                         data-tooltip="${fullTooltip}" 
+                         style="width: 16px; height: 16px; border-radius: 50%; background-color: #4A90E2; color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; cursor: pointer; user-select: none;">
+                        i
+                    </div>
+                </div>`;
     };
 
     // Função para gerar mensagem completa para debug
@@ -841,7 +1003,7 @@ const CieloAnalyticsPage = () => {
                     value = getValueOrDefault((transaction && transaction.transaction && transaction.transaction.installment_amount !== undefined) ? transaction.transaction.installment_amount : null);
                     break;
                 case 'brand':
-                    value = (transaction && transaction.gateway && transaction.gateway.brand) ? formatBrandWithImage(transaction.gateway.brand) : 'N/A';
+                    value = (transaction && transaction.gateway && transaction.gateway.brand) ? transaction.gateway.brand : 'N/A';
                     break;
                 case 'expiry':
                     value = (transaction && transaction.gateway && transaction.gateway.expiry) ? transaction.gateway.expiry : 'N/A';
@@ -945,14 +1107,17 @@ const CieloAnalyticsPage = () => {
                     name: col.name,
                     resizable: true,
                     sort: true,
-                    formatter: (cell: any) => {
-                        // Formatters específicos baseados no tipo de coluna
-                        if (col.id === 'brand') {
-                            return cell && typeof cell === 'string' && cell.includes('<img') ? html(cell) : cell;
+                    formatter: (cell: any, row: any, column: any) => {
+                        // Para colunas especiais, gerar HTML com tooltips
+                        if (col.id === 'brand' && cell !== 'N/A') {
+                            return html(generateBrandTooltipHTML(cell));
                         }
-                        if (col.id === 'whatsapp') {
-                            return cell;
+                        
+                        if ((col.id === 'return_code' || col.id === 'http_status') && cell !== 'N/A') {
+                            const label = col.id === 'return_code' ? 'Return Code' : 'HTTP Status';
+                            return html(generateCodeTooltipHTML(cell, label));
                         }
+                        
                         return cell;
                     }
                 }));
@@ -1001,12 +1166,46 @@ const CieloAnalyticsPage = () => {
 
             // Renderizar o grid
             grid.render(gridRef.current);
+            
+            // Adicionar event listeners para tooltips após renderização
+            const setupTooltips = () => {
+                const tooltipManager = TooltipManager.getInstance();
+                const tooltipTriggers = gridRef.current?.querySelectorAll('.tooltip-trigger');
+                
+                tooltipTriggers?.forEach(trigger => {
+                    const element = trigger as HTMLElement;
+                    const tooltipText = element.getAttribute('data-tooltip');
+                    
+                    if (tooltipText) {
+                        element.addEventListener('mouseenter', () => {
+                            tooltipManager.showTooltip(element, tooltipText);
+                        });
+                        
+                        element.addEventListener('mouseleave', () => {
+                            tooltipManager.hideTooltip();
+                        });
+                    }
+                });
+            };
+            
+            // Configurar tooltips após renderização inicial e após mudanças de página
+            setTimeout(setupTooltips, 0);
+            
+            // Re-configurar tooltips quando a paginação mudar
+            const observer = new MutationObserver(() => {
+                setTimeout(setupTooltips, 0);
+            });
+            
+            if (gridRef.current) {
+                observer.observe(gridRef.current, { childList: true, subtree: true });
+            }
 
             // Cleanup
             return () => {
                 if (grid) {
                     grid.destroy();
                 }
+                observer.disconnect();
             };
         }
     }, [transactionData, loading, perPageLimit, columnConfig]); // Dependências: transactionData, loading, perPageLimit e columnConfig
