@@ -1,3 +1,6 @@
+# 1.28.0 - 02/02/2026
+* Adição do sistema de transações do plugin da Cielo.
+
 # 1.27.4 - 09/01/2026
 * Ajuste na verificação do tipo de cartão no 3DS.
 

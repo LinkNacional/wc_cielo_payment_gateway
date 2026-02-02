@@ -24,7 +24,7 @@ final class LknWcCieloRequest
      *
      * @return array
      */
-    public function pix_request($name, $amount, $billingCpfCpnj, $instance, $order)
+    public function pix_request($name, $amount, $billingCpfCpnj, $instance, $order, $merchantOrderId)
     {
         $postUrl = get_option('woocommerce_lkn_wc_cielo_pix_settings')['env'] != 'sandbox' ? $this->urls[1] : $this->urls[0];
         $options = get_option('woocommerce_lkn_wc_cielo_pix_settings');
@@ -32,7 +32,7 @@ final class LknWcCieloRequest
         $amount = (int) number_format($amount, 2, '', '');
 
         $body = array(
-            'MerchantOrderId' => wp_unique_id('lkn_free_cielo_'),
+            'MerchantOrderId' => $merchantOrderId,
             'Customer' => array(
                 'Name' => $name,
                 'Identity' => $this->maskSensitiveData($billingCpfCpnj['Identity']),
