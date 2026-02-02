@@ -302,9 +302,6 @@ final class LknWcCieloHelper
         // Extrair CVV dos dados apenas se não for PIX
         $cardCvv = ($gatewayType !== 'Pix' && isset($_POST[$cvvField])) ? sanitize_text_field(wp_unslash($_POST[$cvvField])) : '';
 
-        error_log(json_encode($responseDecoded));
-        error_log(json_encode($response));
-        
         // Calcular valor das parcelas
         $installmentAmount = $installments > 1 ? ($amount / $installments) : $amount;
         $installmentAmount = round($installmentAmount, wc_get_price_decimals());
