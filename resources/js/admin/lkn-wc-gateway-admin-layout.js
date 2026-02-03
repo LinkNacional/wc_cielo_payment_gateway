@@ -579,6 +579,65 @@
       lknWcCieloValidateMerchantInputs()
     }
 
+    // Lógica para customizar o botão de suporte WhatsApp
+    const sendConfigsInput = document.querySelector('input[id^="woocommerce_lkn_"][id$="_send_configs"]');
+    console.log(sendConfigsInput)
+    if (sendConfigsInput) {
+      // Extrai o nome do gateway do id
+      const idMatch = sendConfigsInput.id.match(/^woocommerce_lkn_(.+)_send_configs$/);
+      let gatewayName = '';
+      if (idMatch && idMatch[1]) {
+        gatewayName = idMatch[1].replace(/_/g, ' ');
+        gatewayName = gatewayName.charAt(0).toUpperCase() + gatewayName.slice(1);
+      }
+
+      // Define o label do botão
+      const supportLabel = lknWcCieloTranslations && lknWcCieloTranslations.support ? lknWcCieloTranslations.support : 'Suporte';
+      sendConfigsInput.value = `${supportLabel}`.trim();
+
+      // Adiciona o ícone do WhatsApp antes do texto
+      sendConfigsInput.style.width = 'fit-content';
+      sendConfigsInput.style.paddingLeft = '32px';
+      sendConfigsInput.style.background = 'url("https://cdn.simpleicons.org/whatsapp/white") no-repeat 8px center/18px, #25d366';
+      sendConfigsInput.style.color = '#fff';
+      sendConfigsInput.style.fill = '#fff';
+      sendConfigsInput.style.border = 'none';
+      sendConfigsInput.style.fontWeight = 'bold';
+      sendConfigsInput.style.cursor = 'pointer';
+      sendConfigsInput.style.outline = '#25d366';
+      sendConfigsInput.style.transition = 'background 0.2s';
+      sendConfigsInput.onmouseover = function() {
+        this.style.backgroundColor = '#128c7e';
+      };
+      sendConfigsInput.onmouseout = function() {
+        this.style.backgroundColor = '#25d366';
+      };
+      sendConfigsInput.style.backgroundColor = '#25d366';
+
+      // Altera o tipo para button (opcional, se não for submit)
+      sendConfigsInput.type = 'button';
+
+      // Adiciona ação para abrir WhatsApp com mensagem formatada
+      const whatsappNumber = lknWcCieloTranslationsInput && lknWcCieloTranslationsInput.whatsapp_number ? lknWcCieloTranslationsInput.whatsapp_number : '55999999999';
+      sendConfigsInput.onclick = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        // Remove classes de animação imediatamente após o clique
+        this.classList.remove('is-busy', 'components-button__busy-animation', 'animation');
+        const settings = lknWcCieloTranslationsInput.gateway_settings || {};
+        let message = '#suporte Olá! Preciso de suporte com meu gateway de pagamento Cielo. Estou com problemas na transação e segue os dados para verificação:';
+        Object.keys(settings).forEach(function(key) {
+          let value = settings[key];
+          if (value === undefined || value === null || value === '') {
+            value = 'null';
+          }
+          message += ` ${key}: ${value} |`;
+        });
+        message += ' Aguardo retorno, obrigado!';
+        window.open(`https://api.whatsapp.com/send/?phone=${whatsappNumber}&text=${encodeURIComponent(message)}`,'_blank');
+      };
+    }
+
     const message = $('<p id="footer-left-lkn" class="alignleft"></p>')
 
     message.html('Saiba mais sobre nossos plugins, suporte e manutenção 24h para WordPress na <a href="https://www.linknacional.com.br/wordpress/plugins/" target="_blank">Link Nacional</a> | Avaliar esse plugin <a href="https://wordpress.org/support/plugin/lkn-wc-gateway-cielo/reviews/?filter=5#postform" target="_blank" class="give-rating-link" style="text-decoration:none;" data-rated="Obrigado :)">★★★★★</a>')

@@ -915,7 +915,7 @@ final class LknWCCieloPayment
         wp_localize_script('lkn-cielo-analytics', 'lknCieloAnalytics', array(
             'plugin_license' => $plugin_pro_is_valid ? 'active' : 'inactive',
             'screenshot_url' => plugin_dir_url(__FILE__) . '../resources/img/cielo-transactions.webp',
-            'pro_version' => 'https://www.linknacional.com.br/wordpress/woocommerce/cielo/'
+            'pro_version' => 'https://www.linknacional.com.br/wordpress/woocommerce/cielo/?utm=plugin-cielo-free-transaction'
         ));
 
         // Registra e enfileira o CSS da versão React

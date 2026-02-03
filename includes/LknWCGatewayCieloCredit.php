@@ -133,17 +133,21 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
 
         if ('wc-settings' === $page && 'checkout' === $tab && $section == $this->id) {
             wp_enqueue_script('lknWCGatewayCieloCreditSettingsLayoutScript', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-wc-gateway-admin-layout.js', array('jquery'), $this->version, false);
+            $gateway_settings = $this->settings;
             wp_localize_script('lknWCGatewayCieloCreditSettingsLayoutScript', 'lknWcCieloTranslationsInput', array(
                 'modern' => __('Modern version', 'lkn-wc-gateway-cielo'),
                 'standard' => __('Standard version', 'lkn-wc-gateway-cielo'),
                 'enable' => __('Enable', 'lkn-wc-gateway-cielo'),
                 'disable' => __('Disable', 'lkn-wc-gateway-cielo'),
-                'analytics_url' => admin_url('admin.php?page=wc-admin&path=%2Fanalytics%2Fcielo-transactions')
+                'analytics_url' => admin_url('admin.php?page=wc-admin&path=%2Fanalytics%2Fcielo-transactions'),
+                'gateway_settings' => $gateway_settings,
+                'whatsapp_number' => '551135223406'
             ));
             wp_enqueue_style('lkn-admin-layout', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-admin-layout.css', array(), $this->version, 'all');
             wp_enqueue_script('lknWCGatewayCieloCreditClearButtonScript', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-clear-logs-button.js', array('jquery', 'wp-api'), $this->version, false);
             wp_localize_script('lknWCGatewayCieloCreditClearButtonScript', 'lknWcCieloTranslations', array(
                 'clearLogs' => __('Limpar Logs', 'lkn-wc-gateway-cielo'),
+                'sendConfigs' => __('Report', 'lkn-wc-gateway-cielo'),
                 'alertText' => __('Deseja realmente deletar todos logs dos pedidos?', 'lkn-wc-gateway-cielo'),
                 'production' => __('Use this in the live store to charge real payments.', 'lkn-wc-gateway-cielo'),
                 'sandbox' => __('Use this for testing purposes in the Cielo sandbox environment.', 'lkn-wc-gateway-cielo'),
@@ -399,6 +403,18 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
                     'data-title-description' => __('This will permanently remove all stored logs from WooCommerce orders. Ideal after resolving issues or for privacy.', 'lkn-wc-gateway-cielo')
                 )
             ),
+        );
+
+        $this->form_fields['send_configs'] = array(
+            'title' => __('Enviar configurações atuais do plugin', 'lkn-wc-gateway-cielo'),
+            'type'  => 'button',
+            'id'    => 'sendConfigs',
+            'class' => 'woocommerce-save-button components-button is-primary',
+            'description' => __('Click neste botão para enviar as configurações atuais do plugin.', 'lkn-wc-gateway-cielo'),
+            'desc_tip' => __('Use esta configuração para enviar os dados atuais de configuração do plugin para depuração.', 'lkn-wc-gateway-cielo'),
+            'custom_attributes' => array(
+                'data-title-description' => __('This will send the current plugin configuration to the support team by WhatsApp. Useful for diagnostics.', 'lkn-wc-gateway-cielo')
+            )
         );
 
         $this->form_fields['transactions'] = array(
