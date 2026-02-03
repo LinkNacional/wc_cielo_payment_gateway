@@ -1210,6 +1210,39 @@ const CieloAnalyticsPage = () => {
         }
     }, [transactionData, loading, perPageLimit, columnConfig]); // Dependências: transactionData, loading, perPageLimit e columnConfig
 
+    // Verificar se a licença está inativa para mostrar apenas o screenshot
+    const analyticsData = (window as any).lknCieloAnalytics || {};
+    if (analyticsData.plugin_license === 'inactive') {
+        return (
+            <div className="woocommerce-layout">
+                <div className="woocommerce-layout__primary">
+                    <div className="woocommerce-layout__main">
+                        {/* Screenshot da funcionalidade como link */}
+                        <a 
+                            href={analyticsData.pro_version} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            style={{
+                                display: 'block',
+                                cursor: 'pointer',
+                            }}
+                        >
+                            <img 
+                                src={analyticsData.screenshot_url} 
+                                alt={__('Click to upgrade to Cielo Analytics PRO', 'lkn-wc-gateway-cielo')}
+                                style={{
+                                    width: '100%',
+                                    height: 'auto',
+                                    display: 'block'
+                                }}
+                            />
+                        </a>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="woocommerce-layout">
             <div className="woocommerce-layout__primary">

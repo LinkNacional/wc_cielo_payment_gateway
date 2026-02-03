@@ -74,18 +74,8 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         $this->supports = apply_filters('lkn_wc_cielo_credit_add_support', $this->supports);
 
         $this->method_title = __('Cielo - Credit Card', 'lkn-wc-gateway-cielo');
+
         $this->method_description = __('Allows credit card payment with Cielo API 3.0.', 'lkn-wc-gateway-cielo');
-
-
-        $is_pro_valid = LknWcCieloHelper::is_pro_license_active();
-        if ($is_pro_valid) {
-            $this->method_description = sprintf(
-                __('Allows credit card payment with Cielo API 3.0. <a href="%s" target="_blank">View Cielo Analytics</a>', 'lkn-wc-gateway-cielo'),
-                esc_url(admin_url('admin.php?page=wc-admin&path=%2Fanalytics%2Fcielo-transactions'))
-            );
-        } else {
-            $this->method_description = __('Allows credit card payment with Cielo API 3.0.', 'lkn-wc-gateway-cielo');
-        }
 
         // Load the settings.
         $this->init_form_fields();
@@ -148,6 +138,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
                 'standard' => __('Standard version', 'lkn-wc-gateway-cielo'),
                 'enable' => __('Enable', 'lkn-wc-gateway-cielo'),
                 'disable' => __('Disable', 'lkn-wc-gateway-cielo'),
+                'analytics_url' => admin_url('admin.php?page=wc-admin&path=%2Fanalytics%2Fcielo-transactions')
             ));
             wp_enqueue_style('lkn-admin-layout', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-admin-layout.css', array(), $this->version, 'all');
             wp_enqueue_script('lknWCGatewayCieloCreditClearButtonScript', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-clear-logs-button.js', array('jquery', 'wp-api'), $this->version, false);
@@ -408,6 +399,12 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
                     'data-title-description' => __('This will permanently remove all stored logs from WooCommerce orders. Ideal after resolving issues or for privacy.', 'lkn-wc-gateway-cielo')
                 )
             ),
+        );
+
+        $this->form_fields['transactions'] = array(
+            'title' => esc_attr__('Transactions', 'lkn-wc-gateway-cielo'),
+            'id' => 'transactions_title',
+            'type'  => 'title',
         );
 
         if (

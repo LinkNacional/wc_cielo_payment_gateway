@@ -69,6 +69,20 @@
           aElement.href = '#' + subTitle.textContent
           aElement.className = 'nav-tab'
           aElement.onclick = (event) => {
+            // Verificar se é a aba Transactions/Transações
+            const tabText = subTitle.textContent.toLowerCase();
+            if (tabText === 'transactions' || tabText === 'transações') {
+              event.preventDefault();
+              event.stopPropagation();
+              
+              // Usar URL do wp_localize_script
+              const analyticsUrl = lknWcCieloTranslationsInput.analytics_url;
+
+              // Abrir em nova aba
+              window.open(analyticsUrl, '_blank');
+              return false;
+            }
+            
             lknWcCieloCreditBlocksSettingsLayoutMenuVar = index + 1
             aElements.forEach((pElement, indexP) => {
               if (indexP == index) {

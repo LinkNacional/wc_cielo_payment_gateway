@@ -887,10 +887,6 @@ final class LknWCCieloPayment
     {
         $plugin_pro_is_valid = LknWcCieloHelper::is_pro_license_active();
 
-        if(!$plugin_pro_is_valid){
-            return;
-        }
-
         // Só carregar em páginas do WooCommerce Admin
         $screen = get_current_screen();
         if (!$screen || strpos($screen->id, 'woocommerce') === false) {
@@ -914,6 +910,12 @@ final class LknWCCieloPayment
             'nonce' => wp_create_nonce('lkn_cielo_orders_nonce'),
             'action_get_recent_orders' => 'lkn_get_recent_cielo_orders',
             'gateway_brands_url' => plugin_dir_url(__FILE__) . '../resources/assets/gatewayBrands/'
+        ));
+
+        wp_localize_script('lkn-cielo-analytics', 'lknCieloAnalytics', array(
+            'plugin_license' => $plugin_pro_is_valid ? 'active' : 'inactive',
+            'screenshot_url' => plugin_dir_url(__FILE__) . '../resources/img/cielo-transactions.webp',
+            'pro_version' => 'https://www.linknacional.com.br/wordpress/woocommerce/cielo/'
         ));
 
         // Registra e enfileira o CSS da versão React
@@ -940,10 +942,6 @@ final class LknWCCieloPayment
     public function add_cielo_analytics_menu_item($items)
     {
         $plugin_pro_is_valid = LknWcCieloHelper::is_pro_license_active();
-
-        if(!$plugin_pro_is_valid){
-            return $items;
-        }
 
         // Item Cielo Transações
         $cielo_item = array(

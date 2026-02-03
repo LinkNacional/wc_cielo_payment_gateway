@@ -73,7 +73,8 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         $this->supports = apply_filters('lkn_wc_cielo_debit_add_support', $this->supports);
 
         $this->method_title = __('Cielo - Debit and credit card', 'lkn-wc-gateway-cielo');
-        $this->method_description = __('Allows debit and credit card payment with Cielo API 3.0.', 'lkn-wc-gateway-cielo') . ' ' . '<a href="https://www.linknacional.com.br/wordpress/woocommerce/cielo/doc/" target="_blank">' . __('Learn more how to configure.', 'lkn-wc-gateway-cielo') . '</a>';
+
+        $this->method_description = __('Allows debit and credit card payment with Cielo API 3.0.', 'lkn-wc-gateway-cielo');
 
         // Load the settings.
         $this->init_form_fields();
@@ -154,7 +155,8 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                 'enable' => __('Enable', 'lkn-wc-gateway-cielo'),
                 'disable' => __('Disable', 'lkn-wc-gateway-cielo'),
                 'mordernVersion' => plugin_dir_url(__FILE__) . '../resources/img/modern-version.png',
-                'standardVersion' => plugin_dir_url(__FILE__) . '../resources/img/standard-version.png'
+                'standardVersion' => plugin_dir_url(__FILE__) . '../resources/img/standard-version.png',
+                'analytics_url' => admin_url('admin.php?page=wc-admin&path=%2Fanalytics%2Fcielo-transactions')
             ));
             wp_enqueue_style('lkn-admin-layout', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-admin-layout.css', array(), $this->version, 'all');
             wp_enqueue_script('lknWCGatewayCieloDebitClearButtonScript', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-clear-logs-button.js', array('jquery', 'wp-api'), $this->version, false);
@@ -481,6 +483,12 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                     'data-title-description' => __('Botão para limpar os logs armazenados nos pedidos.', 'lkn-wc-gateway-cielo'),
                 ),
             )
+        );
+
+        $this->form_fields['transactions'] = array(
+            'title' => esc_attr__('Transactions', 'lkn-wc-gateway-cielo'),
+            'id' => 'transactions_title',
+            'type'  => 'title',
         );
 
         if (

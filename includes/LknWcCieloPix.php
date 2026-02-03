@@ -36,13 +36,14 @@ final class LknWcCieloPix extends WC_Payment_Gateway
         $this->version = LKN_WC_CIELO_VERSION;
 
         $this->method_title = __('Cielo PIX Free', 'lkn-wc-gateway-cielo');
+        
         $this->method_description = __('Check with Cielo if the PIX payment method is activated.', 'lkn-wc-gateway-cielo') . ' ' .
-            '<a href="https://www.youtube.com/watch?v=5mYIEC9V254&t=993s" target="_blank">' .
-            __('Watch the tutorial', 'lkn-wc-gateway-cielo') . '</a>' . ' ' .
-            __('or', 'lkn-wc-gateway-cielo') . ' ' .
-            '<a href="https://linknacional.com.br/wordpress/woocommerce/cielo/doc/#woocommerce-pix-cielo" target="_blank">' .
-            __('check the documentation', 'lkn-wc-gateway-cielo') . '</a>' .
-            __(' for more information.', 'lkn-wc-gateway-cielo');
+                '<a href="https://www.youtube.com/watch?v=5mYIEC9V254&t=993s" target="_blank">' .
+                __('Watch the tutorial', 'lkn-wc-gateway-cielo') . '</a>' . ' ' .
+                __('or', 'lkn-wc-gateway-cielo') . ' ' .
+                '<a href="https://linknacional.com.br/wordpress/woocommerce/cielo/doc/#woocommerce-pix-cielo" target="_blank">' .
+                __('check the documentation', 'lkn-wc-gateway-cielo') . '</a>' .
+                __(' for more information.', 'lkn-wc-gateway-cielo');
 
 
         $this->supports = array(
@@ -105,6 +106,7 @@ final class LknWcCieloPix extends WC_Payment_Gateway
                 'standard' => __('Standard version', 'lkn-wc-gateway-cielo'),
                 'enable' => __('Enable', 'lkn-wc-gateway-cielo'),
                 'disable' => __('Disable', 'lkn-wc-gateway-cielo'),
+                'analytics_url' => admin_url('admin.php?page=wc-admin&path=%2Fanalytics%2Fcielo-transactions')
             ));
             wp_enqueue_style('lkn-admin-cielo-layout', LKN_WC_GATEWAY_CIELO_URL . 'resources/css/frontend/lkn-admin-layout.css', array(), $this->version, 'all');
             wp_enqueue_script('LknCieloPixClearButtonScript', LKN_WC_GATEWAY_CIELO_URL . '/resources/js/admin/lkn-clear-logs-button.js', array('jquery'), $this->version, false);
@@ -267,6 +269,11 @@ final class LknWcCieloPix extends WC_Payment_Gateway
                     'data-title-description' => __('Enables log recording to help with analysis and troubleshooting.', 'lkn-wc-gateway-cielo'),
                 ),
             ),
+            'transactions' => array(
+                'title' => esc_attr__('Transactions', 'lkn-wc-gateway-cielo'),
+                'id' => 'transactions_title',
+                'type'  => 'title',
+            )
         );
 
         if ($this->get_option('debug') == 'yes') {
