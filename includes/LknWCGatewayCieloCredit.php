@@ -76,6 +76,17 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         $this->method_title = __('Cielo - Credit Card', 'lkn-wc-gateway-cielo');
         $this->method_description = __('Allows credit card payment with Cielo API 3.0.', 'lkn-wc-gateway-cielo');
 
+
+        $is_pro_valid = LknWcCieloHelper::is_pro_license_active();
+        if ($is_pro_valid) {
+            $this->method_description = sprintf(
+                __('Allows credit card payment with Cielo API 3.0. <a href="%s" target="_blank">View Cielo Analytics</a>', 'lkn-wc-gateway-cielo'),
+                esc_url(admin_url('admin.php?page=wc-admin&path=%2Fanalytics%2Fcielo-transactions'))
+            );
+        } else {
+            $this->method_description = __('Allows credit card payment with Cielo API 3.0.', 'lkn-wc-gateway-cielo');
+        }
+
         // Load the settings.
         $this->init_form_fields();
         $this->init_settings();
