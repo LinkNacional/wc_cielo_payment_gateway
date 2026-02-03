@@ -44,6 +44,8 @@ use Lkn\LknCieloApiPro\Includes\LknCieloApiProLicenseHelper;
  */
 final class LknWCCieloPayment
 {
+
+
     /**
      * The loader that's responsible for maintaining and registering all hooks that power
      * the plugin.
@@ -100,7 +102,7 @@ final class LknWCCieloPayment
         $this->plugin_name = 'lkn-wc-cielo-payment-gateway';
 
         $this->load_dependencies();
-        $this->loader->add_action('plugins_loaded', $this, 'define_hooks');
+        $this->loader->add_action('woocommerce_init', $this, 'define_hooks');
     }
 
     // Gateway classes
@@ -170,6 +172,11 @@ final class LknWCCieloPayment
         $this->loader->add_filter('plugin_action_links_' . LKN_WC_CIELO_FILE_BASENAME, $this, 'lkn_wc_cielo_plugin_row_meta_pro', 10, 2);
         $this->loader->add_action('lkn_schedule_check_free_pix_payment_hook', LknWcCieloRequest::class, 'check_payment', 10, 2);
         $this->loader->add_action('lkn_remove_custom_cron_job_hook', LknWcCieloRequest::class, 'lkn_remove_custom_cron_job', 10, 2);
+        
+        // Analytics - registra script e menu do WooCommerce Admin
+        $this->loader->add_action('admin_enqueue_scripts', $this, 'register_cielo_analytics_script');
+        $this->loader->add_filter('woocommerce_analytics_report_menu_items', $this, 'add_cielo_analytics_menu_item');
+        
         // Admin settings card for specific sections
         $this->setup_admin_settings_card();
     }
@@ -199,6 +206,9 @@ final class LknWCCieloPayment
 
         $this->loader->add_action('wp_ajax_lkn_update_card_type', $this, 'ajax_update_card_type');
         $this->loader->add_action('wp_ajax_nopriv_lkn_update_card_type', $this, 'ajax_update_card_type');
+
+        $this->loader->add_action('wp_ajax_lkn_get_recent_cielo_orders', $this, 'ajax_get_recent_cielo_orders');
+        $this->loader->add_action('wp_ajax_nopriv_lkn_get_recent_cielo_orders', $this, 'ajax_get_recent_cielo_orders');
 
         $this->loader->add_action('woocommerce_review_order_after_order_total', $this, 'display_payment_installment_info');
     }
@@ -867,5 +877,320 @@ final class LknWCCieloPayment
         }
 
         return $total_rows;
+    }
+
+    /**
+     * Registra o script JavaScript para analytics do Cielo
+     * Usa a versão React compilada via webpack
+     */
+    public function register_cielo_analytics_script()
+    {
+        $plugin_pro_is_valid = LknWcCieloHelper::is_pro_license_active();
+
+        if(!$plugin_pro_is_valid){
+            return;
+        }
+
+        // Só carregar em páginas do WooCommerce Admin
+        $screen = get_current_screen();
+        if (!$screen || strpos($screen->id, 'woocommerce') === false) {
+            return;
+        }
+
+        // Usar a versão React compilada
+        wp_register_script(
+            'lkn-cielo-analytics',
+            plugin_dir_url(__FILE__) . '../resources/js/analytics/lknCieloAnalyticsCompiled.js',
+            array('wp-hooks', 'wp-element', 'wp-i18n', 'wc-components', 'react', 'react-dom'),
+            LKN_WC_CIELO_VERSION,
+            true
+        );
+
+        wp_enqueue_script('lkn-cielo-analytics');
+
+        // Localiza script com dados para AJAX
+        wp_localize_script('lkn-cielo-analytics', 'lknCieloAjax', array(
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('lkn_cielo_orders_nonce'),
+            'action_get_recent_orders' => 'lkn_get_recent_cielo_orders',
+            'gateway_brands_url' => plugin_dir_url(__FILE__) . '../resources/assets/gatewayBrands/'
+        ));
+
+        // Registra e enfileira o CSS da versão React
+        wp_register_style(
+            'lkn-cielo-analytics-style',
+            plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-cielo-analytics-react.css',
+            array(),
+            LKN_WC_CIELO_VERSION
+        );
+
+        wp_enqueue_style('lkn-cielo-analytics-style');
+
+        // Adiciona tradução se necessário
+        wp_set_script_translations('lkn-cielo-analytics', 'lkn-wc-gateway-cielo');
+    }
+
+    /**
+     * Adiciona item personalizado ao menu Analytics do WooCommerce
+     * Insere na posição correta antes das configurações
+     *
+     * @param array $items Lista de itens do menu Analytics
+     * @return array Lista modificada com o item Cielo
+     */
+    public function add_cielo_analytics_menu_item($items)
+    {
+        $plugin_pro_is_valid = LknWcCieloHelper::is_pro_license_active();
+
+        if(!$plugin_pro_is_valid){
+            return $items;
+        }
+
+        // Item Cielo Transações
+        $cielo_item = array(
+            'id'       => 'woocommerce-analytics-cielo-transactions',
+            'title'    => __('Cielo Transações', 'lkn-wc-gateway-cielo'),
+            'parent'   => 'woocommerce-analytics',
+            'path'     => '/analytics/cielo-transactions',
+            'icon'     => 'dashicons-chart-bar',
+            'position' => 2,
+        );
+
+        // Encontrar a posição das configurações para inserir antes
+        $settings_key = null;
+        foreach ($items as $key => $item) {
+            if (isset($item['id']) && $item['id'] === 'woocommerce-analytics-settings') {
+                $settings_key = $key;
+                break;
+            }
+        }
+
+        // Se encontrou as configurações, insere antes dela
+        if ($settings_key !== null) {
+            // Divide o array em duas partes
+            $before_settings = array_slice($items, 0, array_search($settings_key, array_keys($items)), true);
+            $from_settings = array_slice($items, array_search($settings_key, array_keys($items)), null, true);
+            
+            // Adiciona o item Cielo entre elas
+            $items = $before_settings + ['cielo-transactions' => $cielo_item] + $from_settings;
+        } else {
+            // Fallback: adiciona no final se não encontrar as configurações
+            $items['cielo-transactions'] = $cielo_item;
+        }
+
+        return $items;
+    }
+
+    /**
+     * AJAX handler to get recent Cielo orders with metadata.
+     *
+     * @since 1.0.0
+     */
+    public function ajax_get_recent_cielo_orders()
+    {
+        // Verificar nonce se fornecido
+        if (isset($_POST['nonce']) && !wp_verify_nonce(wp_unslash($_POST['nonce']), 'lkn_cielo_orders_nonce')) {
+            wp_send_json_error(array('message' => 'Nonce inválido'));
+            return;
+        }
+
+        // Verificar se é um usuário com permissões adequadas
+        if (!current_user_can('manage_woocommerce')) {
+            wp_send_json_error(array('message' => 'Permissões insuficientes'));
+            return;
+        }
+
+        // Verificar se o cliente quer resposta em formato TOON
+        $response_format = isset($_POST['response_format']) ? sanitize_text_field(wp_unslash($_POST['response_format'])) : 'json';
+
+        // Parâmetros de consulta
+        $page = isset($_POST['page']) ? max(1, (int) sanitize_text_field(wp_unslash($_POST['page']))) : 1;
+        $query_limit = isset($_POST['query_limit']) ? max(1, min(1000, (int) sanitize_text_field(wp_unslash($_POST['query_limit'])))) : 50;
+        $offset = ($page - 1) * $query_limit;
+
+        // Parâmetros de filtros de data
+        $start_date = isset($_POST['start_date']) ? sanitize_text_field(wp_unslash($_POST['start_date'])) : '';
+        $end_date = isset($_POST['end_date']) ? sanitize_text_field(wp_unslash($_POST['end_date'])) : '';
+
+        // Se não há filtros de data especificados, usar o filtro padrão de "hoje"
+        if (empty($start_date) && empty($end_date)) {
+            $today = gmdate('Y-m-d');
+            $start_date = $today;
+            $end_date = $today;
+        }
+
+        try {
+            global $wpdb;
+            
+            // Aplicar filtros de data (sempre há pelo menos o filtro de hoje)
+            $date_where = " WHERE 1=1";
+            $date_params = array();
+            
+            if (!empty($start_date)) {
+                $date_where .= " AND date_created_gmt >= %s";
+                $date_params[] = $start_date . ' 00:00:00';
+            }
+            
+            if (!empty($end_date)) {
+                $date_where .= " AND date_created_gmt <= %s";
+                $date_params[] = $end_date . ' 23:59:59';
+            }
+            
+            // PRIMEIRA ETAPA: Buscar TODOS os pedidos que têm dados Cielo no período (sem LIMIT)
+            $all_orders_query = "SELECT o.id 
+                               FROM {$wpdb->prefix}wc_orders o
+                               INNER JOIN {$wpdb->prefix}wc_orders_meta om ON o.id = om.order_id
+                               " . $date_where . "
+                               AND om.meta_key = 'lkn_cielo_transaction_data'
+                               AND om.meta_value != ''
+                               ORDER BY o.date_created_gmt DESC, o.id DESC";
+            
+            $cielo_order_ids = $wpdb->get_col($wpdb->prepare($all_orders_query, $date_params));
+            
+            // Se não há pedidos Cielo, retornar resultado vazio
+            if (empty($cielo_order_ids)) {
+                $response_data = array(
+                    'message' => 'Nenhuma transação Cielo encontrada',
+                    'orders' => array(),
+                    'pagination' => array(
+                        'page' => $page,
+                        'query_limit' => $query_limit,
+                        'total_count' => 0,
+                        'total_pages' => 0,
+                        'has_next' => false
+                    )
+                );
+                
+                if ($response_format === 'toon') {
+                    $this->send_toon_response(true, $response_data);
+                } else {
+                    wp_send_json_success($response_data);
+                }
+                return;
+            }
+            
+            // SEGUNDA ETAPA: Aplicar paginação aos pedidos Cielo
+            $total_cielo_count = count($cielo_order_ids);
+            $paginated_order_ids = array_slice($cielo_order_ids, $offset, $query_limit);
+            
+            // TERCEIRA ETAPA: Processar os pedidos paginados
+            $orders_data = array();
+
+            foreach ($paginated_order_ids as $order_id) {
+                // Usar função nativa do WooCommerce para pegar o pedido
+                $order = wc_get_order($order_id);
+                
+                if (!$order) {
+                    continue; // Pular se o pedido não existe
+                }
+                
+                // Buscar metadados específicos do Cielo
+                $transaction_data = $order->get_meta('lkn_cielo_transaction_data');
+                $data_format = $order->get_meta('lkn_cielo_data_format') ?: 'json';
+                
+                // Decodificar dados baseado no formato
+                if ($data_format === 'toon') {
+                    $transactionData = LknWcCieloHelper::decodeToonData($transaction_data);
+                } else {
+                    $transactionData = json_decode($transaction_data, true);
+                }
+                
+                // Se decodificou com sucesso, adicionar aos dados
+                if ($transactionData && is_array($transactionData)) {
+                    $orders_data[] = array(
+                        'order_id' => (int) $order_id,
+                        'data_format' => $data_format,
+                        'transaction_data' => $transactionData
+                    );
+                }
+            }
+
+            $response_data = array(
+                'message' => sprintf('Página %d - %d transações Cielo encontradas de %d total', 
+                    $page, 
+                    count($orders_data), 
+                    $total_cielo_count
+                ),
+                'orders' => $orders_data,
+                'pagination' => array(
+                    'page' => $page,
+                    'query_limit' => $query_limit,
+                    'total_count' => (int) $total_cielo_count,
+                    'total_pages' => ceil($total_cielo_count / $query_limit),
+                    'has_next' => ($page * $query_limit) < $total_cielo_count
+                )
+            );
+
+            // Enviar resposta no formato solicitado
+            if ($response_format === 'toon') {
+                $this->send_toon_response(true, $response_data);
+            } else {
+                wp_send_json_success($response_data);
+            }
+
+        } catch (Exception $e) {
+            $error_data = array(
+                'message' => 'Erro ao buscar pedidos: ' . $e->getMessage()
+            );
+            
+            if ($response_format === 'toon') {
+                $this->send_toon_response(false, $error_data);
+            } else {
+                wp_send_json_error($error_data);
+            }
+        }
+    }
+
+    /**
+     * Send AJAX response in TOON format
+     *
+     * @param bool $success
+     * @param array $data
+     */
+    private function send_toon_response($success, $data)
+    {
+        // Preparar dados de resposta no formato similar ao wp_send_json
+        $response = array(
+            'success' => $success,
+            'data' => $data
+        );
+
+        // Codificar em TOON
+        $toon_response = LknWcCieloHelper::encodeToonData($response);
+
+        // Definir headers apropriados
+        if (!headers_sent()) {
+            header('Content-Type: text/plain; charset=' . get_option('blog_charset'));
+            header('X-Content-Type-Options: nosniff');
+            header('X-Robots-Tag: noindex');
+        }
+
+        // Enviar resposta e encerrar
+        echo $toon_response;
+        wp_die('', '', array('response' => null));
+    }
+
+    /**
+     * Decode transaction data from database string based on format
+     *
+     * @param string $dataString
+     * @param string $format
+     * @return array|null
+     */
+    private function decodeTransactionDataFromDB($dataString, $format)
+    {
+        if (empty($dataString)) {
+            return null;
+        }
+
+        try {
+            if ($format === 'toon') {
+                return LknWcCieloHelper::decodeToonData($dataString);
+            } else {
+                $decoded = json_decode($dataString, true);
+                return is_array($decoded) ? $decoded : null;
+            }
+        } catch (Exception $e) {
+            return null;
+        }
     }
 }

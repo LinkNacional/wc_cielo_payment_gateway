@@ -17,5 +17,7 @@
     "require-dev": {
         "phan/phan": "5.4.1"
     },
-    "require": {}
+    "require": {
+        "helgesverre/toon": "^3.1"
+    }
 }

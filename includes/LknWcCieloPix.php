@@ -377,6 +377,9 @@ final class LknWcCieloPix extends WC_Payment_Gateway
         $order = wc_get_order($order_id);
         $first_name = $order->get_billing_first_name();
         $last_name = $order->get_billing_last_name();
+        $merchantOrderId = $order_id . '-' . time();
+        $merchantId = sanitize_text_field($this->get_option('merchant_id'));
+        $merchantSecret = sanitize_text_field($this->get_option('merchant_key'));
         $paymentComplete = true;
         try {
             // Verificação de nome
@@ -395,9 +398,7 @@ final class LknWcCieloPix extends WC_Payment_Gateway
                 'Identity' => isset($_POST['billing_cpf']) ? sanitize_text_field(wp_unslash($_POST['billing_cpf'])) : '',
                 'IdentityType' => isset($_POST['billing_cpf']) && strlen(sanitize_text_field(wp_unslash($_POST['billing_cpf']))) === 14 ? 'CPF' : 'CNPJ'
             );
-            if ('' === $billingCpfCpnj['Identity'] || ! $this->validateCpfCnpj($billingCpfCpnj['Identity'])) {
-                throw new Exception(__('Please enter a valid CPF or CNPJ.', 'lkn-wc-gateway-cielo'));
-            }
+
             $amount = number_format((float) $order->get_total(), 2, '.', '');
 
             if ('BRL' != $currency) {
@@ -409,15 +410,37 @@ final class LknWcCieloPix extends WC_Payment_Gateway
                 throw new Exception('Não foi possivel recuperar o valor da compra!', 1);
             }
 
-            $response = self::$request->pix_request($fullName, $amount, $billingCpfCpnj, $this, $order);
+            if ('' === $billingCpfCpnj['Identity'] || ! $this->validateCpfCnpj($billingCpfCpnj['Identity'])) {
+                $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
+                    400,
+                    '188',
+                    'Please enter a valid CPF or CNPJ'
+                );
+                LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, 'N/A', 'N/A', $fullName, 1, $amount, $currency, 'PIX', $merchantId, $merchantSecret, $merchantOrderId, $order_id, 'N/A', null, 'Pix', 'N/A', $this, 'N/A', 'N/A', 'N/A', 'N/A', 'N/A');
+                $order->save();
+                throw new Exception(__('Please enter a valid CPF or CNPJ.', 'lkn-wc-gateway-cielo'));
+            }
+
+            $response = self::$request->pix_request($fullName, $amount, $billingCpfCpnj, $this, $order, $merchantOrderId);
 
             if (isset($response['sucess']) && $response['sucess'] === false) {
+                LknWcCieloHelper::saveTransactionMetadata($order, $response, 'N/A', 'N/A', $fullName, 1, $amount, $currency, 'PIX', $merchantId, $merchantSecret, $merchantOrderId, $order_id, 'N/A', null, 'Pix', 'N/A', $this, 'N/A', 'N/A', 'N/A', 'N/A', 'N/A');
+                $order->save();
                 throw new Exception(json_encode($response['response']), 1);
             }
             if (! is_array($response) && ! is_object($response)) {
+                LknWcCieloHelper::saveTransactionMetadata($order, $response, 'N/A', 'N/A', $fullName, 1, $amount, $currency, 'PIX', $merchantId, $merchantSecret, $merchantOrderId, $order_id, 'N/A', null, 'Pix', 'N/A', $this, 'N/A', 'N/A', 'N/A', 'N/A', 'N/A');
+                $order->save();
                 throw new Exception(json_encode($response), 1);
             }
             if (! $response['response']) {
+                $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
+                    400,
+                    '184',
+                    'Request error, try again!'
+                );
+                LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, 'N/A', 'N/A', $fullName, 1, $amount, $currency, 'PIX', $merchantId, $merchantSecret, $merchantOrderId, $order_id, 'N/A', null, 'Pix', 'N/A', $this, 'N/A', 'N/A', 'N/A', 'N/A', 'N/A');
+                $order->save();
                 throw new Exception('Erro na Requisição. Tente novamente!', 1);
             }
 
@@ -429,9 +452,16 @@ final class LknWcCieloPix extends WC_Payment_Gateway
             $order->update_meta_data('_wc_cielo_qrcode_string', $response['response']['qrcodeString']);
             $order->update_meta_data('_wc_cielo_qrcode_payment_id', $response['response']['paymentId']);
 
+            LknWcCieloHelper::saveTransactionMetadata($order, $response, $response['response']['qrcodeString'], 'N/A', $fullName, 1, $amount, $currency, 'PIX', $merchantId, $merchantSecret, $merchantOrderId, $order_id, 'N/A', null, 'Pix', 'N/A', $this, 'N/A', 'N/A', 'N/A', 'N/A', $response['response']['paymentId']);
             $order->save();
         } catch (Exception $err) {
             $paymentComplete = false;
+            $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
+                400,
+                '184',
+                $err->getMessage()
+            );
+            LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, 'N/A', 'N/A', $fullName, 1, $amount, $currency, 'PIX', $merchantId, $merchantSecret, $merchantOrderId, $order_id, 'N/A', null, 'Pix', 'N/A', $this, 'N/A', 'N/A', 'N/A', 'N/A', 'N/A');
             $this->add_error($err->getMessage());
         }
 
@@ -443,6 +473,15 @@ final class LknWcCieloPix extends WC_Payment_Gateway
         } else {
             $this->log->log('error', 'PIX Payment failed: ' . var_export($response, true), array('source' => 'woocommerce-cielo-pix'));
             $this->add_notice_once(__('PIX Payment Failed', 'lkn-wc-gateway-cielo-pro'), 'error');
+
+            $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
+                400,
+                '184',
+                'PIX Payment Failed'
+            );
+            LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, 'N/A', 'N/A', $fullName, 1, $amount, $currency, 'PIX', $merchantId, $merchantSecret, $merchantOrderId, $order_id, 'N/A', null, 'Pix', 'N/A', $this, 'N/A', 'N/A', 'N/A', 'N/A', 'N/A');
+            $order->save();
+
             throw new Exception(esc_attr(__('PIX Payment Failed', 'lkn-wc-gateway-cielo-pro')));
         }
     }
