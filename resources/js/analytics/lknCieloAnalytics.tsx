@@ -414,7 +414,7 @@ const CieloAnalyticsPage = () => {
             `Data/Hora: ${transactionData.system?.request_datetime || 'N/A'}`,
             `Ambiente: ${transactionData.system?.environment || 'N/A'}`,
             `Plugin: ${pluginSlug}`,
-            `Domain: ${analyticsData.site_domain || 'N/A'}`,
+            `Site: ${analyticsData.site_domain || 'N/A'}`,
             `Gateway: ${transactionData.system?.gateway || 'N/A'}`,
             `Reference: ${transactionData.system?.reference || 'N/A'}`,
             
