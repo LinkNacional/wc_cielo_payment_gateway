@@ -289,7 +289,7 @@ final class LknWcCieloPix extends WC_Payment_Gateway
                 'title' => __('WhatsApp Support', 'lkn-wc-gateway-cielo'),
                 'type'  => 'button',
                 'id'    => 'sendConfigs',
-                'description' => __('', 'lkn-wc-gateway-cielo'),
+                'description' => __('Enable Debug Mode to use this option.', 'lkn-wc-gateway-cielo'),
                 'desc_tip' => __('', 'lkn-wc-gateway-cielo'),
                 'custom_attributes' => array(
                     'merge-top' => "woocommerce_{$this->id}_debug",
