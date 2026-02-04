@@ -281,11 +281,15 @@
               bodyDiv.appendChild(p)
             }
 
-            const inputElement = bodyDiv.querySelector('input[type="text"], input[type="number"], input[type="password"], select, textarea')
+            const inputElement = bodyDiv.querySelector('input[type="text"], input[type="number"], input[type="password"], input[type="button"], select, textarea')
             if (inputElement) {
-              inputElement.style.minWidth = '200px'
-              inputElement.style.width = '100%'
-              inputElement.style.maxWidth = '400px'
+              // Só aplica estilos de largura se não for botão
+              if (inputElement.type !== 'button') {
+                inputElement.style.minWidth = '200px'
+                inputElement.style.width = '100%'
+                inputElement.style.maxWidth = '400px'
+              }
+              
               const titleText = inputElement.getAttribute('data-title-description')
               if (titleText) {
                 descBlock.innerHTML = titleText
@@ -345,34 +349,87 @@
                 }
               }
 
+              // Lógica para merge-inputs (versão melhorada baseada em merge-top)
               const mergeInputs = inputElement.getAttribute('merge-inputs')
               if (mergeInputs) {
                 const titleSetting = tr.querySelector('th label')
-
                 const inputParent = document.querySelector('#' + mergeInputs)
-                const divBodyCart = inputParent.closest('div.lkn-body-cart')
-                if (divBodyCart){
-                  let divMerge = divBodyCart.querySelector('div.lkn-merge-inputs');
-                  if(!divMerge){
-                    divMerge = document.createElement('div');
-                    divMerge.classList.add('lkn-merge-inputs');
-                    divBodyCart.insertBefore(divMerge, divBodyCart.lastElementChild);
-                  }
-                  const copyContainer = inputElement.closest('.lkn-input-copy-container')
-
-                  if(titleSetting){
-                    const divTittle = document.createElement('div')
-                    divTittle.innerHTML = titleSetting.textContent
-                    divTittle.style.fontWeight = 'bold'
-                    divTittle.style.fontSize = '16px'
-
-                    divMerge.appendChild(divTittle)
-                  }
-                  divMerge.appendChild(copyContainer);
+                
+                if (inputParent) {
+                  const parentBodyCart = inputParent.closest('div.lkn-body-cart')
                   
-                  tr.style.display = 'none';
+                  if (parentBodyCart) {
+                    // Procura ou cria o container de campos agrupados
+                    let containerCampos = parentBodyCart.querySelector('.lkn-cielo-container-campos')
+                    
+                    if (!containerCampos) {
+                      containerCampos = document.createElement('div')
+                      containerCampos.classList.add('lkn-cielo-container-campos')
+                      containerCampos.style.marginTop = '15px'
+                      containerCampos.style.padding = '10px'
+                      containerCampos.style.backgroundColor = '#f9f9f9'
+                      containerCampos.style.border = '1px solid #e5e5e5'
+                      containerCampos.style.borderRadius = '4px'
+                      parentBodyCart.appendChild(containerCampos)
+                    }
+                    
+                    // Cria o wrapper para o campo filho
+                    const fieldWrapper = document.createElement('div')
+                    fieldWrapper.classList.add('lkn-cielo-merged-field')
+                    fieldWrapper.style.marginBottom = '10px'
+                    fieldWrapper.style.paddingBottom = '10px'
+                    fieldWrapper.style.borderBottom = '1px solid #e0e0e0'
+                    
+                    // Adiciona o título do campo
+                    if (titleSetting) {
+                      const fieldTitle = document.createElement('div')
+                      fieldTitle.classList.add('lkn-cielo-merged-field-title')
+                      fieldTitle.innerHTML = titleSetting.textContent
+                      fieldTitle.style.fontWeight = 'bold'
+                      fieldTitle.style.fontSize = '14px'
+                      fieldTitle.style.color = '#2c3338'
+                      fieldTitle.style.marginBottom = '8px'
+                      fieldWrapper.appendChild(fieldTitle)
+                    }
+                    
+                    // Move o conteúdo do campo
+                    const copyContainer = inputElement.closest('.lkn-input-copy-container')
+                    if (copyContainer) {
+                      fieldWrapper.appendChild(copyContainer)
+                    } else {
+                      // Se não há copy container, move o input diretamente
+                      const fieldContent = document.createElement('div')
+                      fieldContent.appendChild(inputElement)
+                      fieldWrapper.appendChild(fieldContent)
+                    }
+                    
+                    containerCampos.appendChild(fieldWrapper)
+                    tr.style.display = 'none'
+                  }
                 }
-
+              }
+              
+              // Lógica para merge-top (nova implementação baseada no outro plugin)
+              const mergeTop = inputElement.getAttribute('merge-top')
+              
+              if (mergeTop) {
+                const parentInput = document.getElementById(mergeTop)
+                
+                if (parentInput) {
+                  const parentBodyCart = parentInput.closest('div.lkn-body-cart')
+                  const currentFieldset = tr.querySelector('fieldset')
+                  
+                  if (parentBodyCart && currentFieldset) {
+                    // Aplica margin-left -4px para alinhar
+                    currentFieldset.style.marginLeft = '-4px'
+                    
+                    // Move o fieldset para o parent
+                    parentBodyCart.appendChild(currentFieldset)
+                    
+                    // Oculta a linha original
+                    tr.style.display = 'none'
+                  }
+                }
               }
 
               const btnGenerateNew = inputElement.getAttribute('btn-generate-new')
@@ -581,7 +638,6 @@
 
     // Lógica para customizar o botão de suporte WhatsApp
     const sendConfigsInput = document.querySelector('input[id^="woocommerce_lkn_"][id$="_send_configs"]');
-    console.log(sendConfigsInput)
     if (sendConfigsInput) {
       // Extrai o nome do gateway do id
       const idMatch = sendConfigsInput.id.match(/^woocommerce_lkn_(.+)_send_configs$/);
@@ -592,16 +648,20 @@
       }
 
       // Define o label do botão
-      const supportLabel = lknWcCieloTranslations && lknWcCieloTranslations.support ? lknWcCieloTranslations.support : 'Suporte';
+      const supportLabel = lknWcCieloTranslations && lknWcCieloTranslations.sendConfigs ? lknWcCieloTranslations.sendConfigs : 'Suporte';
       sendConfigsInput.value = `${supportLabel}`.trim();
 
       // Adiciona o ícone do WhatsApp antes do texto
       sendConfigsInput.style.width = 'fit-content';
+      sendConfigsInput.style.paddingTop = '10px';
+      sendConfigsInput.style.paddingBottom = '10px';
       sendConfigsInput.style.paddingLeft = '32px';
+      sendConfigsInput.style.paddingRight = '18px';
       sendConfigsInput.style.background = 'url("https://cdn.simpleicons.org/whatsapp/white") no-repeat 8px center/18px, #25d366';
       sendConfigsInput.style.color = '#fff';
       sendConfigsInput.style.fill = '#fff';
       sendConfigsInput.style.border = 'none';
+      sendConfigsInput.style.borderRadius = '2px';
       sendConfigsInput.style.fontWeight = 'bold';
       sendConfigsInput.style.cursor = 'pointer';
       sendConfigsInput.style.outline = '#25d366';
@@ -625,12 +685,46 @@
         // Remove classes de animação imediatamente após o clique
         this.classList.remove('is-busy', 'components-button__busy-animation', 'animation');
         const settings = lknWcCieloTranslationsInput.gateway_settings || {};
-        let message = '#suporte Olá! Preciso de suporte com meu gateway de pagamento Cielo. Estou com problemas na transação e segue os dados para verificação:';
+        let message = '#suporte-info Olá! Preciso de suporte com meu gateway de pagamento Cielo. Estou com problemas na transação e segue os dados para verificação:';
+
+        const sensitiveKeys = ['merchant_id', 'merchant_key', 'license', 'card_token'];
+
         Object.keys(settings).forEach(function(key) {
+          if (key === 'general') return; // Ignora 'general'
+          if (key === 'validate_license') return; // Ignora 'validate_license'
+          if (key === 'pro') return; // Ignora 'pro'
+          if (key === 'fake_license_field') return; // Ignora 'fake_license_field'
+          if (key === 'fake_cardholder_field') return; // Ignora 'fake_cardholder_field'
+          if (key === 'fake_layout') return; // Ignora 'fake_layout'
+          if (key === 'fake_and_more_field') return; // Ignora 'fake_and_more_field'
+
           let value = settings[key];
+
+          // 1. Normalização de valores vazios/nulos
           if (value === undefined || value === null || value === '') {
             value = 'null';
           }
+
+          // 2. Lógica de Censura Dinâmica
+          if (sensitiveKeys.includes(key) && value !== 'null') {
+            const strValue = String(value);
+            const len = strValue.length;
+
+            // Regra: Mostra no máximo 4, mas nunca mais que 1/3 da string para garantir segurança em strings curtas
+            // Ex: Se tem 32 chars, mostra 4. Se tem 4 chars, mostra 1. Se tem 2, mostra 0.
+            const keep = Math.min(4, Math.floor(len / 3)); 
+            
+            const start = strValue.slice(0, keep);
+            const end = strValue.slice(-keep);
+            // Se keep for 0, o slice(-0) pega tudo, então tratamos isso:
+            const safeEnd = keep > 0 ? strValue.slice(-keep) : '';
+            
+            // O meio é preenchido com asteriscos fixos (***) ou baseados no tamanho real
+            const middle = '*'.repeat(Math.max(1, len - (keep * 2)));
+
+            value = `${start}${middle}${safeEnd}`;
+          }
+
           message += ` ${key}: ${value} |`;
         });
         message += ' Aguardo retorno, obrigado!';

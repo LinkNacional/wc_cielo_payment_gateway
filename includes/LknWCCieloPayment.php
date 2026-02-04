@@ -178,7 +178,7 @@ final class LknWCCieloPayment
         $this->loader->add_filter('woocommerce_analytics_report_menu_items', $this, 'add_cielo_analytics_menu_item');
         
         // Admin settings card for specific sections
-        $this->setup_admin_settings_card();
+        $this->loader->add_action('admin_enqueue_scripts', $this, 'setup_admin_settings_card');
     }
 
     /**
@@ -590,9 +590,9 @@ final class LknWCCieloPayment
      * Setup admin settings card for specific gateway sections
      *
      * @since    1.0.0
-     * @access   private
+     * @access   public
      */
-    private function setup_admin_settings_card(): void
+    public function setup_admin_settings_card(): void
     {
         $page    = isset($_GET['page']) ? sanitize_text_field(wp_unslash($_GET['page'])) : '';
         $tab     = isset($_GET['tab']) ? sanitize_text_field(wp_unslash($_GET['tab'])) : '';
@@ -612,51 +612,41 @@ final class LknWCCieloPayment
             $tab === 'checkout' &&
             in_array($section, $sections, true)
         ) {
-            $this->loader->add_action('woocommerce_init', $this, 'load_admin_settings_assets');
-        }
-    }
+            $versions = 'Plugin Cielo v' . LKN_WC_CIELO_VERSION;
+            if (defined('LKN_CIELO_API_PRO_VERSION')) {
+                $versions .= ' | Cielo Pro v' . LKN_CIELO_API_PRO_VERSION;
+            } else {
+                $versions .= ' | WooCommerce v' . WC()->version;
+            }
 
-    /**
-     * Load admin settings assets
-     *
-     * @since    1.0.0
-     */
-    public function load_admin_settings_assets(): void
-    {
-        $versions = 'Plugin Cielo v' . LKN_WC_CIELO_VERSION;
-        if (defined('LKN_CIELO_API_PRO_VERSION')) {
-            $versions .= ' | Cielo Pro v' . LKN_CIELO_API_PRO_VERSION;
-        } else {
-            $versions .= ' | WooCommerce v' . WC()->version;
-        }
+            wp_enqueue_script('lknCieloForWoocommerceCard', LKN_WC_GATEWAY_CIELO_DIR_URL . 'resources/js/admin/lkn-woocommerce-admin-card.js', array('jquery'), LKN_WC_CIELO_VERSION, false);
+            wp_enqueue_style('lknCieloForWoocommerceCard', LKN_WC_GATEWAY_CIELO_DIR_URL . 'resources/css/frontend/lkn-woocommerce-admin-card.css', array(), LKN_WC_CIELO_VERSION, 'all');
+            wp_enqueue_script('lknCieloForWoocommerceProSettings', LKN_WC_GATEWAY_CIELO_DIR_URL . 'resources/js/admin/lkn-settings-pro-fields.js', array(), LKN_WC_CIELO_VERSION, false);
 
-        wp_enqueue_script('lknCieloForWoocommerceCard', LKN_WC_GATEWAY_CIELO_DIR_URL . 'resources/js/admin/lkn-woocommerce-admin-card.js', array('jquery'), LKN_WC_CIELO_VERSION, false);
-        wp_enqueue_style('lknCieloForWoocommerceCard', LKN_WC_GATEWAY_CIELO_DIR_URL . 'resources/css/frontend/lkn-woocommerce-admin-card.css', array(), LKN_WC_CIELO_VERSION, 'all');
-        wp_enqueue_script('lknCieloForWoocommerceProSettings', LKN_WC_GATEWAY_CIELO_DIR_URL . 'resources/js/admin/lkn-settings-pro-fields.js', array(), LKN_WC_CIELO_VERSION, false);
+            wp_localize_script(
+                'lknCieloForWoocommerceProSettings',
+                'lknCieloProSettingsVars',
+                array(
+                    'proOnly' => __('Available only in PRO', 'lkn-wc-gateway-cielo'),
+                )
+            );
 
-        wp_localize_script(
-            'lknCieloForWoocommerceProSettings',
-            'lknCieloProSettingsVars',
-            array(
-                'proOnly' => __('Available only in PRO', 'lkn-wc-gateway-cielo'),
-            )
-        );
-
-        wc_get_template(
-            'adminSettingsCard.php',
-            array(
-                'backgrounds' => array(
-                    'right' => LKN_WC_GATEWAY_CIELO_DIR_URL . 'resources/img/backgroundCardRight.svg',
-                    'left' => LKN_WC_GATEWAY_CIELO_DIR_URL . 'resources/img/backgroundCardLeft.svg'
+            wc_get_template(
+                'adminSettingsCard.php',
+                array(
+                    'backgrounds' => array(
+                        'right' => LKN_WC_GATEWAY_CIELO_DIR_URL . 'resources/img/backgroundCardRight.svg',
+                        'left' => LKN_WC_GATEWAY_CIELO_DIR_URL . 'resources/img/backgroundCardLeft.svg'
+                    ),
+                    'logo' => LKN_WC_GATEWAY_CIELO_DIR_URL . 'resources/img/linkNacionalLogo.webp',
+                    'whatsapp' => LKN_WC_GATEWAY_CIELO_DIR_URL . 'resources/img/whatsapp-icon.svg',
+                    'telegram' => LKN_WC_GATEWAY_CIELO_DIR_URL . 'resources/img/telegram-icon.svg',
+                    'versions' => $versions
                 ),
-                'logo' => LKN_WC_GATEWAY_CIELO_DIR_URL . 'resources/img/linkNacionalLogo.webp',
-                'whatsapp' => LKN_WC_GATEWAY_CIELO_DIR_URL . 'resources/img/whatsapp-icon.svg',
-                'telegram' => LKN_WC_GATEWAY_CIELO_DIR_URL . 'resources/img/telegram-icon.svg',
-                'versions' => $versions
-            ),
-            'woocommerce/adminSettingsCard/',
-            LKN_WC_GATEWAY_CIELO_DIR . '/includes/templates/'
-        );
+                'woocommerce/adminSettingsCard/',
+                LKN_WC_GATEWAY_CIELO_DIR . '/includes/templates/'
+            );
+        }
     }
 
     /**
