@@ -149,6 +149,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
 
         if ('wc-settings' === $page && 'checkout' === $tab && $section == $this->id) {
             wp_enqueue_script('lknWCGatewayCieloDebitSettingsLayoutScript', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-wc-gateway-admin-layout.js', array('jquery'), $this->version, false);
+            $gateway_settings = $this->settings;
             wp_localize_script('lknWCGatewayCieloDebitSettingsLayoutScript', 'lknWcCieloTranslationsInput', array(
                 'modern' => __('Modern version', 'lkn-wc-gateway-cielo'),
                 'standard' => __('Standard version', 'lkn-wc-gateway-cielo'),
@@ -156,13 +157,16 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                 'disable' => __('Disable', 'lkn-wc-gateway-cielo'),
                 'mordernVersion' => plugin_dir_url(__FILE__) . '../resources/img/modern-version.png',
                 'standardVersion' => plugin_dir_url(__FILE__) . '../resources/img/standard-version.png',
-                'analytics_url' => admin_url('admin.php?page=wc-admin&path=%2Fanalytics%2Fcielo-transactions')
+                'analytics_url' => admin_url('admin.php?page=wc-admin&path=%2Fanalytics%2Fcielo-transactions'),
+                'gateway_settings' => $gateway_settings,
+                'whatsapp_number' => LKN_WC_CIELO_WPP_NUMBER,
+                'site_domain' => home_url()
             ));
             wp_enqueue_style('lkn-admin-layout', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-admin-layout.css', array(), $this->version, 'all');
             wp_enqueue_script('lknWCGatewayCieloDebitClearButtonScript', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-clear-logs-button.js', array('jquery', 'wp-api'), $this->version, false);
             wp_localize_script('lknWCGatewayCieloDebitClearButtonScript', 'lknWcCieloTranslations', array(
                 'clearLogs' => __('Limpar Logs', 'lkn-wc-gateway-cielo'),
-                'sendConfigs' => __('Report', 'lkn-wc-gateway-cielo'),
+                'sendConfigs' => __('Wordpress Support', 'lkn-wc-gateway-cielo'),
                 'alertText' => __('Deseja realmente deletar todos logs dos pedidos?', 'lkn-wc-gateway-cielo'),
                 'production' => __('Use this in the live store to charge real payments.', 'lkn-wc-gateway-cielo'),
                 'sandbox' => __('Use this for testing purposes in the Cielo sandbox environment.', 'lkn-wc-gateway-cielo'),
@@ -442,48 +446,72 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                     'data-title-description' => __('Mostra um cartão com animações visuais durante o checkout de pagamento do pedido.', 'lkn-wc-gateway-cielo'),
                 ),
             ),
+        );
+        // Developer/Debug section
+        $this->form_fields += array(
             'developer' => array(
                 'title' => esc_attr__('Developer', 'lkn-wc-gateway-cielo'),
                 'type'  => 'title',
             ),
             'debug' => array(
-                'title'       => __('Debug', 'lkn-wc-gateway-cielo'),
-                'type'        => 'checkbox',
-                'label'       => sprintf(
+                'title'   => __('Debug', 'lkn-wc-gateway-cielo'),
+                'type'    => 'checkbox',
+                'label'   => sprintf(
                     '%1$s. <a href="%2$s">%3$s</a>',
                     __('Enable log capture for payments', 'lkn-wc-gateway-cielo'),
                     admin_url('admin.php?page=wc-status&tab=logs'),
                     __('View logs', 'lkn-wc-gateway-cielo')
                 ),
-                'description' => __('Ativa a captura de logs para pagamentos para facilitar a depuração.', 'lkn-wc-gateway-cielo'),
-                'desc_tip'    => __('Útil para desenvolvedores monitorarem erros e status.', 'lkn-wc-gateway-cielo'),
-                'default'     => 'no',
+                'default'  => 'no',
+                'description' => __('Enable this option to log payment requests and responses for troubleshooting purposes.', 'lkn-wc-gateway-cielo'),
+                'desc_tip' => __('Useful for identifying errors in payment requests or responses during development or support.', 'lkn-wc-gateway-cielo'),
                 'custom_attributes' => array(
-                    'data-title-description' => __('Ativa a captura de logs para pagamentos para facilitar a depuração.', 'lkn-wc-gateway-cielo'),
-                ),
+                    'data-title-description' => __('Useful for developers to monitor errors and status.', 'lkn-wc-gateway-cielo')
+                )
             ),
-            'show_order_logs' => array(
-                'title'       => __('Visualizar Log no Pedido', 'lkn-wc-gateway-cielo'),
-                'type'        => 'checkbox',
-                'label'       => __('Habilita visualização do log da transação dentro do pedido.', 'lkn-wc-gateway-cielo'),
-                'description' => __('Permite que logs de transações sejam visualizados diretamente na página do pedido.', 'lkn-wc-gateway-cielo'),
-                'desc_tip'    => __('Ative para facilitar a análise de problemas por pedido.', 'lkn-wc-gateway-cielo'),
-                'default'     => 'no',
+        );
+
+        // PRO section (send configs)
+        $pro_plugin_active = LknWcCieloHelper::is_pro_license_active();
+        if ($pro_plugin_active) {
+            $this->form_fields['send_configs'] = array(
+                'title' => __('WhatsApp Support', 'lkn-wc-gateway-cielo'),
+                'type'  => 'button',
+                'id'    => 'sendConfigs',
+                'description' => __('', 'lkn-wc-gateway-cielo'),
+                'desc_tip' => __('', 'lkn-wc-gateway-cielo'),
                 'custom_attributes' => array(
-                    'data-title-description' => __('Permite que logs de transações sejam visualizados diretamente na página do pedido.', 'lkn-wc-gateway-cielo'),
-                ),
+                    'merge-top' => "woocommerce_{$this->id}_debug",
+                    'data-title-description' => __('Send the settings for this payment method to WordPress Support.', 'lkn-wc-gateway-cielo')
+                )
+            );
+        }
+
+        // Logs section (order logs and clear logs)
+        $this->form_fields += array(
+            'show_order_logs' => array(
+                'title'   => __('Visualizar Log no Pedido', 'lkn-wc-gateway-cielo'),
+                'type'    => 'checkbox',
+                'label'   => __('Habilita visualização do log da transação dentro do pedido.', 'lkn-wc-gateway-cielo'),
+                'default' => 'no',
+                'description' => __('Displays Cielo transaction logs inside WooCommerce order details.', 'lkn-wc-gateway-cielo'),
+                'desc_tip' => __('Useful for quickly viewing payment log data without accessing the system log files.', 'lkn-wc-gateway-cielo'),
+                'custom_attributes' => array(
+                    'data-title-description' => __('Allows transaction logs to be viewed directly on the order page.', 'lkn-wc-gateway-cielo')
+                )
             ),
             'clear_order_records' => array(
-                'title'       => __('Limpar logs nos Pedidos', 'lkn-wc-gateway-cielo'),
-                'type'        => 'button',
-                'id'          => 'validateLicense',
-                'class'       => 'woocommerce-save-button components-button is-primary',
-                'description' => __('Botão para limpar os logs armazenados nos pedidos.', 'lkn-wc-gateway-cielo'),
-                'desc_tip'    => __('Clique para remover todos os registros de logs dos pedidos.', 'lkn-wc-gateway-cielo'),
+                'title' => __('Limpar logs nos Pedidos', 'lkn-wc-gateway-cielo'),
+                'type'  => 'button',
+                'id'    => 'clearOrderLogs',
+                'class' => 'woocommerce-save-button components-button is-primary',
+                'description' => __('', 'lkn-wc-gateway-cielo'),
+                'desc_tip' => __('', 'lkn-wc-gateway-cielo'),
                 'custom_attributes' => array(
-                    'data-title-description' => __('Botão para limpar os logs armazenados nos pedidos.', 'lkn-wc-gateway-cielo'),
-                ),
-            )
+                    'merge-top' => "woocommerce_{$this->id}_show_order_logs",
+                    'data-title-description' => __('Button to clear logs stored in orders.', 'lkn-wc-gateway-cielo')
+                )
+            ),
         );
 
         $this->form_fields['transactions'] = array(

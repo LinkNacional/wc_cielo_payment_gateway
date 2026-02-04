@@ -141,13 +141,14 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
                 'disable' => __('Disable', 'lkn-wc-gateway-cielo'),
                 'analytics_url' => admin_url('admin.php?page=wc-admin&path=%2Fanalytics%2Fcielo-transactions'),
                 'gateway_settings' => $gateway_settings,
-                'whatsapp_number' => '551135223406'
+                'whatsapp_number' => LKN_WC_CIELO_WPP_NUMBER,
+                'site_domain' => home_url()
             ));
             wp_enqueue_style('lkn-admin-layout', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-admin-layout.css', array(), $this->version, 'all');
             wp_enqueue_script('lknWCGatewayCieloCreditClearButtonScript', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-clear-logs-button.js', array('jquery', 'wp-api'), $this->version, false);
             wp_localize_script('lknWCGatewayCieloCreditClearButtonScript', 'lknWcCieloTranslations', array(
                 'clearLogs' => __('Limpar Logs', 'lkn-wc-gateway-cielo'),
-                'sendConfigs' => __('WhatsApp Support', 'lkn-wc-gateway-cielo'),
+                'sendConfigs' => __('Wordpress Support', 'lkn-wc-gateway-cielo'),
                 'alertText' => __('Deseja realmente deletar todos logs dos pedidos?', 'lkn-wc-gateway-cielo'),
                 'production' => __('Use this in the live store to charge real payments.', 'lkn-wc-gateway-cielo'),
                 'sandbox' => __('Use this for testing purposes in the Cielo sandbox environment.', 'lkn-wc-gateway-cielo'),
@@ -381,7 +382,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
                 'description' => __('Enable this option to log payment requests and responses for troubleshooting purposes.', 'lkn-wc-gateway-cielo'),
                 'desc_tip' => __('Useful for identifying errors in payment requests or responses during development or support.', 'lkn-wc-gateway-cielo'),
                 'custom_attributes' => array(
-                    'data-title-description' => __('When enabled, all Cielo transactions will be logged. You can access logs via WooCommerce > Status > Logs.', 'lkn-wc-gateway-cielo')
+                    'data-title-description' => __('Useful for developers to monitor errors and status.', 'lkn-wc-gateway-cielo')
                 )
             ),
         );

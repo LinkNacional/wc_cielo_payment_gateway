@@ -679,6 +679,7 @@
 
       // Adiciona ação para abrir WhatsApp com mensagem formatada
       const whatsappNumber = lknWcCieloTranslationsInput && lknWcCieloTranslationsInput.whatsapp_number ? lknWcCieloTranslationsInput.whatsapp_number : '55999999999';
+      const siteDomain = lknWcCieloTranslationsInput && lknWcCieloTranslationsInput.site_domain ? lknWcCieloTranslationsInput.site_domain : window.location.hostname;
       sendConfigsInput.onclick = function(e) {
         e.preventDefault();
         e.stopPropagation();
@@ -686,6 +687,7 @@
         this.classList.remove('is-busy', 'components-button__busy-animation', 'animation');
         const settings = lknWcCieloTranslationsInput.gateway_settings || {};
         let message = '#suporte-info Olá! Preciso de suporte com meu gateway de pagamento Cielo. Estou com problemas na transação e segue os dados para verificação:';
+        message += ` Gateway: ${gatewayName} | Site: ${siteDomain} |`;
 
         const sensitiveKeys = ['merchant_id', 'merchant_key', 'license', 'card_token'];
 
