@@ -757,7 +757,7 @@
         this.classList.remove('is-busy', 'components-button__busy-animation', 'animation');
         const settings = lknWcCieloTranslationsInput.gateway_settings || {};
         let message = '#suporte-info Olá! Preciso de suporte com meu gateway de pagamento Cielo. Estou com problemas na transação e segue os dados para verificação:';
-        message += ` Gateway: ${gatewayId} | Site: ${siteDomain} | Plugin: ${pluginSlug}`;
+        message += ` Gateway: ${gatewayId} | Site: ${siteDomain} | Plugin: ${pluginSlug} | `;
 
         const sensitiveKeys = ['merchant_id', 'merchant_key', 'license', 'card_token'];
 
