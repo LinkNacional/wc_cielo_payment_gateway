@@ -166,6 +166,12 @@
     cursor: pointer;
 }
 
+.wpp-disabled {
+    filter: grayscale(100%) !important;   
+    cursor: not-allowed !important;        
+    pointer-events: none !important;       
+}
+
 @media (max-width: 1300px) {
     #lknWcCieloCreditBlocksSettingsLayoutDiv {
         padding: 0px;

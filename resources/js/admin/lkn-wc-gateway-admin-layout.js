@@ -281,10 +281,10 @@
               bodyDiv.appendChild(p)
             }
 
-            const inputElement = bodyDiv.querySelector('input[type="text"], input[type="number"], input[type="password"], input[type="button"], select, textarea')
+            const inputElement = bodyDiv.querySelector('input[type="text"], input[type="number"], input[type="password"], input[type="button"], input[type="checkbox"], select, textarea')
             if (inputElement) {
               // Só aplica estilos de largura se não for botão
-              if (inputElement.type !== 'button') {
+              if (inputElement.type !== 'button' && inputElement.type !== 'checkbox') {
                 inputElement.style.minWidth = '200px'
                 inputElement.style.width = '100%'
                 inputElement.style.maxWidth = '400px'
@@ -638,30 +638,74 @@
 
     const debugOn = document.querySelector('input[name$="_debug-control"][value="1"]');
     const debugOff = document.querySelector('input[name$="_debug-control"][value="0"]');
-
     const logsOff = document.querySelector('input[name$="_show_order_logs-control"][value="0"]');
-
     const logsRow = document.querySelector('input[name$="_show_order_logs-control"]')?.closest('tr');
+    const sendConfigsInput = document.querySelector('input[id^="woocommerce_lkn_"][id$="_send_configs"]');
 
-    if (debugOn && debugOff && logsRow && logsOff) {
+    // Seletores do PRO (Opcionais, usamos ?. para evitar erros se não existirem)
+    const proOn = document.querySelector('input[name$="_debug_pro-control"][value="1"]');
+    const proOff = document.querySelector('input[name$="_debug_pro-control"][value="0"]');
+
+    // 2. Verifica os obrigatórios
+    if (debugOn && debugOff && logsRow && logsOff && sendConfigsInput) {
 
       const toggle = () => {
-        if (debugOn.checked) {
-          logsRow.style.display = '';
+        const isDebugActive = debugOn.checked;
+
+        if (isDebugActive) {
+          // --- DEBUG PRINCIPAL LIGADO ---
+          logsRow.style.display = ''; // Mostra logs
+
+          // Se o PRO existir, reabilita a interação com os botões dele
+          if (proOn && proOff) {
+            proOn.disabled = false;
+            proOff.disabled = false;
+          }
+          
+          // Lógica do WPP: Só habilita se Debug ON + (Pro inexistente OU Pro ON)
+          const isProActive = proOn ? proOn.checked : true;
+
+          if (isProActive) {
+            sendConfigsInput.disabled = false;
+            sendConfigsInput.classList.remove('wpp-disabled');
+          } else {
+            sendConfigsInput.disabled = true;
+            sendConfigsInput.classList.add('wpp-disabled');
+          }
+
         } else {
+          // --- DEBUG PRINCIPAL DESLIGADO ---
           logsRow.style.display = 'none';
-          logsOff.click(); 
+          logsOff.click(); // Força Logs OFF
+
+          // Se o PRO existir, Força OFF e Bloqueia os botões
+          if (proOn && proOff) {
+            proOff.click();        
+            proOn.disabled = true; 
+            proOff.disabled = true;
+          }
+
+          // WPP sempre desabilitado aqui
+          sendConfigsInput.disabled = true;
+          sendConfigsInput.classList.add('wpp-disabled');
         }
       };
 
+      // 3. Listeners
       debugOn.addEventListener('change', toggle);
       debugOff.addEventListener('change', toggle);
+      
+      // Adiciona listeners no PRO também (pois trocar o PRO afeta o botão WPP)
+      if (proOn && proOff) {
+        proOn.addEventListener('change', toggle);
+        proOff.addEventListener('change', toggle);
+      }
 
+      // 4. Estado inicial
       toggle();
     }
 
     // Lógica para customizar o botão de suporte WhatsApp
-    const sendConfigsInput = document.querySelector('input[id^="woocommerce_lkn_"][id$="_send_configs"]');
     if (sendConfigsInput) {
       // Extrai o nome do gateway do id
       const idMatch = sendConfigsInput.id.match(/^woocommerce_lkn_(.+)_send_configs$/);
@@ -703,6 +747,8 @@
 
       // Adiciona ação para abrir WhatsApp com mensagem formatada
       const whatsappNumber = lknWcCieloTranslationsInput && lknWcCieloTranslationsInput.whatsapp_number ? lknWcCieloTranslationsInput.whatsapp_number : '55999999999';
+      const gatewayId = lknWcCieloTranslationsInput && lknWcCieloTranslationsInput.gateway_id ? lknWcCieloTranslationsInput.gateway_id : 'unknown_gateway';
+      const pluginSlug = lknWcCieloTranslationsInput && lknWcCieloTranslationsInput.plugin_slug ? lknWcCieloTranslationsInput.plugin_slug : 'lkn-wc-gateway-cielo';
       const siteDomain = lknWcCieloTranslationsInput && lknWcCieloTranslationsInput.site_domain ? lknWcCieloTranslationsInput.site_domain : window.location.hostname;
       sendConfigsInput.onclick = function(e) {
         e.preventDefault();
@@ -711,7 +757,7 @@
         this.classList.remove('is-busy', 'components-button__busy-animation', 'animation');
         const settings = lknWcCieloTranslationsInput.gateway_settings || {};
         let message = '#suporte-info Olá! Preciso de suporte com meu gateway de pagamento Cielo. Estou com problemas na transação e segue os dados para verificação:';
-        message += ` Gateway: ${gatewayName} | Site: ${siteDomain} |`;
+        message += ` Gateway: ${gatewayId} | Site: ${siteDomain} | Plugin: ${pluginSlug}`;
 
         const sensitiveKeys = ['merchant_id', 'merchant_key', 'license', 'card_token'];
 

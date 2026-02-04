@@ -899,13 +899,14 @@ final class LknWCCieloPayment
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('lkn_cielo_orders_nonce'),
             'action_get_recent_orders' => 'lkn_get_recent_cielo_orders',
-            'gateway_brands_url' => plugin_dir_url(__FILE__) . '../resources/assets/gatewayBrands/'
+            'gateway_brands_url' => plugin_dir_url(__FILE__) . '../resources/assets/gatewayBrands/',
         ));
 
         wp_localize_script('lkn-cielo-analytics', 'lknCieloAnalytics', array(
             'plugin_license' => $plugin_pro_is_valid ? 'active' : 'inactive',
             'screenshot_url' => plugin_dir_url(__FILE__) . '../resources/img/cielo-transactions.webp',
-            'pro_version' => 'https://www.linknacional.com.br/wordpress/woocommerce/cielo/?utm=plugin-cielo-free-transaction'
+            'pro_version' => 'https://www.linknacional.com.br/wordpress/woocommerce/cielo/?utm=plugin-cielo-free-transaction',
+            'site_domain' => home_url()
         ));
 
         // Registra e enfileira o CSS da versão React

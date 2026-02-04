@@ -142,7 +142,9 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
                 'analytics_url' => admin_url('admin.php?page=wc-admin&path=%2Fanalytics%2Fcielo-transactions'),
                 'gateway_settings' => $gateway_settings,
                 'whatsapp_number' => LKN_WC_CIELO_WPP_NUMBER,
-                'site_domain' => home_url()
+                'site_domain' => home_url(),
+                'gateway_id' => $this->id,
+                'plugin_slug' => 'lkn-wc-gateway-cielo'
             ));
             wp_enqueue_style('lkn-admin-layout', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-admin-layout.css', array(), $this->version, 'all');
             wp_enqueue_script('lknWCGatewayCieloCreditClearButtonScript', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-clear-logs-button.js', array('jquery', 'wp-api'), $this->version, false);

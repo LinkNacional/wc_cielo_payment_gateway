@@ -393,11 +393,28 @@ const CieloAnalyticsPage = () => {
 
     // Função para gerar mensagem completa para debug
     const generateWhatsAppMessage = (transactionData: any) => {
+        const pluginSlugs = {
+            'lkn_wc_cielo_pix': 'lkn-wc-gateway-cielo',
+            'lkn_cielo_credit': 'lkn-wc-gateway-cielo',
+            'lkn_cielo_debit': 'lkn-wc-gateway-cielo',
+            'lkn_cielo_google_pay': 'lkn-wc-gateway-cielo',
+            'lkn_cielo_boleto': 'lkn-wc-gateway-cielo-pro',
+            'lkn_cielo_pix': 'lkn-wc-gateway-cielo-pro'
+        }
+
+        const pluginSlug = transactionData.system?.gateway && pluginSlugs[transactionData.system.gateway]
+            ? pluginSlugs[transactionData.system.gateway]
+            : 'N/A';
+
+        const analyticsData = (window as any).lknCieloAnalytics || {};
+
         const fields = [
             // Sistema
             `Pedido: ${transactionData.system?.order_id || 'N/A'}`,
             `Data/Hora: ${transactionData.system?.request_datetime || 'N/A'}`,
             `Ambiente: ${transactionData.system?.environment || 'N/A'}`,
+            `Plugin: ${pluginSlug}`,
+            `Domain: ${analyticsData.site_domain || 'N/A'}`,
             `Gateway: ${transactionData.system?.gateway || 'N/A'}`,
             `Reference: ${transactionData.system?.reference || 'N/A'}`,
             
