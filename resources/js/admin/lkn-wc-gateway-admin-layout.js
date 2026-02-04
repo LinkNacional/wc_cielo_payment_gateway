@@ -636,73 +636,80 @@
       lknWcCieloValidateMerchantInputs()
     }
 
+    // 1. Seletores
     const debugOn = document.querySelector('input[name$="_debug-control"][value="1"]');
     const debugOff = document.querySelector('input[name$="_debug-control"][value="0"]');
     const logsOff = document.querySelector('input[name$="_show_order_logs-control"][value="0"]');
     const logsRow = document.querySelector('input[name$="_show_order_logs-control"]')?.closest('tr');
     const sendConfigsInput = document.querySelector('input[id^="woocommerce_lkn_"][id$="_send_configs"]');
 
-    // Seletores do PRO (Opcionais, usamos ?. para evitar erros se não existirem)
+    // Seletores do PRO
     const proOn = document.querySelector('input[name$="_debug_pro-control"][value="1"]');
     const proOff = document.querySelector('input[name$="_debug_pro-control"][value="0"]');
 
     // 2. Verifica os obrigatórios
     if (debugOn && debugOff && logsRow && logsOff && sendConfigsInput) {
 
-      const toggle = () => {
+      // --- PARTE A: Lógica do Botão WPP (Roda APENAS 1 vez ao iniciar) ---
+      const initWppState = () => {
+        // Verifica o estado inicial (como veio do banco de dados)
+        const isDebugActive = debugOn.checked;
+        const isProActive = proOn ? proOn.checked : true;
+
+        // Se estiver tudo Ativo no carregamento, habilita. Senão, bloqueia.
+        if (isDebugActive && isProActive) {
+          sendConfigsInput.disabled = false;
+          sendConfigsInput.classList.remove('wpp-disabled');
+        } else {
+          sendConfigsInput.disabled = true;
+          sendConfigsInput.classList.add('wpp-disabled');
+          // Opcional: Adicionar tooltip explicando
+          sendConfigsInput.title = "Para habilitar esta opção habilite o modo de depuração e salve.";
+        }
+      };
+
+      // --- PARTE B: Lógica de UI (Logs e Radios) que reage ao clique ---
+      const toggleUi = () => {
         const isDebugActive = debugOn.checked;
 
         if (isDebugActive) {
-          // --- DEBUG PRINCIPAL LIGADO ---
+          // --- DEBUG LIGADO ---
           logsRow.style.display = ''; // Mostra logs
 
-          // Se o PRO existir, reabilita a interação com os botões dele
+          // Libera os botões do PRO para edição
           if (proOn && proOff) {
             proOn.disabled = false;
             proOff.disabled = false;
           }
           
-          // Lógica do WPP: Só habilita se Debug ON + (Pro inexistente OU Pro ON)
-          const isProActive = proOn ? proOn.checked : true;
-
-          if (isProActive) {
-            sendConfigsInput.disabled = false;
-            sendConfigsInput.classList.remove('wpp-disabled');
-          } else {
-            sendConfigsInput.disabled = true;
-            sendConfigsInput.classList.add('wpp-disabled');
-          }
+          // OBS: NÃO mexemos no sendConfigsInput aqui!
 
         } else {
-          // --- DEBUG PRINCIPAL DESLIGADO ---
+          // --- DEBUG DESLIGADO ---
           logsRow.style.display = 'none';
           logsOff.click(); // Força Logs OFF
 
-          // Se o PRO existir, Força OFF e Bloqueia os botões
+          // Bloqueia e desativa PRO
           if (proOn && proOff) {
             proOff.click();        
             proOn.disabled = true; 
             proOff.disabled = true;
           }
-
-          // WPP sempre desabilitado aqui
-          sendConfigsInput.disabled = true;
-          sendConfigsInput.classList.add('wpp-disabled');
         }
       };
 
-      // 3. Listeners
-      debugOn.addEventListener('change', toggle);
-      debugOff.addEventListener('change', toggle);
+      // 3. Listeners (Apenas para a UI, não afeta mais o botão WPP)
+      debugOn.addEventListener('change', toggleUi);
+      debugOff.addEventListener('change', toggleUi);
       
-      // Adiciona listeners no PRO também (pois trocar o PRO afeta o botão WPP)
       if (proOn && proOff) {
-        proOn.addEventListener('change', toggle);
-        proOff.addEventListener('change', toggle);
+        proOn.addEventListener('change', toggleUi);
+        proOff.addEventListener('change', toggleUi);
       }
 
-      // 4. Estado inicial
-      toggle();
+      // 4. Execução Inicial
+      initWppState(); // Define o botão WPP uma única vez
+      toggleUi();     // Ajusta a visualização dos logs/radios uma vez
     }
 
     // Lógica para customizar o botão de suporte WhatsApp
