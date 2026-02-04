@@ -638,21 +638,25 @@
 
     const debugOn = document.querySelector('input[name$="_debug-control"][value="1"]');
     const debugOff = document.querySelector('input[name$="_debug-control"][value="0"]');
-    const logsRow = document.querySelector('input[id$="_show_order_logs"]')?.closest('tr');
 
-    // 2. Se os elementos existirem, aplica a lógica
-    if (debugOn && debugOff && logsRow) {
-      
-      // Função ultra simples: Se o "Ativar" estiver checado, mostra.
+    const logsOff = document.querySelector('input[name$="_show_order_logs-control"][value="0"]');
+
+    const logsRow = document.querySelector('input[name$="_show_order_logs-control"]')?.closest('tr');
+
+    if (debugOn && debugOff && logsRow && logsOff) {
+
       const toggle = () => {
-        logsRow.style.display = debugOn.checked ? '' : 'none';
+        if (debugOn.checked) {
+          logsRow.style.display = '';
+        } else {
+          logsRow.style.display = 'none';
+          logsOff.click(); 
+        }
       };
 
-      // 3. Ouve mudanças nos dois botões (para garantir que troque ao clicar em qualquer um)
       debugOn.addEventListener('change', toggle);
       debugOff.addEventListener('change', toggle);
-      
-      // 4. Roda uma vez para ajustar o estado inicial
+
       toggle();
     }
 
