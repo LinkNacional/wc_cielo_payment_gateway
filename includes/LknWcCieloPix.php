@@ -112,7 +112,8 @@ final class LknWcCieloPix extends WC_Payment_Gateway
                 'whatsapp_number' => LKN_WC_CIELO_WPP_NUMBER,
                 'site_domain' => home_url(),
                 'gateway_id' => $this->id,
-                'plugin_slug' => 'lkn-wc-gateway-cielo'
+                'version_free' => LKN_WC_CIELO_VERSION,
+                'version_pro' => is_plugin_active('lkn-cielo-api-pro/lkn-cielo-api-pro.php') ? LKN_CIELO_API_PRO_VERSION : 'N/A'
             ));
             wp_enqueue_style('lkn-admin-cielo-layout', LKN_WC_GATEWAY_CIELO_URL . 'resources/css/frontend/lkn-admin-layout.css', array(), $this->version, 'all');
             wp_enqueue_script('LknCieloPixClearButtonScript', LKN_WC_GATEWAY_CIELO_URL . '/resources/js/admin/lkn-clear-logs-button.js', array('jquery'), $this->version, false);

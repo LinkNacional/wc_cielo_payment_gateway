@@ -755,7 +755,6 @@
       // Adiciona ação para abrir WhatsApp com mensagem formatada
       const whatsappNumber = lknWcCieloTranslationsInput && lknWcCieloTranslationsInput.whatsapp_number ? lknWcCieloTranslationsInput.whatsapp_number : '55999999999';
       const gatewayId = lknWcCieloTranslationsInput && lknWcCieloTranslationsInput.gateway_id ? lknWcCieloTranslationsInput.gateway_id : 'unknown_gateway';
-      const pluginSlug = lknWcCieloTranslationsInput && lknWcCieloTranslationsInput.plugin_slug ? lknWcCieloTranslationsInput.plugin_slug : 'lkn-wc-gateway-cielo';
       const siteDomain = lknWcCieloTranslationsInput && lknWcCieloTranslationsInput.site_domain ? lknWcCieloTranslationsInput.site_domain : window.location.hostname;
       sendConfigsInput.onclick = function(e) {
         e.preventDefault();
@@ -764,7 +763,7 @@
         this.classList.remove('is-busy', 'components-button__busy-animation', 'animation');
         const settings = lknWcCieloTranslationsInput.gateway_settings || {};
         let message = '#suporte-info Olá! Preciso de suporte com meu gateway de pagamento Cielo. Estou com problemas na transação e segue os dados para verificação:';
-        message += ` Gateway: ${gatewayId} | Site: ${siteDomain} | Plugin: ${pluginSlug} | `;
+        message += ` Gateway: ${gatewayId} | Site: ${siteDomain} | Plugin: lkn-wc-gateway-cielo v${lknWcCieloTranslationsInput.version_free} | Plugin dependente: ${lknWcCieloTranslationsInput.version_pro && lknWcCieloTranslationsInput.version_pro !== 'N/A' ? 'lkn-wc-gateway-cielo-pro v' + lknWcCieloTranslationsInput.version_pro : 'N/A'} | `;
 
         const sensitiveKeys = ['merchant_id', 'merchant_key', 'license', 'card_token'];
 

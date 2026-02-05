@@ -429,10 +429,6 @@ const CieloAnalyticsPage = () => {
             'lkn_cielo_pix': 'lkn-wc-gateway-cielo-pro'
         }
 
-        const pluginSlug = transactionData.system?.gateway && pluginSlugs[transactionData.system.gateway]
-            ? pluginSlugs[transactionData.system.gateway]
-            : 'N/A';
-
         const analyticsData = (window as any).lknCieloAnalytics || {};
 
         const fields = [
@@ -440,7 +436,8 @@ const CieloAnalyticsPage = () => {
             `Pedido: ${transactionData.system?.order_id || 'N/A'}`,
             `Data/Hora: ${transactionData.system?.request_datetime || 'N/A'}`,
             `Ambiente: ${transactionData.system?.environment || 'N/A'}`,
-            `Plugin: ${pluginSlug}`,
+            `Plugin: lkn-wc-gateway-cielo v${transactionData.system?.version_free || 'N/A'} (Lançamento v${analyticsData.version_free || 'N/A'})`,
+            `Plugin dependente: ${transactionData.system?.version_pro && transactionData.system?.version_pro !== 'N/A' ? `lkn-wc-gateway-cielo-pro v${transactionData.system?.version_pro || 'N/A'} (Lançamento v${analyticsData.version_pro || 'N/A'})` : 'N/A'}`,
             `Site: ${analyticsData.site_domain || 'N/A'}`,
             `Gateway: ${transactionData.system?.gateway || 'N/A'}`,
             `Reference: ${transactionData.system?.reference || 'N/A'}`,

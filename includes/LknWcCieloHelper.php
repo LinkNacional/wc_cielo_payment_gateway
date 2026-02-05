@@ -539,7 +539,9 @@ final class LknWcCieloHelper
                 'environment' => $environment,
                 'gateway' => $gatewayName,
                 'order_id' => $order_id,
-                'reference' => !empty($merchantOrderId) ? $merchantOrderId : 'N/A'
+                'reference' => !empty($merchantOrderId) ? $merchantOrderId : 'N/A',
+                'version_free' => LKN_WC_CIELO_VERSION,
+                'version_pro' => is_plugin_active('lkn-cielo-api-pro/lkn-cielo-api-pro.php') ? LKN_CIELO_API_PRO_VERSION : 'N/A'
             ],
             'merchant' => [
                 'id_masked' => $merchantIdMasked,
