@@ -391,6 +391,33 @@ const CieloAnalyticsPage = () => {
                 </div>`;
     };
 
+    /**
+     * Aplica a lógica de censura baseada no tamanho da string.
+     * @param {string|number} value - O valor a ser mascarado.
+     * @returns {string} - O valor mascarado.
+     */
+    function maskValue(value) {
+        if (value === null || value === undefined || value === 'null') {
+            return value;
+        }
+
+        const strValue = String(value);
+        const len = strValue.length;
+
+        // Mostra no máximo 4, mas nunca mais que 1/3 da string
+        const keep = Math.min(4, Math.floor(len / 3)); 
+        
+        const start = strValue.slice(0, keep);
+        
+        // Tratamento do slice(-0)
+        const safeEnd = keep > 0 ? strValue.slice(-keep) : '';
+        
+        // Preenchimento do meio
+        const middle = '*'.repeat(Math.max(1, len - (keep * 2)));
+
+        return `${start}${middle}${safeEnd}`;
+    }
+
     // Função para gerar mensagem completa para debug
     const generateWhatsAppMessage = (transactionData: any) => {
         const pluginSlugs = {
@@ -432,7 +459,7 @@ const CieloAnalyticsPage = () => {
             `Captura: ${transactionData.transaction?.capture || 'N/A'}`,
             `Recorrente: ${transactionData.transaction?.recurrent || 'N/A'}`,
             `3DS Auth: ${transactionData.transaction?.['3ds_auth'] || 'N/A'}`,
-            `TID/PaymentId: ${transactionData.transaction?.tid || 'N/A'}`,
+            `TID/PaymentId: ${maskValue(transactionData.transaction?.tid) || 'N/A'}`,
             
             // Valores
             `Total: ${transactionData.amounts?.total || 'N/A'}`,
