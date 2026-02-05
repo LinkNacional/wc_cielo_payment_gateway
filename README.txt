@@ -46,6 +46,9 @@ This plugin uses the Cielo API 3.0 to process payments. [terms of service](https
 JS Libraries used
 This plugin uses the [React Credit Cards](https://github.com/amaroteam/react-credit-cards#readme) library to render an animated card in the checkout page.
 
+This plugin requires the following PHP library:
+- [helgesverre/toon](https://github.com/HelgeSverre/toon-php) (version ^3.1)
+
 **User instructions**
 CIELO API PIX, credit card, debit payment for WooCommerceCIELO API PIX, credit card, debit payment for WooCommerce
 1. Go to WooCommerce settings menu;
