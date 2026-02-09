@@ -55,6 +55,58 @@ const lknCCContentCielo = props => {
   const [cardBinState, setCardBinState] = window.wp.element.useState(0)
   const [focus, setFocus] = window.wp.element.useState('')
 
+  // Função para processar dados do carrinho (tanto da API normal quanto da batch)
+  const processCartData = (cartData) => {
+    // Detecta se é dados da API batch (tem structure responses[0].body) ou API normal
+    const data = cartData.responses ? cartData.responses[0].body : cartData
+    
+    if (data && data.totals) {
+      const totals = data.totals
+
+      // Nova fórmula: base = subtotal + shipping
+      // Juros/desconto aplicado sobre a base dentro de calculateInstallments
+      // Depois soma: externalFees - discount + taxes
+      const subtotal = parseFloat(totals.total_items) || 0
+      const shipping = parseFloat(totals.total_shipping) || 0
+      const discount = parseFloat(totals.total_discount) || 0 // Desconto de cupons (valor negativo)
+      const tax = parseFloat(totals.total_tax) || 0
+
+      // Calcula fees externas (excluindo as do plugin Cielo)
+      let externalFees = 0
+      if (data.totals.total_fees && data.fees) {
+        // Filtra apenas fees que NÃO são do plugin Cielo
+        const cardInterestLabel = 'Card Interest'
+        const cardDiscountLabel = 'Card Discount'
+
+        data.fees.forEach(fee => {
+          const feeName = fee.name || ''
+          // Se a fee NÃO contém os labels do plugin Cielo, é uma fee externa
+          if (!feeName.includes(cardInterestLabel) && !feeName.includes(cardDiscountLabel)) {
+            externalFees += parseFloat(fee.totals.total) || 0
+          }
+        })
+      }
+
+      // Base para cálculo de juros/desconto: apenas subtotal + frete
+      const baseAmount = (subtotal + shipping) / 100
+
+      // Valores que serão somados no final
+      const additionalValues = {
+        externalFees: externalFees / 100,
+        discount: discount / 100, // Já é negativo
+        tax: tax / 100
+      }
+
+      return {
+        subtotal: subtotal / 100,
+        shipping: shipping / 100,
+        baseAmount,
+        additionalValues
+      }
+    }
+    return null
+  }
+
   // Nova função para buscar dados do carrinho diretamente
   const fetchCartData = async () => {
     try {
@@ -71,57 +123,14 @@ const lknCCContentCielo = props => {
       }
 
       const cartData = await response.json()
+      const processedData = processCartData(cartData)
 
-      if (cartData && cartData.totals) {
-        const totals = cartData.totals
-
-        // Nova fórmula: base = subtotal + shipping
-        // Juros/desconto aplicado sobre a base dentro de calculateInstallments
-        // Depois soma: externalFees - discount + taxes
-        const subtotal = parseFloat(totals.total_items) || 0
-        const shipping = parseFloat(totals.total_shipping) || 0
-        const discount = parseFloat(totals.total_discount) || 0 // Desconto de cupons (valor negativo)
-        const tax = parseFloat(totals.total_tax) || 0
-
-        // Calcula fees externas (excluindo as do plugin Cielo)
-        let externalFees = 0
-        if (cartData.totals.total_fees && cartData.fees) {
-          // Filtra apenas fees que NÃO são do plugin Cielo
-          const cardInterestLabel = 'Card Interest'
-          const cardDiscountLabel = 'Card Discount'
-
-          cartData.fees.forEach(fee => {
-            const feeName = fee.name || ''
-            // Se a fee NÃO contém os labels do plugin Cielo, é uma fee externa
-            if (!feeName.includes(cardInterestLabel) && !feeName.includes(cardDiscountLabel)) {
-              externalFees += parseFloat(fee.totals.total) || 0
-            }
-          })
-        }
-
-        // Base para cálculo de juros/desconto: apenas subtotal + frete
-        const baseAmount = (subtotal + shipping) / 100
-
-        // Valores que serão somados no final
-        const additionalValues = {
-          externalFees: externalFees / 100,
-          discount: discount / 100, // Já é negativo
-          tax: tax / 100
-        }
-
-        // Atualiza as opções de parcelamento com a base e valores adicionais
-        if (baseAmount > 0) {
-          setOptions([]) // Limpa opções antigas
-          calculateInstallments(baseAmount, additionalValues)
-        }
-
-        return {
-          subtotal: subtotal / 100,
-          shipping: shipping / 100,
-          baseAmount,
-          additionalValues
-        }
+      if (processedData && processedData.baseAmount > 0) {
+        setOptions([]) // Limpa opções antigas
+        calculateInstallments(processedData.baseAmount, processedData.additionalValues)
       }
+
+      return processedData
     } catch (error) {
       console.error('Erro ao buscar dados do carrinho:', error)
       return null
@@ -274,7 +283,7 @@ const lknCCContentCielo = props => {
             totalValue = baseValue * discountMultiplier
 
             // Soma valores adicionais no final
-            totalValue += safeAdditionalValues.externalFees + safeAdditionalValues.discount + safeAdditionalValues.tax
+            totalValue += safeAdditionalValues.externalFees - safeAdditionalValues.discount + safeAdditionalValues.tax
 
             nextInstallmentAmount = totalValue / index
             formatedInterest = formatCurrency(nextInstallmentAmount)
@@ -285,7 +294,7 @@ const lknCCContentCielo = props => {
             totalValue = baseValue * interestMultiplier
 
             // Soma valores adicionais no final
-            totalValue += safeAdditionalValues.externalFees + safeAdditionalValues.discount + safeAdditionalValues.tax
+            totalValue += safeAdditionalValues.externalFees - safeAdditionalValues.discount + safeAdditionalValues.tax
 
             nextInstallmentAmount = totalValue / index
             formatedInterest = formatCurrency(nextInstallmentAmount)
@@ -293,7 +302,7 @@ const lknCCContentCielo = props => {
           }
         } else {
           // Sem juros/desconto: usa apenas a base + valores adicionais
-          totalValue = baseValue + safeAdditionalValues.externalFees + safeAdditionalValues.discount + safeAdditionalValues.tax
+          totalValue = baseValue + safeAdditionalValues.externalFees - safeAdditionalValues.discount + safeAdditionalValues.tax
           nextInstallmentAmount = totalValue / index
         }
 
@@ -339,7 +348,7 @@ const lknCCContentCielo = props => {
       }
     } else {
       // À vista: usa o valor base + valores adicionais
-      const totalAmountValue = baseAmount + safeAdditionalValues.externalFees + safeAdditionalValues.discount + safeAdditionalValues.tax
+      const totalAmountValue = baseAmount + safeAdditionalValues.externalFees - safeAdditionalValues.discount + safeAdditionalValues.tax
       const totalAmount = totalAmountValue.toLocaleString('pt-BR', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
@@ -398,16 +407,44 @@ const lknCCContentCielo = props => {
 
       // Detecta mudanças no carrinho que requerem recálculo
       const shouldRecalculate = url && (
-        url.includes('/wp-json/wc/store/v1/cart/select-shipping-rate')
+        url.includes('/wp-json/wc/store/v1/cart/select-shipping-rate') ||
+        url.includes('/wp-json/wc/store/v1/batch')
       )
+
+      // Para requisições de batch, ativa o loading ANTES da requisição
+      if (shouldRecalculate && url.includes('/wp-json/wc/store/v1/batch')) {
+        setIsLoadingOptions(true)
+        setOptions([])
+      }
 
       const response = await originalFetch.apply(window, args)
 
       if (shouldRecalculate) {
-        // Aguarda um pouco para o WooCommerce processar a mudança
-        setTimeout(() => {
-          recalculateInstallments(true) // usa retry leve para mudanças do carrinho
-        }, 800) // 800ms de delay para dar tempo do WooCommerce processar
+        // Para requisições de batch, processa a resposta diretamente
+        if (url.includes('/wp-json/wc/store/v1/batch')) {
+          try {
+            // Clona a resposta para poder lê-la sem afetar o fluxo original
+            const responseClone = response.clone()
+            const batchData = await responseClone.json()
+            
+            // Processa os dados da batch diretamente
+            const processedData = processCartData(batchData)
+            if (processedData && processedData.baseAmount > 0) {
+              calculateInstallments(processedData.baseAmount, processedData.additionalValues)
+            }
+            
+            // Desativa o loading
+            setIsLoadingOptions(false)
+          } catch (error) {
+            console.error('Erro ao processar dados da batch:', error)
+            setIsLoadingOptions(false)
+          }
+        } else {
+          // Para outras mudanças, usa o método existente com retry
+          setTimeout(() => {
+            recalculateInstallments(true) // usa retry leve para mudanças do carrinho
+          }, 800) // 800ms de delay para dar tempo do WooCommerce processar
+        }
       }
 
       return response
