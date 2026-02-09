@@ -105,7 +105,8 @@ CIELO API PIX, credit card, debit payment for WooCommerceCIELO API PIX, credit c
 == Changelog ==
 = 1.28.0 =
 ** 02/02/2026 **
-Added Cielo plugin transaction system.
+* Added Cielo plugin transaction system.
+* Adjustment in installment calculation with coupon.
 
 = 1.27.4 =
 ** 09/01/2026 **
