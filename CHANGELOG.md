@@ -1,4 +1,4 @@
-# 1.28.0 - 02/02/2026
+# 1.28.0 - 09/02/2026
 * Adição do sistema de transações do plugin da Cielo.
 * Ajuste no calculo das parcelas com cupom.
 
