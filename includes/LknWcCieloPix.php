@@ -36,13 +36,14 @@ final class LknWcCieloPix extends WC_Payment_Gateway
         $this->version = LKN_WC_CIELO_VERSION;
 
         $this->method_title = __('Cielo PIX Free', 'lkn-wc-gateway-cielo');
+        
         $this->method_description = __('Check with Cielo if the PIX payment method is activated.', 'lkn-wc-gateway-cielo') . ' ' .
-            '<a href="https://www.youtube.com/watch?v=5mYIEC9V254&t=993s" target="_blank">' .
-            __('Watch the tutorial', 'lkn-wc-gateway-cielo') . '</a>' . ' ' .
-            __('or', 'lkn-wc-gateway-cielo') . ' ' .
-            '<a href="https://linknacional.com.br/wordpress/woocommerce/cielo/doc/#woocommerce-pix-cielo" target="_blank">' .
-            __('check the documentation', 'lkn-wc-gateway-cielo') . '</a>' .
-            __(' for more information.', 'lkn-wc-gateway-cielo');
+                '<a href="https://www.youtube.com/watch?v=5mYIEC9V254&t=993s" target="_blank">' .
+                __('Watch the tutorial', 'lkn-wc-gateway-cielo') . '</a>' . ' ' .
+                __('or', 'lkn-wc-gateway-cielo') . ' ' .
+                '<a href="https://linknacional.com.br/wordpress/woocommerce/cielo/doc/#woocommerce-pix-cielo" target="_blank">' .
+                __('check the documentation', 'lkn-wc-gateway-cielo') . '</a>' .
+                __(' for more information.', 'lkn-wc-gateway-cielo');
 
 
         $this->supports = array(
@@ -100,16 +101,25 @@ final class LknWcCieloPix extends WC_Payment_Gateway
                 );
             }
             wp_enqueue_script('LknCieloPixSettingsLayoutScript', LKN_WC_GATEWAY_CIELO_URL . 'resources/js/admin/lkn-wc-gateway-admin-layout.js', array('jquery'), $this->version, false);
+            $gateway_settings = $this->settings;
             wp_localize_script('LknCieloPixSettingsLayoutScript', 'lknWcCieloTranslationsInput', array(
                 'modern' => __('Modern version', 'lkn-wc-gateway-cielo'),
                 'standard' => __('Standard version', 'lkn-wc-gateway-cielo'),
                 'enable' => __('Enable', 'lkn-wc-gateway-cielo'),
                 'disable' => __('Disable', 'lkn-wc-gateway-cielo'),
+                'analytics_url' => admin_url('admin.php?page=wc-admin&path=%2Fanalytics%2Fcielo-transactions'),
+                'gateway_settings' => $gateway_settings,
+                'whatsapp_number' => LKN_WC_CIELO_WPP_NUMBER,
+                'site_domain' => home_url(),
+                'gateway_id' => $this->id,
+                'version_free' => LKN_WC_CIELO_VERSION,
+                'version_pro' => is_plugin_active('lkn-cielo-api-pro/lkn-cielo-api-pro.php') ? LKN_CIELO_API_PRO_VERSION : 'N/A'
             ));
             wp_enqueue_style('lkn-admin-cielo-layout', LKN_WC_GATEWAY_CIELO_URL . 'resources/css/frontend/lkn-admin-layout.css', array(), $this->version, 'all');
             wp_enqueue_script('LknCieloPixClearButtonScript', LKN_WC_GATEWAY_CIELO_URL . '/resources/js/admin/lkn-clear-logs-button.js', array('jquery'), $this->version, false);
             wp_localize_script('LknCieloPixClearButtonScript', 'lknWcCieloTranslations', array(
                 'clearLogs' => __('Limpar Logs', 'lkn-wc-gateway-cielo'),
+                'sendConfigs' => __('Wordpress Support', 'lkn-wc-gateway-cielo'),
                 'alertText' => __('Deseja realmente deletar todos logs dos pedidos?', 'lkn-wc-gateway-cielo'),
                 'production' => __('Use this in the live store to charge real payments.', 'lkn-wc-gateway-cielo'),
                 'sandbox' => __('Use this for testing purposes in the Cielo sandbox environment.', 'lkn-wc-gateway-cielo'),
@@ -247,53 +257,80 @@ final class LknWcCieloPix extends WC_Payment_Gateway
                 ),
 
             ),
+        );
+
+        // Developer/Debug section
+        $this->form_fields += array(
             'developer' => array(
                 'title' => esc_attr__('Developer', 'lkn-wc-gateway-cielo'),
-                'type' => 'title',
+                'type'  => 'title',
             ),
             'debug' => array(
-                'title'       => __('Debug', 'lkn-wc-gateway-cielo'),
-                'type'        => 'checkbox',
-                'label'       => sprintf(
-                    '%1$s. <a href="%2$s" target="_blank" rel="noopener noreferrer">%3$s</a>',
+                'title'   => __('Debug', 'lkn-wc-gateway-cielo'),
+                'type'    => 'checkbox',
+                'label'   => sprintf(
+                    '%1$s. <a href="%2$s">%3$s</a>',
                     __('Enable log capture for payments', 'lkn-wc-gateway-cielo'),
                     admin_url('admin.php?page=wc-status&tab=logs'),
                     __('View logs', 'lkn-wc-gateway-cielo')
                 ),
-                'default'     => 'no',
-                'description' => __('Enable capturing logs for payments made via Cielo.', 'lkn-wc-gateway-cielo'),
-                'desc_tip'    => __('Save changes to enable detailed logging for debugging.', 'lkn-wc-gateway-cielo'),
+                'default'  => 'no',
+                'description' => __('Enable this option to log payment requests and responses for troubleshooting purposes.', 'lkn-wc-gateway-cielo'),
+                'desc_tip' => __('Useful for identifying errors in payment requests or responses during development or support.', 'lkn-wc-gateway-cielo'),
                 'custom_attributes' => array(
-                    'data-title-description' => __('Enables log recording to help with analysis and troubleshooting.', 'lkn-wc-gateway-cielo'),
-                ),
+                    'data-title-description' => __('Useful for developers to monitor errors and status.', 'lkn-wc-gateway-cielo')
+                )
             ),
         );
 
-        if ($this->get_option('debug') == 'yes') {
-            $this->form_fields['show_order_logs'] = array(
-                'title'       => __('Show Order Logs', 'lkn-wc-gateway-cielo'),
-                'type'        => 'checkbox',
-                'label'       => __('Enable viewing transaction logs within the order page.', 'lkn-wc-gateway-cielo'),
-                'default'     => 'no',
-                'description' => __('Allows the administrator to view transaction logs directly on the order page.', 'lkn-wc-gateway-cielo'),
-                'desc_tip'    => __('Enable to help monitor and troubleshoot transaction issues.', 'lkn-wc-gateway-cielo'),
+        // PRO section (send configs)
+        $pro_plugin_active = LknWcCieloHelper::is_pro_license_active();
+        if ($pro_plugin_active) {
+            $this->form_fields['send_configs'] = array(
+                'title' => __('WhatsApp Support', 'lkn-wc-gateway-cielo'),
+                'type'  => 'button',
+                'id'    => 'sendConfigs',
+                'description' => __('Enable Debug Mode and click Save Changes to get quick support via WhatsApp.', 'lkn-wc-gateway-cielo'),
+                'desc_tip' => __('', 'lkn-wc-gateway-cielo'),
                 'custom_attributes' => array(
-                    'data-title-description' => __('Displays log entries associated with the order for analysis.', 'lkn-wc-gateway-cielo'),
-                ),
-            );
-
-            $this->form_fields['clear_order_records'] = array(
-                'title'       => __('Clear Order Logs', 'lkn-wc-gateway-cielo'),
-                'type'        => 'button',
-                'id'          => 'validateLicense',
-                'class'       => 'woocommerce-save-button components-button is-primary',
-                'description' => __('Clears all logs stored on order pages to free up space or reset data.', 'lkn-wc-gateway-cielo'),
-                'desc_tip'    => __('Use with caution, as this action is irreversible.', 'lkn-wc-gateway-cielo'),
-                'custom_attributes' => array(
-                    'data-title-description' => __('Button to permanently remove all logs related to orders.', 'lkn-wc-gateway-cielo'),
-                ),
+                    'merge-top' => "woocommerce_{$this->id}_debug",
+                    'data-title-description' => __('Send the settings for this payment method to WordPress Support.', 'lkn-wc-gateway-cielo')
+                )
             );
         }
+
+        // Logs section (order logs and clear logs)
+        $this->form_fields += array(
+            'show_order_logs' => array(
+                'title'   => __('Visualizar Log no Pedido', 'lkn-wc-gateway-cielo'),
+                'type'    => 'checkbox',
+                'label'   => __('Habilita visualização do log da transação dentro do pedido.', 'lkn-wc-gateway-cielo'),
+                'default' => 'no',
+                'description' => __('Displays Cielo transaction logs inside WooCommerce order details.', 'lkn-wc-gateway-cielo'),
+                'desc_tip' => __('Useful for quickly viewing payment log data without accessing the system log files.', 'lkn-wc-gateway-cielo'),
+                'custom_attributes' => array(
+                    'data-title-description' => __('Allows transaction logs to be viewed directly on the order page.', 'lkn-wc-gateway-cielo')
+                )
+            ),
+            'clear_order_records' => array(
+                'title' => __('Limpar logs nos Pedidos', 'lkn-wc-gateway-cielo'),
+                'type'  => 'button',
+                'id'    => 'clearOrderLogs',
+                'class' => 'woocommerce-save-button components-button is-primary',
+                'description' => __('', 'lkn-wc-gateway-cielo'),
+                'desc_tip' => __('', 'lkn-wc-gateway-cielo'),
+                'custom_attributes' => array(
+                    'merge-top' => "woocommerce_{$this->id}_show_order_logs",
+                    'data-title-description' => __('Button to clear logs stored in orders.', 'lkn-wc-gateway-cielo')
+                )
+            ),
+        );
+
+        $this->form_fields['transactions'] = array(
+            'title' => esc_attr__('Transactions', 'lkn-wc-gateway-cielo'),
+            'id' => 'transactions_title',
+            'type'  => 'title',
+        );
 
         $customConfigs = apply_filters('lkn_wc_cielo_get_custom_configs', array(), $this->id);
 
@@ -377,6 +414,9 @@ final class LknWcCieloPix extends WC_Payment_Gateway
         $order = wc_get_order($order_id);
         $first_name = $order->get_billing_first_name();
         $last_name = $order->get_billing_last_name();
+        $merchantOrderId = $order_id . '-' . time();
+        $merchantId = sanitize_text_field($this->get_option('merchant_id'));
+        $merchantSecret = sanitize_text_field($this->get_option('merchant_key'));
         $paymentComplete = true;
         try {
             // Verificação de nome
@@ -395,9 +435,7 @@ final class LknWcCieloPix extends WC_Payment_Gateway
                 'Identity' => isset($_POST['billing_cpf']) ? sanitize_text_field(wp_unslash($_POST['billing_cpf'])) : '',
                 'IdentityType' => isset($_POST['billing_cpf']) && strlen(sanitize_text_field(wp_unslash($_POST['billing_cpf']))) === 14 ? 'CPF' : 'CNPJ'
             );
-            if ('' === $billingCpfCpnj['Identity'] || ! $this->validateCpfCnpj($billingCpfCpnj['Identity'])) {
-                throw new Exception(__('Please enter a valid CPF or CNPJ.', 'lkn-wc-gateway-cielo'));
-            }
+
             $amount = number_format((float) $order->get_total(), 2, '.', '');
 
             if ('BRL' != $currency) {
@@ -409,15 +447,37 @@ final class LknWcCieloPix extends WC_Payment_Gateway
                 throw new Exception('Não foi possivel recuperar o valor da compra!', 1);
             }
 
-            $response = self::$request->pix_request($fullName, $amount, $billingCpfCpnj, $this, $order);
+            if ('' === $billingCpfCpnj['Identity'] || ! $this->validateCpfCnpj($billingCpfCpnj['Identity'])) {
+                $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
+                    400,
+                    '188',
+                    'Please enter a valid CPF or CNPJ'
+                );
+                LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, 'N/A', 'N/A', $fullName, 1, $amount, $currency, 'PIX', $merchantId, $merchantSecret, $merchantOrderId, $order_id, 'N/A', null, 'Pix', 'N/A', $this, 'N/A', 'N/A', 'N/A', 'N/A', 'N/A');
+                $order->save();
+                throw new Exception(__('Please enter a valid CPF or CNPJ.', 'lkn-wc-gateway-cielo'));
+            }
+
+            $response = self::$request->pix_request($fullName, $amount, $billingCpfCpnj, $this, $order, $merchantOrderId);
 
             if (isset($response['sucess']) && $response['sucess'] === false) {
+                LknWcCieloHelper::saveTransactionMetadata($order, $response, 'N/A', 'N/A', $fullName, 1, $amount, $currency, 'PIX', $merchantId, $merchantSecret, $merchantOrderId, $order_id, 'N/A', null, 'Pix', 'N/A', $this, 'N/A', 'N/A', 'N/A', 'N/A', 'N/A');
+                $order->save();
                 throw new Exception(json_encode($response['response']), 1);
             }
             if (! is_array($response) && ! is_object($response)) {
+                LknWcCieloHelper::saveTransactionMetadata($order, $response, 'N/A', 'N/A', $fullName, 1, $amount, $currency, 'PIX', $merchantId, $merchantSecret, $merchantOrderId, $order_id, 'N/A', null, 'Pix', 'N/A', $this, 'N/A', 'N/A', 'N/A', 'N/A', 'N/A');
+                $order->save();
                 throw new Exception(json_encode($response), 1);
             }
             if (! $response['response']) {
+                $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
+                    400,
+                    '184',
+                    'Request error, try again!'
+                );
+                LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, 'N/A', 'N/A', $fullName, 1, $amount, $currency, 'PIX', $merchantId, $merchantSecret, $merchantOrderId, $order_id, 'N/A', null, 'Pix', 'N/A', $this, 'N/A', 'N/A', 'N/A', 'N/A', 'N/A');
+                $order->save();
                 throw new Exception('Erro na Requisição. Tente novamente!', 1);
             }
 
@@ -429,9 +489,16 @@ final class LknWcCieloPix extends WC_Payment_Gateway
             $order->update_meta_data('_wc_cielo_qrcode_string', $response['response']['qrcodeString']);
             $order->update_meta_data('_wc_cielo_qrcode_payment_id', $response['response']['paymentId']);
 
+            LknWcCieloHelper::saveTransactionMetadata($order, $response, $response['response']['qrcodeString'], 'N/A', $fullName, 1, $amount, $currency, 'PIX', $merchantId, $merchantSecret, $merchantOrderId, $order_id, 'N/A', null, 'Pix', 'N/A', $this, 'N/A', 'N/A', 'N/A', 'N/A', $response['response']['paymentId']);
             $order->save();
         } catch (Exception $err) {
             $paymentComplete = false;
+            $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
+                400,
+                '184',
+                $err->getMessage()
+            );
+            LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, 'N/A', 'N/A', $fullName, 1, $amount, $currency, 'PIX', $merchantId, $merchantSecret, $merchantOrderId, $order_id, 'N/A', null, 'Pix', 'N/A', $this, 'N/A', 'N/A', 'N/A', 'N/A', 'N/A');
             $this->add_error($err->getMessage());
         }
 
@@ -443,6 +510,15 @@ final class LknWcCieloPix extends WC_Payment_Gateway
         } else {
             $this->log->log('error', 'PIX Payment failed: ' . var_export($response, true), array('source' => 'woocommerce-cielo-pix'));
             $this->add_notice_once(__('PIX Payment Failed', 'lkn-wc-gateway-cielo-pro'), 'error');
+
+            $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
+                400,
+                '184',
+                'PIX Payment Failed'
+            );
+            LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, 'N/A', 'N/A', $fullName, 1, $amount, $currency, 'PIX', $merchantId, $merchantSecret, $merchantOrderId, $order_id, 'N/A', null, 'Pix', 'N/A', $this, 'N/A', 'N/A', 'N/A', 'N/A', 'N/A');
+            $order->save();
+
             throw new Exception(esc_attr(__('PIX Payment Failed', 'lkn-wc-gateway-cielo-pro')));
         }
     }

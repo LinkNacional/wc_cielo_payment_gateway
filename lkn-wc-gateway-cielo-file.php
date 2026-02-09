@@ -56,6 +56,10 @@ if (! defined('LKN_WC_CIELO_BASE_FILE')) {
     define('LKN_WC_CIELO_BASE_FILE', __DIR__ . '/lkn-wc-gateway-cielo.php');
 }
 
+if (! defined('LKN_WC_CIELO_WPP_NUMBER')) {
+    define('LKN_WC_CIELO_WPP_NUMBER', '551135223406');
+}
+
 /**
  * The code that runs during plugin activation.
  * This action is documented in includes/LknWCCieloPaymentActivator.php

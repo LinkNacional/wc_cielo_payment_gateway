@@ -74,6 +74,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         $this->supports = apply_filters('lkn_wc_cielo_credit_add_support', $this->supports);
 
         $this->method_title = __('Cielo - Credit Card', 'lkn-wc-gateway-cielo');
+
         $this->method_description = __('Allows credit card payment with Cielo API 3.0.', 'lkn-wc-gateway-cielo');
 
         // Load the settings.
@@ -132,16 +133,25 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
 
         if ('wc-settings' === $page && 'checkout' === $tab && $section == $this->id) {
             wp_enqueue_script('lknWCGatewayCieloCreditSettingsLayoutScript', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-wc-gateway-admin-layout.js', array('jquery'), $this->version, false);
+            $gateway_settings = $this->settings;
             wp_localize_script('lknWCGatewayCieloCreditSettingsLayoutScript', 'lknWcCieloTranslationsInput', array(
                 'modern' => __('Modern version', 'lkn-wc-gateway-cielo'),
                 'standard' => __('Standard version', 'lkn-wc-gateway-cielo'),
                 'enable' => __('Enable', 'lkn-wc-gateway-cielo'),
                 'disable' => __('Disable', 'lkn-wc-gateway-cielo'),
+                'analytics_url' => admin_url('admin.php?page=wc-admin&path=%2Fanalytics%2Fcielo-transactions'),
+                'gateway_settings' => $gateway_settings,
+                'whatsapp_number' => LKN_WC_CIELO_WPP_NUMBER,
+                'site_domain' => home_url(),
+                'gateway_id' => $this->id,
+                'version_free' => LKN_WC_CIELO_VERSION,
+                'version_pro' => is_plugin_active('lkn-cielo-api-pro/lkn-cielo-api-pro.php') ? LKN_CIELO_API_PRO_VERSION : 'N/A'
             ));
             wp_enqueue_style('lkn-admin-layout', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-admin-layout.css', array(), $this->version, 'all');
             wp_enqueue_script('lknWCGatewayCieloCreditClearButtonScript', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-clear-logs-button.js', array('jquery', 'wp-api'), $this->version, false);
             wp_localize_script('lknWCGatewayCieloCreditClearButtonScript', 'lknWcCieloTranslations', array(
                 'clearLogs' => __('Limpar Logs', 'lkn-wc-gateway-cielo'),
+                'sendConfigs' => __('Wordpress Support', 'lkn-wc-gateway-cielo'),
                 'alertText' => __('Deseja realmente deletar todos logs dos pedidos?', 'lkn-wc-gateway-cielo'),
                 'production' => __('Use this in the live store to charge real payments.', 'lkn-wc-gateway-cielo'),
                 'sandbox' => __('Use this for testing purposes in the Cielo sandbox environment.', 'lkn-wc-gateway-cielo'),
@@ -355,6 +365,9 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
                     'data-title-description' => __('Enhance user experience by showing a dynamic card preview while filling out card details.', 'lkn-wc-gateway-cielo')
                 )
             ),
+        );
+        // Developer/Debug section
+        $this->form_fields += array(
             'developer' => array(
                 'title' => esc_attr__('Developer', 'lkn-wc-gateway-cielo'),
                 'type'  => 'title',
@@ -372,9 +385,29 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
                 'description' => __('Enable this option to log payment requests and responses for troubleshooting purposes.', 'lkn-wc-gateway-cielo'),
                 'desc_tip' => __('Useful for identifying errors in payment requests or responses during development or support.', 'lkn-wc-gateway-cielo'),
                 'custom_attributes' => array(
-                    'data-title-description' => __('When enabled, all Cielo transactions will be logged. You can access logs via WooCommerce > Status > Logs.', 'lkn-wc-gateway-cielo')
+                    'data-title-description' => __('Useful for developers to monitor errors and status.', 'lkn-wc-gateway-cielo')
                 )
             ),
+        );
+
+        // PRO section (send configs)
+        $pro_plugin_active = LknWcCieloHelper::is_pro_license_active();
+        if ($pro_plugin_active) {
+            $this->form_fields['send_configs'] = array(
+                'title' => __('WhatsApp Support', 'lkn-wc-gateway-cielo'),
+                'type'  => 'button',
+                'id'    => 'sendConfigs',
+                'description' => __('Enable Debug Mode and click Save Changes to get quick support via WhatsApp.', 'lkn-wc-gateway-cielo'),
+                'desc_tip' => __('', 'lkn-wc-gateway-cielo'),
+                'custom_attributes' => array(
+                    'merge-top' => "woocommerce_{$this->id}_debug",
+                    'data-title-description' => __('Send the settings for this payment method to WordPress Support.', 'lkn-wc-gateway-cielo')
+                )
+            );
+        }
+
+        // Logs section (order logs and clear logs)
+        $this->form_fields += array(
             'show_order_logs' => array(
                 'title'   => __('Visualizar Log no Pedido', 'lkn-wc-gateway-cielo'),
                 'type'    => 'checkbox',
@@ -383,7 +416,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
                 'description' => __('Displays Cielo transaction logs inside WooCommerce order details.', 'lkn-wc-gateway-cielo'),
                 'desc_tip' => __('Useful for quickly viewing payment log data without accessing the system log files.', 'lkn-wc-gateway-cielo'),
                 'custom_attributes' => array(
-                    'data-title-description' => __('Enable this to show the transaction details for Cielo payments directly in each order’s admin panel.', 'lkn-wc-gateway-cielo')
+                    'data-title-description' => __('Allows transaction logs to be viewed directly on the order page.', 'lkn-wc-gateway-cielo')
                 )
             ),
             'clear_order_records' => array(
@@ -391,12 +424,19 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
                 'type'  => 'button',
                 'id'    => 'validateLicense',
                 'class' => 'woocommerce-save-button components-button is-primary',
-                'description' => __('Click this button to delete all Cielo log data stored in orders.', 'lkn-wc-gateway-cielo'),
-                'desc_tip' => __('Use only if you no longer need the Cielo transaction logs for past orders.', 'lkn-wc-gateway-cielo'),
+                'description' => __('', 'lkn-wc-gateway-cielo'),
+                'desc_tip' => __('', 'lkn-wc-gateway-cielo'),
                 'custom_attributes' => array(
-                    'data-title-description' => __('This will permanently remove all stored logs from WooCommerce orders. Ideal after resolving issues or for privacy.', 'lkn-wc-gateway-cielo')
+                    'merge-top' => "woocommerce_{$this->id}_show_order_logs",
+                    'data-title-description' => __('Button to clear logs stored in orders.', 'lkn-wc-gateway-cielo')
                 )
             ),
+        );
+
+        $this->form_fields['transactions'] = array(
+            'title' => esc_attr__('Transactions', 'lkn-wc-gateway-cielo'),
+            'id' => 'transactions_title',
+            'type'  => 'title',
         );
 
         if (
@@ -747,7 +787,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         $description = sanitize_text_field($this->get_option('invoiceDesc'));
         $description = preg_replace('/[^a-zA-Z\s]+/', '', $description);
         $description = preg_replace('/\s+/', ' ', $description);
-        $provider = $this->get_card_provider($cardNum);
+        $provider = LknWcCieloHelper::getCardProvider($cardNum, $this->id);
         $debug = $this->get_option('debug');
         $currency = $order->get_currency();
         $activeInstallment = $this->get_option('installment_payment');
@@ -757,30 +797,84 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         if ($this->validate_card_holder_name($cardName, false) === false) {
             $message = __('Card Holder Name is required!', 'lkn-wc-gateway-cielo');
 
+            // Salvar metadados da transação com dados customizados para erro de validação
+            $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
+                400,
+                '126',
+                'Credit Card Holder is required'
+            );
+            LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, null, 'Credit', 'lkn_cc_cvc', $this);
+            $order->save();
+
             throw new Exception(esc_attr($message));
         }
         if ($this->validate_card_number($cardNum, false) === false) {
             $message = __('Credit Card number is invalid!', 'lkn-wc-gateway-cielo');
+
+            // Salvar metadados da transação com dados customizados para erro de validação
+            $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
+                400,
+                'BP172',
+                'Transaction aborted during card validation'
+            );
+            LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, null, 'Credit', 'lkn_cc_cvc', $this);
+            $order->save();
 
             throw new Exception(esc_attr($message));
         }
         if ($this->validate_exp_date($cardExpShort, false) === false) {
             $message = __('Expiration date is invalid!', 'lkn-wc-gateway-cielo');
 
+            // Salvar metadados da transação com dados customizados para erro de validação
+            $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
+                400,
+                '126',
+                'Credit Card Expiration Date is required'
+            );
+            LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, null, 'Credit', 'lkn_cc_cvc', $this);
+            $order->save();
+
             throw new Exception(esc_attr($message));
         }
         if ($this->validate_cvv($cardCvv, false) === false) {
             $message = __('CVV is invalid!', 'lkn-wc-gateway-cielo');
+
+            // Salvar metadados da transação com dados customizados para erro de validação
+            $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
+                400,
+                '146',
+                'SecurityCode length exceeded'
+            );
+            LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, null, 'Credit', 'lkn_cc_cvc', $this);
+            $order->save();
 
             throw new Exception(esc_attr($message));
         }
         if (empty($merchantId)) {
             $message = __('Invalid Cielo API 3.0 credentials.', 'lkn-wc-gateway-cielo');
 
+            // Salvar metadados da transação com dados customizados para erro de validação
+            $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
+                401,
+                '126',
+                'MerchantId is required'
+            );
+            LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, null, 'Credit', 'lkn_cc_cvc', $this);
+            $order->save();
+
             throw new Exception(esc_attr($message));
         }
         if (empty($merchantSecret)) {
             $message = __('Invalid Cielo API 3.0 credentials.', 'lkn-wc-gateway-cielo');
+
+            // Salvar metadados da transação com dados customizados para erro de validação
+            $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
+                401,
+                'BP335',
+                'Cancelled due to transactional error in Payment Split'
+            );
+            LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, null, 'Credit', 'lkn_cc_cvc', $this);
+            $order->save();
 
             throw new Exception(esc_attr($message));
         }
@@ -836,6 +930,19 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
 
         $response = wp_remote_post($url . '1/sales', $args);
 
+        // Salvar metadados da transação SEMPRE (em caso de sucesso ou erro)
+        if (!is_wp_error($response)) {
+            $responseDecoded = json_decode($response['body']);
+        } else {
+            $responseDecoded = null;
+        }
+        
+        // Garantir que os metadados sejam salvos independente do resultado
+        LknWcCieloHelper::saveTransactionMetadata($order, $responseDecoded, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, $response, 'Credit', 'lkn_cc_cvc', $this);
+        
+        // Salvar o pedido para garantir que os metadados sejam persistidos
+        $order->save();
+
         if (is_wp_error($response)) {
             if ('yes' === $debug) {
                 $this->log->log('error', var_export($response->get_error_messages(), true), array('source' => 'woocommerce-cielo-credit'));
@@ -845,7 +952,6 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
 
             throw new Exception(esc_attr($message));
         }
-        $responseDecoded = json_decode($response['body']);
 
         if ($this->get_option('debug') === 'yes') {
             $lknWcCieloHelper = new LknWcCieloHelper();
@@ -872,10 +978,6 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         }
 
         if (isset($responseDecoded->Payment) && (1 == $responseDecoded->Payment->Status || 2 == $responseDecoded->Payment->Status)) {
-            // Adicionar metadados do pagamento
-            $order->add_meta_data('paymentId', $responseDecoded->Payment->PaymentId, true);
-            $order->update_meta_data('lkn_nsu', $responseDecoded->Payment->ProofOfSale);
-
             // Executar ações de mudança de status
             do_action("lkn_wc_cielo_change_order_status", $order, $this, $capture);
 
@@ -969,6 +1071,12 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         }
         if ('yes' === $debug) {
             $this->log->log('error', var_export($response, true), array('source' => 'woocommerce-cielo-credit'));
+        }
+
+        // Salvar metadados para qualquer outro erro não tratado antes de lançar exception
+        if (!isset($responseDecoded->Payment) || (1 != $responseDecoded->Payment->Status && 2 != $responseDecoded->Payment->Status)) {
+            // Garantir que mesmo erros não mapeados tenham seus metadados salvos
+            $order->save();
         }
 
         $message = __('Order payment failed. Make sure your credit card is valid.', 'lkn-wc-gateway-cielo');
@@ -1288,100 +1396,6 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
     {
         if (! wc_has_notice($message, $type)) {
             wc_add_notice($message, $type);
-        }
-    }
-
-    /**
-     * Get card provider from number.
-     *
-     * @param string $cardNumber
-     *
-     * @return string|bool
-     */
-    private function get_card_provider($cardNumber)
-    {
-        $brand = '';
-        $brand = apply_filters('lkn_wc_cielo_get_card_brand', $brand, $cardNumber, $this->id);
-
-        if (empty($brand)) {
-            // Stores regex for Card Bin Tests
-            $bin = array(
-                // elo
-                '/(4011|431274|438935|451416|457393|4576|457631|457632|504175|627780|636297|636368|636369|(6503[1-3])|(6500(3[5-9]|4[0-9]|5[0-1]))|(6504(0[5-9]|1[0-9]|2[0-9]|3[0-9]))|(650(48[5-9]|49[0-9]|50[0-9]|51[1-9]|52[0-9]|53[0-7]))|(6505(4[0-9]|5[0-9]|6[0-9]|7[0-9]|8[0-9]|9[0-8]))|(6507(0[0-9]|1[0-8]))|(6507(2[0-7]))|(650(90[1-9]|91[0-9]|920))|(6516(5[2-9]|6[0-9]|7[0-9]))|(6550(0[0-9]|1[1-9]))|(6550(2[1-9]|3[0-9]|4[0-9]|5[0-8]))|(506(699|77[0-8]|7[1-6][0-9))|(509([0-9][0-9][0-9])))/',
-                // hipercard
-                '/^(606282\d{10}(\d{3})?)|(3841\d{15})$/',
-                // diners
-                '/^3(?:0[0-5]|[68][0-9])[0-9]{11}$/',
-                // discover
-                '/^6(?:011|5[0-9]{2})[0-9]{12}$/',
-                // jcb
-                '/^(?:2131|1800|35\d{3})\d{11}$/',
-                // aura
-                '/^50[0-9]{14,17}$/',
-                // amex
-                '/^3[47][0-9]{13}$/',
-                // mastercard
-                '/^5[1-5]\d{14}$|^2(?:2(?:2[1-9]|[3-9]\d)|[3-6]\d\d|7(?:[01]\d|20))\d{12}$/',
-                // visa
-                '/^4[0-9]{12}(?:[0-9]{3})?$/',
-            );
-
-            // Test the cardNumber bin
-            for ($c = 0; $c < count($bin); ++$c) {
-                if ($c > 10) {
-                    break;
-                }
-                if (preg_match($bin[$c], $cardNumber) == 1) {
-                    switch ($c) {
-                        case 0:
-                            return 'Elo';
-
-                            break;
-
-                        case 1:
-                            return 'Hipercard';
-
-                            break;
-
-                        case 2:
-                            return 'Diners';
-
-                            break;
-
-                        case 3:
-                            return 'Discover';
-
-                            break;
-
-                        case 4:
-                            return 'JCB';
-
-                            break;
-
-                        case 5:
-                            return 'Aura';
-
-                            break;
-
-                        case 6:
-                            return 'Amex';
-
-                            break;
-
-                        case 7:
-                            return 'Master';
-
-                            break;
-
-                        case 8:
-                            return 'Visa';
-
-                            break;
-                    }
-                }
-            }
-        } else {
-            return sanitize_text_field($brand);
         }
     }
 

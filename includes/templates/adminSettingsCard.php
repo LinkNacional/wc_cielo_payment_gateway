@@ -8,7 +8,7 @@ if (!defined('ABSPATH')) {
     <div id="lknCieloWoocommerceDivLogo">
         <div>
             <?php //phpcs:disable PluginCheck.CodeAnalysis.ImageFunctions.NonEnqueuedImage ?>
-            <img src=<?php echo esc_url($logo); ?> alt="Logo">
+            <img src="<?php echo esc_url($logo); ?>" alt="Logo">
             <?php //phpcs:enable ?>
         </div>
         <p><?php echo esc_attr($versions); ?></p>
@@ -16,7 +16,7 @@ if (!defined('ABSPATH')) {
     <div id="lknCieloWoocommerDivContent">
         <div id="lknCieloWoocommerDivLinks">
             <div>
-                <a target="_blank" href=<?php echo esc_url('https://www.linknacional.com.br/wordpress/woocommerce/rede/?utm=plugin'); ?>>
+                <a target="_blank" href=<?php echo esc_url('https://www.linknacional.com.br/wordpress/woocommerce/cielo/?utm=plugin'); ?>>
                     <b>•</b><?php esc_html_e('Documentation', 'lkn-wc-gateway-cielo'); ?>
                 </a>
                 <a target="_blank" href=<?php echo esc_url('https://www.linknacional.com.br/wordpress/planos/?utm=plugin'); ?>>
