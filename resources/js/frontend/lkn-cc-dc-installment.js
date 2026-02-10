@@ -185,9 +185,9 @@
         // Se a versão PRO está ativa, usar cálculo complexo
         if (typeof lknWCCielo3ds !== 'undefined' && lknWCCielo3ds.licenseResult) {
           // Calcular parcela base: (subtotal + frete) / parcelas + fees externo - descontos + taxes
-          let installmentBase = subtotalShipping / i
+          let installmentBase = (subtotalShipping - discountsTotal) / i
           // Valor final da parcela (fees somados, descontos subtraídos, taxes somados)
-          finalInstallment = installmentBase + feesTotal - discountsTotal + taxesTotal
+          finalInstallment = installmentBase + feesTotal + taxesTotal
 
           // Verificar se tem configuração específica de juros/desconto para esta parcela
           let hasCustomConfig = false
@@ -199,15 +199,15 @@
                 hasCustomConfig = true
               } else if (installmentObj.interest) {
                 // Calcular juros apenas sobre subtotal + frete, depois somar fees, subtrair descontos e somar taxes
-                const interestAmount = subtotalShipping + (subtotalShipping * (installmentObj.interest / 100))
-                const interestInstallment = (interestAmount / i) + feesTotal - discountsTotal + taxesTotal
+                const interestAmount = (subtotalShipping - discountsTotal) + ((subtotalShipping) * (installmentObj.interest / 100))
+                const interestInstallment = (interestAmount / i) + feesTotal + taxesTotal
                 formatedInstallment = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(interestInstallment)
                 text = document.createTextNode(i + 'x de ' + formatedInstallment + ' (' + installmentObj.interest + '% de juros)')
                 hasCustomConfig = true
               } else if (installmentObj.discount) {
                 // Calcular desconto apenas sobre subtotal + frete, depois somar fees, subtrair descontos e somar taxes
-                const discountAmount = subtotalShipping - (subtotalShipping * (installmentObj.discount / 100))
-                const discountInstallment = (discountAmount / i) + feesTotal - discountsTotal + taxesTotal
+                const discountAmount = (subtotalShipping - discountsTotal) - ((subtotalShipping) * (installmentObj.discount / 100))
+                const discountInstallment = (discountAmount / i) + feesTotal + taxesTotal
                 formatedInstallment = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(discountInstallment)
                 text = document.createTextNode(i + 'x de ' + formatedInstallment + ' (' + installmentObj.discount + '% de desconto)')
                 hasCustomConfig = true
@@ -228,8 +228,8 @@
           }
         } else {
           // Versão gratuita: inclui fees externos, descontos e taxes, mas não aplica juros/desconto do plugin
-          // Calcular: (subtotal + frete + fees externos - descontos + taxes) / parcelas
-          finalInstallment = (subtotalShipping + feesTotal - discountsTotal + taxesTotal) / i
+          // Calcular: (subtotal + frete - descontos + fees externos + taxes) / parcelas
+          finalInstallment = (subtotalShipping - discountsTotal + feesTotal + taxesTotal) / i
           formatedInstallment = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(finalInstallment)
           text = document.createTextNode(i + 'x de ' + formatedInstallment)
         }
@@ -248,7 +248,7 @@
 
         // Para versão gratuita, usar o total completo para verificar mínimo
         const checkValue = (typeof lknWCCielo3ds !== 'undefined' && lknWCCielo3ds.licenseResult) ?
-          subtotalShipping : (subtotalShipping + feesTotal - discountsTotal + taxesTotal)
+          subtotalShipping : (subtotalShipping - discountsTotal + feesTotal + taxesTotal)
         if ((checkValue / (i + 1)) < lknInstallmentMin) {
           break
         }
