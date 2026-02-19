@@ -2,6 +2,8 @@
 
 namespace Lkn\WCCieloPaymentGateway\Includes;
 
+if ( ! defined( 'ABSPATH' ) ) exit;
+
 use Exception;
 use WC_Logger;
 use WC_Payment_Gateway;
@@ -206,9 +208,9 @@ final class LknWcCieloPix extends WC_Payment_Gateway
                 'title'       => esc_attr__('Payment Complete Status', 'lkn-wc-gateway-cielo'),
                 'type'        => 'select',
                 'options'     => array(
-                    'processing' => _x('Processing', 'Order status', 'woocommerce'),
-                    'on-hold'    => _x('On hold', 'Order status', 'woocommerce'),
-                    'completed'  => _x('Completed', 'Order status', 'woocommerce'),
+                    'processing' => _x('Processing', 'Order status', 'lkn-wc-gateway-cielo'),
+                    'on-hold'    => _x('On hold', 'Order status', 'lkn-wc-gateway-cielo'),
+                    'completed'  => _x('Completed', 'Order status', 'lkn-wc-gateway-cielo'),
                 ),
                 'default'     => 'processing',
                 'description' => esc_attr__('Opção para definir automaticamente o status do pedido após confirmação do pagamento por este gateway.', 'lkn-wc-gateway-cielo'),
@@ -291,7 +293,7 @@ final class LknWcCieloPix extends WC_Payment_Gateway
                 'type'  => 'button',
                 'id'    => 'sendConfigs',
                 'description' => __('Enable Debug Mode and click Save Changes to get quick support via WhatsApp.', 'lkn-wc-gateway-cielo'),
-                'desc_tip' => __('', 'lkn-wc-gateway-cielo'),
+                'desc_tip' => null,
                 'custom_attributes' => array(
                     'merge-top' => "woocommerce_{$this->id}_debug",
                     'data-title-description' => __('Send the settings for this payment method to WordPress Support.', 'lkn-wc-gateway-cielo')
@@ -317,8 +319,8 @@ final class LknWcCieloPix extends WC_Payment_Gateway
                 'type'  => 'button',
                 'id'    => 'clearOrderLogs',
                 'class' => 'woocommerce-save-button components-button is-primary',
-                'description' => __('', 'lkn-wc-gateway-cielo'),
-                'desc_tip' => __('', 'lkn-wc-gateway-cielo'),
+                'description' => null,
+                'desc_tip' => null,
                 'custom_attributes' => array(
                     'merge-top' => "woocommerce_{$this->id}_show_order_logs",
                     'data-title-description' => __('Button to clear logs stored in orders.', 'lkn-wc-gateway-cielo')
@@ -509,7 +511,7 @@ final class LknWcCieloPix extends WC_Payment_Gateway
             );
         } else {
             $this->log->log('error', 'PIX Payment failed: ' . var_export($response, true), array('source' => 'woocommerce-cielo-pix'));
-            $this->add_notice_once(__('PIX Payment Failed', 'lkn-wc-gateway-cielo-pro'), 'error');
+            $this->add_notice_once(__('PIX Payment Failed', 'lkn-wc-gateway-cielo'), 'error');
 
             $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
                 400,
@@ -519,7 +521,7 @@ final class LknWcCieloPix extends WC_Payment_Gateway
             LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, 'N/A', 'N/A', $fullName, 1, $amount, $currency, 'PIX', $merchantId, $merchantSecret, $merchantOrderId, $order_id, 'N/A', null, 'Pix', 'N/A', $this, 'N/A', 'N/A', 'N/A', 'N/A', 'N/A');
             $order->save();
 
-            throw new Exception(esc_attr(__('PIX Payment Failed', 'lkn-wc-gateway-cielo-pro')));
+            throw new Exception(esc_attr(__('PIX Payment Failed', 'lkn-wc-gateway-cielo')));
         }
     }
 
