@@ -485,7 +485,7 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
                     'WalletKey' => $walletKey,
                 ),
                 "AdditionalData" => array(
-                    "Signature" => $paymentData->signature ?? '', // Adiciona a assinatura se estiver disponível
+                    "Signature" => isset($paymentData) && isset($paymentData->signature) ? $paymentData->signature : '', // Adiciona a assinatura se estiver disponível
                 )
             ),
         );

@@ -1,3 +1,6 @@
+# 1.28.1 - 19/02/2026
+* Correção de obtenção do JSON no processo de pagamento do Google Pay.
+
 # 1.28.0 - 09/02/2026
 * Adição do sistema de transações do plugin da Cielo.
 * Ajuste no calculo das parcelas com cupom.
