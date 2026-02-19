@@ -318,7 +318,7 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
                 'type'  => 'button',
                 'id'    => 'sendConfigs',
                 'description' => __('Enable Debug Mode and click Save Changes to get quick support via WhatsApp.', 'lkn-wc-gateway-cielo'),
-                'desc_tip' => __('', 'lkn-wc-gateway-cielo'),
+                'desc_tip' => null,
                 'custom_attributes' => array(
                     'merge-top' => "woocommerce_{$this->id}_debug",
                     'data-title-description' => __('Send the settings for this payment method to WordPress Support.', 'lkn-wc-gateway-cielo')
@@ -344,8 +344,8 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
                 'type'  => 'button',
                 'id'    => 'clearOrderLogs',
                 'class' => 'woocommerce-save-button components-button is-primary',
-                'description' => __('', 'lkn-wc-gateway-cielo'),
-                'desc_tip' => __('', 'lkn-wc-gateway-cielo'),
+                'description' => null,
+                'desc_tip' => null,
                 'custom_attributes' => array(
                     'merge-top' => "woocommerce_{$this->id}_show_order_logs",
                     'data-title-description' => __('Button to clear logs stored in orders.', 'lkn-wc-gateway-cielo')
@@ -404,7 +404,6 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
         $nonceInactive = $this->get_option('nonce_compatibility', 'no');
         $nonce = isset($_POST['nonce_lkn_cielo_google_pay']) ? sanitize_text_field(wp_unslash($_POST['nonce_lkn_cielo_google_pay'])) : '';
 
-
         if (! wp_verify_nonce($nonce, 'nonce_lkn_cielo_google_pay') && 'no' === $nonceInactive) {
             $this->log->log('error', 'Nonce verification failed. Nonce: ' . var_export($nonce, true), array('source' => 'woocommerce-cielo-google-pay'));
             $this->add_notice_once(__('Nonce verification failed, try reloading the page', 'lkn-wc-gateway-cielo'), 'error');
@@ -416,15 +415,41 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
             throw new Exception(esc_attr(__('Payment data is missing, please try again.', 'lkn-wc-gateway-cielo')));
         }
 
-        $google_pay_data = sanitize_textarea_field(wp_unslash($_POST['google_pay_data']));
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+        $raw_gpay_data = isset($_POST['google_pay_data']) ? $_POST['google_pay_data'] : '';
         
-        if (isset($_POST['is_block_checkout'])) {
-            $data = json_decode($google_pay_data);
+        if (is_string($raw_gpay_data)) {
+            $data = json_decode(wp_unslash($raw_gpay_data));
+            
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                $data = json_decode($raw_gpay_data);
+            }
+        } elseif (is_array($raw_gpay_data)) {
+            // Se for array (Blocks via REST API), transformamos em Objeto
+            $data = json_decode(wp_json_encode($raw_gpay_data));
         } else {
-            $data = json_decode($google_pay_data);
+            $data = $raw_gpay_data;
         }
-        $paymentData = json_decode($data->paymentMethodData->tokenizationData->token);
-        $walletKey = json_encode($paymentData->signedMessage);
+
+        // 3. Validação de segurança para evitar os erros de "Attempt to read property on null"
+        if (!is_object($data) || !isset($data->paymentMethodData->tokenizationData->token)) {
+            $this->log->log('error', 'Google Pay Data structure is invalid or missing token.');
+            throw new Exception(esc_attr(__('Invalid payment data structure.', 'lkn-wc-gateway-cielo')));
+        }
+
+        // 4. Pegando o token bruto (que é uma string JSON)
+        $raw_token = $data->paymentMethodData->tokenizationData->token;
+
+        // 5. Extraindo o $paymentData e o $walletKey
+        // Fazemos o decode do token para acessar o signedMessage
+        $paymentData = is_string($raw_token) ? json_decode($raw_token) : $raw_token;
+        
+        if (is_object($paymentData) && isset($paymentData->signedMessage)) {
+            $walletKey = $paymentData->signedMessage;
+        } else {
+            // Fallback caso a estrutura mude ou o signedMessage não exista
+            $walletKey = $raw_token; 
+        }
 
         $order = wc_get_order($order_id);
         $merchantId = sanitize_text_field($this->get_option('merchant_id'));
@@ -459,6 +484,9 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
                     'Type' => 'AndroidPay',
                     'WalletKey' => $walletKey,
                 ),
+                "AdditionalData" => array(
+                    "Signature" => isset($paymentData) && isset($paymentData->signature) ? $paymentData->signature : '', // Adiciona a assinatura se estiver disponível
+                )
             ),
         );
 

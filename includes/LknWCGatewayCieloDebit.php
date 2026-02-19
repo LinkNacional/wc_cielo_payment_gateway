@@ -482,7 +482,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                 'type'  => 'button',
                 'id'    => 'sendConfigs',
                 'description' => __('Enable Debug Mode and click Save Changes to get quick support via WhatsApp.', 'lkn-wc-gateway-cielo'),
-                'desc_tip' => __('', 'lkn-wc-gateway-cielo'),
+                'desc_tip' => null,
                 'custom_attributes' => array(
                     'merge-top' => "woocommerce_{$this->id}_debug",
                     'data-title-description' => __('Send the settings for this payment method to WordPress Support.', 'lkn-wc-gateway-cielo')
@@ -508,8 +508,8 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                 'type'  => 'button',
                 'id'    => 'clearOrderLogs',
                 'class' => 'woocommerce-save-button components-button is-primary',
-                'description' => __('', 'lkn-wc-gateway-cielo'),
-                'desc_tip' => __('', 'lkn-wc-gateway-cielo'),
+                'description' => null,
+                'desc_tip' => null,
                 'custom_attributes' => array(
                     'merge-top' => "woocommerce_{$this->id}_show_order_logs",
                     'data-title-description' => __('Button to clear logs stored in orders.', 'lkn-wc-gateway-cielo')

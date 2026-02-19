@@ -2,6 +2,8 @@
 
 namespace Lkn\WCCieloPaymentGateway\Includes;
 
+if ( ! defined( 'ABSPATH' ) ) exit;
+
 use Lkn\WCCieloPaymentGateway\Includes\LknWCGatewayCieloCredit;
 use Lkn\WCCieloPaymentGateway\Includes\LknWCGatewayCieloDebit;
 use Lkn\WCCieloPaymentGateway\Includes\LknWCGatewayCieloEndpoint;
@@ -224,7 +226,8 @@ final class LknWCCieloPayment
         }
 
         // Verificar nonce
-        if (!wp_verify_nonce(wp_unslash($_POST['nonce']), 'lkn_payment_fees_nonce')) {
+        $nonce = sanitize_text_field(wp_unslash($_POST['nonce']));
+        if (!wp_verify_nonce($nonce, 'lkn_payment_fees_nonce')) {
             wp_send_json_error(array('message' => 'Invalid nonce'));
         }
 
@@ -277,7 +280,8 @@ final class LknWCCieloPayment
         }
 
         // Verificar nonce
-        if (!wp_verify_nonce(wp_unslash($_POST['nonce']), 'lkn_payment_fees_nonce')) {
+        $nonce = sanitize_text_field(wp_unslash($_POST['nonce']));
+        if (!wp_verify_nonce($nonce, 'lkn_payment_fees_nonce')) {
             wp_send_json_error(array('message' => 'Invalid nonce'));
         }
 
@@ -979,9 +983,12 @@ final class LknWCCieloPayment
     public function ajax_get_recent_cielo_orders()
     {
         // Verificar nonce se fornecido
-        if (isset($_POST['nonce']) && !wp_verify_nonce(wp_unslash($_POST['nonce']), 'lkn_cielo_orders_nonce')) {
-            wp_send_json_error(array('message' => 'Nonce inválido'));
-            return;
+        if (isset($_POST['nonce'])) {
+            $nonce = sanitize_text_field(wp_unslash($_POST['nonce']));
+            if (!wp_verify_nonce($nonce, 'lkn_cielo_orders_nonce')) {
+                wp_send_json_error(array('message' => 'Nonce inválido'));
+                return;
+            }
         }
 
         // Verificar se é um usuário com permissões adequadas
@@ -998,9 +1005,25 @@ final class LknWCCieloPayment
         $query_limit = isset($_POST['query_limit']) ? max(1, min(1000, (int) sanitize_text_field(wp_unslash($_POST['query_limit'])))) : 50;
         $offset = ($page - 1) * $query_limit;
 
-        // Parâmetros de filtros de data
-        $start_date = isset($_POST['start_date']) ? sanitize_text_field(wp_unslash($_POST['start_date'])) : '';
-        $end_date = isset($_POST['end_date']) ? sanitize_text_field(wp_unslash($_POST['end_date'])) : '';
+        // Parâmetros de filtros de data - validação adequada
+        $start_date = '';
+        $end_date = '';
+        
+        if (isset($_POST['start_date'])) {
+            $input_start = sanitize_text_field(wp_unslash($_POST['start_date']));
+            // Validar formato de data Y-m-d
+            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $input_start)) {
+                $start_date = $input_start;
+            }
+        }
+        
+        if (isset($_POST['end_date'])) {
+            $input_end = sanitize_text_field(wp_unslash($_POST['end_date']));
+            // Validar formato de data Y-m-d
+            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $input_end)) {
+                $end_date = $input_end;
+            }
+        }
 
         // Se não há filtros de data especificados, usar o filtro padrão de "hoje"
         if (empty($start_date) && empty($end_date)) {
@@ -1012,30 +1035,61 @@ final class LknWCCieloPayment
         try {
             global $wpdb;
             
-            // Aplicar filtros de data (sempre há pelo menos o filtro de hoje)
-            $date_where = " WHERE 1=1";
-            $date_params = array();
-            
-            if (!empty($start_date)) {
-                $date_where .= " AND date_created_gmt >= %s";
-                $date_params[] = $start_date . ' 00:00:00';
-            }
-            
-            if (!empty($end_date)) {
-                $date_where .= " AND date_created_gmt <= %s";
-                $date_params[] = $end_date . ' 23:59:59';
-            }
-            
             // PRIMEIRA ETAPA: Buscar TODOS os pedidos que têm dados Cielo no período (sem LIMIT)
-            $all_orders_query = "SELECT o.id 
-                               FROM {$wpdb->prefix}wc_orders o
-                               INNER JOIN {$wpdb->prefix}wc_orders_meta om ON o.id = om.order_id
-                               " . $date_where . "
-                               AND om.meta_key = 'lkn_cielo_transaction_data'
-                               AND om.meta_value != ''
-                               ORDER BY o.date_created_gmt DESC, o.id DESC";
+            $cielo_order_ids = array();
             
-            $cielo_order_ids = $wpdb->get_col($wpdb->prepare($all_orders_query, $date_params));
+            if (!empty($start_date) && !empty($end_date)) {
+                // Consulta com ambos os filtros de data
+                $cielo_order_ids = $wpdb->get_col($wpdb->prepare(
+                    "SELECT o.id 
+                    FROM {$wpdb->prefix}wc_orders o
+                    INNER JOIN {$wpdb->prefix}wc_orders_meta om ON o.id = om.order_id
+                    WHERE om.meta_key = %s AND om.meta_value != %s
+                    AND o.date_created_gmt >= %s AND o.date_created_gmt <= %s
+                    ORDER BY o.date_created_gmt DESC, o.id DESC",
+                    'lkn_cielo_transaction_data',
+                    '',
+                    $start_date . ' 00:00:00',
+                    $end_date . ' 23:59:59'
+                ));
+            } elseif (!empty($start_date)) {
+                // Consulta apenas com data início
+                $cielo_order_ids = $wpdb->get_col($wpdb->prepare(
+                    "SELECT o.id 
+                    FROM {$wpdb->prefix}wc_orders o
+                    INNER JOIN {$wpdb->prefix}wc_orders_meta om ON o.id = om.order_id
+                    WHERE om.meta_key = %s AND om.meta_value != %s
+                    AND o.date_created_gmt >= %s
+                    ORDER BY o.date_created_gmt DESC, o.id DESC",
+                    'lkn_cielo_transaction_data',
+                    '',
+                    $start_date . ' 00:00:00'
+                ));
+            } elseif (!empty($end_date)) {
+                // Consulta apenas com data fim
+                $cielo_order_ids = $wpdb->get_col($wpdb->prepare(
+                    "SELECT o.id 
+                    FROM {$wpdb->prefix}wc_orders o
+                    INNER JOIN {$wpdb->prefix}wc_orders_meta om ON o.id = om.order_id
+                    WHERE om.meta_key = %s AND om.meta_value != %s
+                    AND o.date_created_gmt <= %s
+                    ORDER BY o.date_created_gmt DESC, o.id DESC",
+                    'lkn_cielo_transaction_data',
+                    '',
+                    $end_date . ' 23:59:59'
+                ));
+            } else {
+                // Consulta sem filtros de data
+                $cielo_order_ids = $wpdb->get_col($wpdb->prepare(
+                    "SELECT o.id 
+                    FROM {$wpdb->prefix}wc_orders o
+                    INNER JOIN {$wpdb->prefix}wc_orders_meta om ON o.id = om.order_id
+                    WHERE om.meta_key = %s AND om.meta_value != %s
+                    ORDER BY o.date_created_gmt DESC, o.id DESC",
+                    'lkn_cielo_transaction_data',
+                    ''
+                ));
+            }
             
             // Se não há pedidos Cielo, retornar resultado vazio
             if (empty($cielo_order_ids)) {
@@ -1156,7 +1210,7 @@ final class LknWCCieloPayment
         }
 
         // Enviar resposta e encerrar
-        echo $toon_response;
+        echo esc_html($toon_response);
         wp_die('', '', array('response' => null));
     }
 
