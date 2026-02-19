@@ -16,7 +16,7 @@
  * Plugin Name:       CIELO API PIX, credit card, debit payment for WooCommerce
  * Plugin URI:        https://www.linknacional.com.br/wordpress/woocommerce/cielo/
  * Description:       Adds the Cielo API 3.0 Payments gateway to your WooCommerce website.
- * Version:           1.28.0
+ * Version:           1.28.1
  * Author:            Link Nacional
  * Author URI:        https://linknacional.com.br
  * Text Domain:       lkn-wc-gateway-cielo
