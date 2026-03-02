@@ -45,6 +45,7 @@ const lknCCContentCielo = props => {
   } = eventRegistration
   const [options, setOptions] = window.wp.element.useState([])
   const [isLoadingOptions, setIsLoadingOptions] = window.wp.element.useState(true)
+  const [showInstallmentSelect, setShowInstallmentSelect] = window.wp.element.useState(false)
   const [creditObject, setCreditObject] = window.wp.element.useState({
     lkn_cc_cardholder_name: '',
     lkn_ccno: '',
@@ -74,14 +75,10 @@ const lknCCContentCielo = props => {
       // Calcula fees externas (excluindo as do plugin Cielo)
       let externalFees = 0
       if (data.totals.total_fees && data.fees) {
-        // Filtra apenas fees que NÃO são do plugin Cielo
-        const cardInterestLabel = 'Card Interest'
-        const cardDiscountLabel = 'Card Discount'
-
         data.fees.forEach(fee => {
           const feeName = fee.name || ''
           // Se a fee NÃO contém os labels do plugin Cielo, é uma fee externa
-          if (!feeName.includes(cardInterestLabel) && !feeName.includes(cardDiscountLabel)) {
+          if (!feeName.includes('card') && !feeName.includes('cartão') && !feeName.includes('Card') && !feeName.includes('Cartão')) {
             externalFees += parseFloat(fee.totals.total) || 0
           }
         })
@@ -254,10 +251,11 @@ const lknCCContentCielo = props => {
     }
 
     const installmentMin = parseFloat(lknCCInstallmentMinAmount)
+    const totalAmount = baseAmount + safeAdditionalValues.externalFees - safeAdditionalValues.discount + safeAdditionalValues.tax
     const newOptions = [] // Array local para construir as opções
 
-    // Verifica se 'lknCCActiveInstallmentCielo' é 'yes' e o valor base é maior que 10
-    if (lknCCActiveInstallmentCielo === 'yes' && baseAmount > 10) {
+    // Verifica se 'lknCCActiveInstallmentCielo' é 'yes', o valor base é maior que 10 e installmentMin não é maior que o total
+    if (lknCCActiveInstallmentCielo === 'yes' && baseAmount > 10 && installmentMin <= totalAmount) {
       const maxInstallments = lknCCInstallmentLimitCielo // Limita o parcelamento
 
       for (let index = 1; index <= maxInstallments; index++) {
@@ -361,6 +359,9 @@ const lknCCContentCielo = props => {
 
     // Define todas as opções de uma vez
     setOptions(newOptions)
+    
+    // Determina se deve mostrar o select (só mostra se tiver mais de 1 opção)
+    setShowInstallmentSelect(newOptions.length > 1)
   }
   window.wp.element.useEffect(() => {
     // Executa a primeira busca no carregamento
@@ -544,7 +545,7 @@ const lknCCContentCielo = props => {
     style: {
       marginBottom: '20px'
     }
-  }), lknCCActiveInstallmentCielo === 'yes' && /* #__PURE__ */React.createElement(wcComponents.SortSelect, {
+  }), lknCCActiveInstallmentCielo === 'yes' && parseInt(lknCCInstallmentLimitCielo) > 1 && showInstallmentSelect && /* #__PURE__ */React.createElement(wcComponents.SortSelect, {
     id: 'lkn_cc_installments',
     label: lknCCTranslationsCielo.installments,
     value: creditObject.lkn_cc_installments,

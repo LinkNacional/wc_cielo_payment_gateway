@@ -164,6 +164,13 @@
                   table.style.display = 'none'
                 }
                 break
+              case 7:
+                if (index == 7) {
+                  table.style.display = 'table'
+                } else {
+                  table.style.display = 'none'
+                }
+                break
             }
           })
         }

@@ -1,3 +1,7 @@
+# 1.28.2 - 02/03/2026
+* Correção na ABA de extras da versão PRO.
+* Ajuste na exibição das parcelas no gateway.
+
 # 1.28.1 - 19/02/2026
 * Correção de obtenção do JSON no processo de pagamento do Google Pay.
 
