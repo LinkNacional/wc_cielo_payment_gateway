@@ -94,7 +94,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         $post = get_post();
         if ($post && has_shortcode($post->post_content, 'woocommerce_checkout') && 'yes' === $gateway_enabled['enabled']) {
             wp_enqueue_script('lkn-fix-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-dc-script-fix.js', array('wp-i18n', 'jquery'), $this->version, false);
-            wp_localize_script('lkn-fix-script', 'lknWcCieloPaymentGatewayToken', $this->accessToken['access_token']);
+            wp_localize_script('lkn-fix-script', 'lknWcCieloPaymentGatewayToken', array('access_token' => $this->accessToken['access_token']));
         }
 
         // Actions.
@@ -226,8 +226,8 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
             wp_enqueue_script('lkn-dc-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-dc-script-sdb.js', array('wp-i18n', 'jquery', 'wp-api'), $this->version, false);
             wp_set_script_translations('lkn-dc-script', 'lkn-wc-gateway-cielo', LKN_WC_CIELO_TRANSLATION_PATH);
         }
-        wp_localize_script('lkn-dc-script', 'lknDCDirScript3DSCieloShortCode', LKN_WC_GATEWAY_CIELO_URL . 'resources/js/debitCard/BP.Mpi.3ds20.min.js');
-        wp_localize_script('lkn-dc-script', 'lknDCScriptAllowCardIneligible', $this->get_option('allow_card_ineligible', 'no'));
+        wp_localize_script('lkn-dc-script', 'lknDCDirScript3DSCieloShortCode', array('url' => LKN_WC_GATEWAY_CIELO_URL . 'resources/js/debitCard/BP.Mpi.3ds20.min.js'));
+        wp_localize_script('lkn-dc-script', 'lknDCScriptAllowCardIneligible', array('allow' => $this->get_option('allow_card_ineligible', 'no')));
         wp_enqueue_script('lkn-mask-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/formatter.js', array('jquery'), $this->version, false);
         wp_enqueue_script('lkn-mask-script-load', plugin_dir_url(__FILE__) . '../resources/js/frontend/define-mask.js', array('lkn-mask-script', 'jquery'), $this->version, false);
 
@@ -800,6 +800,22 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
     public function payment_fields(): void
     {
         wp_enqueue_style('lknWCGatewayCieloFixIconsStyle', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-fix-icons-styles.css', array(), $this->version, 'all');
+        
+        // Enqueue card animation scripts only if enabled
+        if ('yes' === $this->get_option('show_card_animation')) {
+            // Enqueue jquery.card.js only if not already enqueued
+            if (!wp_script_is('lkn-cielo-jquery-card', 'enqueued')) {
+                wp_enqueue_script('lkn-cielo-jquery-card', plugin_dir_url(__FILE__) . '../resources/js/frontend/jquery.card.js', array('jquery'), $this->version, true);
+            }
+            // Enqueue card.css only if not already enqueued
+            if (!wp_style_is('lkn-cielo-card-css', 'enqueued')) {
+                wp_enqueue_style('lkn-cielo-card-css', plugin_dir_url(__FILE__) . '../resources/css/frontend/card.css', array(), $this->version, 'all');
+            }
+            // Enqueue cielo card script only if not already enqueued
+            if (!wp_script_is('lkn-cielo-card-script', 'enqueued')) {
+                wp_enqueue_script('lkn-cielo-card-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-cielo-shortcode-card.js', array('jquery'), $this->version, true);
+            }
+        }
         $activeInstallment = $this->get_option('installment_payment');
         $total_cart = number_format($this->get_subtotal_plus_shipping(), 2, '.', '');
         // Para 3DS 2.2, o valor deve estar em centavos (sem vírgula decimal)
@@ -893,12 +909,26 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         $billing_country = get_user_meta($user->ID, 'billing_country', true);
         $billing_document = $billingDocument;
 
-        echo wp_kses_post(wpautop($this->description)); ?>
+        ?>  
+
+        
 
         <fieldset
             id="wc-<?php echo esc_attr($this->id); ?>-cc-form"
             class="wc-credit-card-form wc-payment-form"
             style="background:transparent;">
+
+            <p class="debit-card-description">
+                <?php echo esc_html($this->description); ?>
+            </p>
+            
+            <div class="cielo-debit-fields-wrapper">
+                <?php if ('yes' === $this->get_option('show_card_animation')) { ?>
+                <div
+                    id="cielo-debit-card-animation"
+                    class="card-wrapper card-animation"></div>
+                <?php } ?>
+                <div class="wc-payment-cielo-form-fields">
             <input
                 type="hidden"
                 id="lkn_cielo_3ds_installment_show"
@@ -1210,10 +1240,10 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                 </label>
                 <select
                     id="lkn_cc_type"
-                    name="lkn_cc_type">
+                    name="lkn_cc_type"
+                    class="input-select wc-credit-card-form-card-cvc">
                     <option
-                        value="Credit"
-                        selected="1"><?php esc_html_e('Credit card', 'lkn-wc-gateway-cielo'); ?>
+                        value="Credit"><?php esc_html_e('Credit card', 'lkn-wc-gateway-cielo'); ?>
                     </option>
                     <option value="Debit">
                         <?php esc_html_e('Debit card', 'lkn-wc-gateway-cielo'); ?>
@@ -1264,7 +1294,8 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                     </label>
                     <select
                         id="lkn_cc_dc_installments"
-                        name="lkn_cc_dc_installments">
+                        name="lkn_cc_dc_installments"
+                        class="input-select wc-credit-card-form-card-cvc">
                         <option
                             value="1"
                             selected="1">1 x R$0,00 sem juros</option>
@@ -1277,6 +1308,8 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
             <?php do_action('woocommerce_credit_card_form_end', $this->id); ?>
 
             <div class="clear"></div>
+                </div>
+            </div>
 
         </fieldset>
 

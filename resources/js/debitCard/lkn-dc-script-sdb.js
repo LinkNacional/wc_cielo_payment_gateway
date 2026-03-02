@@ -38,13 +38,14 @@ function bpmpi_config () {
       // Card is not eligible for authentication, but the bearer failed payment
       console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage + ' raw: ' + JSON.stringify(e))
 
-      alert(__('Authentication failed check the card information and try again', 'lkn-wc-gateway-cielo'))
+      alert(wp.i18n.__('Authentication failed check the card information and try again', 'lkn-wc-gateway-cielo'))
     },
     onUnenrolled: function (e) {
       console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage + ' raw: ' + JSON.stringify(e))
 
+      console.log(window.lknDCScriptAllowCardIneligible)
       // Verificar se a opção allow_card_ineligible está habilitada
-      const allowCardIneligible = window.lknDCScriptAllowCardIneligible === 'yes'
+      const allowCardIneligible = window.lknDCScriptAllowCardIneligible.allow === 'yes'
       
       if (allowCardIneligible) {
         
@@ -67,24 +68,24 @@ function bpmpi_config () {
         Button3ds.dispatchEvent(event)
       } else {
         // Card is not eligible for authentication (unauthenticable)
-        alert(__('Card Ineligible for Authentication', 'lkn-wc-gateway-cielo'))
+        alert(wp.i18n.__('Card Ineligible for Authentication', 'lkn-wc-gateway-cielo'))
       }
     },
     onDisabled: function () {
       // Store don't require bearer authentication (class "bpmpi_auth" false -> disabled authentication).
-      alert(__('Authentication disabled by the store', 'lkn-wc-gateway-cielo'))
+      alert(wp.i18n.__('Authentication disabled by the store', 'lkn-wc-gateway-cielo'))
     },
     onError: function (e) {
       console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage + ' raw: ' + JSON.stringify(e))
 
       // Error on proccess in authentication
-      alert(__('Error in the 3DS 2.2 authentication process check that your credentials are filled in correctly', 'lkn-wc-gateway-cielo'))
+      alert(wp.i18n.__('Error in the 3DS 2.2 authentication process check that your credentials are filled in correctly', 'lkn-wc-gateway-cielo'))
     },
     onUnsupportedBrand: function (e) {
       console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage + ' raw: ' + JSON.stringify(e))
 
       // Provider not supported for authentication
-      alert(__('Provider not supported by Cielo 3DS authentication', 'lkn-wc-gateway-cielo'))
+      alert(wp.i18n.__('Provider not supported by Cielo 3DS authentication', 'lkn-wc-gateway-cielo'))
     },
 
     Environment: 'SDB', // SDB or PRD
@@ -130,7 +131,7 @@ function lknProcessCreditCard () {
     }
   } catch (error) {
     console.log(error)
-    alert(__('Error processing credit card payment', 'lkn-wc-gateway-cielo'))
+    alert(wp.i18n.__('Error processing credit card payment', 'lkn-wc-gateway-cielo'))
   }
 }
 
@@ -194,6 +195,6 @@ function lknProcessDebitCard () {
     bpmpi_authenticate()
   } catch (error) {
     console.log(error)
-    alert(__('Authentication failed check the card information and try again', 'lkn-wc-gateway-cielo'))
+    alert(wp.i18n.__('Authentication failed check the card information and try again', 'lkn-wc-gateway-cielo'))
   }
 }

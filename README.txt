@@ -107,6 +107,7 @@ CIELO API PIX, credit card, debit payment for WooCommerceCIELO API PIX, credit c
 ** 02/03/2026 **
 * Fixed the extras tab in the PRO version.
 * Adjusted installment display in the gateway.
+* Fixed card display in shortcode version.
 
 = 1.28.1 =
 ** 19/02/2026 **
