@@ -43,7 +43,6 @@ function bpmpi_config () {
     onUnenrolled: function (e) {
       console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage + ' raw: ' + JSON.stringify(e))
 
-      console.log(window.lknDCScriptAllowCardIneligible)
       // Verificar se a opção allow_card_ineligible está habilitada
       const allowCardIneligible = window.lknDCScriptAllowCardIneligible.allow === 'yes'
       
