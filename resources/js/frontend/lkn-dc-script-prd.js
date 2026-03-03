@@ -102,7 +102,10 @@ function setupErrorDetection() {
       }
 
       lknWcCieloCcDcNo.onchange = (e) => {
-        const cardBin = e.target.value.substring(0, 6)
+        const cardBin = e.target.value.replace(/\s+/g, '').substring(0, 6)
+        if(!cardBin) {
+          return
+        }
         const url = wpApiSettings.root + 'lknWCGatewayCielo/checkCard?cardbin=' + cardBin
         $.ajax({
           url,
@@ -112,23 +115,29 @@ function setupErrorDetection() {
           },
           success: function (response) {
             const options = document.querySelectorAll('#lkn_cc_type option')
+            const currentSelection = document.querySelector('#lkn_cc_type').value
 
-            // Reset all options: enable all and deselect all
+            // Reset all options: enable all but preserve current selection if possible
             options.forEach(function (option) {
               option.disabled = false
-              option.selected = false
             })
+
+            let shouldChangeSelection = false
 
             options.forEach(function (option) {
               if (response.CardType === 'Crédito' && option.value !== 'Credit') {
                 option.disabled = true
-                option.selected = false
+                if (currentSelection === option.value) {
+                  shouldChangeSelection = true
+                }
                 if (lknWcCieloCcDcInstallment) {
                   lknWcCieloCcDcInstallment.parentElement.style.display = ''
                 }
               } else if (response.CardType === 'Débito' && option.value !== 'Debit') {
                 option.disabled = true
-                option.selected = false
+                if (currentSelection === option.value) {
+                  shouldChangeSelection = true
+                }
                 if (lknWcCieloCcDcInstallment) {
                   lknWcCieloCcDcInstallment.parentElement.style.display = 'none'
                 }
@@ -136,12 +145,12 @@ function setupErrorDetection() {
                 if (lknWcCieloCcDcInstallment) {
                   lknWcCieloCcDcInstallment.parentElement.style.display = ''
                 }
-                option.selected = true
+                if (shouldChangeSelection) {
+                  option.selected = true
+                }
               } else if (response.CardType === 'Débito' && option.value === 'Debit') {
-                option.selected = true
-              } else if (response.CardType === 'Multiplo') {
-                if (lknWcCieloCcDcInstallment) {
-                  lknWcCieloCcDcInstallment.parentElement.style.display = ''
+                if (shouldChangeSelection) {
+                  option.selected = true
                 }
               }
             })
@@ -261,7 +270,7 @@ function bpmpi_config () {
       // Card is not eligible for authentication (unauthenticable)
       console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage)
       //aqui
-      if(lknDCScriptAllowCardIneligible == 'yes'){
+      if(lknDCScriptAllowCardIneligible.allow == 'yes'){
         submitForm(e)
       }else{
         alert(wp.i18n.__('Card Ineligible for Authentication', 'lkn-wc-gateway-cielo'))
@@ -271,7 +280,7 @@ function bpmpi_config () {
       // Store don't require bearer authentication (class "bpmpi_auth" false -> disabled authentication).
       console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage)
       //aqui
-      if(lknDCScriptAllowCardIneligible == 'yes'){
+      if(lknDCScriptAllowCardIneligible.allow == 'yes'){
         submitForm(e)
       }else{
         alert(wp.i18n.__('Authentication disabled by the store', 'lkn-wc-gateway-cielo'))
@@ -290,7 +299,7 @@ function bpmpi_config () {
       // Provider not supported for authentication
       console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage)
       //aqui
-      if(lknDCScriptAllowCardIneligible == 'yes'){
+      if(lknDCScriptAllowCardIneligible.allow == 'yes'){
         submitForm(e)
       }else{
         alert(wp.i18n.__('Provider not supported by Cielo 3DS authentication', 'lkn-wc-gateway-cielo'))
@@ -387,7 +396,7 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   function lknWcGatewayCieloLoadScript () {
-    const scriptUrlBpmpi = lknDCDirScript3DSCieloShortCode
+    const scriptUrlBpmpi = lknDCDirScript3DSCieloShortCode.url
     const existingScriptBpmpi = document.querySelector(`script[src="${scriptUrlBpmpi}"]`)
 
     if (!existingScriptBpmpi) {

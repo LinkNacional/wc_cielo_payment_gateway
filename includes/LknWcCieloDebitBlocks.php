@@ -65,6 +65,10 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
             )
         ));
 
+        // Adicionar os mesmos localize scripts da versão clássica
+        wp_localize_script('lkn_cielo_debit-blocks-integration', 'lknDCDirScript3DSCieloShortCode', array('url' => LKN_WC_GATEWAY_CIELO_URL . 'resources/js/debitCard/BP.Mpi.3ds20.min.js'));
+        wp_localize_script('lkn_cielo_debit-blocks-integration', 'lknDCScriptAllowCardIneligible', array('allow' => $this->gateway->get_option('allow_card_ineligible', 'no')));
+
         if (function_exists('wp_set_script_translations')) {
             wp_set_script_translations('lkn_cielo_debit-blocks-integration');
         }

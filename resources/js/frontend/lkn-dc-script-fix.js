@@ -3,7 +3,7 @@
 
 function lknWcCieloPaymentGatewayRemoveLoad () {
   if (document.querySelector('.bpmpi_accesstoken')) {
-    document.querySelector('.bpmpi_accesstoken').value = lknWcCieloPaymentGatewayToken
+    document.querySelector('.bpmpi_accesstoken').value = lknWcCieloPaymentGatewayToken.access_token
 
     // Remova os elementos de overlay
     const loadOverlay = document.querySelectorAll('.blockUI.blockOverlay')
