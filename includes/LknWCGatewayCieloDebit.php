@@ -94,7 +94,8 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         $post = get_post();
         if ($post && has_shortcode($post->post_content, 'woocommerce_checkout') && 'yes' === $gateway_enabled['enabled']) {
             wp_enqueue_script('lkn-fix-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-dc-script-fix.js', array('wp-i18n', 'jquery'), $this->version, false);
-            wp_localize_script('lkn-fix-script', 'lknWcCieloPaymentGatewayToken', array('access_token' => $this->accessToken['access_token']));
+            $accessToken = isset($this->accessToken['access_token']) ? $this->accessToken['access_token'] : '';
+            wp_localize_script('lkn-fix-script', 'lknWcCieloPaymentGatewayToken', array('access_token' => $accessToken));
         }
 
         // Actions.
@@ -823,7 +824,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         $fees_total = number_format($this->get_fees_total(), 2, '.', '');
         $taxes_total = number_format($this->get_taxes_total(), 2, '.', '');
         $discounts_total = number_format($this->get_discounts_total(), 2, '.', '');
-        $accessToken = $this->accessToken;
+        $accessToken = isset($this->accessToken) ? $this->accessToken : '';
         $url = get_page_link();
         $nonce = wp_create_nonce('nonce_lkn_cielo_debit');
         $placeholder = $this->get_option('placeholder', 'no');
