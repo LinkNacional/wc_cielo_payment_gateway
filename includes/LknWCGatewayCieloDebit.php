@@ -824,7 +824,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         $fees_total = number_format($this->get_fees_total(), 2, '.', '');
         $taxes_total = number_format($this->get_taxes_total(), 2, '.', '');
         $discounts_total = number_format($this->get_discounts_total(), 2, '.', '');
-        $accessToken = isset($this->accessToken) ? $this->accessToken : '';
+        $accessToken = isset($this->accessToken) ? $this->accessToken : array('access_token' => '', 'expires_in' => 0);
         $url = get_page_link();
         $nonce = wp_create_nonce('nonce_lkn_cielo_debit');
         $placeholder = $this->get_option('placeholder', 'no');
