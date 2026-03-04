@@ -73,11 +73,14 @@
 
 .field-group {
     display: flex;
-    gap: 16px;
+    flex-wrap: wrap;
+    column-gap: 16px;
 }
 
 .field-half {
     flex: 1;
+    width: 100%;
+    min-width: 200px;
 }
 
 /* === LABELS === */
@@ -100,15 +103,22 @@
 .field-input, 
 .field-select {
     width: 100%;
-    padding: 12px 16px !important;
-    border: 2px solid #e9ecef;
-    border-radius: 8px;
-    font-size: 16px;
+    border: 2px solid #e9ecef !important;
+    padding: .5em .8em !important;
+    border-radius: 8px !important;
+    font-size: 1rem !important;
     font-family: inherit;
     background-color: #ffffff;
     color: #495057;
     transition: all 0.3s ease;
+    vertical-align: middle;
     outline: none;
+}
+
+.field-input::placeholder, 
+.field-select::placeholder {
+    font-size: 1rem !important;
+    vertical-align: middle !important;
 }
 
 .field-input:focus, 
@@ -144,12 +154,13 @@
 
 /* === FIELD ICONS === */
 .field-icon {
+    display: flex;
     position: absolute;
     right: 12px;
     top: 50%;
     transform: translateY(-50%);
-    width: 20px;
-    height: 20px;
+    width: 1.2rem;
+    height: 1.2rem;
     opacity: 0.6;
     transition: all 0.3s ease;
     pointer-events: none;
@@ -255,8 +266,6 @@
     }
     
     .field-icon {
-        width: 18px;
-        height: 18px;
         right: 10px;
     }
     
