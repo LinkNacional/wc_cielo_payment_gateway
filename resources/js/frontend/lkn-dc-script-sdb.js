@@ -91,14 +91,6 @@ function setupErrorDetection() {
     const lknWcCieloCcDcNo = document.querySelector('#lkn_dcno')
 
     if (lknWcCieloCcDcNo && lknWcCieloPaymentCCTypeInput) {
-      lknWcCieloPaymentCCTypeInput.onchange = (e) => {
-        if (e.target.value === 'Debit' && lknWcCieloCcDcInstallment) {
-          lknWcCieloCcDcInstallment.parentElement.style.display = 'none'
-        } else if (lknWcCieloCcDcInstallment) {
-          lknWcCieloCcDcInstallment.parentElement.style.display = ''
-        }
-      }
-
       lknWcCieloCcDcNo.onchange = (e) => {
         const cardBin = e.target.value.replace(/\s+/g, '').substring(0, 6)
         if(!cardBin) {

@@ -106,20 +106,15 @@
     if (installmentShow && installmentRow && typeCard.length) {
       const cardType = typeCard.val()
       
-      // Se é cartão de crédito, mostrar parcelas
-      if (cardType === 'Credit') {
-        if (installmentRow.length) {
-          installmentRow.show()
-          installmentShow.val('yes')
-        }
-      } 
-      // Se é cartão de débito, esconder parcelas
-      else if (cardType === 'Debit') {
+      // Se é cartão de débito, sempre esconder
+      if (cardType === 'Debit') {
         if (installmentRow.length) {
           installmentRow.hide()
           installmentShow.val('no')
         }
       }
+      // Para cartão de crédito, não fazer nada aqui
+      // A visibilidade será controlada pela validação de opções em lknWCCieloLoadInstallments()
     }
   }
 
@@ -255,15 +250,33 @@
         }
       }
 
-      // Se só existe uma opção válida, não exibe o select
+      // Controlar visibilidade baseado no tipo de cartão e opções válidas
       const installmentRow = document.getElementById('lkn-cc-dc-installment-row')
-      if (validOptions <= 1) {
-        if (installmentRow) {
-          installmentRow.style.display = 'none'
-        }
-      } else {
-        if (installmentRow) {
-          installmentRow.style.display = ''
+      const installmentShow = $('#lkn_cielo_3ds_installment_show')
+      const typeCard = $('#lkn_cc_type')
+      
+      if (installmentRow && typeCard.length) {
+        const cardType = typeCard.val()
+        
+        if (cardType === 'Credit') {
+          // Para crédito, só mostrar se há múltiplas opções válidas
+          if (validOptions > 1) {
+            installmentRow.style.display = ''
+            if (installmentShow) {
+              installmentShow.val('yes')
+            }
+          } else {
+            installmentRow.style.display = 'none'
+            if (installmentShow) {
+              installmentShow.val('no')
+            }
+          }
+        } else {
+          // Para débito ou outros, sempre esconder
+          installmentRow.style.display = 'none'  
+          if (installmentShow) {
+            installmentShow.val('no')
+          }
         }
       }
     }
