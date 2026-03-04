@@ -1042,7 +1042,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         $cardName = isset($_POST['lkn_dc_cardholder_name']) ? sanitize_text_field(wp_unslash($_POST['lkn_dc_cardholder_name'])) : '';
         $cardName = apply_filters('lkn_wc_cielo_get_cardholder_name', $cardName, $this, $order);
         $cardType = isset($_POST['lkn_cc_type']) ? sanitize_text_field(wp_unslash($_POST['lkn_cc_type'])) : '';
-        $installments = 1;
+        $installments = (int) (isset($_POST['lkn_cc_dc_installments']) ? sanitize_text_field(wp_unslash($_POST['lkn_cc_dc_installments'])) : 1);
 
         // Authentication parameters
         $xid = isset($_POST['lkn_cielo_3ds_xid']) ? sanitize_text_field(wp_unslash($_POST['lkn_cielo_3ds_xid'])) : '';
