@@ -1,3 +1,7 @@
+# 1.29.0 - 04/03/2026
+* Novo layout para o shortcode.
+* Ajustes de CSS na versão padrão e moderna.
+
 # 1.28.2 - 02/03/2026
 * Correção na ABA de extras da versão PRO.
 * Ajuste na exibição das parcelas no gateway.
