@@ -380,7 +380,6 @@ function lknProcessCreditCardDirect() {
       btnSubmit.click()
     }
   } catch (error) {
-    console.log('Erro ao processar cartão de crédito:', error)
     alert(wp.i18n.__('Error processing credit card payment', 'lkn-wc-gateway-cielo'))
   }
 }

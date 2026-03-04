@@ -593,7 +593,6 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
 
         // Check if modern layout is enabled
         $checkout_layout = $this->get_option('checkout_layout', 'no');
-        error_log('Checkout layout option value: ' . $checkout_layout);
         $use_modern_layout = ('yes' === $checkout_layout);
 
         // Enqueue specific scripts for modern layout
@@ -685,9 +684,15 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
 
         // Card parameters
         $cardNum = preg_replace('/\s/', '', isset($_POST['lkn_ccno']) ? sanitize_text_field(wp_unslash($_POST['lkn_ccno'])) : '');
-        $cardExpSplit = explode('/', preg_replace('/\s/', '', isset($_POST['lkn_cc_expdate']) ? sanitize_text_field(wp_unslash($_POST['lkn_cc_expdate'])) : ''));
-        $cardExp = $cardExpSplit[0] . '/20' . $cardExpSplit[1];
-        $cardExpShort = $cardExpSplit[0] . '/' . $cardExpSplit[1];
+        $cardExpRaw = isset($_POST['lkn_cc_expdate']) ? sanitize_text_field(wp_unslash($_POST['lkn_cc_expdate'])) : '';
+        $cardExpSplit = explode('/', preg_replace('/\s/', '', $cardExpRaw));
+        if (count($cardExpSplit) === 2 && strlen($cardExpSplit[0]) === 2 && strlen($cardExpSplit[1]) === 2) {
+            $cardExp = $cardExpSplit[0] . '/20' . $cardExpSplit[1];
+            $cardExpShort = $cardExpSplit[0] . '/' . $cardExpSplit[1];
+        } else {
+            $cardExp = '';
+            $cardExpShort = '';
+        }
         $cardCvv = isset($_POST['lkn_cc_cvc']) ? sanitize_text_field(wp_unslash($_POST['lkn_cc_cvc'])) : '';
         $cardName = isset($_POST['lkn_cc_cardholder_name']) ? sanitize_text_field(wp_unslash($_POST['lkn_cc_cardholder_name'])) : '';
         $cardName = apply_filters('lkn_wc_cielo_get_cardholder_name', $cardName, $this, $order);
