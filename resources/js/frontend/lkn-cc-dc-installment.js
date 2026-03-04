@@ -106,20 +106,15 @@
     if (installmentShow && installmentRow && typeCard.length) {
       const cardType = typeCard.val()
       
-      // Se é cartão de crédito, mostrar parcelas
-      if (cardType === 'Credit') {
-        if (installmentRow.length) {
-          installmentRow.show()
-          installmentShow.val('yes')
-        }
-      } 
-      // Se é cartão de débito, esconder parcelas
-      else if (cardType === 'Debit') {
+      // Se é cartão de débito, sempre esconder
+      if (cardType === 'Debit') {
         if (installmentRow.length) {
           installmentRow.hide()
           installmentShow.val('no')
         }
       }
+      // Para cartão de crédito, não fazer nada aqui
+      // A visibilidade será controlada pela validação de opções em lknWCCieloLoadInstallments()
     }
   }
 
@@ -172,24 +167,31 @@
       const discountsTotal = lknDiscountsTotal ? parseFloat(lknDiscountsTotal.value) || 0 : 0 // discounts (subtraído antes dos taxes)
       const taxesTotal = lknTaxesTotal ? parseFloat(lknTaxesTotal.value) || 0 : 0 // taxes (somado no final)
 
-      for (let c = 1; c < lknInstallmentSelect.childNodes.length; c + 2) {
-        const childNode = lknInstallmentSelect.childNodes[c]
-        lknInstallmentSelect.removeChild(childNode)
+      // Se o limite de parcelas for 1 ou menor, ou se não houver limite, não renderiza o select
+      if (!lknInstallmentLimit || lknInstallmentLimit <= 1) {
+        const installmentRow = document.getElementById('lkn-cc-dc-installment-row')
+        if (installmentRow) {
+          installmentRow.style.display = 'none'
+        }
+        return
       }
 
+      // Remove opções existentes
+      while (lknInstallmentSelect.options.length > 0) {
+        lknInstallmentSelect.remove(0)
+      }
+
+      let validOptions = 0
       for (let i = 1; i <= lknInstallmentLimit; i++) {
         let finalInstallment
         let formatedInstallment
         let text
+        let addOption = true
 
         // Se a versão PRO está ativa, usar cálculo complexo
         if (typeof lknWCCielo3ds !== 'undefined' && lknWCCielo3ds.licenseResult) {
-          // Calcular parcela base: (subtotal + frete) / parcelas + fees externo - descontos + taxes
           let installmentBase = (subtotalShipping - discountsTotal) / i
-          // Valor final da parcela (fees somados, descontos subtraídos, taxes somados)
           finalInstallment = installmentBase + feesTotal + taxesTotal
-
-          // Verificar se tem configuração específica de juros/desconto para esta parcela
           let hasCustomConfig = false
           for (let t = 0; t < lknInstallmentInterest.length; t++) {
             const installmentObj = lknInstallmentInterest[t]
@@ -198,14 +200,12 @@
                 text = document.createTextNode(installmentObj.label)
                 hasCustomConfig = true
               } else if (installmentObj.interest) {
-                // Calcular juros apenas sobre subtotal + frete, depois somar fees, subtrair descontos e somar taxes
                 const interestAmount = (subtotalShipping - discountsTotal) + ((subtotalShipping) * (installmentObj.interest / 100))
                 const interestInstallment = (interestAmount / i) + feesTotal + taxesTotal
                 formatedInstallment = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(interestInstallment)
                 text = document.createTextNode(i + 'x de ' + formatedInstallment + ' (' + installmentObj.interest + '% de juros)')
                 hasCustomConfig = true
               } else if (installmentObj.discount) {
-                // Calcular desconto apenas sobre subtotal + frete, depois somar fees, subtrair descontos e somar taxes
                 const discountAmount = (subtotalShipping - discountsTotal) - ((subtotalShipping) * (installmentObj.discount / 100))
                 const discountInstallment = (discountAmount / i) + feesTotal + taxesTotal
                 formatedInstallment = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(discountInstallment)
@@ -215,42 +215,68 @@
               break
             }
           }
-
-          // Se não tem configuração customizada, usar o texto padrão
           if (!hasCustomConfig) {
             formatedInstallment = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(finalInstallment)
-            // Texto dinâmico baseado na configuração
-            let defaultText = ' sem juros' // padrão
+            let defaultText = ' sem juros'
             if (typeof lknWCCielo3dsConfig !== 'undefined' && lknWCCielo3dsConfig.interest_or_discount === 'discount') {
               defaultText = ' sem desconto'
             }
             text = document.createTextNode(i + 'x de ' + formatedInstallment + defaultText)
           }
         } else {
-          // Versão gratuita: inclui fees externos, descontos e taxes, mas não aplica juros/desconto do plugin
-          // Calcular: (subtotal + frete - descontos + fees externos + taxes) / parcelas
           finalInstallment = (subtotalShipping - discountsTotal + feesTotal + taxesTotal) / i
           formatedInstallment = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(finalInstallment)
           text = document.createTextNode(i + 'x de ' + formatedInstallment)
         }
 
-        const option = document.createElement('option')
-        option.value = i
-        option.appendChild(text)
-        lknInstallmentSelect.appendChild(option)
-
-        // Verificar se é a parcela atual da sessão e selecionar
-        if (typeof lknWCCielo3dsAjax !== 'undefined' &&
-          lknWCCielo3dsAjax.current_installment &&
-          i === parseInt(lknWCCielo3dsAjax.current_installment)) {
-          option.selected = true
-        }
-
-        // Para versão gratuita, usar o total completo para verificar mínimo
         const checkValue = (typeof lknWCCielo3ds !== 'undefined' && lknWCCielo3ds.licenseResult) ?
           subtotalShipping : (subtotalShipping - discountsTotal + feesTotal + taxesTotal)
         if ((checkValue / (i + 1)) < lknInstallmentMin) {
-          break
+          addOption = false
+        }
+
+        if (addOption) {
+          const option = document.createElement('option')
+          option.value = i
+          option.appendChild(text)
+          lknInstallmentSelect.appendChild(option)
+          validOptions++
+
+          if (typeof lknWCCielo3dsAjax !== 'undefined' &&
+            lknWCCielo3dsAjax.current_installment &&
+            i === parseInt(lknWCCielo3dsAjax.current_installment)) {
+            option.selected = true
+          }
+        }
+      }
+
+      // Controlar visibilidade baseado no tipo de cartão e opções válidas
+      const installmentRow = document.getElementById('lkn-cc-dc-installment-row')
+      const installmentShow = $('#lkn_cielo_3ds_installment_show')
+      const typeCard = $('#lkn_cc_type')
+      
+      if (installmentRow && typeCard.length) {
+        const cardType = typeCard.val()
+        
+        if (cardType === 'Credit') {
+          // Para crédito, só mostrar se há múltiplas opções válidas
+          if (validOptions > 1) {
+            installmentRow.style.display = ''
+            if (installmentShow) {
+              installmentShow.val('yes')
+            }
+          } else {
+            installmentRow.style.display = 'none'
+            if (installmentShow) {
+              installmentShow.val('no')
+            }
+          }
+        } else {
+          // Para débito ou outros, sempre esconder
+          installmentRow.style.display = 'none'  
+          if (installmentShow) {
+            installmentShow.val('no')
+          }
         }
       }
     }

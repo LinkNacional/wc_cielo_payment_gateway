@@ -4,7 +4,7 @@ Donate link: https://www.linknacional.com.br/wordpress/woocommerce/cielo/
 Tags: pagamento, cielo, pix, woocommerce, creditcard
 Requires at least: 5.7
 Tested up to: 6.9
-Stable tag: 1.28.2
+Stable tag: 1.29.0
 Requires PHP: 7.2
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -111,6 +111,11 @@ CIELO API PIX, credit card, debit payment for WooCommerceCIELO API PIX, credit c
 7. Debit card front page with payment fields.
 
 == Changelog ==
+= 1.29.0 = 
+** 04/03/2026 **
+* New layout for the shortcode.
+* CSS adjustments for both the standard and modern versions.
+
 = 1.28.2 =
 ** 02/03/2026 **
 * Fixed the extras tab in the PRO version.

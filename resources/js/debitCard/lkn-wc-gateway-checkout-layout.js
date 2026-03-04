@@ -11,37 +11,44 @@ document.addEventListener('DOMContentLoaded', function () {
           const iconsContainer = document.createElement('div')
           iconsContainer.setAttribute('class', 'lkn-cielo-credit-debit-card-icons')
 
-          const cardBrands = ['visa', 'mastercard', 'elo', 'amex', 'other_card']
-          cardBrands.forEach(brand => {
-            const icon = document.createElement('img')
-            icon.setAttribute('src', lknCieloCardIcons[brand])
+          // Só criar os ícones de marca do cartão se a configuração permitir
+          if (lknCieloDebitCardIcons.show_card_brand_icons === 'yes') {
+            const cardBrands = ['visa', 'mastercard', 'elo', 'amex', 'other_card']
+            cardBrands.forEach(brand => {
+              const icon = document.createElement('img')
+              icon.setAttribute('src', lknCieloDebitCardIcons[brand])
 
-            // Define o atributo alt
-            const altText = brand === 'other_card' ? lknCieloCardIcons.other_card_alt + ' logo' || 'Other Card logo' : `${brand} logo`
-            icon.setAttribute('alt', altText)
+              // Define o atributo alt
+              const altText = brand === 'other_card' ? lknCieloDebitCardIcons.other_card_alt + ' logo' || 'Other Card logo' : `${brand} logo`
+              icon.setAttribute('alt', altText)
 
-            // Define o atributo title
-            const titleText = brand === 'other_card'
-              ? (lknCieloCardIcons.other_card_alt ? lknCieloCardIcons.other_card_alt.charAt(0).toUpperCase() + lknCieloCardIcons.other_card_alt.slice(1) : 'Other Card')
-              : brand.charAt(0).toUpperCase() + brand.slice(1)
-            icon.setAttribute('title', titleText)
+              // Define o atributo title
+              const titleText = brand === 'other_card'
+                ? (lknCieloDebitCardIcons.other_card_alt ? lknCieloDebitCardIcons.other_card_alt.charAt(0).toUpperCase() + lknCieloDebitCardIcons.other_card_alt.slice(1) : 'Other Card')
+                : brand.charAt(0).toUpperCase() + brand.slice(1)
+              icon.setAttribute('title', titleText)
 
-            icon.setAttribute('style', 'width: 40px; height: auto;')
-            iconsContainer.appendChild(icon)
-          })
+              icon.setAttribute('style', 'width: 40px; height: auto;')
+              iconsContainer.appendChild(icon)
+            })
+          }
 
           parentLabel.appendChild(iconsContainer)
 
           const applyLogic = () => {
             const isChecked = parentLabel.classList.contains('wc-block-components-radio-control__option-checked')
-            iconsContainer.style.filter = isChecked ? 'none' : 'grayscale(20%)'
-            iconsContainer.style.opacity = isChecked ? '1' : '1'
+            
+            // Só aplicar estilos nos ícones de marca se eles estiverem habilitados
+            if (lknCieloDebitCardIcons.show_card_brand_icons === 'yes') {
+              iconsContainer.style.filter = isChecked ? 'none' : 'grayscale(20%)'
+              iconsContainer.style.opacity = isChecked ? '1' : '1'
 
-            if (!isChecked) {
-              iconsContainer.querySelectorAll('img').forEach(icon => {
-                icon.style.filter = 'none'
-                icon.style.opacity = '1'
-              })
+              if (!isChecked) {
+                iconsContainer.querySelectorAll('img').forEach(icon => {
+                  icon.style.filter = 'none'
+                  icon.style.opacity = '1'
+                })
+              }
             }
 
             parentLabel.style.border = isChecked ? false : 'none'
@@ -68,60 +75,63 @@ document.addEventListener('DOMContentLoaded', function () {
                         element.addEventListener('input', () => {
                           const value = element.value.trim()
 
-                          if (value.length === 0) {
-                            clearTimeout(debounceTimeout)
-                            iconsContainer.querySelectorAll('img').forEach(icon => {
-                              icon.style.filter = 'none'
-                              icon.style.opacity = '1'
-                            })
-                          } else if (value.length > 0 && value.length < 7) {
-                            clearTimeout(debounceTimeout)
-                            iconsContainer.querySelectorAll('img').forEach(icon => {
-                              icon.style.filter = 'none'
-                              icon.style.opacity = '1'
-                            })
-                          } else if (value.length >= 7) {
-                            // Limpa o timeout anterior para evitar múltiplas chamadas
-                            clearTimeout(debounceTimeout)
-                            let isBrandMatched = false
+                          // Só executar lógica de detecção de marca se os ícones estiverem habilitados
+                          if (lknCieloDebitCardIcons.show_card_brand_icons === 'yes') {
+                            if (value.length === 0) {
+                              clearTimeout(debounceTimeout)
+                              iconsContainer.querySelectorAll('img').forEach(icon => {
+                                icon.style.filter = 'none'
+                                icon.style.opacity = '1'
+                              })
+                            } else if (value.length > 0 && value.length < 7) {
+                              clearTimeout(debounceTimeout)
+                              iconsContainer.querySelectorAll('img').forEach(icon => {
+                                icon.style.filter = 'none'
+                                icon.style.opacity = '1'
+                              })
+                            } else if (value.length >= 7) {
+                              // Limpa o timeout anterior para evitar múltiplas chamadas
+                              clearTimeout(debounceTimeout)
+                              let isBrandMatched = false
 
-                            debounceTimeout = setTimeout(() => {
-                              fetch(`/wp-json/lknWCGatewayCielo/getCardBrand?number=${value}`)
-                                .then(response => response.json())
-                                .then(data => {
-                                  if (data.status) {
-                                    const brand = data.brand.toLowerCase()
-                                    iconsContainer.querySelectorAll('img').forEach(icon => {
-                                      const iconBrand = icon.getAttribute('alt').replace(' logo', '').toLowerCase()
+                              debounceTimeout = setTimeout(() => {
+                                fetch(`/wp-json/lknWCGatewayCielo/getCardBrand?number=${value}`)
+                                  .then(response => response.json())
+                                  .then(data => {
+                                    if (data.status) {
+                                      const brand = data.brand.toLowerCase()
+                                      iconsContainer.querySelectorAll('img').forEach(icon => {
+                                        const iconBrand = icon.getAttribute('alt').replace(' logo', '').toLowerCase()
 
-                                      if (cardBrands.includes(brand)) {
-                                        icon.style.filter = iconBrand === brand ? 'none' : 'grayscale(100%)'
-                                        icon.style.opacity = iconBrand === brand ? '1' : '0.3'
-                                        isBrandMatched = true
-                                      } else {
-                                        icon.style.filter = 'grayscale(100%)'
-                                        icon.style.opacity = '0.3'
+                                        if (cardBrands.includes(brand)) {
+                                          icon.style.filter = iconBrand === brand ? 'none' : 'grayscale(100%)'
+                                          icon.style.opacity = iconBrand === brand ? '1' : '0.3'
+                                          isBrandMatched = true
+                                        } else {
+                                          icon.style.filter = 'grayscale(100%)'
+                                          icon.style.opacity = '0.3'
+                                        }
+                                      })
+
+                                      if (!isBrandMatched) {
+                                        const otherCardIcon = iconsContainer.querySelector('img[alt="other card logo"]')
+                                        if (otherCardIcon) {
+                                          otherCardIcon.style.filter = 'none'
+                                          otherCardIcon.style.opacity = '1'
+                                        }
                                       }
-                                    })
-
-                                    if (!isBrandMatched) {
-                                      const otherCardIcon = iconsContainer.querySelector('img[alt="other card logo"]')
-                                      if (otherCardIcon) {
-                                        otherCardIcon.style.filter = 'none'
-                                        otherCardIcon.style.opacity = '1'
-                                      }
+                                    } else {
+                                      iconsContainer.querySelectorAll('img').forEach(icon => {
+                                        icon.style.filter = 'none'
+                                        icon.style.opacity = '1'
+                                      })
                                     }
-                                  } else {
-                                    iconsContainer.querySelectorAll('img').forEach(icon => {
-                                      icon.style.filter = 'none'
-                                      icon.style.opacity = '1'
-                                    })
-                                  }
-                                })
-                                .catch(error => {
-                                  console.error('Error fetching card brand:', error)
-                                })
-                            }, 1000)
+                                  })
+                                  .catch(error => {
+                                    console.error('Error fetching card brand:', error)
+                                  })
+                              }, 1000)
+                            }
                           }
                         })
                       }
