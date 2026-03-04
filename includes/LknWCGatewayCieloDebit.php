@@ -1042,8 +1042,13 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         // Card parameters
         $cardNum = preg_replace('/\s/', '', isset($_POST['lkn_dcno']) ? sanitize_text_field(wp_unslash($_POST['lkn_dcno'])) : '');
         $cardExpSplit = explode('/', preg_replace('/\s/', '', isset($_POST['lkn_dc_expdate']) ? sanitize_text_field(wp_unslash($_POST['lkn_dc_expdate'])) : ''));
-        $cardExp = $cardExpSplit[0] . '/20' . $cardExpSplit[1];
-        $cardExpShort = $cardExpSplit[0] . '/' . $cardExpSplit[1];
+        if (count($cardExpSplit) === 2 && strlen($cardExpSplit[0]) === 2 && strlen($cardExpSplit[1]) === 2) {
+            $cardExp = $cardExpSplit[0] . '/20' . $cardExpSplit[1];
+            $cardExpShort = $cardExpSplit[0] . '/' . $cardExpSplit[1];
+        } else {
+            $cardExp = '';
+            $cardExpShort = '';
+        }
         $cardCvv = isset($_POST['lkn_dc_cvc']) ? sanitize_text_field(wp_unslash($_POST['lkn_dc_cvc'])) : '';
         $cardName = isset($_POST['lkn_dc_cardholder_name']) ? sanitize_text_field(wp_unslash($_POST['lkn_dc_cardholder_name'])) : '';
         $cardName = apply_filters('lkn_wc_cielo_get_cardholder_name', $cardName, $this, $order);
