@@ -102,7 +102,7 @@
 /* === INPUT & SELECT STYLES === */
 .field-input, 
 .field-select {
-    width: 100%;
+    width: 100% !important;
     border: 2px solid #e9ecef !important;
     padding: .5em .8em !important;
     border-radius: 8px !important;
@@ -149,6 +149,7 @@
 
 /* === FIELD WRAPPERS === */
 .field-wrapper {
+    display: flex;
     position: relative;
 }
 

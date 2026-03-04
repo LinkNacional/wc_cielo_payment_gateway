@@ -84,14 +84,16 @@ if (!defined('ABSPATH')) {
                 <?php esc_html_e('Card Holder Name', 'lkn-wc-gateway-cielo'); ?>
                 <span class="required">*</span>
             </label>
-            <input
-                id="lkn_cc_cardholder_name"
-                name="lkn_cc_cardholder_name"
-                type="text"
-                autocomplete="cc-name"
-                required
-                placeholder="<?php echo $placeholder_enabled ? esc_attr('John Doe') : ''; ?>"
-                class="field-input">
+            <div class="field-wrapper">
+                <input
+                    id="lkn_cc_cardholder_name"
+                    name="lkn_cc_cardholder_name"
+                    type="text"
+                    autocomplete="cc-name"
+                    required
+                    placeholder="<?php echo $placeholder_enabled ? esc_attr('John Doe') : ''; ?>"
+                    class="field-input">
+            </div>
         </div>
 
         <!-- Card Number Field -->
