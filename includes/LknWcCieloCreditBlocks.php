@@ -68,15 +68,20 @@ final class LknWcCieloCreditBlocks extends AbstractPaymentMethodType
             wp_set_script_translations('lkn_cielo_credit-blocks-integration');
         }
 
-        if (has_block('woocommerce/checkout') && $is_pro_plugin_valid) {
+        if ($is_pro_plugin_valid) {
             wp_enqueue_script('lkn-wc-gateway-credit-checkout-layout', plugin_dir_url(__FILE__) . '../resources/js/creditCard/lkn-wc-gateway-checkout-layout.js', array(), LKN_WC_CIELO_VERSION, false);
-            wp_localize_script('lkn-wc-gateway-credit-checkout-layout', 'lknCieloCardIcons', array(
+            
+            // Verificar se os ícones de marca do cartão devem ser exibidos
+            $show_card_brand_icons = isset($this->settings['show_card_brand_icons']) ? $this->settings['show_card_brand_icons'] : 'yes';
+            
+            wp_localize_script('lkn-wc-gateway-credit-checkout-layout', 'lknCieloCreditCardIcons', array(
                 'visa'       => plugin_dir_url(__FILE__) . '../resources/img/visa-icon.svg',
                 'mastercard' => plugin_dir_url(__FILE__) . '../resources/img/mastercard-icon.svg',
                 'amex'       => plugin_dir_url(__FILE__) . '../resources/img/amex-icon.svg',
                 'elo'        => plugin_dir_url(__FILE__) . '../resources/img/elo-icon.svg',
                 'other_card'        => plugin_dir_url(__FILE__) . '../resources/img/other-card.svg',
-                'other_card_alt'    => __('other card', 'lkn-wc-gateway-cielo')
+                'other_card_alt'    => __('other card', 'lkn-wc-gateway-cielo'),
+                'show_card_brand_icons' => $show_card_brand_icons
             ));
             wp_localize_script('lkn-wc-gateway-credit-checkout-layout', 'lknCieloInputIcons', array(
                 'calendar'       => plugin_dir_url(__FILE__) . '../resources/img/calendar.svg',

@@ -59,6 +59,7 @@ if (!defined('ABSPATH')) {
         <?php } ?>
 
         <!-- Card Brand Icons -->
+        <?php if ($show_card_brand_icons === 'yes') { ?>
         <div class="cielo-card-brands-container" id="cielo-debit-card-brands">
             <div class="cielo-card-brands">
                 <?php 
@@ -88,6 +89,7 @@ if (!defined('ABSPATH')) {
                 ?>
             </div>
         </div>
+        <?php } ?>
         
         <div class="wc-payment-cielo-form-fields modern-form-fields">
 
@@ -261,8 +263,6 @@ if (!defined('ABSPATH')) {
         <?php
         } ?>
 
-        <div id="lkn-dc-notice" class="modern-notice"></div>
-        
         <!-- Submit Button -->
         <div class="payment-submit-section">
             <button type="button" id="cielo-debit-submit-btn" class="cielo-submit-button debit-submit">

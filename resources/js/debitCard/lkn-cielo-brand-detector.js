@@ -95,6 +95,11 @@
      * @param {string|null} detectedBrand - Brand name or null
      */
     function updateBrandIcons(detectedBrand) {
+        // Só manipular ícones se estiverem habilitados
+        if (typeof lknCieloDebitBrandConfig !== 'undefined' && lknCieloDebitBrandConfig.show_card_brand_icons !== 'yes') {
+            return; // Não manipular os ícones se não estiverem habilitados
+        }
+        
         if (!brandIcons || brandIcons.length === 0) {
             brandIcons = document.querySelectorAll('#cielo-debit-card-brands .card-brand-icon');
         }
@@ -130,21 +135,31 @@
         const cardNumber = cardNumberInput.value;
         const cleanNumber = cardNumber.replace(/\s+/g, '');
         
-        // Apply gray filter when user starts typing (1+ digits)
-        if (cleanNumber.length >= 1 && cleanNumber.length < 6) {
-            // Gray out all brands when typing but not enough digits to detect
-            applyGrayFilterToAll();
-        } else {
-            // Detect brand only when 6+ digits
-            const detectedBrand = detectCardBrand(cardNumber);
-            updateBrandIcons(detectedBrand);
+        // Só aplicar efeitos nos ícones se estiverem habilitados
+        if (typeof lknCieloDebitBrandConfig !== 'undefined' && lknCieloDebitBrandConfig.show_card_brand_icons === 'yes') {
+            // Apply gray filter when user starts typing (1+ digits)
+            if (cleanNumber.length >= 1 && cleanNumber.length < 6) {
+                // Gray out all brands when typing but not enough digits to detect
+                applyGrayFilterToAll();
+            } else {
+                // Detect brand only when 6+ digits
+                const detectedBrand = detectCardBrand(cardNumber);
+                updateBrandIcons(detectedBrand);
+            }
         }
+        
+        // Outras funcionalidades do input continuam funcionando independentemente
     }
     
     /**
      * Apply gray filter to all brand icons
      */
     function applyGrayFilterToAll() {
+        // Só manipular ícones se estiverem habilitados
+        if (typeof lknCieloDebitBrandConfig !== 'undefined' && lknCieloDebitBrandConfig.show_card_brand_icons !== 'yes') {
+            return; // Não manipular os ícones se não estiverem habilitados
+        }
+        
         if (!brandIcons || brandIcons.length === 0) {
             brandIcons = document.querySelectorAll('#cielo-debit-card-brands .card-brand-icon');
         }
@@ -164,11 +179,7 @@
         cardNumberInput = document.getElementById('lkn_dcno');
         brandIcons = document.querySelectorAll('#cielo-debit-card-brands .card-brand-icon');
         
-        if (!cardNumberInput || brandIcons.length === 0) {
-            return false;
-        }
-        
-        // Remove existing listeners to avoid duplicates
+        // Setup card input listeners apenas se input existir
         if (cardNumberInput && !cardNumberInput.hasAttribute('data-cielo-debit-initialized')) {
             cardNumberInput.setAttribute('data-cielo-debit-initialized', 'true');
             
@@ -186,7 +197,7 @@
             }
         }
         
-        // Enhanced focus effects for modern layout
+        // Enhanced focus effects for modern layout - sempre executar
         const modernInputs = document.querySelectorAll('.field-input:not([data-focus-initialized]), .field-select:not([data-focus-initialized])');
         
         modernInputs.forEach(input => {
@@ -201,7 +212,7 @@
             });
         });
         
-        // Initialize submit button synchronization
+        // Initialize submit button synchronization - SEMPRE executar
         initializeSubmitButton();
         
         return true;

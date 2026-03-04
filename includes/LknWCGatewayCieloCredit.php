@@ -543,6 +543,8 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         $nonce = wp_create_nonce('nonce_lkn_cielo_credit');
         $placeholder = $this->get_option('placeholder', 'no');
         $placeholderEnabled = false;
+        $show_card_brand_icons = $this->get_option('show_card_brand_icons', 'yes');
+
 
         $installmentLimit = apply_filters('lkn_wc_cielo_set_installment_limit', $installmentLimit, $this);
         $installmentMin = preg_replace('/,/', '.', $this->get_option('installment_min', '5,00'));
@@ -597,9 +599,14 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
 
         // Enqueue specific scripts for modern layout
         if ($use_modern_layout) {
-            // Check if credit brand detector is already enqueued
-            if (!wp_script_is('lkn-cielo-brand-detector', 'enqueued') && !wp_script_is('lkn-cielo-brand-detector', 'done')) {
-                wp_enqueue_script('lkn-cielo-brand-detector', plugin_dir_url(__FILE__) . '../resources/js/creditCard/lkn-cielo-brand-detector.js', array(), $this->version, true);
+            // Always enqueue credit brand detector script
+            if (!wp_script_is('lkn-cielo-credit-brand-detector', 'enqueued') && !wp_script_is('lkn-cielo-credit-brand-detector', 'done')) {
+                wp_enqueue_script('lkn-cielo-credit-brand-detector', plugin_dir_url(__FILE__) . '../resources/js/creditCard/lkn-cielo-brand-detector.js', array(), $this->version, true);
+                
+                // Always send variable to JavaScript (JS decides what to do with icons)
+                wp_localize_script('lkn-cielo-credit-brand-detector', 'lknCieloCreditBrandConfig', array(
+                    'show_card_brand_icons' => $show_card_brand_icons
+                ));
             }
             
             // Check if modern layout CSS is already enqueued to avoid duplicates

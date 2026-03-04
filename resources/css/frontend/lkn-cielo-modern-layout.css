@@ -190,14 +190,6 @@
     filter: grayscale(0%) brightness(1.2);
 }
 
-/* === NOTICES === */
-.modern-notice {
-    padding: 12px;
-    border-radius: 6px;
-    margin-top: 16px;
-    font-size: 14px;
-}
-
 /* === SUBMIT SECTION === */
 .payment-submit-section {
     margin-top: 24px;

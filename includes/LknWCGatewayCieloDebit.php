@@ -804,6 +804,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         
         // Check checkout layout option
         $checkout_layout = $this->get_option('checkout_layout', 'no');
+        $show_card_brand_icons = $this->get_option('show_card_brand_icons', 'yes');
         $use_modern_layout = ('yes' === $checkout_layout);
 
         // Enqueue modern layout assets if enabled
@@ -813,9 +814,14 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                 wp_enqueue_style('lkn-cielo-modern-layout', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-cielo-modern-layout.css', array(), $this->version, 'all');
             }
             
-            // Check if debit brand detector is already enqueued
+            // Always enqueue debit brand detector script
             if (!wp_script_is('lkn-cielo-debit-brand-detector', 'enqueued') && !wp_script_is('lkn-cielo-debit-brand-detector', 'done')) {
                 wp_enqueue_script('lkn-cielo-debit-brand-detector', plugin_dir_url(__FILE__) . '../resources/js/debitCard/lkn-cielo-brand-detector.js', array('jquery'), $this->version, true);
+                
+                // Always send variable to JavaScript (JS decides what to do with icons)
+                wp_localize_script('lkn-cielo-debit-brand-detector', 'lknCieloDebitBrandConfig', array(
+                    'show_card_brand_icons' => $show_card_brand_icons
+                ));
             }
         }
         

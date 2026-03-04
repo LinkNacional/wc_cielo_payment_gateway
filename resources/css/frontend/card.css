@@ -4,7 +4,7 @@
     align-items: center;
     justify-self: center; 
     margin: 0px !important;
-    margin-bottom: .8em !important;
+    margin-bottom: 2em !important;
     padding: 0px !important;
     width: 100%;
     overflow: hidden;
@@ -1137,5 +1137,6 @@
     #cielo-credit-card-animation,
     #cielo-debit-card-animation {
         width: 200px !important;
+        margin-bottom: 0px !important;
     }
 }
