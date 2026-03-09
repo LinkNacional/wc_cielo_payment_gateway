@@ -161,72 +161,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         }
     }
 
-    public function initialize_payment_gateway_scripts()
-    {
-        // Aqui você pode adicionar o hook manualmente dentro da função
-        add_action('wp_enqueue_scripts', [$this, 'payment_gateway_scripts']);
-    }
 
-    /**
-     * Load gateway scripts/styles.
-     */
-    public function payment_gateway_scripts(): void
-    {
-        // Don't load scripts outside payment page
-        if (
-            ! is_checkout()
-            && ! isset($_GET['pay_for_order']) // wpcs: csrf ok.
-            && ! is_add_payment_method_page()
-            && ! isset($_GET['change_payment_method']) // wpcs: csrf ok.
-            || is_order_received_page()
-        ) {
-            return;
-        }
-
-        // If is not enabled bail.
-        if ('yes' !== $this->enabled) {
-            return;
-        }
-
-        $installmentArgs = array();
-        $installmentArgs = apply_filters('lkn_wc_cielo_js_credit_args', array('installment_min' => '5'));
-        $order_id = absint(get_query_var('order-pay'));
-        $order = wc_get_order($order_id);
-
-        if ($order) {
-            $currency = $order->get_currency();
-        } else {
-            $currency = get_woocommerce_currency();
-        }
-
-        $installmentArgs['currency'] = $currency;
-
-        if (WC()->session) {
-            WC()->session->set('lkn_cielo_credit_installment', '1');
-        }
-
-        // Recuperar parcela atual da sessão
-        $current_installment = WC()->session ? WC()->session->get('lkn_cielo_credit_installment', '1') : '1';
-
-        wp_enqueue_script('lkn-mask-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/formatter.js', array('jquery'), $this->version, false);
-        wp_enqueue_script('lkn-mask-script-load', plugin_dir_url(__FILE__) . '../resources/js/frontend/define-mask.js', array('lkn-mask-script', 'jquery'), $this->version, false);
-
-        wp_enqueue_script('lkn-installment-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-cc-installment.js', array('jquery'), $this->version, false);
-        wp_localize_script('lkn-installment-script', 'lknWCCieloCredit', $installmentArgs);
-        wp_localize_script('lkn-installment-script', 'lknWCCieloCreditConfig', array(
-            'interest_or_discount' => $this->get_option('interest_or_discount'),
-            'installment_discount' => $this->get_option('installment_discount')
-        ));
-        wp_localize_script('lkn-installment-script', 'lknWCCieloCreditAjax', array(
-            'ajaxurl' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('lkn_payment_fees_nonce'),
-            'current_installment' => $current_installment
-        ));
-
-        wp_enqueue_style('lkn-cc-style', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-cc-style.css', array(), $this->version, 'all');
-
-        wp_enqueue_style('lkn-mask', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-mask.css', array(), $this->version, 'all');
-    }
 
     /**
      * Initialise Gateway Settings Form Fields.
@@ -513,7 +448,46 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
      */
     public function payment_fields(): void
     {
+        // Enqueue base styles
         wp_enqueue_style('lknWCGatewayCieloFixIconsStyle', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-fix-icons-styles.css', array(), $this->version, 'all');
+        wp_enqueue_style('lkn-cc-style', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-cc-style.css', array(), $this->version, 'all');
+        wp_enqueue_style('lkn-mask', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-mask.css', array(), $this->version, 'all');
+        
+        // Enqueue mask and installment scripts
+        wp_enqueue_script('lkn-mask-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/formatter.js', array('jquery'), $this->version, false);
+        wp_enqueue_script('lkn-mask-script-load', plugin_dir_url(__FILE__) . '../resources/js/frontend/define-mask.js', array('lkn-mask-script', 'jquery'), $this->version, false);
+        
+        // Setup installment args and scripts
+        $installmentArgs = apply_filters('lkn_wc_cielo_js_credit_args', array('installment_min' => '5'));
+        $order_id = absint(get_query_var('order-pay'));
+        $order = wc_get_order($order_id);
+
+        if ($order) {
+            $currency = $order->get_currency();
+        } else {
+            $currency = get_woocommerce_currency();
+        }
+
+        $installmentArgs['currency'] = $currency;
+
+        if (WC()->session) {
+            WC()->session->set('lkn_cielo_credit_installment', '1');
+        }
+
+        // Recuperar parcela atual da sessão
+        $current_installment = WC()->session ? WC()->session->get('lkn_cielo_credit_installment', '1') : '1';
+
+        wp_enqueue_script('lkn-installment-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-cc-installment.js', array('jquery'), $this->version, false);
+        wp_localize_script('lkn-installment-script', 'lknWCCieloCredit', $installmentArgs);
+        wp_localize_script('lkn-installment-script', 'lknWCCieloCreditConfig', array(
+            'interest_or_discount' => $this->get_option('interest_or_discount'),
+            'installment_discount' => $this->get_option('installment_discount')
+        ));
+        wp_localize_script('lkn-installment-script', 'lknWCCieloCreditAjax', array(
+            'ajaxurl' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('lkn_payment_fees_nonce'),
+            'current_installment' => $current_installment
+        ));
         
         // Enqueue card animation scripts only if enabled
         if ('yes' === $this->get_option('show_card_animation')) {

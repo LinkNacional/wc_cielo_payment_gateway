@@ -345,12 +345,12 @@ if (! defined('ABSPATH')) {
             id="lkn_cc_type"
             name="lkn_cc_type"
             class="input-select wc-credit-card-form-card-cvc">
-            <option
-                value="Credit"><?php esc_html_e('Credit card', 'lkn-wc-gateway-cielo'); ?>
-            </option>
-            <option value="Debit">
-                <?php esc_html_e('Debit card', 'lkn-wc-gateway-cielo'); ?>
-            </option>
+                <option
+                    value="Credit"><?php esc_html_e('Credit card', 'lkn-wc-gateway-cielo'); ?>
+                </option>
+                <option value="Debit">
+                    <?php esc_html_e('Debit card', 'lkn-wc-gateway-cielo'); ?>
+                </option>
         </select>
     </div>
 
