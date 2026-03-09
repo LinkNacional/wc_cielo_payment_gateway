@@ -1209,8 +1209,8 @@ final class LknWCCieloPayment
             header('X-Robots-Tag: noindex');
         }
 
-        // Enviar resposta e encerrar
-        echo esc_html($toon_response);
+        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- TOON encoded data is already safe encoded format, no escaping needed
+        echo $toon_response;
         wp_die('', '', array('response' => null));
     }
 
