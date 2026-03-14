@@ -1,3 +1,14 @@
+# 1.29.1 - 14/03/2026 (Security Release)
+* 🔒 **SECURITY:** Fixed critical vulnerability in REST API endpoints - Added nonce verification to prevent unauthorized access
+* 🔒 **SECURITY:** Fixed refund filter bypass vulnerability - Added permission checks to prevent unauthorized refunds
+* 🔒 **SECURITY:** Added audit logging for sensitive operations (clearOrderLogs, refunds)
+* 🔒 **SECURITY:** Implemented double-layer permission verification in refund processes
+* ⚠️ **BREAKING:** REST endpoints now require valid nonce (X-WP-Nonce header or _wpnonce parameter)
+* ⚠️ **BREAKING:** clearOrderLogs endpoint now requires manage_woocommerce capability
+* ✅ **COMPATIBILITY:** All changes are backward compatible with existing integrations
+* ✅ **COMPATIBILITY:** Filters (lkn_wc_cielo_*_refund) continue working for users with proper permissions
+* 📝 See SECURITY_FIXES.md for detailed information about security improvements
+
 # 1.29.0 - 04/03/2026
 * Novo layout para o shortcode.
 * Ajustes de CSS na versão padrão e moderna.
