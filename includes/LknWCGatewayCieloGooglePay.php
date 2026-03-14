@@ -594,6 +594,14 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
      */
     public function process_refund($order_id, $amount = null, $reason = '')
     {
+        // Verify user has permission to process refunds
+        if (!current_user_can('manage_woocommerce')) {
+            if ('yes' === $this->get_option('debug')) {
+                $this->log->log('error', 'Refund attempt without proper permissions for order: ' . $order_id, array('source' => 'woocommerce-cielo-google-pay-security'));
+            }
+            return new WP_Error('permission_denied', __('You do not have permission to process refunds.', 'lkn-wc-gateway-cielo'));
+        }
+
         // Do your refund here. Refund $amount for the order with ID $order_id
         $url = ($this->get_option('env') == 'production') ? 'https://api.cieloecommerce.cielo.com.br/' : 'https://apisandbox.cieloecommerce.cielo.com.br/';
         $merchantId = sanitize_text_field($this->get_option('merchant_id'));
@@ -602,7 +610,24 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
         $order = wc_get_order($order_id);
         $transactionId = $order->get_transaction_id();
 
+        // Allow filtering of refund parameters, but verify permission after filter
         $response = apply_filters('lkn_wc_cielo_google_pay_refund', $url, $merchantId, $merchantSecret, $order_id, $amount);
+
+        // If filter was hooked and returned a value, verify user still has permission
+        if (has_filter('lkn_wc_cielo_google_pay_refund')) {
+            if (!current_user_can('manage_woocommerce')) {
+                if ('yes' === $debug) {
+                    $this->log->log('error', 'Refund filter used without proper permissions for order: ' . $order_id, array('source' => 'woocommerce-cielo-google-pay-security'));
+                }
+                $order->add_order_note(__('Order refund blocked: insufficient permissions', 'lkn-wc-gateway-cielo'));
+                return false;
+            }
+            
+            // Log filter usage for audit trail
+            if ('yes' === $debug) {
+                $this->log->log('info', 'Refund filter was used for order: ' . $order_id, array('source' => 'woocommerce-cielo-google-pay-security'));
+            }
+        }
 
         if (is_wp_error($response)) {
             if ('yes' === $debug) {
