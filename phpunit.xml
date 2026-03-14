@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.5/phpunit.xsd"
+         bootstrap="tests/bootstrap.php"
+         colors="true"
+         verbose="true"
+         failOnRisky="true"
+         failOnWarning="true">
+    <testsuites>
+        <testsuite name="unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+        <testsuite name="pix">
+            <directory>tests/Unit/Pix</directory>
+        </testsuite>
+        <testsuite name="credit">
+            <directory>tests/Unit/Credit</directory>
+        </testsuite>
+        <testsuite name="refund">
+            <directory>tests/Unit/Refund</directory>
+        </testsuite>
+        <testsuite name="logging">
+            <directory>tests/Unit/Logging</directory>
+        </testsuite>
+        <testsuite name="hooks">
+            <directory>tests/Unit/Hooks</directory>
+        </testsuite>
+    </testsuites>
+    <coverage processUncoveredFiles="true">
+        <include>
+            <directory suffix=".php">includes</directory>
+        </include>
+        <exclude>
+            <directory>includes/assets</directory>
+            <directory>includes/templates</directory>
+            <directory>includes/views</directory>
+        </exclude>
+    </coverage>
+    <php>
+        <ini name="display_errors" value="1"/>
+        <ini name="error_reporting" value="-1"/>
+        <env name="WP_TESTS_DOMAIN" value="example.org"/>
+        <env name="WP_TESTS_EMAIL" value="admin@example.org"/>
+        <env name="WP_TESTS_TITLE" value="Test Site"/>
+    </php>
+</phpunit>
