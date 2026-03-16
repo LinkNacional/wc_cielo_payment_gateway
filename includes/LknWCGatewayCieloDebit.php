@@ -1206,7 +1206,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                 }
             }
 
-            $order->add_order_note(__('Installments quantity', 'lkn-wc-gateway-cielo') . ' ' . $installments);
+            $order->add_order_note('[' . $this->id . '] ' . __('Installments quantity', 'lkn-wc-gateway-cielo') . ' ' . $installments);
             $order->add_meta_data('installments', $installments, true);
         }
 
@@ -1251,7 +1251,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
             // Salvar o pedido para garantir que os metadados sejam persistidos
             $order->save();
 
-            $order->add_order_note(__('Credit card payment processed', 'lkn-wc-gateway-cielo'));
+            $order->add_order_note('[' . $this->id . '] ' . __('Credit card payment processed', 'lkn-wc-gateway-cielo'));
         } 
         // Cartão de débito - verificar se permite cartão inelegível ou se tem validação 3DS
         elseif ('Debit' == $cardType && $this->get_option('allow_card_ineligible', 'no') == 'yes' && (empty($refId) || 'null' == $refId)) {
@@ -1292,9 +1292,9 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
             // Salvar o pedido para garantir que os metadados sejam persistidos
             $order->save();
 
-            $order->add_order_note(__('Debit card payment processed without 3DS validation', 'lkn-wc-gateway-cielo'));
+            $order->add_order_note('[' . $this->id . '] ' . __('Debit card payment processed without 3DS validation', 'lkn-wc-gateway-cielo'));
         } else {
-            $order->add_order_note(__('Debit card payment processed with 3DS validation', 'lkn-wc-gateway-cielo'));
+            $order->add_order_note('[' . $this->id . '] ' . __('Debit card payment processed with 3DS validation', 'lkn-wc-gateway-cielo'));
 
             // Verify if authentication is data-only
             // @see {https://developercielo.github.io/manual/3ds}
@@ -1469,13 +1469,13 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         }
 
         if (isset($responseDecoded->Payment) && (1 == $responseDecoded->Payment->Status || 2 == $responseDecoded->Payment->Status)) {
-            $order->payment_complete($responseDecoded->Payment->PaymentId);
             do_action("lkn_wc_cielo_change_order_status", $order, $this, $capture);
 
             // Remove cart
             WC()->cart->empty_cart();
             do_action("lkn_wc_cielo_update_order", $order_id, $this);
             $order->add_order_note(
+                '[' . $this->id . '] ' .
                 __('Payment completed successfully. Payment id:', 'lkn-wc-gateway-cielo') .
                     ' ' .
                     $responseDecoded->Payment->PaymentId .
@@ -1574,14 +1574,14 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                 $this->log->log('error', var_export($response->get_error_messages(), true), array('source' => 'woocommerce-cielo-debit'));
             }
 
-            $order->add_order_note(__('Order refund failed, payment id:', 'lkn-wc-gateway-cielo') . ' ' . $transactionId);
+            $order->add_order_note('[' . $this->id . '] ' . __('Order refund failed, payment id:', 'lkn-wc-gateway-cielo') . ' ' . $transactionId);
 
             return false;
         }
         $responseDecoded = json_decode($response['body']);
 
         if (10 == $responseDecoded->Status || 11 == $responseDecoded->Status) {
-            $order->add_order_note(__('Order refunded, payment id:', 'lkn-wc-gateway-cielo') . ' ' . $transactionId);
+            $order->add_order_note('[' . $this->id . '] ' . __('Order refunded, payment id:', 'lkn-wc-gateway-cielo') . ' ' . $transactionId);
 
             return true;
         }
@@ -1589,7 +1589,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
             $this->log->log('error', var_export($response, true), array('source' => 'woocommerce-cielo-debit'));
         }
 
-        $order->add_order_note(__('Order refund failed, payment id:', 'lkn-wc-gateway-cielo') . ' ' . $transactionId);
+        $order->add_order_note('[' . $this->id . '] ' . __('Order refund failed, payment id:', 'lkn-wc-gateway-cielo') . ' ' . $transactionId);
 
         return false;
     }
@@ -1734,10 +1734,17 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
             $order = wc_get_order($args['order_id']);
 
             if ($order && $order->get_payment_method() === $this->id) {
-                // Verificar se o prefixo já existe para evitar duplicação
-                if (strpos($note_data['comment_content'], $this->method_title . ' — ') === false) {
-                    // Adicionar prefixo com nome do gateway
-                    $note_data['comment_content'] = $this->method_title . ' — ' . $note_data['comment_content'];
+                // PRIMEIRO: Verificar se o texto contém [$this->id] - só processa se existir
+                $pattern = '/\[' . preg_quote($this->id, '/') . '\]\s*/';
+                if (preg_match($pattern, $note_data['comment_content'])) {
+                    // Remover o padrão [$this->id] e espaço após ele
+                    $note_data['comment_content'] = preg_replace($pattern, '', $note_data['comment_content']);
+                    
+                    // Verificar se o prefixo já existe para evitar duplicação
+                    if (strpos($note_data['comment_content'], $this->method_title . ' — ') === false) {
+                        // Adicionar prefixo com nome do gateway
+                        $note_data['comment_content'] = $this->method_title . ' — ' . $note_data['comment_content'];
+                    }
                 }
             }
         }

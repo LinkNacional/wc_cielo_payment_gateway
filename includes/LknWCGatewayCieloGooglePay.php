@@ -63,6 +63,7 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
         $this->log = new WC_Logger();
 
         // Actions.
+        add_filter('woocommerce_new_order_note_data', array($this, 'add_gateway_name_to_notes'), 10, 2);
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
 
         // Action hook to load admin JavaScript
@@ -535,6 +536,7 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
 
             // Adicionar nota do pedido com detalhes do pagamento
             $order->add_order_note(
+                '[' . $this->id . '] ' .
                 __('Payment completed successfully. Payment id:', 'lkn-wc-gateway-cielo') .
                     ' ' .
                     $responseDecoded->Payment->PaymentId .
@@ -551,9 +553,6 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
                     ' - ' .
                     $responseDecoded->Payment->ReturnCode
             );
-
-            // Completar pagamento
-            $order->payment_complete($responseDecoded->Payment->PaymentId);
 
             // Finalizar processo
             WC()->cart->empty_cart();
@@ -609,14 +608,14 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
                 $this->log->log('error', var_export($response->get_error_messages(), true), array('source' => 'woocommerce-cielo-google-pay'));
             }
 
-            $order->add_order_note(__('Order refund failed, payment id:', 'lkn-wc-gateway-cielo') . ' ' . $transactionId);
+            $order->add_order_note('[' . $this->id . '] ' . __('Order refund failed, payment id:', 'lkn-wc-gateway-cielo') . ' ' . $transactionId);
 
             return false;
         }
         $responseDecoded = json_decode($response['body']);
 
         if (isset($responseDecoded->Status) && (10 == $responseDecoded->Status || 11 == $responseDecoded->Status || 2 == $responseDecoded->Status || 1 == $responseDecoded->Status)) {
-            $order->add_order_note(__('Order refunded, payment id:', 'lkn-wc-gateway-cielo') . ' ' . $transactionId);
+            $order->add_order_note('[' . $this->id . '] ' . __('Order refunded, payment id:', 'lkn-wc-gateway-cielo') . ' ' . $transactionId);
 
             return true;
         }
@@ -624,7 +623,7 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
             $this->log->log('error', var_export($response, true), array('source' => 'woocommerce-cielo-google-pay'));
         }
 
-        $order->add_order_note(__('Order refund failed, payment id:', 'lkn-wc-gateway-cielo') . ' ' . $transactionId);
+        $order->add_order_note('[' . $this->id . '] ' . __('Order refund failed, payment id:', 'lkn-wc-gateway-cielo') . ' ' . $transactionId);
 
         return false;
     }
@@ -641,5 +640,29 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
         if (! wc_has_notice($message, $type)) {
             wc_add_notice($message, $type);
         }
+    }
+
+    public function add_gateway_name_to_notes($note_data, $args)
+    {
+        // Verificar se é uma nota de mudança de status e se o pedido usa este gateway
+        if (isset($args['order_id'])) {
+            $order = wc_get_order($args['order_id']);
+
+            if ($order && $order->get_payment_method() === $this->id) {
+                // PRIMEIRO: Verificar se o texto contém [$this->id] - só processa se existir
+                $pattern = '/\[' . preg_quote($this->id, '/') . '\]\s*/';
+                if (preg_match($pattern, $note_data['comment_content'])) {
+                    // Remover o padrão [$this->id] e espaço após ele
+                    $note_data['comment_content'] = preg_replace($pattern, '', $note_data['comment_content']);
+                    
+                    // Verificar se o prefixo já existe para evitar duplicação
+                    if (strpos($note_data['comment_content'], $this->method_title . ' — ') === false) {
+                        // Adicionar prefixo com nome do gateway
+                        $note_data['comment_content'] = $this->method_title . ' — ' . $note_data['comment_content'];
+                    }
+                }
+            }
+        }
+        return $note_data;
     }
 }

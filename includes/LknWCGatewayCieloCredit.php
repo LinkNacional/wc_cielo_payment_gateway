@@ -886,6 +886,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
 
             // Adicionar nota do pedido com detalhes do pagamento
             $order->add_order_note(
+                '[' . $this->id . '] ' .
                 __('Payment completed successfully. Payment id:', 'lkn-wc-gateway-cielo') .
                     ' ' .
                     $responseDecoded->Payment->PaymentId .
@@ -912,15 +913,12 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
                     $responseDecoded->Payment->ReturnCode
             );
 
-            // Completar pagamento
-            $order->payment_complete($responseDecoded->Payment->PaymentId);
-
             // Gerenciar salvamento de cartão (se aplicável)
             if ($saveCard || (class_exists('WC_Subscriptions_Order') && WC_Subscriptions_Order::order_contains_subscription($order_id))) {
                 $user_id = $order->get_user_id();
 
                 if (! isset($responseDecoded->Payment->CreditCard->CardToken)) {
-                    $order->add_order_note('O token para cobranças automáticas não foi gerado, então as cobranças automáticas não poderão ser efetuadas.');
+                    $order->add_order_note('[' . $this->id . '] O token para cobranças automáticas não foi gerado, então as cobranças automáticas não poderão ser efetuadas.');
                 }
 
                 // Dados do cartão de pagamento
@@ -1155,14 +1153,14 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
                 $this->log->log('error', var_export($response->get_error_messages(), true), array('source' => 'woocommerce-cielo-credit'));
             }
 
-            $order->add_order_note(__('Order refund failed, payment id:', 'lkn-wc-gateway-cielo') . ' ' . $transactionId);
+            $order->add_order_note('[' . $this->id . '] ' . __('Order refund failed, payment id:', 'lkn-wc-gateway-cielo') . ' ' . $transactionId);
 
             return false;
         }
         $responseDecoded = json_decode($response['body']);
 
         if (isset($responseDecoded->Status) && (10 == $responseDecoded->Status || 11 == $responseDecoded->Status || 2 == $responseDecoded->Status || 1 == $responseDecoded->Status)) {
-            $order->add_order_note(__('Order refunded, payment id:', 'lkn-wc-gateway-cielo') . ' ' . $transactionId);
+            $order->add_order_note('[' . $this->id . '] ' . __('Order refunded, payment id:', 'lkn-wc-gateway-cielo') . ' ' . $transactionId);
 
             return true;
         }
@@ -1170,7 +1168,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
             $this->log->log('error', var_export($response, true), array('source' => 'woocommerce-cielo-credit'));
         }
 
-        $order->add_order_note(__('Order refund failed, payment id:', 'lkn-wc-gateway-cielo') . ' ' . $transactionId);
+        $order->add_order_note('[' . $this->id . '] ' . __('Order refund failed, payment id:', 'lkn-wc-gateway-cielo') . ' ' . $transactionId);
 
         return false;
     }
@@ -1309,10 +1307,17 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
             $order = wc_get_order($args['order_id']);
 
             if ($order && $order->get_payment_method() === $this->id) {
-                // Verificar se o prefixo já existe para evitar duplicação
-                if (strpos($note_data['comment_content'], $this->method_title . ' — ') === false) {
-                    // Adicionar prefixo com nome do gateway
-                    $note_data['comment_content'] = $this->method_title . ' — ' . $note_data['comment_content'];
+                // PRIMEIRO: Verificar se o texto contém [$this->id] - só processa se existir
+                $pattern = '/\[' . preg_quote($this->id, '/') . '\]\s*/';
+                if (preg_match($pattern, $note_data['comment_content'])) {
+                    // Remover o padrão [$this->id] e espaço após ele
+                    $note_data['comment_content'] = preg_replace($pattern, '', $note_data['comment_content']);
+                    
+                    // Verificar se o prefixo já existe para evitar duplicação
+                    if (strpos($note_data['comment_content'], $this->method_title . ' — ') === false) {
+                        // Adicionar prefixo com nome do gateway
+                        $note_data['comment_content'] = $this->method_title . ' — ' . $note_data['comment_content'];
+                    }
                 }
             }
         }

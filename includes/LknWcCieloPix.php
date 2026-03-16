@@ -442,7 +442,7 @@ final class LknWcCieloPix extends WC_Payment_Gateway
 
             if ('BRL' != $currency) {
                 $amount = apply_filters('lkn_wc_cielo_convert_amount', $amount, $currency);
-                $order->add_order_note('Amount converted: ' . $amount);
+                $order->add_order_note('[' . $this->id . '] Amount converted: ' . $amount);
             }
 
             if (! $amount) {
@@ -755,10 +755,17 @@ final class LknWcCieloPix extends WC_Payment_Gateway
             $order = wc_get_order($args['order_id']);
 
             if ($order && $order->get_payment_method() === $this->id) {
-                // Verificar se o prefixo já existe para evitar duplicação
-                if (strpos($note_data['comment_content'], $this->method_title . ' — ') === false) {
-                    // Adicionar prefixo com nome do gateway
-                    $note_data['comment_content'] = $this->method_title . ' — ' . $note_data['comment_content'];
+                // PRIMEIRO: Verificar se o texto contém [$this->id] - só processa se existir
+                $pattern = '/\[' . preg_quote($this->id, '/') . '\]\s*/';
+                if (preg_match($pattern, $note_data['comment_content'])) {
+                    // Remover o padrão [$this->id] e espaço após ele
+                    $note_data['comment_content'] = preg_replace($pattern, '', $note_data['comment_content']);
+                    
+                    // Verificar se o prefixo já existe para evitar duplicação
+                    if (strpos($note_data['comment_content'], $this->method_title . ' — ') === false) {
+                        // Adicionar prefixo com nome do gateway
+                        $note_data['comment_content'] = $this->method_title . ' — ' . $note_data['comment_content'];
+                    }
                 }
             }
         }
