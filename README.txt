@@ -103,6 +103,10 @@ CIELO API PIX, credit card, debit payment for WooCommerceCIELO API PIX, credit c
 7. Debit card front page with payment fields.
 
 == Changelog ==
+= 1.29.1 =
+** 16/03/2026 **
+* Adjustment to order notes.
+
 = 1.29.0 = 
 ** 04/03/2026 **
 * New layout for the shortcode.

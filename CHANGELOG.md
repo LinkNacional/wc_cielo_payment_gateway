@@ -1,3 +1,6 @@
+# 1.29.1 - 16/03/2026
+* Ajuste nas notas dos pedidos.
+
 # 1.29.0 - 04/03/2026
 * Novo layout para o shortcode.
 * Ajustes de CSS na versão padrão e moderna.
