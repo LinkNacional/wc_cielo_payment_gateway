@@ -1496,6 +1496,12 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                     ' - ' .
                     $responseDecoded->Payment->ReturnCode
             );
+            
+            // Salvar o transaction ID para permitir reembolsos e integrações
+            if (isset($responseDecoded->Payment->PaymentId)) {
+                $order->set_transaction_id($responseDecoded->Payment->PaymentId);
+            }
+            
             $order->save();
 
             // Return thankyou redirect
@@ -1561,11 +1567,50 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
     {
         // Do your refund here. Refund $amount for the order with ID $order_id
         $url = ($this->get_option('env') == 'production') ? 'https://api.cieloecommerce.cielo.com.br/' : 'https://apisandbox.cieloecommerce.cielo.com.br/';
+        $urlQuery = ($this->get_option('env') == 'production') ? 'https://apiquery.cieloecommerce.cielo.com.br/' : 'https://apiquerysandbox.cieloecommerce.cielo.com.br/';
         $merchantId = sanitize_text_field($this->get_option('merchant_id'));
         $merchantSecret = sanitize_text_field($this->get_option('merchant_key'));
         $debug = $this->get_option('debug');
         $order = wc_get_order($order_id);
         $transactionId = $order->get_transaction_id();
+        $orderTotal = $order->get_total();
+        
+        // Verificar se transação foi capturada
+        $queryUrl = $urlQuery . '1/sales/' . $transactionId;
+        $queryResponse = wp_remote_get($queryUrl, array(
+            'headers' => array(
+                'MerchantId' => $merchantId,
+                'MerchantKey' => $merchantSecret,
+            ),
+            'timeout' => 120
+        ));
+
+        // Verificar se houve erro na consulta
+        if (is_wp_error($queryResponse)) {
+            $order->add_order_note('[' . $this->id . '] ' . __('Failed to query transaction status', 'lkn-wc-gateway-cielo'));
+            return new \WP_Error('cielo_query_failed', __('Failed to query transaction status. Please try again.', 'lkn-wc-gateway-cielo'));
+        }
+        
+        $queryDecoded = json_decode($queryResponse['body']);
+            
+        if (isset($queryDecoded->Payment)) {
+            // Verificar se a transação foi capturada (CapturedAmount > 0 OU CapturedDate existe OU Status = 2)
+            $isCaptured = false;
+            
+            if (isset($queryDecoded->Payment->CapturedAmount) && $queryDecoded->Payment->CapturedAmount > 0) {
+                $isCaptured = true;
+            } elseif (isset($queryDecoded->Payment->CapturedDate) && !empty($queryDecoded->Payment->CapturedDate)) {
+                $isCaptured = true;
+            } elseif (isset($queryDecoded->Payment->Status) && $queryDecoded->Payment->Status != 1) {
+                $isCaptured = true;
+            }
+            
+            // Validação: Se não foi capturada E valor não confere com total do pedido
+            if (!$isCaptured && $amount != $orderTotal) {
+                $order->add_order_note('[' . $this->id . '] ' . __('Partial refund not allowed for non-captured transactions', 'lkn-wc-gateway-cielo'));
+                return new \WP_Error('cielo_partial_refund_denied', __('Partial refund not allowed for non-captured transactions', 'lkn-wc-gateway-cielo'));
+            }
+        }
 
         $response = apply_filters('lkn_wc_cielo_debit_refund', $url, $merchantId, $merchantSecret, $order_id, $amount);
 
@@ -1576,11 +1621,11 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
 
             $order->add_order_note('[' . $this->id . '] ' . __('Order refund failed, payment id:', 'lkn-wc-gateway-cielo') . ' ' . $transactionId);
 
-            return false;
+            return new \WP_Error('cielo_refund_failed', __('Refund failed. Please try again later.', 'lkn-wc-gateway-cielo'));
         }
         $responseDecoded = json_decode($response['body']);
 
-        if (10 == $responseDecoded->Status || 11 == $responseDecoded->Status) {
+        if (10 == $responseDecoded->Status || 11 == $responseDecoded->Status || 2 == $responseDecoded->Status || 1 == $responseDecoded->Status) {
             $order->add_order_note('[' . $this->id . '] ' . __('Order refunded, payment id:', 'lkn-wc-gateway-cielo') . ' ' . $transactionId);
 
             return true;
@@ -1591,7 +1636,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
 
         $order->add_order_note('[' . $this->id . '] ' . __('Order refund failed, payment id:', 'lkn-wc-gateway-cielo') . ' ' . $transactionId);
 
-        return false;
+        return new \WP_Error('cielo_refund_failed', __('Refund processing failed. Please check the transaction status.', 'lkn-wc-gateway-cielo'));
     }
 
     /**
