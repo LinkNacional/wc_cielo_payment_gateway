@@ -171,8 +171,37 @@ final class LknWcCieloRequest
             if (get_option('woocommerce_lkn_wc_cielo_pix_settings')['debug'] == 'yes') {
                 $instance->log->notice($response, array('source' => 'woocommerce-cielo-pix'));
             }
+
+            // Decodificar resposta para extrair informações do pagamento
+            $responseDecoded = json_decode($response, true);
+            
             if ($order->get_status() === self::WC_STATUS_PENDING) {
-                $order->update_status($instance->update_status($response));
+                $newStatus = $instance->update_status($response);
+                
+                // Verificar se o pagamento foi confirmado (status 1 ou 2) e adicionar nota
+                if (is_array($responseDecoded) && isset($responseDecoded['Payment'])) {
+                    $payment_status = (int) $responseDecoded['Payment']['Status'];
+                    
+                    if ($payment_status === 1 || $payment_status === 2) {
+                        // Adicionar nota com informações do pagamento PIX confirmado
+                        $order->add_order_note(
+                            '[lkn_wc_cielo_pix] ' .
+                            __('PIX payment confirmed automatically.', 'lkn-wc-gateway-cielo') .
+                            ' ' .
+                            __('Payment ID:', 'lkn-wc-gateway-cielo') .
+                            ' ' .
+                            $paymentId .
+                            (isset($responseDecoded['Payment']['ProofOfSale']) ? 
+                                PHP_EOL . __('Proof of sale (NSU)', 'lkn-wc-gateway-cielo') . ' - ' . $responseDecoded['Payment']['ProofOfSale'] : '') .
+                            (isset($responseDecoded['Payment']['Tid']) ? 
+                                PHP_EOL . 'TID ' . $responseDecoded['Payment']['Tid'] : '') .
+                            (isset($responseDecoded['Payment']['ReturnCode']) ? 
+                                PHP_EOL . __('Return code', 'lkn-wc-gateway-cielo') . ' - ' . $responseDecoded['Payment']['ReturnCode'] : '')
+                        );
+                    }
+                }
+                
+                $order->update_status($newStatus);
             }
         }
     }

@@ -1087,6 +1087,22 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
 
             throw new Exception(esc_attr($message));
         }
+        // Check if card starts with 0 (specific validation with metadata saving)
+        $cleanCardNum = preg_replace('/\s/', '', $cardNum);
+        if (isset($cleanCardNum[0]) && $cleanCardNum[0] === '0') {
+            $message = __('Cards starting with 0 are not accepted', 'lkn-wc-gateway-cielo');
+
+            // Salvar metadados da transação com dados customizados para erro de validação
+            $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
+                400,
+                '126',
+                'Card number starting with 0 is not valid'
+            );
+            LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, null, $cardType, 'lkn_dc_cvc', $this, $xid, $cavv, $eci, $version, $refId);
+            $order->save();
+
+            throw new Exception(esc_attr($message));
+        }
         if ($this->validate_card_number($cardNum, false) === false) {
             $message = __('Debit Card number is invalid!', 'lkn-wc-gateway-cielo');
 
@@ -1206,7 +1222,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                 }
             }
 
-            $order->add_order_note(__('Installments quantity', 'lkn-wc-gateway-cielo') . ' ' . $installments);
+            $order->add_order_note('[' . $this->id . '] ' . __('Installments quantity', 'lkn-wc-gateway-cielo') . ' ' . $installments);
             $order->add_meta_data('installments', $installments, true);
         }
 
@@ -1251,7 +1267,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
             // Salvar o pedido para garantir que os metadados sejam persistidos
             $order->save();
 
-            $order->add_order_note(__('Credit card payment processed', 'lkn-wc-gateway-cielo'));
+            $order->add_order_note('[' . $this->id . '] ' . __('Credit card payment processed', 'lkn-wc-gateway-cielo'));
         } 
         // Cartão de débito - verificar se permite cartão inelegível ou se tem validação 3DS
         elseif ('Debit' == $cardType && $this->get_option('allow_card_ineligible', 'no') == 'yes' && (empty($refId) || 'null' == $refId)) {
@@ -1292,9 +1308,9 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
             // Salvar o pedido para garantir que os metadados sejam persistidos
             $order->save();
 
-            $order->add_order_note(__('Debit card payment processed without 3DS validation', 'lkn-wc-gateway-cielo'));
+            $order->add_order_note('[' . $this->id . '] ' . __('Debit card payment processed without 3DS validation', 'lkn-wc-gateway-cielo'));
         } else {
-            $order->add_order_note(__('Debit card payment processed with 3DS validation', 'lkn-wc-gateway-cielo'));
+            $order->add_order_note('[' . $this->id . '] ' . __('Debit card payment processed with 3DS validation', 'lkn-wc-gateway-cielo'));
 
             // Verify if authentication is data-only
             // @see {https://developercielo.github.io/manual/3ds}
@@ -1469,13 +1485,13 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         }
 
         if (isset($responseDecoded->Payment) && (1 == $responseDecoded->Payment->Status || 2 == $responseDecoded->Payment->Status)) {
-            $order->payment_complete($responseDecoded->Payment->PaymentId);
             do_action("lkn_wc_cielo_change_order_status", $order, $this, $capture);
 
             // Remove cart
             WC()->cart->empty_cart();
             do_action("lkn_wc_cielo_update_order", $order_id, $this);
             $order->add_order_note(
+                '[' . $this->id . '] ' .
                 __('Payment completed successfully. Payment id:', 'lkn-wc-gateway-cielo') .
                     ' ' .
                     $responseDecoded->Payment->PaymentId .
@@ -1496,6 +1512,12 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                     ' - ' .
                     $responseDecoded->Payment->ReturnCode
             );
+            
+            // Salvar o transaction ID para permitir reembolsos e integrações
+            if (isset($responseDecoded->Payment->PaymentId)) {
+                $order->set_transaction_id($responseDecoded->Payment->PaymentId);
+            }
+            
             $order->save();
 
             // Return thankyou redirect
@@ -1561,11 +1583,50 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
     {
         // Do your refund here. Refund $amount for the order with ID $order_id
         $url = ($this->get_option('env') == 'production') ? 'https://api.cieloecommerce.cielo.com.br/' : 'https://apisandbox.cieloecommerce.cielo.com.br/';
+        $urlQuery = ($this->get_option('env') == 'production') ? 'https://apiquery.cieloecommerce.cielo.com.br/' : 'https://apiquerysandbox.cieloecommerce.cielo.com.br/';
         $merchantId = sanitize_text_field($this->get_option('merchant_id'));
         $merchantSecret = sanitize_text_field($this->get_option('merchant_key'));
         $debug = $this->get_option('debug');
         $order = wc_get_order($order_id);
         $transactionId = $order->get_transaction_id();
+        $orderTotal = $order->get_total();
+        
+        // Verificar se transação foi capturada
+        $queryUrl = $urlQuery . '1/sales/' . $transactionId;
+        $queryResponse = wp_remote_get($queryUrl, array(
+            'headers' => array(
+                'MerchantId' => $merchantId,
+                'MerchantKey' => $merchantSecret,
+            ),
+            'timeout' => 120
+        ));
+
+        // Verificar se houve erro na consulta
+        if (is_wp_error($queryResponse)) {
+            $order->add_order_note('[' . $this->id . '] ' . __('Failed to query transaction status', 'lkn-wc-gateway-cielo'));
+            return new \WP_Error('cielo_query_failed', __('Failed to query transaction status. Please try again.', 'lkn-wc-gateway-cielo'));
+        }
+        
+        $queryDecoded = json_decode($queryResponse['body']);
+            
+        if (isset($queryDecoded->Payment)) {
+            // Verificar se a transação foi capturada (CapturedAmount > 0 OU CapturedDate existe OU Status = 2)
+            $isCaptured = false;
+            
+            if (isset($queryDecoded->Payment->CapturedAmount) && $queryDecoded->Payment->CapturedAmount > 0) {
+                $isCaptured = true;
+            } elseif (isset($queryDecoded->Payment->CapturedDate) && !empty($queryDecoded->Payment->CapturedDate)) {
+                $isCaptured = true;
+            } elseif (isset($queryDecoded->Payment->Status) && $queryDecoded->Payment->Status != 1) {
+                $isCaptured = true;
+            }
+            
+            // Validação: Se não foi capturada E valor não confere com total do pedido
+            if (!$isCaptured && $amount != $orderTotal) {
+                $order->add_order_note('[' . $this->id . '] ' . __('Partial refund not allowed for non-captured transactions', 'lkn-wc-gateway-cielo'));
+                return new \WP_Error('cielo_partial_refund_denied', __('Partial refund not allowed for non-captured transactions', 'lkn-wc-gateway-cielo'));
+            }
+        }
 
         $response = apply_filters('lkn_wc_cielo_debit_refund', $url, $merchantId, $merchantSecret, $order_id, $amount);
 
@@ -1574,14 +1635,14 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                 $this->log->log('error', var_export($response->get_error_messages(), true), array('source' => 'woocommerce-cielo-debit'));
             }
 
-            $order->add_order_note(__('Order refund failed, payment id:', 'lkn-wc-gateway-cielo') . ' ' . $transactionId);
+            $order->add_order_note('[' . $this->id . '] ' . __('Order refund failed, payment id:', 'lkn-wc-gateway-cielo') . ' ' . $transactionId);
 
-            return false;
+            return new \WP_Error('cielo_refund_failed', __('Refund failed. Please try again later.', 'lkn-wc-gateway-cielo'));
         }
         $responseDecoded = json_decode($response['body']);
 
-        if (10 == $responseDecoded->Status || 11 == $responseDecoded->Status) {
-            $order->add_order_note(__('Order refunded, payment id:', 'lkn-wc-gateway-cielo') . ' ' . $transactionId);
+        if (10 == $responseDecoded->Status || 11 == $responseDecoded->Status || 2 == $responseDecoded->Status || 1 == $responseDecoded->Status) {
+            $order->add_order_note('[' . $this->id . '] ' . __('Order refunded, payment id:', 'lkn-wc-gateway-cielo') . ' ' . $transactionId);
 
             return true;
         }
@@ -1589,9 +1650,9 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
             $this->log->log('error', var_export($response, true), array('source' => 'woocommerce-cielo-debit'));
         }
 
-        $order->add_order_note(__('Order refund failed, payment id:', 'lkn-wc-gateway-cielo') . ' ' . $transactionId);
+        $order->add_order_note('[' . $this->id . '] ' . __('Order refund failed, payment id:', 'lkn-wc-gateway-cielo') . ' ' . $transactionId);
 
-        return false;
+        return new \WP_Error('cielo_refund_failed', __('Refund processing failed. Please check the transaction status.', 'lkn-wc-gateway-cielo'));
     }
 
     /**
@@ -1611,6 +1672,19 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
 
             return false;
         }
+        
+        // Remove spaces for validation
+        $cleanCardNum = preg_replace('/\s/', '', $dcnum);
+        
+        // Check if card starts with 0
+        if (isset($cleanCardNum[0]) && $cleanCardNum[0] === '0') {
+            if ($renderNotice) {
+                $this->add_notice_once(__('Cards starting with 0 are not accepted', 'lkn-wc-gateway-cielo'), 'error');
+            }
+
+            return false;
+        }
+        
         $isValid = ! preg_match('/[^0-9\s]/', $dcnum);
 
         if (true !== $isValid || strlen($dcnum) < 12) {
@@ -1734,14 +1808,350 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
             $order = wc_get_order($args['order_id']);
 
             if ($order && $order->get_payment_method() === $this->id) {
-                // Verificar se o prefixo já existe para evitar duplicação
-                if (strpos($note_data['comment_content'], $this->method_title . ' — ') === false) {
-                    // Adicionar prefixo com nome do gateway
-                    $note_data['comment_content'] = $this->method_title . ' — ' . $note_data['comment_content'];
+                // PRIMEIRO: Verificar se o texto contém [$this->id] - só processa se existir
+                $pattern = '/\[' . preg_quote($this->id, '/') . '\]\s*/';
+                if (preg_match($pattern, $note_data['comment_content'])) {
+                    // Remover o padrão [$this->id] e espaço após ele
+                    $note_data['comment_content'] = preg_replace($pattern, '', $note_data['comment_content']);
+                    
+                    // Verificar se o prefixo já existe para evitar duplicação
+                    if (strpos($note_data['comment_content'], $this->method_title . ' — ') === false) {
+                        // Adicionar prefixo com nome do gateway
+                        $note_data['comment_content'] = $this->method_title . ' — ' . $note_data['comment_content'];
+                    }
                 }
             }
         }
         return $note_data;
     }
+
+    /**
+     * Add partial capture button to order actions
+     */
+    public function add_partial_capture_button($order_id)
+    {
+        // Verificar se a versão pro está ativa
+        if (!LknWcCieloHelper::is_pro_license_active()) {
+            return;
+        }
+
+        // Verificar se a opção de captura está habilitada
+        $settings = get_option('woocommerce_lkn_cielo_debit_settings', array());
+        $captureOption = isset($settings['capture']) ? $settings['capture'] : 'yes';
+        if ($captureOption === 'yes') {
+            return;
+        }
+
+        // Garantir que $order_id é um inteiro
+        if (is_object($order_id)) {
+            $order_id = $order_id->get_id();
+        }
+        $order_id = intval($order_id);
+        
+        $order = wc_get_order($order_id);
+        
+        // Verificar se o pedido usa este gateway de pagamento
+        if (!$order || $order->get_payment_method() !== $this->id) {
+            return;
+        }
+
+        // Verificar se tem transaction ID
+        $transactionId = $order->get_transaction_id();
+        if (empty($transactionId)) {
+            return;
+        }
+
+        // Verificar se já foi feita captura parcial (só permite uma vez)
+        $partialCapturePerformed = $order->get_meta('_lkn_cielo_capture_performed');
+        if ($partialCapturePerformed) {
+            return;
+        }
+
+        // Verificação adicional: verificar se já existe reembolso de captura parcial
+        $refunds = $order->get_refunds();
+        foreach ($refunds as $refund) {
+            if (strpos($refund->get_reason(), 'partial capture') !== false || 
+                strpos($refund->get_reason(), 'captura parcial') !== false) {
+                return;
+            }
+        }
+
+        // Verificar se o status permite captura
+        if (!in_array($order->get_status(), array('pending', 'on-hold'))) {
+            return;
+        }
+
+        // Evitar duplicação - verificar se já foi renderizado
+        static $rendered = array();
+        if (isset($rendered[$order_id])) {
+            return;
+        }
+        $rendered[$order_id] = true;
+
+        // Enfileirar o script e CSS JavaScript aqui onde temos acesso ao order_id
+        wp_enqueue_script('lkn-cielo-partial-capture', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-cielo-partial-capture.js', array('jquery'), $this->version, true);
+        wp_enqueue_style('lkn-cielo-partial-capture', plugin_dir_url(__FILE__) . '../resources/css/admin/lkn-cielo-partial-capture.css', array(), $this->version);
+        
+        $orderTotal = $order->get_total();
+        
+        // Localizar variáveis para o JavaScript
+        wp_localize_script('lkn-cielo-partial-capture', 'lknCieloPartialCapture', array(
+            'ajaxurl' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('lkn_cielo_partial_capture_nonce'),
+            'orderTotal' => $orderTotal,
+            'currencySymbol' => 'R$',
+            'messages' => array(
+                'invalidAmount' => __('Please enter a valid amount to capture. The value cannot be below 0 or above the total order amount.', 'lkn-wc-gateway-cielo'),
+                'confirmCapture' => __('Confirm capture of', 'lkn-wc-gateway-cielo'),
+                'discountWillBeApplied' => __('A refund will be processed of', 'lkn-wc-gateway-cielo'),
+                'processing' => __('Processing...', 'lkn-wc-gateway-cielo'),
+                'error' => __('Error:', 'lkn-wc-gateway-cielo'),
+                'processError' => __('Error processing capture.', 'lkn-wc-gateway-cielo'),
+                'buttonText' => __('Capture', 'lkn-wc-gateway-cielo'),
+                'helpTooltip' => __('Warning: The capture amount cannot exceed %s. Lower amounts generate automatic refund for the difference. Once processed, the capture cannot be changed or repeated for this order.', 'lkn-wc-gateway-cielo')
+            )
+        ));
+
+        ?>
+        <div class="lkn-partial-capture-container">
+            <label><?php _e('Amount to capture:', 'lkn-wc-gateway-cielo'); ?></label>
+            <input type="number" id="lkn-capture-amount" class="lkn-capture-amount-input" step="0.01" min="0.01" max="<?php echo esc_attr($orderTotal); ?>" value="<?php echo esc_attr($orderTotal); ?>" />
+            <span id="lkn-capture-help-icon" class="lkn-capture-help-icon" title="">
+                ?
+            </span>
+            <button type="button" id="lkn-partial-capture-btn" class="button button-primary" 
+                    data-order-id="<?php echo esc_attr($order_id); ?>" 
+                    data-transaction-id="<?php echo esc_attr($transactionId); ?>"
+                    data-order-total="<?php echo esc_attr($orderTotal); ?>">
+                <?php _e('Capture', 'lkn-wc-gateway-cielo'); ?>
+            </button>
+        </div>
+        <?php
+    }
+
+
+
+    /**
+     * Handle AJAX partial capture request
+     */
+    public function handle_partial_capture_ajax()
+    {
+        // Verificar se a versão pro está ativa
+        if (!LknWcCieloHelper::is_pro_license_active()) {
+            wp_send_json_error(__('Pro version is not active', 'lkn-wc-gateway-cielo'));
+        }
+
+        // Verificar se a opção de captura está habilitada
+        $settings = get_option('woocommerce_lkn_cielo_debit_settings', array());
+        $captureOption = isset($settings['capture']) ? $settings['capture'] : 'yes';
+        if ($captureOption === 'yes') {
+            wp_send_json_error(__('Partial capture is only available with manual capture (disable automatic capture)', 'lkn-wc-gateway-cielo'));
+        }
+
+        // Verificar nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'])), 'lkn_cielo_partial_capture_nonce')) {
+            wp_send_json_error(__('Security verification failed', 'lkn-wc-gateway-cielo'));
+        }
+
+        // Verificar permissões
+        if (!current_user_can('edit_shop_orders')) {
+            wp_send_json_error(__('Insufficient permissions', 'lkn-wc-gateway-cielo'));
+        }
+
+        $order_id = isset($_POST['order_id']) ? intval($_POST['order_id']) : 0;
+        $capture_amount = isset($_POST['capture_amount']) ? floatval($_POST['capture_amount']) : 0;
+        $transaction_id = isset($_POST['transaction_id']) ? sanitize_text_field(wp_unslash($_POST['transaction_id'])) : '';
+
+        if (empty($order_id) || empty($capture_amount) || empty($transaction_id)) {
+            wp_send_json_error(__('Required data not provided', 'lkn-wc-gateway-cielo'));
+        }
+
+        $order = wc_get_order($order_id);
+        if (!$order) {
+            wp_send_json_error(__('Order not found', 'lkn-wc-gateway-cielo'));
+        }
+
+        // Verificar se é o gateway correto
+        if ($order->get_payment_method() !== $this->id) {
+            wp_send_json_error(__('Incorrect payment gateway', 'lkn-wc-gateway-cielo'));
+        }
+
+        // Verificar se já foi feita captura parcial
+        $partialCapturePerformed = $order->get_meta('_lkn_cielo_capture_performed');
+        if ($partialCapturePerformed) {
+            wp_send_json_error(__('Partial capture has already been performed for this order', 'lkn-wc-gateway-cielo'));
+        }
+
+        // Verificação adicional: verificar se já existe reembolso de captura parcial
+        $refunds = $order->get_refunds();
+        foreach ($refunds as $refund) {
+            if (strpos($refund->get_reason(), 'partial capture') !== false || 
+                strpos($refund->get_reason(), 'captura parcial') !== false) {
+                wp_send_json_error(__('Partial capture has already been performed for this order', 'lkn-wc-gateway-cielo'));
+            }
+        }
+
+        // Processar captura
+        $url = ($this->get_option('env') == 'production') ? 'https://api.cieloecommerce.cielo.com.br/' : 'https://apisandbox.cieloecommerce.cielo.com.br/';
+        $merchantId = sanitize_text_field($this->get_option('merchant_id'));
+        $merchantSecret = sanitize_text_field($this->get_option('merchant_key'));
+
+        $result = $this->processPartialCapture($transaction_id, $capture_amount, $order, $url, $merchantId, $merchantSecret);
+
+        if (is_wp_error($result)) {
+            wp_send_json_error($result->get_error_message());
+        }
+
+        // Calcular valor restante (que será reembolsado)
+        $orderTotal = $order->get_total();
+        $remainingAmount = $orderTotal - $capture_amount;
+        
+        // Se há valor restante, criar reembolso oficial
+        if ($remainingAmount > 0) {
+            // Criar reembolso usando o sistema WooCommerce
+            $refund = wc_create_refund(array(
+                'order_id' => $order_id,
+                'amount' => $remainingAmount,
+                'reason' => sprintf(
+                    __('Automatic refund due to partial capture. Captured: %s of %s', 'lkn-wc-gateway-cielo'),
+                    'R$ ' . number_format($capture_amount, 2, ',', '.'),
+                    'R$ ' . number_format($orderTotal, 2, ',', '.')
+                ),
+                'refunded_by' => get_current_user_id()
+            ));
+            
+            if (is_wp_error($refund)) {
+                // Se falhou ao criar o refund, reverter e retornar erro
+                wp_send_json_error(
+                    sprintf(
+                        __('Capture completed but failed to create refund: %s', 'lkn-wc-gateway-cielo'),
+                        $refund->get_error_message()
+                    )
+                );
+            }
+        }
+        
+        // Marcar que captura parcial foi realizada
+        $order->update_meta_data('_lkn_cielo_capture_performed', true);
+        $order->update_meta_data('_lkn_cielo_captured_amount', $capture_amount);
+        $order->update_meta_data('_lkn_cielo_remaining_amount', $remainingAmount);
+        
+        // Mudar status para processando
+        $order->update_status('processing', 
+            sprintf(
+                __('[%s] Partial capture completed. Captured amount: %s. Refunded amount: %s', 'lkn-wc-gateway-cielo'),
+                $this->id,
+                'R$ ' . number_format($capture_amount, 2, ',', '.'),
+                'R$ ' . number_format($remainingAmount, 2, ',', '.')
+            )
+        );
+        
+        $order->save();
+        
+        $message = sprintf(
+            __('Partial capture of %s completed successfully!', 'lkn-wc-gateway-cielo'),
+            'R$ ' . number_format($capture_amount, 2, ',', '.')
+        );
+        
+        if ($remainingAmount > 0) {
+            $message .= ' ' . sprintf(
+                __('Refund of %s processed.', 'lkn-wc-gateway-cielo'),
+                'R$ ' . number_format($remainingAmount, 2, ',', '.')
+            );
+        }
+        
+        wp_send_json_success(array(
+            'message' => $message
+        ));
+    }
+
+    /**
+     * Process partial capture request using Cielo API
+     *
+     * @param string $transactionId
+     * @param float $captureAmount
+     * @param WC_Order $order
+     * @param string $url
+     * @param string $merchantId
+     * @param string $merchantSecret
+     * @return bool|WP_Error
+     */
+    private function processPartialCapture($transactionId, $captureAmount, $order, $url, $merchantId, $merchantSecret)
+    {
+        // Converter valor para centavos (formato da API Cielo)
+        $amountInCents = number_format($captureAmount, 2, '', '');
+
+        // Headers da requisição
+        $headers = array(
+            'Content-Type' => 'application/json',
+            'MerchantId' => $merchantId,
+            'MerchantKey' => $merchantSecret,
+        );
+
+        // Endpoint para captura parcial com valor no query parameter
+        $captureUrl = $url . "1/sales/{$transactionId}/capture?amount={$amountInCents}";
+
+        // Fazer a requisição PUT para captura (sem body)
+        $response = wp_remote_request($captureUrl, array(
+            'method' => 'PUT',
+            'headers' => $headers,
+            'timeout' => 120
+        ));
+
+        // Verificar se houve erro na requisição
+        if (is_wp_error($response)) {
+            $error_message = sprintf(
+                __('Error in partial capture: %s', 'lkn-wc-gateway-cielo'),
+                $response->get_error_message()
+            );
+            $order->add_order_note('[' . $this->id . '] ' . $error_message);
+            
+            if ('yes' === $this->get_option('debug')) {
+                $this->log->log('error', var_export($response->get_error_messages(), true), array('source' => 'woocommerce-cielo-debit'));
+            }
+            
+            return new WP_Error('cielo_capture_failed', $error_message);
+        }
+
+        // Decodificar resposta
+        $responseDecoded = json_decode($response['body']);
+
+        // Verificar se a captura foi bem-sucedida
+        if (isset($responseDecoded->Status) && ($responseDecoded->Status == 2)) {
+            $order->add_order_note(sprintf(
+                '[%s] %s %s. TID: %s',
+                $this->id,
+                __('Partial capture completed successfully. Captured amount:', 'lkn-wc-gateway-cielo'),
+                'R$ ' . number_format($captureAmount, 2, ',', '.'),
+                isset($responseDecoded->Tid) ? $responseDecoded->Tid : $transactionId
+            ));
+            
+            if ('yes' === $this->get_option('debug')) {
+                $this->log->log('info', 'Captura parcial realizada: ' . var_export($responseDecoded, true), array('source' => 'woocommerce-cielo-debit'));
+            }
+            
+            return true;
+        }
+
+        // Se chegou aqui, houve erro na captura
+        $error_message = isset($responseDecoded->Message) 
+            ? $responseDecoded->Message 
+            : __('Unknown error in partial capture', 'lkn-wc-gateway-cielo');
+        
+        $order->add_order_note(sprintf(
+            '[%s] %s: %s',
+            $this->id,
+            __('Partial capture failed', 'lkn-wc-gateway-cielo'),
+            $error_message
+        ));
+        
+        if ('yes' === $this->get_option('debug')) {
+            $this->log->log('error', 'Erro na captura parcial: ' . var_export($responseDecoded, true), array('source' => 'woocommerce-cielo-debit'));
+        }
+        
+        return new \WP_Error('cielo_capture_failed', $error_message);
+    }
+
+
 }
 ?>
