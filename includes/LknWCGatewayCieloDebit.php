@@ -1087,6 +1087,22 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
 
             throw new Exception(esc_attr($message));
         }
+        // Check if card starts with 0 (specific validation with metadata saving)
+        $cleanCardNum = preg_replace('/\s/', '', $cardNum);
+        if (isset($cleanCardNum[0]) && $cleanCardNum[0] === '0') {
+            $message = __('Cards starting with 0 are not accepted', 'lkn-wc-gateway-cielo');
+
+            // Salvar metadados da transação com dados customizados para erro de validação
+            $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
+                400,
+                '126',
+                'Card number starting with 0 is not valid'
+            );
+            LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, null, $cardType, 'lkn_dc_cvc', $this, $xid, $cavv, $eci, $version, $refId);
+            $order->save();
+
+            throw new Exception(esc_attr($message));
+        }
         if ($this->validate_card_number($cardNum, false) === false) {
             $message = __('Debit Card number is invalid!', 'lkn-wc-gateway-cielo');
 
@@ -1656,6 +1672,19 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
 
             return false;
         }
+        
+        // Remove spaces for validation
+        $cleanCardNum = preg_replace('/\s/', '', $dcnum);
+        
+        // Check if card starts with 0
+        if (isset($cleanCardNum[0]) && $cleanCardNum[0] === '0') {
+            if ($renderNotice) {
+                $this->add_notice_once(__('Cards starting with 0 are not accepted', 'lkn-wc-gateway-cielo'), 'error');
+            }
+
+            return false;
+        }
+        
         $isValid = ! preg_match('/[^0-9\s]/', $dcnum);
 
         if (true !== $isValid || strlen($dcnum) < 12) {
