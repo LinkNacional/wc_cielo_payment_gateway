@@ -181,6 +181,10 @@ final class LknWCCieloPayment
         
         // Admin settings card for specific sections
         $this->loader->add_action('admin_enqueue_scripts', $this, 'setup_admin_settings_card');
+        
+        // Partial capture hooks centralized
+        $this->loader->add_action('woocommerce_order_item_add_action_buttons', $this, 'add_partial_capture_button');
+        $this->loader->add_action('wp_ajax_lkn_cielo_partial_capture', $this, 'handle_partial_capture_ajax');
     }
 
     /**
@@ -1236,6 +1240,89 @@ final class LknWCCieloPayment
             }
         } catch (Exception $e) {
             return null;
+        }
+    }
+
+    /**
+     * Centralized partial capture button handler
+     * Determines the correct gateway based on the order's payment method
+     */
+    public function add_partial_capture_button($order_id)
+    {
+        // Guarantee order_id is an integer
+        if (is_object($order_id)) {
+            $order_id = $order_id->get_id();
+        }
+        $order_id = intval($order_id);
+        
+        $order = wc_get_order($order_id);
+        
+        if (!$order) {
+            return;
+        }
+        
+        $payment_method = $order->get_payment_method();
+        
+        // Only process Cielo gateways
+        if (!in_array($payment_method, ['lkn_cielo_credit', 'lkn_cielo_debit'])) {
+            return;
+        }
+        
+        // Get the appropriate gateway instance
+        $gateway = null;
+        if ($payment_method === 'lkn_cielo_credit') {
+            $gateway = new LknWCGatewayCieloCredit();
+        } elseif ($payment_method === 'lkn_cielo_debit') {
+            $gateway = new LknWCGatewayCieloDebit();
+        }
+        
+        if ($gateway && method_exists($gateway, 'add_partial_capture_button')) {
+            $gateway->add_partial_capture_button($order_id);
+        }
+    }
+
+    /**
+     * Centralized partial capture AJAX handler
+     * Routes the request to the appropriate gateway based on order payment method
+     */
+    public function handle_partial_capture_ajax()
+    {
+        // Get order_id from POST data
+        $order_id = isset($_POST['order_id']) ? intval(sanitize_text_field(wp_unslash($_POST['order_id']))) : 0;
+        
+        if (empty($order_id)) {
+            wp_send_json_error(__('Order ID is required', 'lkn-wc-gateway-cielo'));
+            return;
+        }
+        
+        $order = wc_get_order($order_id);
+        
+        if (!$order) {
+            wp_send_json_error(__('Order not found', 'lkn-wc-gateway-cielo'));
+            return;
+        }
+        
+        $payment_method = $order->get_payment_method();
+        
+        // Only process Cielo gateways
+        if (!in_array($payment_method, ['lkn_cielo_credit', 'lkn_cielo_debit'])) {
+            wp_send_json_error(__('Invalid payment gateway', 'lkn-wc-gateway-cielo'));
+            return;
+        }
+        
+        // Get the appropriate gateway instance
+        $gateway = null;
+        if ($payment_method === 'lkn_cielo_credit') {
+            $gateway = new LknWCGatewayCieloCredit();
+        } elseif ($payment_method === 'lkn_cielo_debit') {
+            $gateway = new LknWCGatewayCieloDebit();
+        }
+        
+        if ($gateway && method_exists($gateway, 'handle_partial_capture_ajax')) {
+            // Call the gateway specific method
+            $gateway->handle_partial_capture_ajax();
+        } else {
+            wp_send_json_error(__('Gateway method not found', 'lkn-wc-gateway-cielo'));
         }
     }
 }

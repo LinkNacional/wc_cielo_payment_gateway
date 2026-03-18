@@ -1,0 +1,34 @@
+/**
+ * Estilos para funcionalidade de Captura Parcial Cielo
+ * @package LKN WC Gateway Cielo
+ */
+
+.lkn-partial-capture-container {
+    margin-left: 15px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.lkn-capture-amount-input {
+    width: 100px;
+}
+
+.lkn-capture-help-icon {
+    cursor: help;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background-color: #666;
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+    margin-left: 2px;
+}
+
+.lkn-capture-help-icon:hover {
+    background-color: #555;
+}
