@@ -1,6 +1,8 @@
-# 1.29.1 - 16/03/2026
+# 1.30.0 - 16/03/2026
 * Ajustes nas notas dos pedidos.
 * Ajuste no reembolso do cartão de crédito e débito.
+* Novo sistema de captura parcial.
+* Ajuste na validação do cartão que inicia com 0.
 
 # 1.29.0 - 04/03/2026
 * Novo layout para o shortcode.
