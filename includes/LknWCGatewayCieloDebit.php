@@ -1049,6 +1049,9 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         $description = sanitize_text_field($this->get_option('invoiceDesc'));
         $description = preg_replace('/[^a-zA-Z\s]+/', '', $description);
         $description = preg_replace('/\s+/', ' ', $description);
+        
+        // Salvar metadado indicando se foi captura automática ou manual
+        $order->update_meta_data('_lkn_cielo_capture_type', $capture ? 'automatic' : 'manual');
         $provider = LknWcCieloHelper::getCardProvider($cardNum, $this->id);
         $debug = $this->get_option('debug');
         $currency = $order->get_currency();
@@ -1835,13 +1838,6 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
             return;
         }
 
-        // Verificar se a opção de captura está habilitada
-        $settings = get_option('woocommerce_lkn_cielo_debit_settings', array());
-        $captureOption = isset($settings['capture']) ? $settings['capture'] : 'yes';
-        if ($captureOption === 'yes') {
-            return;
-        }
-
         // Garantir que $order_id é um inteiro
         if (is_object($order_id)) {
             $order_id = $order_id->get_id();
@@ -1852,6 +1848,12 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         
         // Verificar se o pedido usa este gateway de pagamento
         if (!$order || $order->get_payment_method() !== $this->id) {
+            return;
+        }
+
+        // Verificar se o pedido foi feito com captura manual
+        $captureType = $order->get_meta('_lkn_cielo_capture_type');
+        if ($captureType !== 'manual') {
             return;
         }
 
@@ -1941,13 +1943,6 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
             wp_send_json_error(__('Pro version is not active', 'lkn-wc-gateway-cielo'));
         }
 
-        // Verificar se a opção de captura está habilitada
-        $settings = get_option('woocommerce_lkn_cielo_debit_settings', array());
-        $captureOption = isset($settings['capture']) ? $settings['capture'] : 'yes';
-        if ($captureOption === 'yes') {
-            wp_send_json_error(__('Partial capture is only available with manual capture (disable automatic capture)', 'lkn-wc-gateway-cielo'));
-        }
-
         // Verificar nonce
         if (!isset($_POST['nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'])), 'lkn_cielo_partial_capture_nonce')) {
             wp_send_json_error(__('Security verification failed', 'lkn-wc-gateway-cielo'));
@@ -1974,6 +1969,12 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         // Verificar se é o gateway correto
         if ($order->get_payment_method() !== $this->id) {
             wp_send_json_error(__('Incorrect payment gateway', 'lkn-wc-gateway-cielo'));
+        }
+
+        // Verificar se o pedido foi feito com captura manual
+        $captureType = $order->get_meta('_lkn_cielo_capture_type');
+        if ($captureType !== 'manual') {
+            wp_send_json_error(__('Partial capture is only available for orders with manual capture', 'lkn-wc-gateway-cielo'));
         }
 
         // Verificar se já foi feita captura parcial
