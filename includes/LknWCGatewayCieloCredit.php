@@ -1438,10 +1438,11 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
             return;
         }
 
-        // Verificação adicional: verificar se já existe desconto de captura parcial aplicado
-        $fees = $order->get_fees();
-        foreach ($fees as $fee) {
-            if ($fee->get_name() === __('Partial Capture Discount', 'lkn-wc-gateway-cielo')) {
+        // Verificação adicional: verificar se já existe reembolso de captura parcial
+        $refunds = $order->get_refunds();
+        foreach ($refunds as $refund) {
+            if (strpos($refund->get_reason(), 'partial capture') !== false || 
+                strpos($refund->get_reason(), 'captura parcial') !== false) {
                 return;
             }
         }
@@ -1473,12 +1474,12 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
             'messages' => array(
                 'invalidAmount' => __('Please enter a valid amount to capture. The value cannot be below 0 or above the total order amount.', 'lkn-wc-gateway-cielo'),
                 'confirmCapture' => __('Confirm capture of', 'lkn-wc-gateway-cielo'),
-                'discountWillBeApplied' => __('A discount will be applied of', 'lkn-wc-gateway-cielo'),
+                'discountWillBeApplied' => __('A refund will be processed of', 'lkn-wc-gateway-cielo'),
                 'processing' => __('Processing...', 'lkn-wc-gateway-cielo'),
                 'error' => __('Error:', 'lkn-wc-gateway-cielo'),
                 'processError' => __('Error processing capture.', 'lkn-wc-gateway-cielo'),
                 'buttonText' => __('Capture', 'lkn-wc-gateway-cielo'),
-                'helpTooltip' => __('Warning: The capture amount cannot exceed %s. Lower amounts generate automatic discount on the order. Once processed, the capture cannot be changed or repeated for this order.', 'lkn-wc-gateway-cielo')
+                'helpTooltip' => __('Warning: The capture amount cannot exceed %s. Lower amounts generate automatic refund for the difference. Once processed, the capture cannot be changed or repeated for this order.', 'lkn-wc-gateway-cielo')
             )
         ));
 
@@ -1550,10 +1551,11 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
             wp_send_json_error(__('Partial capture has already been performed for this order', 'lkn-wc-gateway-cielo'));
         }
 
-        // Verificação adicional: verificar se já existe desconto de captura parcial aplicado
-        $fees = $order->get_fees();
-        foreach ($fees as $fee) {
-            if ($fee->get_name() === __('Partial Capture Discount', 'lkn-wc-gateway-cielo')) {
+        // Verificação adicional: verificar se já existe reembolso de captura parcial
+        $refunds = $order->get_refunds();
+        foreach ($refunds as $refund) {
+            if (strpos($refund->get_reason(), 'partial capture') !== false || 
+                strpos($refund->get_reason(), 'captura parcial') !== false) {
                 wp_send_json_error(__('Partial capture has already been performed for this order', 'lkn-wc-gateway-cielo'));
             }
         }
@@ -1569,20 +1571,33 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
             wp_send_json_error($result->get_error_message());
         }
 
-        // Calcular valor restante (que será o desconto)
+        // Calcular valor restante (que será reembolsado)
         $orderTotal = $order->get_total();
         $remainingAmount = $orderTotal - $capture_amount;
         
-        // Se há valor restante, aplicar como desconto através de taxa negativa
+        // Se há valor restante, criar reembolso oficial
         if ($remainingAmount > 0) {
-            // Criar fee negativo para mostrar como desconto
-            $fee = new \WC_Order_Item_Fee();
-            $fee->set_name(__('Partial Capture Discount', 'lkn-wc-gateway-cielo'));
-            $fee->set_amount(-$remainingAmount); // Valor negativo = desconto
-            $fee->set_total(-$remainingAmount);
-            $fee->set_tax_status('none');
-            $order->add_item($fee);
-            $order->calculate_totals();
+            // Criar reembolso usando o sistema WooCommerce
+            $refund = wc_create_refund(array(
+                'order_id' => $order_id,
+                'amount' => $remainingAmount,
+                'reason' => sprintf(
+                    __('Automatic refund due to partial capture. Captured: %s of %s', 'lkn-wc-gateway-cielo'),
+                    'R$ ' . number_format($capture_amount, 2, ',', '.'),
+                    'R$ ' . number_format($orderTotal, 2, ',', '.')
+                ),
+                'refunded_by' => get_current_user_id()
+            ));
+            
+            if (is_wp_error($refund)) {
+                // Se falhou ao criar o refund, reverter e retornar erro
+                wp_send_json_error(
+                    sprintf(
+                        __('Capture completed but failed to create refund: %s', 'lkn-wc-gateway-cielo'),
+                        $refund->get_error_message()
+                    )
+                );
+            }
         }
         
         // Marcar que captura parcial foi realizada
@@ -1593,7 +1608,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         // Mudar status para processando
         $order->update_status('processing', 
             sprintf(
-                __('[%s] Partial capture completed. Captured amount: %s. Discount applied: %s', 'lkn-wc-gateway-cielo'),
+                __('[%s] Partial capture completed. Captured amount: %s. Refunded amount: %s', 'lkn-wc-gateway-cielo'),
                 $this->id,
                 'R$ ' . number_format($capture_amount, 2, ',', '.'),
                 'R$ ' . number_format($remainingAmount, 2, ',', '.')
@@ -1609,7 +1624,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         
         if ($remainingAmount > 0) {
             $message .= ' ' . sprintf(
-                __('Discount of %s applied.', 'lkn-wc-gateway-cielo'),
+                __('Refund of %s processed.', 'lkn-wc-gateway-cielo'),
                 'R$ ' . number_format($remainingAmount, 2, ',', '.')
             );
         }
