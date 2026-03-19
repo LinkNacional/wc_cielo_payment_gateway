@@ -311,6 +311,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
                 'title'   => __('Debug', 'lkn-wc-gateway-cielo'),
                 'type'    => 'checkbox',
                 'label'   => sprintf(
+                    // translators: %1$s is the enable log text, %2$s is the admin URL, %3$s is the view logs text
                     '%1$s. <a href="%2$s">%3$s</a>',
                     __('Enable log capture for payments', 'lkn-wc-gateway-cielo'),
                     admin_url('admin.php?page=wc-status&tab=logs'),
@@ -1588,7 +1589,8 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
                 'order_id' => $order_id,
                 'amount' => $remainingAmount,
                 'reason' => sprintf(
-                    __('Automatic refund due to partial capture. Captured: %s of %s', 'lkn-wc-gateway-cielo'),
+                    // translators: %1$s is the captured amount, %2$s is the total order amount
+                    __('Automatic refund due to partial capture. Captured: %1$s of %2$s', 'lkn-wc-gateway-cielo'),
                     'R$ ' . number_format($capture_amount, 2, ',', '.'),
                     'R$ ' . number_format($orderTotal, 2, ',', '.')
                 ),
@@ -1614,7 +1616,8 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         // Mudar status para processando
         $order->update_status('processing', 
             sprintf(
-                __('[%s] Partial capture completed. Captured amount: %s. Refunded amount: %s', 'lkn-wc-gateway-cielo'),
+                // translators: %1$s is the gateway ID, %2$s is the captured amount, %3$s is the refunded amount
+                __('[%1$s] Partial capture completed. Captured amount: %2$s. Refunded amount: %3$s', 'lkn-wc-gateway-cielo'),
                 $this->id,
                 'R$ ' . number_format($capture_amount, 2, ',', '.'),
                 'R$ ' . number_format($remainingAmount, 2, ',', '.')

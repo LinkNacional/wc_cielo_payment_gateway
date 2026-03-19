@@ -271,6 +271,7 @@ final class LknWcCieloPix extends WC_Payment_Gateway
                 'title'   => __('Debug', 'lkn-wc-gateway-cielo'),
                 'type'    => 'checkbox',
                 'label'   => sprintf(
+                    // translators: %1$s is the enable log text, %2$s is the admin URL, %3$s is the view logs text
                     '%1$s. <a href="%2$s">%3$s</a>',
                     __('Enable log capture for payments', 'lkn-wc-gateway-cielo'),
                     admin_url('admin.php?page=wc-status&tab=logs'),
