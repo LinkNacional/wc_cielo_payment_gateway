@@ -1788,9 +1788,15 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         }
 
         // Se chegou aqui, houve erro na captura
-        $error_message = isset($responseDecoded->Message) 
-            ? $responseDecoded->Message 
-            : __('Unknown error in partial capture', 'lkn-wc-gateway-cielo');
+        // Verificar se é um array (caso de erro da API) e pegar o primeiro elemento
+        if (is_array($responseDecoded) && !empty($responseDecoded)) {
+            $errorObj = $responseDecoded[0];
+            $error_message = isset($errorObj->Message) ? $errorObj->Message : __('Unknown error in partial capture', 'lkn-wc-gateway-cielo');
+        } else {
+            $error_message = isset($responseDecoded->Message) 
+                ? $responseDecoded->Message 
+                : __('Unknown error in partial capture', 'lkn-wc-gateway-cielo');
+        }
         
         $order->add_order_note(sprintf(
             '[%s] %s: %s',

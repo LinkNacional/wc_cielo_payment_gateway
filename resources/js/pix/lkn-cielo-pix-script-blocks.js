@@ -37,7 +37,7 @@ const ContentCieloPix = props => {
         type: emitResponse.responseTypes.SUCCESS,
         meta: {
           paymentMethodData: {
-            billing_cpf: userCpf
+            billing_cielo_pix_free_cpf_cnpj: userCpf
           }
         }
       }

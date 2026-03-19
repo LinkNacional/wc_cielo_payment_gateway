@@ -1049,7 +1049,12 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         $description = preg_replace('/\s+/', ' ', $description);
         
         // Salvar metadado indicando se foi captura automática ou manual
-        $order->update_meta_data('_lkn_cielo_capture_type', $capture ? 'automatic' : 'manual');
+        // Para cartão de débito, a captura é SEMPRE automática na Cielo, independente da configuração
+        if ($cardType === 'Debit') {
+            $order->update_meta_data('_lkn_cielo_capture_type', 'automatic');
+        } else {
+            $order->update_meta_data('_lkn_cielo_capture_type', $capture ? 'automatic' : 'manual');
+        }
         $provider = LknWcCieloHelper::getCardProvider($cardNum, $this->id);
         $debug = $this->get_option('debug');
         $currency = $order->get_currency();
@@ -1229,6 +1234,9 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
 
         $amountFormated = number_format($amount, 2, '', '');
 
+        // Para cartão de débito, a captura é SEMPRE automática na Cielo, independente da configuração
+        $actualCapture = ($cardType === 'Debit') ? true : $capture;
+
         // Cartão de crédito sempre processa sem 3DS obrigatório
         if ('Credit' == $cardType) {
             $args['headers'] = array(
@@ -1244,7 +1252,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                     'Type' => $cardType . "Card",
                     'Amount' => (int) $amountFormated,
                     'Installments' => $installments,
-                    'Capture' => (bool) $capture,
+                    'Capture' => (bool) $actualCapture,
                     'SoftDescriptor' => $description,
                     $cardType . "Card" => array(
                         'CardNumber' => $cardNum,
@@ -1263,7 +1271,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
 
             // Salvar metadados da transação
             $responseDecoded = !is_wp_error($response) ? json_decode($response['body']) : null;
-            LknWcCieloHelper::saveTransactionMetadata($order, $responseDecoded, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, $response, $cardType, 'lkn_dc_cvc', $this, $xid, $cavv, $eci, $version, $refId);
+            LknWcCieloHelper::saveTransactionMetadata($order, $responseDecoded, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $actualCapture, $response, $cardType, 'lkn_dc_cvc', $this, $xid, $cavv, $eci, $version, $refId);
             
             // Salvar o pedido para garantir que os metadados sejam persistidos
             $order->save();
@@ -1285,7 +1293,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                     'Type' => $cardType . "Card",
                     'Amount' => (int) $amountFormated,
                     'Installments' => $installments,
-                    'Capture' => (bool) $capture,
+                    'Capture' => (bool) $actualCapture,
                     'SoftDescriptor' => $description,
                     $cardType . "Card" => array(
                         'CardNumber' => $cardNum,
@@ -1304,7 +1312,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
 
             // Salvar metadados da transação
             $responseDecoded = !is_wp_error($response) ? json_decode($response['body']) : null;
-            LknWcCieloHelper::saveTransactionMetadata($order, $responseDecoded, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, $response, $cardType, 'lkn_dc_cvc', $this, $xid, $cavv, $eci, $version, $refId);
+            LknWcCieloHelper::saveTransactionMetadata($order, $responseDecoded, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $actualCapture, $response, $cardType, 'lkn_dc_cvc', $this, $xid, $cavv, $eci, $version, $refId);
             
             // Salvar o pedido para garantir que os metadados sejam persistidos
             $order->save();
@@ -1333,7 +1341,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                         'Amount' => (int) $amountFormated,
                         'Installments' => $installments,
                         'Authenticate' => true,
-                        'Capture' => (bool) $capture,
+                        'Capture' => (bool) $actualCapture,
                         'SoftDescriptor' => $description,
                         $cardType . "Card" => array(
                             'CardNumber' => $cardNum,
@@ -1358,7 +1366,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
 
                 // Salvar metadados da transação
                 $responseDecoded = !is_wp_error($response) ? json_decode($response['body']) : null;
-                LknWcCieloHelper::saveTransactionMetadata($order, $responseDecoded, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, $response, $cardType, 'lkn_dc_cvc', $this, $xid, $cavv, $eci, $version, $refId);
+                LknWcCieloHelper::saveTransactionMetadata($order, $responseDecoded, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $actualCapture, $response, $cardType, 'lkn_dc_cvc', $this, $xid, $cavv, $eci, $version, $refId);
                 
                 // Salvar o pedido para garantir que os metadados sejam persistidos
                 $order->save();
@@ -1409,7 +1417,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                         'Amount' => (int) $amountFormated,
                         'Installments' => $installments,
                         'Authenticate' => true,
-                        'Capture' => (bool) $capture,
+                        'Capture' => (bool) $actualCapture,
                         'SoftDescriptor' => $description,
                         $cardType . "Card" => array(
                             'CardNumber' => $cardNum,
@@ -1436,7 +1444,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
 
                 // Salvar metadados da transação
                 $responseDecoded = !is_wp_error($response) ? json_decode($response['body']) : null;
-                LknWcCieloHelper::saveTransactionMetadata($order, $responseDecoded, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, $response, $cardType, 'lkn_dc_cvc', $this, $xid, $cavv, $eci, $version, $refId);
+                LknWcCieloHelper::saveTransactionMetadata($order, $responseDecoded, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $actualCapture, $response, $cardType, 'lkn_dc_cvc', $this, $xid, $cavv, $eci, $version, $refId);
                 
                 // Salvar o pedido para garantir que os metadados sejam persistidos
                 $order->save();
@@ -1486,7 +1494,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         }
 
         if (isset($responseDecoded->Payment) && (1 == $responseDecoded->Payment->Status || 2 == $responseDecoded->Payment->Status)) {
-            do_action("lkn_wc_cielo_change_order_status", $order, $this, $capture);
+            do_action("lkn_wc_cielo_change_order_status", $order, $this, $actualCapture);
 
             // Remove cart
             WC()->cart->empty_cart();
@@ -2211,9 +2219,15 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         }
 
         // Se chegou aqui, houve erro na captura
-        $error_message = isset($responseDecoded->Message) 
-            ? $responseDecoded->Message 
-            : __('Unknown error in partial capture', 'lkn-wc-gateway-cielo');
+        // Verificar se é um array (caso de erro da API) e pegar o primeiro elemento
+        if (is_array($responseDecoded) && !empty($responseDecoded)) {
+            $errorObj = $responseDecoded[0];
+            $error_message = isset($errorObj->Message) ? $errorObj->Message : __('Unknown error in partial capture', 'lkn-wc-gateway-cielo');
+        } else {
+            $error_message = isset($responseDecoded->Message) 
+                ? $responseDecoded->Message 
+                : __('Unknown error in partial capture', 'lkn-wc-gateway-cielo');
+        }
         
         $order->add_order_note(sprintf(
             '[%s] %s: %s',

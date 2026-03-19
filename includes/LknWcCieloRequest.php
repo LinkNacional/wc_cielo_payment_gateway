@@ -125,10 +125,10 @@ final class LknWcCieloRequest
         return array(
             'sucess' => true,
             'response' => array(
-                'qrcodeImage' => $response['Payment']['QrCodeBase64Image'],
-                'qrcodeString' => $response['Payment']['QrCodeString'],
-                'status' => $response['Payment']['Status'],
-                'paymentId' => $response['Payment']['PaymentId']
+                'qrcodeImage' => isset($response['Payment']['QrCodeBase64Image']) ? $response['Payment']['QrCodeBase64Image'] : '',
+                'qrcodeString' => isset($response['Payment']['QrCodeString']) ? $response['Payment']['QrCodeString'] : '',
+                'status' => isset($response['Payment']['Status']) ? $response['Payment']['Status'] : '',
+                'paymentId' => isset($response['Payment']['PaymentId']) ? $response['Payment']['PaymentId'] : ''
             )
         );
     }
