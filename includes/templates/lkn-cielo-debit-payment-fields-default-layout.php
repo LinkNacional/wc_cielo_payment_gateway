@@ -275,6 +275,7 @@ if (! defined('ABSPATH')) {
 
     <?php do_action('woocommerce_credit_card_form_start', $gateway_id); ?>
 
+    <?php if ($this->get_option('show_cardholder_name', 'no') !== 'yes') : ?>
     <div class="form-row form-row-wide">
         <label
             for="lkn_dc_cardholder_name"><?php esc_html_e('Card Holder Name', 'lkn-wc-gateway-cielo'); ?>
@@ -289,6 +290,10 @@ if (! defined('ABSPATH')) {
             data-placeholder="<?php echo $placeholder_enabled ? esc_attr('John Doe') : ''; ?>"
             class="lkn-wc-gateway-cielo-input">
     </div>
+    <?php else : ?>
+    <!-- Campo virtual para concatenação first_name + last_name -->
+    <input type="hidden" id="lkn-virtual-name-lkn_cielo_debit" name="lkn_virtual_name_debit" />
+    <?php endif; ?>
 
     <div class="form-row form-row-wide">
         <label

@@ -138,6 +138,7 @@ if (!defined('ABSPATH')) {
         <input type="hidden" id="lkn_version" name="lkn_cielo_3ds_version" value="true" />
         <input type="hidden" id="lkn_xid" name="lkn_cielo_3ds_xid" value="true" />
 
+        <?php if ($this->get_option('show_cardholder_name', 'no') !== 'yes') : ?>
         <!-- Card Holder Name Field -->
         <div class="modern-field">
             <label for="lkn_dc_cardholder_name" class="field-label">
@@ -155,6 +156,10 @@ if (!defined('ABSPATH')) {
                     class="field-input">
             </div>
         </div>
+        <?php else : ?>
+        <!-- Campo virtual para concatenação first_name + last_name -->
+        <input type="hidden" id="lkn-virtual-name-lkn_cielo_debit" name="lkn_virtual_name_debit" />
+        <?php endif; ?>
 
         <!-- Card Number and Card Type Fields -->
         <div class="field-group">

@@ -503,6 +503,9 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
             // Enqueue cielo card script only if not already enqueued
             if (!wp_script_is('lkn-cielo-card-script', 'enqueued')) {
                 wp_enqueue_script('lkn-cielo-card-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-cielo-shortcode-card.js', array('jquery'), $this->version, true);
+                wp_localize_script('lkn-cielo-card-script', 'lknCieloCardConfig', array(
+                    'show_cardholder_name' => $this->get_option('show_cardholder_name', 'no')
+                ));
             }
         }
 

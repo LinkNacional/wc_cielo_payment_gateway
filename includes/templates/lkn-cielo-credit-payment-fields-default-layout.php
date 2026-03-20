@@ -41,6 +41,7 @@ if (!defined('ABSPATH')) {
             class="nonce_lkn_cielo_credit"
             value="<?php echo esc_attr($nonce); ?>" />
 
+        <?php if ($gateway_instance->get_option('show_cardholder_name', 'no') !== 'yes') : ?>
         <div class="form-row form-row-wide">
             <label
                 for="lkn_cc_cardholder_name"><?php esc_html_e('Card Holder Name', 'lkn-wc-gateway-cielo'); ?>
@@ -55,6 +56,10 @@ if (!defined('ABSPATH')) {
                 data-placeholder="<?php echo $placeholder_enabled ? esc_attr('John Doe') : ''; ?>"
                 class="lkn-wc-gateway-cielo-input">
         </div>
+        <?php else : ?>
+        <!-- Campo virtual para concatenação first_name + last_name -->
+        <input type="hidden" id="lkn-virtual-name-lkn_cielo_credit" name="lkn_virtual_name_credit" />
+        <?php endif; ?>
 
         <div class="form-row form-row-wide">
             <label
