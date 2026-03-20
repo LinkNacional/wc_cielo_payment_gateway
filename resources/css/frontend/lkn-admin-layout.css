@@ -172,6 +172,10 @@
     pointer-events: none !important;       
 }
 
+.input-text:not([type="button"]) {
+    padding: 0px 8px !important;
+}
+
 @media (max-width: 1300px) {
     #lknWcCieloCreditBlocksSettingsLayoutDiv {
         padding: 0px;
