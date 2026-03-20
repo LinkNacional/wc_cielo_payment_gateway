@@ -89,16 +89,59 @@ abstract class TestCase extends PHPUnitTestCase
         // Plugin functions
         Monkey\Functions\when('plugin_dir_path')->returnArg();
         Monkey\Functions\when('plugin_dir_url')->returnArg();
-    }
-
-    /**
-     * Mock wp_remote_post to return a specific response
-     *
-     * @param array|WP_Error $response The response to return
-     */
-    protected function mockWpRemotePost($response): void
-    {
-        Monkey\Functions\when('wp_remote_post')->justReturn($response);
+        
+        // WooCommerce functions commonly used
+        Monkey\Functions\when('wc_get_order')->justReturn($this->createMockOrder());
+        Monkey\Functions\when('wc_get_logger')->justReturn($this->createMockLogger());
+        Monkey\Functions\when('wc_add_notice')->justReturn(true);
+        Monkey\Functions\when('wc_has_notice')->justReturn(false);
+        Monkey\Functions\when('add_action')->justReturn(true);
+        Monkey\Functions\when('add_filter')->justReturn(true);
+        // Note: do_action not mocked globally to allow Brain\Monkey Actions\expectDone to work
+        
+        // Time and scheduling functions
+        Monkey\Functions\when('current_time')->alias(function($type = 'mysql', $gmt = 0) {
+            if ($type === 'timestamp') {
+                return time();
+            }
+            return date('Y-m-d H:i:s');
+        });
+        
+        Monkey\Functions\when('wp_schedule_single_event')->justReturn(true);
+        Monkey\Functions\when('wp_next_scheduled')->justReturn(false);
+        
+        // WordPress filter/action functions
+        Monkey\Functions\when('apply_filters')->alias(function($hook_name, $value) {
+            // Return the default value (second parameter) instead of the hook name
+            return $value;
+        });
+        
+        // WordPress HTTP functions
+        Monkey\Functions\when('wp_remote_post')->justReturn([
+            'body' => json_encode(['success' => true]),
+            'response' => ['code' => 200]
+        ]);
+        Monkey\Functions\when('wp_remote_get')->justReturn([
+            'body' => json_encode(['success' => true]),
+            'response' => ['code' => 200]
+        ]);
+        Monkey\Functions\when('wp_remote_request')->justReturn([
+            'body' => json_encode(['success' => true]),
+            'response' => ['code' => 200]
+        ]);
+        
+        // WordPress nonce functions (for security)
+        Monkey\Functions\when('wp_verify_nonce')->justReturn(true);
+        Monkey\Functions\when('wp_create_nonce')->justReturn('valid_nonce');
+        
+        // WordPress cron functions  
+        Monkey\Functions\when('wp_schedule_single_event')->justReturn(true);
+        Monkey\Functions\when('wp_unschedule_event')->justReturn(true);
+        Monkey\Functions\when('wp_next_scheduled')->justReturn(false);
+        
+        // WordPress user functions
+        Monkey\Functions\when('get_current_user_id')->justReturn(1);
+        Monkey\Functions\when('current_user_can')->justReturn(true);
     }
 
     /**
@@ -163,6 +206,16 @@ abstract class TestCase extends PHPUnitTestCase
         $order->shouldReceive('add_order_note')->andReturn(true);
         
         return $order;
+    }
+
+    /**
+     * Mock wp_remote_post to return a specific response
+     *
+     * @param array|WP_Error $response The response to return
+     */
+    protected function mockWpRemotePost($response): void
+    {
+        Monkey\Functions\when('wp_remote_post')->justReturn($response);
     }
 
     /**

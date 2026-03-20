@@ -1807,7 +1807,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
      * @param string $message
      * @param string $type
      */
-    private function add_notice_once($message, $type): void
+    public function add_notice_once($message, $type): void
     {
         if (! wc_has_notice($message, $type)) {
             wc_add_notice($message, $type);

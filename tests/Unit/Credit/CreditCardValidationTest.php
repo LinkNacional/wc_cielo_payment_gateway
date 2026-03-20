@@ -81,7 +81,6 @@ class CreditCardValidationTest extends TestCase
         // Arrange
         $invalidCardNumbers = [
             '4111-1111-1111-1111', // With dashes
-            '4111 1111 1111 1111', // With spaces (allowed but then stripped)
             '4111a111b111c111',    // With letters
             '4111!111@111#111',    // With special chars
         ];
@@ -113,7 +112,7 @@ class CreditCardValidationTest extends TestCase
             '411111',      // 6 digits
             '41111111',    // 8 digits
             '4111111111',  // 10 digits
-            '411111111111', // 11 digits - less than minimum 12
+            '41111111111', // 11 digits - less than minimum 12
         ];
         
         $reflection = new \ReflectionClass($this->gateway);

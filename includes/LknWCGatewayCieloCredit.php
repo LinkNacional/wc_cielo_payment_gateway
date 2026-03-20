@@ -896,6 +896,9 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
             // Censurar o número do cartão de crédito
             $orderLogsArray['body']['Payment']['CreditCard']['CardNumber'] = substr($orderLogsArray['body']['Payment']['CreditCard']['CardNumber'], 0, 6) . '******' . substr($orderLogsArray['body']['Payment']['CreditCard']['CardNumber'], -4);
 
+            // Remover CVV/SecurityCode dos logs por motivos de segurança
+            unset($orderLogsArray['body']['Payment']['CreditCard']['SecurityCode']);
+
             // Remover a parte de "Links"
             unset($orderLogsArray['response']['Payment']['Links']);
 
@@ -1294,9 +1297,13 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
             return false;
         }
         
-        $isValid = ! preg_match('/[^0-9\s]/', $ccnum);
+        // Check for invalid characters (anything other than digits)
+        $hasInvalidChars = preg_match('/[^0-9]/', $cleanCardNum);
+        
+        // Check minimum length (using clean card number without spaces)
+        $isValidLength = strlen($cleanCardNum) >= 12;
 
-        if (true !== $isValid || strlen($ccnum) < 12) {
+        if ($hasInvalidChars || !$isValidLength) {
             if ($renderNotice) {
                 $this->add_notice_once(__('Credit Card number is invalid!', 'lkn-wc-gateway-cielo'), 'error');
             }
@@ -1337,10 +1344,50 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
 
             return false;
         }
+        
         $expDateSplit = explode('/', $expDate);
+        
+        // Check if we have exactly 2 parts (month and year)
+        if (count($expDateSplit) !== 2) {
+            if ($renderNotice) {
+                $this->add_notice_once(__('Expiration date is invalid!', 'lkn-wc-gateway-cielo'), 'error');
+            }
+
+            return false;
+        }
+        
+        $month = trim($expDateSplit[0]);
+        $year = trim($expDateSplit[1]);
+        
+        // Check if year is 2 digits only
+        if (strlen($year) !== 2) {
+            if ($renderNotice) {
+                $this->add_notice_once(__('Expiration date is invalid!', 'lkn-wc-gateway-cielo'), 'error');
+            }
+
+            return false;
+        }
+        
+        // Check if month is valid (1-2 digits, 01-12)
+        if (!ctype_digit($month) || !ctype_digit($year)) {
+            if ($renderNotice) {
+                $this->add_notice_once(__('Expiration date is invalid!', 'lkn-wc-gateway-cielo'), 'error');
+            }
+
+            return false;
+        }
+        
+        $monthInt = intval($month);
+        if ($monthInt < 1 || $monthInt > 12) {
+            if ($renderNotice) {
+                $this->add_notice_once(__('Expiration date is invalid!', 'lkn-wc-gateway-cielo'), 'error');
+            }
+
+            return false;
+        }
 
         try {
-            $expDate = new DateTime('20' . trim($expDateSplit[1]) . '-' . trim($expDateSplit[0]) . '-01');
+            $expDate = new DateTime('20' . $year . '-' . sprintf('%02d', $monthInt) . '-01');
             $today = new DateTime();
 
             if ($today > $expDate) {
@@ -1397,7 +1444,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
      * @param string $message
      * @param string $type
      */
-    private function add_notice_once($message, $type): void
+    public function add_notice_once($message, $type): void
     {
         if (! wc_has_notice($message, $type)) {
             wc_add_notice($message, $type);

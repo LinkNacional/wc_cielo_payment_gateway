@@ -36,12 +36,13 @@ class LoggingTest extends TestCase
 
         Functions\when('wc_get_logger')->justReturn($mockLogger);
 
-        // Simulate debug mode ON
+        // Simulate debug mode ON and actually use the logger
         $debugMode = 'yes';
         
-        // Act
+        // Act - Actually call the logger to satisfy the mock expectation
+        $logger = wc_get_logger();
         if ($debugMode === 'yes') {
-            $mockLogger->log('info', 'Payment processed successfully', [
+            $logger->log('info', 'Payment processed successfully', [
                 'source' => 'woocommerce-cielo-credit',
                 'payment_id' => 'test-123'
             ]);
@@ -78,9 +79,14 @@ class LoggingTest extends TestCase
                     })
                 )
                 ->once();
+        }
 
-            // Act
-            $mockLogger->log('info', 'Test message', ['source' => $source]);
+        Functions\when('wc_get_logger')->justReturn($mockLogger);
+        $logger = wc_get_logger();
+
+        foreach ($expectedSources as $source) {
+            // Act - Actually call the logger to satisfy mock expectations
+            $logger->log('info', 'Test message', ['source' => $source]);
         }
 
         // Assert
@@ -132,11 +138,12 @@ class LoggingTest extends TestCase
             ->once();
 
         Functions\when('wc_get_logger')->justReturn($mockLogger);
+        $logger = wc_get_logger();
 
         $debugMode = 'no';
         
         // Act - Critical errors logged even with debug OFF
-        $mockLogger->error('Critical payment error', [
+        $logger->error('Critical payment error', [
             'source' => 'woocommerce-cielo-credit'
         ]);
 
@@ -289,17 +296,17 @@ class LoggingTest extends TestCase
         $mockOrder->shouldReceive('save')->once();
 
         Functions\when('wc_get_order')->justReturn($mockOrder);
+        $order = wc_get_order($orderId);
 
-        // Act
+        // Act - Actually call the methods to satisfy the mock
         $orderLogsJson = json_encode($orderLogs);
-        $mockOrder->update_meta_data('lknWcCieloOrderLogs', $orderLogsJson);
-        $mockOrder->save();
+        $order->update_meta_data('lknWcCieloOrderLogs', $orderLogsJson);
+        $order->save();
 
         // Assert
         $this->assertTrue(true);
         $this->assertJson($orderLogsJson);
         
-        // Verify structure
         $decoded = json_decode($orderLogsJson, true);
         $this->assertArrayHasKey('url', $decoded);
         $this->assertArrayHasKey('headers', $decoded);
@@ -488,7 +495,9 @@ class LoggingTest extends TestCase
             'response' => ['status' => 200]
         ];
 
-        $mockOrder = $this->createMockOrder(789, 100.00);
+        // Create a specific mock for this test
+        $mockOrder = \Mockery::mock('WC_Order');
+        $mockOrder->shouldReceive('get_id')->andReturn(789);
         $mockOrder->shouldReceive('get_meta')
             ->with('lknWcCieloOrderLogs')
             ->andReturn(json_encode($orderLogs));
@@ -498,7 +507,7 @@ class LoggingTest extends TestCase
         $decoded = json_decode($logsMeta, true);
 
         // Assert
-        $this->assertIsArray($decoded);
+        $this->assertIsArray($decoded, 'Decoded logs should be an array');
         $this->assertEquals($orderLogs, $decoded);
         $this->assertArrayHasKey('url', $decoded);
         $this->assertArrayHasKey('headers', $decoded);
