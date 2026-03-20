@@ -100,7 +100,7 @@ if (!defined('ABSPATH')) {
         </div>
         <?php else : ?>
         <!-- Campo virtual para concatenação first_name + last_name -->
-        <input type="hidden" id="lkn-virtual-name-lkn_cielo_credit" name="lkn_virtual_name_credit" />
+        <input type="hidden" id="complete_name_lkn_cielo_credit" name="lkn_virtual_name_credit" />
         <?php endif; ?>
 
         <!-- Card Number Field -->

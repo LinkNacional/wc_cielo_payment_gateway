@@ -292,7 +292,7 @@ if (! defined('ABSPATH')) {
     </div>
     <?php else : ?>
     <!-- Campo virtual para concatenação first_name + last_name -->
-    <input type="hidden" id="lkn-virtual-name-lkn_cielo_debit" name="lkn_virtual_name_debit" />
+    <input type="hidden" id="complete_name_lkn_cielo_debit" name="lkn_virtual_name_debit" />
     <?php endif; ?>
 
     <div class="form-row form-row-wide">

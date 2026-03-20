@@ -62,7 +62,7 @@ window.jQuery(function ($) {
         $(inputSelectors.numberInput)[0]?.dispatchEvent(new CustomEvent('blur'))
 
         // Se está usando campo virtual (já existe no HTML), sincronizar com first_name + last_name
-        if (inputSelectors.nameInput === '#lkn-virtual-name-lkn_cielo_credit' || inputSelectors.nameInput === '#lkn-virtual-name-lkn_cielo_debit') {
+        if (inputSelectors.nameInput === '#complete_name_lkn_cielo_credit' || inputSelectors.nameInput === '#complete_name_lkn_cielo_debit') {
           const virtualNameField = $(inputSelectors.nameInput)
           
           // Detectar se deve usar billing ou shipping
@@ -122,7 +122,7 @@ window.jQuery(function ($) {
     if (paymentMethodValue === 'lkn_cielo_credit') {
       let nameInput = '#lkn_cc_cardholder_name'
       if (!document.querySelector('#lkn_cc_cardholder_name')) {
-        nameInput = '#lkn-virtual-name-lkn_cielo_credit'
+        nameInput = '#complete_name_lkn_cielo_credit'
       }
       return {
         numberInput: '#lkn_ccno',
@@ -136,7 +136,7 @@ window.jQuery(function ($) {
     if (paymentMethodValue === 'lkn_cielo_debit') {
       let nameInput = '#lkn_dc_cardholder_name'
       if (!document.querySelector('#lkn_dc_cardholder_name')) {
-        nameInput = '#lkn-virtual-name-lkn_cielo_debit'
+        nameInput = '#complete_name_lkn_cielo_debit'
       }
       return {
         numberInput: '#lkn_dcno',
