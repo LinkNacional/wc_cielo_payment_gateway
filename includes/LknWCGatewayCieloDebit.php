@@ -1920,13 +1920,14 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                 'error' => __('Error:', 'lkn-wc-gateway-cielo'),
                 'processError' => __('Error processing capture.', 'lkn-wc-gateway-cielo'),
                 'buttonText' => __('Capture', 'lkn-wc-gateway-cielo'),
+                // translators: %s is the maximum amount that can be captured
                 'helpTooltip' => __('Warning: The capture amount cannot exceed %s. Lower amounts generate automatic refund for the difference. Once processed, the capture cannot be changed or repeated for this order.', 'lkn-wc-gateway-cielo')
             )
         ));
 
         ?>
         <div class="lkn-partial-capture-container">
-            <label><?php _e('Amount to capture:', 'lkn-wc-gateway-cielo'); ?></label>
+            <label><?php esc_html_e('Amount to capture:', 'lkn-wc-gateway-cielo'); ?></label>
             <input type="number" id="lkn-capture-amount" class="lkn-capture-amount-input" step="0.01" min="0.01" max="<?php echo esc_attr($orderTotal); ?>" value="<?php echo esc_attr($orderTotal); ?>" />
             <span id="lkn-capture-help-icon" class="lkn-capture-help-icon" title="">
                 ?
@@ -1935,7 +1936,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                     data-order-id="<?php echo esc_attr($order_id); ?>" 
                     data-transaction-id="<?php echo esc_attr($transactionId); ?>"
                     data-order-total="<?php echo esc_attr($orderTotal); ?>">
-                <?php _e('Capture', 'lkn-wc-gateway-cielo'); ?>
+                <?php esc_html_e('Capture', 'lkn-wc-gateway-cielo'); ?>
             </button>
         </div>
         <?php
@@ -2036,6 +2037,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                 // Se falhou ao criar o refund, reverter e retornar erro
                 wp_send_json_error(
                     sprintf(
+                        // translators: %s is the refund error message
                         __('Capture completed but failed to create refund: %s', 'lkn-wc-gateway-cielo'),
                         $refund->get_error_message()
                     )
@@ -2062,12 +2064,14 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         $order->save();
         
         $message = sprintf(
+            // translators: %s is the captured amount
             __('Partial capture of %s completed successfully!', 'lkn-wc-gateway-cielo'),
             'R$ ' . number_format($capture_amount, 2, ',', '.')
         );
         
         if ($remainingAmount > 0) {
             $message .= ' ' . sprintf(
+                // translators: %s is the refunded amount
                 __('Refund of %s processed.', 'lkn-wc-gateway-cielo'),
                 'R$ ' . number_format($remainingAmount, 2, ',', '.')
             );
@@ -2114,6 +2118,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         // Verificar se houve erro na requisição
         if (is_wp_error($response)) {
             $error_message = sprintf(
+                // translators: %s is the error message
                 __('Error in partial capture: %s', 'lkn-wc-gateway-cielo'),
                 $response->get_error_message()
             );
