@@ -327,7 +327,7 @@ const lknCCContentCielo = props => {
             if (lknCCSettingsCielo.activeDiscount == 'yes') {
               newOptions.push({
                 key: index,
-                label: `${lknCCTranslationsCielo.installmentText.replace('%1$d', index).replace('%2$s', `R$ ${installmentAmount}`)} ${lknCCSettingsCielo.interestOrDiscount == 'interest' ? lknCCTranslationsCielo.noInterest : lknCCTranslationsCielo.noDiscount}`
+                label: `${lknCCTranslationsCielo.installmentText.replace('%1$d', index).replace('%2$s', `R$ ${installmentAmount}`)}${lknCCSettingsCielo.interestOrDiscount == 'interest' ? ` ${lknCCTranslationsCielo.noInterest}` : ''}`
               })
             } else {
               newOptions.push({
@@ -505,6 +505,7 @@ const lknCCContentCielo = props => {
     id: 'lkn_cc_cardholder_name',
     label: lknCCTranslationsCielo.cardHolder,
     value: creditObject.lkn_cc_cardholder_name,
+    className: 'lkn-credit-debit-card-field',
     autocomplete: 'cc-name',
     onChange: value => {
       updateCreditObject('lkn_cc_cardholder_name', value)
@@ -515,6 +516,7 @@ const lknCCContentCielo = props => {
     id: 'lkn_ccno',
     label: lknCCTranslationsCielo.cardNumber,
     value: creditObject.lkn_ccno,
+    className: 'lkn-credit-debit-card-field',
     autocomplete: 'cc-number',
     onChange: value => {
       updateCreditObject('lkn_ccno', formatCreditCardNumber(value))
@@ -525,6 +527,7 @@ const lknCCContentCielo = props => {
     id: 'lkn_cc_expdate',
     label: lknCCTranslationsCielo.cardExpiryDate,
     value: creditObject.lkn_cc_expdate,
+    className: 'lkn-credit-debit-card-field',
     autocomplete: 'cc-exp',
     onChange: value => {
       updateCreditObject('lkn_cc_expdate', value)
@@ -535,6 +538,7 @@ const lknCCContentCielo = props => {
     id: 'lkn_cc_cvc',
     label: lknCCTranslationsCielo.securityCode,
     value: creditObject.lkn_cc_cvc,
+    className: 'lkn-credit-debit-card-field',
     autocomplete: 'cc-csc',
     onChange: value => {
       updateCreditObject('lkn_cc_cvc', value)
@@ -543,13 +547,13 @@ const lknCCContentCielo = props => {
     onFocus: () => setFocus('cvc')
   }), /* #__PURE__ */React.createElement('div', {
     style: {
-      marginBottom: '20px'
+      marginBottom: '0px'
     }
   }), lknCCActiveInstallmentCielo === 'yes' && parseInt(lknCCInstallmentLimitCielo) > 1 && showInstallmentSelect && /* #__PURE__ */React.createElement(wcComponents.SortSelect, {
     id: 'lkn_cc_installments',
     label: lknCCTranslationsCielo.installments,
     value: creditObject.lkn_cc_installments,
-    className: `lkn_cielo_credit_select lkn-cielo-credit-custom-select ${isLoadingOptions ? 'loading-options' : ''}`,
+    className: `lkn_cielo_credit_select lkn-cielo-credit-custom-select lkn-credit-debit-card-field lkn-select-type ${isLoadingOptions ? 'loading-options' : ''}`,
     disabled: isLoadingOptions,
     style: isLoadingOptions ? { opacity: 0.7, cursor: 'wait' } : {},
     onChange: event => {

@@ -615,6 +615,12 @@
         mainForm.addEventListener('invalid', function (event) {
           const invalidField = event.target
           if (invalidField) {
+            // Remove a classe is-busy do botão de salvar quando há erro de validação
+            const saveButton = document.querySelector('button[name="save"]')
+            if (saveButton) {
+              saveButton.classList.remove('is-busy')
+            }
+            
             let parentNode = invalidField.parentNode
             while (parentNode && parentNode.tagName !== 'TABLE') {
               parentNode = parentNode.parentNode
@@ -735,10 +741,10 @@
 
       // Adiciona o ícone do WhatsApp antes do texto
       sendConfigsInput.style.width = 'fit-content';
-      sendConfigsInput.style.paddingTop = '10px';
-      sendConfigsInput.style.paddingBottom = '10px';
-      sendConfigsInput.style.paddingLeft = '32px';
-      sendConfigsInput.style.paddingRight = '18px';
+      sendConfigsInput.style.setProperty('padding-top', '10px', 'important');
+      sendConfigsInput.style.setProperty('padding-bottom', '10px', 'important');
+      sendConfigsInput.style.setProperty('padding-left', '32px', 'important');
+      sendConfigsInput.style.setProperty('padding-right', '18px', 'important');
       sendConfigsInput.style.background = 'url("https://cdn.simpleicons.org/whatsapp/white") no-repeat 8px center/18px, #25d366';
       sendConfigsInput.style.color = '#fff';
       sendConfigsInput.style.fill = '#fff';

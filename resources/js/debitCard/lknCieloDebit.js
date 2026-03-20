@@ -571,7 +571,7 @@ const lknDCContentCielo = props => {
             if (lknDCsettingsCielo.activeDiscount == 'yes') {
               newOptions.push({
                 key: index,
-                label: `${lknDCTranslationsCielo.installmentText.replace('%1$d', index).replace('%2$s', `R$ ${installmentAmount}`)} ${lknDCsettingsCielo.interestOrDiscount == 'interest' ? lknDCTranslationsCielo.noInterest : lknDCTranslationsCielo.noDiscount}`
+                label: `${lknDCTranslationsCielo.installmentText.replace('%1$d', index).replace('%2$s', `R$ ${installmentAmount}`)}${lknDCsettingsCielo.interestOrDiscount == 'interest' ? ` ${lknDCTranslationsCielo.noInterest}` : ''}`
               })
             } else {
               newOptions.push({
@@ -719,6 +719,7 @@ const lknDCContentCielo = props => {
     id: 'lkn_dc_cardholder_name',
     label: lknDCTranslationsDebitCielo.cardHolder,
     value: debitObject.lkn_dc_cardholder_name,
+    className: 'lkn-credit-debit-card-field',
     autocomplete: 'cc-name',
     onChange: value => {
       updatedebitObject('lkn_dc_cardholder_name', value)
@@ -729,6 +730,7 @@ const lknDCContentCielo = props => {
     id: 'lkn_dcno',
     label: lknDCTranslationsDebitCielo.cardNumber,
     value: debitObject.lkn_dcno,
+    className: 'lkn-credit-debit-card-field',
     autocomplete: 'cc-number',
     onChange: value => {
       updatedebitObject('lkn_dcno', formatDebitCardNumber(value))
@@ -738,7 +740,7 @@ const lknDCContentCielo = props => {
   }), lknCieloDebitConfig.isProPluginValid && /* #__PURE__ */React.createElement(wcComponents.SortSelect, {
     id: 'lkn_cc_type',
     value: debitObject.lkn_cc_type,
-    className: 'lkn-credit-debit-card-type-select',
+    className: 'lkn-credit-debit-card-type-select lkn-credit-debit-card-field',
     onChange: event => {
       updatedebitObject('lkn_cc_type', event.target.value)
       
@@ -791,6 +793,7 @@ const lknDCContentCielo = props => {
     id: 'lkn_dc_expdate',
     label: lknDCTranslationsDebitCielo.cardExpiryDate,
     value: debitObject.lkn_dc_expdate,
+    className: 'lkn-credit-debit-card-field',
     autocomplete: 'cc-exp',
     onChange: value => {
       updatedebitObject('lkn_dc_expdate', value)
@@ -801,6 +804,7 @@ const lknDCContentCielo = props => {
     id: 'lkn_dc_cvc',
     label: lknDCTranslationsDebitCielo.securityCode,
     value: debitObject.lkn_dc_cvc,
+    className: 'lkn-credit-debit-card-field',
     autocomplete: 'cc-csc',
     onChange: value => {
       updatedebitObject('lkn_dc_cvc', value)
@@ -816,7 +820,7 @@ const lknDCContentCielo = props => {
     id: 'lkn_cc_type',
     label: lknDCTranslationsCielo.cardType,
     value: debitObject.lkn_cc_type,
-    className: 'lkn-credit-debit-card-type-select',
+    className: 'lkn-credit-debit-card-type-select lkn-credit-debit-card-field lkn-select-type',
     onChange: event => {
       updatedebitObject('lkn_cc_type', event.target.value)
       
@@ -867,14 +871,14 @@ const lknDCContentCielo = props => {
     options: cardTypeOptions
   }), /* #__PURE__ */React.createElement('div', {
     style: {
-      marginBottom: '10px',
+      marginBottom: '0px',
       width: '100%'
     }
   }), lknDCActiveInstallmentCielo === 'yes' && debitObject.lkn_cc_type == 'Credit' && parseInt(lknDCInstallmentLimitCielo) > 1 && showInstallmentSelect && /* #__PURE__ */React.createElement(wcComponents.SortSelect, {
     id: 'lkn_cc_dc_installments',
     label: lknDCTranslationsCielo.installments,
     value: debitObject.lkn_cc_dc_installments,
-    className: `lkn_cielo_debit_select lkn-cielo-credit-debit-custom-select ${isLoadingOptions ? 'loading-options' : ''}`,
+    className: `lkn_cielo_debit_select lkn-cielo-credit-debit-custom-select lkn-credit-debit-card-field lkn-select-type ${isLoadingOptions ? 'loading-options' : ''}`,
     disabled: isLoadingOptions,
     style: isLoadingOptions ? { opacity: 0.7, cursor: 'wait' } : {},
     onChange: event => {
@@ -926,6 +930,7 @@ const lknDCContentCielo = props => {
   }), lknDCActiveInstallmentCielo === 'cielo' && /* #__PURE__ */React.createElement(wcComponents.CheckboxControl, {
     id: 'lkn_save_debit_credit_card',
     label: 'Salvar cartão para compra segura e rápida.',
+    className: 'lkn-credit-debit-card-field',
     checked: debitObject.lkn_save_debit_credit_card || false,
     onChange: (isChecked) => {
       updatedebitObject('lkn_save_debit_credit_card', isChecked)

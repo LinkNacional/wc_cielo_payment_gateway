@@ -782,6 +782,7 @@ final class LknWCCieloPayment
     public function lkn_wc_cielo_plugin_row_meta($plugin_meta, $plugin_file)
     {
         $new_meta_links['setting'] = sprintf(
+            // translators: %1$s is the settings URL, %2$s is the settings text
             '<a href="%1$s">%2$s</a>',
             admin_url('admin.php?page=wc-settings&tab=checkout'),
             __('Settings', 'lkn-wc-gateway-cielo')
@@ -803,6 +804,7 @@ final class LknWCCieloPayment
         );
 
         // Crie o novo link de meta
+        // translators: %1$s is the pro version URL, %2$s is the link text
         $new_meta_link = sprintf('<a href="%1$s">%2$s</a>', $url, $link_text);
 
         // Adicione o novo link ao array de metadados do plugin

@@ -144,7 +144,7 @@
             formatedInstallment = new Intl.NumberFormat('pt-br', { style: 'currency', currency: lknWCCieloCredit.currency }).format(finalInstallment)
             let defaultText = ' sem juros'
             if (typeof lknWCCieloCreditConfig !== 'undefined' && lknWCCieloCreditConfig.interest_or_discount === 'discount') {
-              defaultText = ' sem desconto'
+              defaultText = ''
             }
             text = document.createTextNode(i + 'x de ' + formatedInstallment + defaultText)
           }

@@ -219,7 +219,7 @@
             formatedInstallment = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(finalInstallment)
             let defaultText = ' sem juros'
             if (typeof lknWCCielo3dsConfig !== 'undefined' && lknWCCielo3dsConfig.interest_or_discount === 'discount') {
-              defaultText = ' sem desconto'
+              defaultText = ''
             }
             text = document.createTextNode(i + 'x de ' + formatedInstallment + defaultText)
           }

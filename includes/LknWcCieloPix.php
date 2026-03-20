@@ -271,6 +271,7 @@ final class LknWcCieloPix extends WC_Payment_Gateway
                 'title'   => __('Debug', 'lkn-wc-gateway-cielo'),
                 'type'    => 'checkbox',
                 'label'   => sprintf(
+                    // translators: %1$s is the enable log text, %2$s is the admin URL, %3$s is the view logs text
                     '%1$s. <a href="%2$s">%3$s</a>',
                     __('Enable log capture for payments', 'lkn-wc-gateway-cielo'),
                     admin_url('admin.php?page=wc-status&tab=logs'),
@@ -352,17 +353,27 @@ final class LknWcCieloPix extends WC_Payment_Gateway
         ";
 
         $wcbcf_settings = get_option('wcbcf_settings');
+        $woo_better_calc_person_type = get_option('woo_better_calc_person_type_select', 'none');
+
+        $activeWooBetter = is_plugin_active('woo-better-shipping-calculator-for-brazil/wc-better-shipping-calculator-for-brazil.php') || is_plugin_active('wc-better-shipping-calculator-for-brazil/wc-better-shipping-calculator-for-brazil.php') ? true : false;
+
         if (
-            is_array($wcbcf_settings) &&
-            "0" === $wcbcf_settings['person_type'] ||
-            ! is_plugin_active('woocommerce-extra-checkout-fields-for-brazil/woocommerce-extra-checkout-fields-for-brazil.php')
+            (
+                is_array($wcbcf_settings) &&
+                "0" === $wcbcf_settings['person_type'] ||
+                ! is_plugin_active('woocommerce-extra-checkout-fields-for-brazil/woocommerce-extra-checkout-fields-for-brazil.php')
+            ) &&
+            (
+                ! $activeWooBetter ||
+                'none' === $woo_better_calc_person_type
+            )
         ) {
 ?>
             <br />
             <div class="form-row form-row">
                 <label
                     id="labels-with-icons"
-                    for="lknCieloApiProPixBillingCpf"
+                    for="lknCieloApiPixBillingCpf"
                     style="display: flex; align-items: center;">
                     <?php echo esc_attr('CPF / CNPJ'); ?><span
                         class="required">*</span>
@@ -393,8 +404,8 @@ final class LknWcCieloPix extends WC_Payment_Gateway
                     </div>
                 </label>
                 <input
-                    id="lknCieloApiProPixBillingCpf"
-                    name="billing_cpf"
+                    id="lknCieloApiPixBillingCpf"
+                    name="billing_cielo_pix_free_cpf_cnpj"
                     class="input-text"
                     type="text"
                     pattern="[0-9]*"
@@ -430,12 +441,25 @@ final class LknWcCieloPix extends WC_Payment_Gateway
             if (empty($fullName)) {
                 throw new Exception('Nome não informado');
             }
-            if (isset($_POST['billing_cpf']) && '' === $_POST['billing_cpf']) {
-                $_POST['billing_cpf'] = isset($_POST['billing_cnpj']) ? sanitize_text_field(wp_unslash($_POST['billing_cnpj'])) : '';
+            // Busca CPF/CNPJ em ordem de prioridade: campo personalizado > billing_cpf > billing_cnpj
+            $billing_document = '';
+            
+            if (!empty($_POST['billing_cielo_pix_free_cpf_cnpj'])) {
+                // 1ª prioridade: Campo personalizado do PIX
+                $billing_document = sanitize_text_field(wp_unslash($_POST['billing_cielo_pix_free_cpf_cnpj']));
+            } elseif (!empty($_POST['billing_cpf'])) {
+                // 2ª prioridade: Campo universal billing_cpf
+                $billing_document = sanitize_text_field(wp_unslash($_POST['billing_cpf']));
+            } elseif (!empty($_POST['billing_cnpj'])) {
+                // 3ª prioridade: Campo billing_cnpj (fallback)
+                $billing_document = sanitize_text_field(wp_unslash($_POST['billing_cnpj']));
             }
+            
+            $billing_document_clean = preg_replace('/[^0-9]/', '', $billing_document);
+            
             $billingCpfCpnj = array(
-                'Identity' => isset($_POST['billing_cpf']) ? sanitize_text_field(wp_unslash($_POST['billing_cpf'])) : '',
-                'IdentityType' => isset($_POST['billing_cpf']) && strlen(sanitize_text_field(wp_unslash($_POST['billing_cpf']))) === 14 ? 'CPF' : 'CNPJ'
+                'Identity' => $billing_document,
+                'IdentityType' => strlen($billing_document_clean) === 11 ? 'CPF' : 'CNPJ'
             );
 
             $amount = number_format((float) $order->get_total(), 2, '.', '');
@@ -481,6 +505,18 @@ final class LknWcCieloPix extends WC_Payment_Gateway
                 LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, 'N/A', 'N/A', $fullName, 1, $amount, $currency, 'PIX', $merchantId, $merchantSecret, $merchantOrderId, $order_id, 'N/A', null, 'Pix', 'N/A', $this, 'N/A', 'N/A', 'N/A', 'N/A', 'N/A');
                 $order->save();
                 throw new Exception('Erro na Requisição. Tente novamente!', 1);
+            }
+
+            // Validar se os campos essenciais do PIX estão presentes e não vazios
+            if (empty($response['response']['qrcodeImage']) || empty($response['response']['qrcodeString'])) {
+                $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
+                    400,
+                    '185',
+                    'Cielo API returned incomplete PIX data. QR Code information missing.'
+                );
+                LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, 'N/A', 'N/A', $fullName, 1, $amount, $currency, 'PIX', $merchantId, $merchantSecret, $merchantOrderId, $order_id, 'N/A', null, 'Pix', 'N/A', $this, 'N/A', 'N/A', 'N/A', 'N/A', 'N/A');
+                $order->save();
+                throw new Exception(__('Error generating PIX: QR Code information is missing. Please try again or contact support.', 'lkn-wc-gateway-cielo'), 1);
             }
 
             if (! wp_next_scheduled('lkn_schedule_check_free_pix_payment_hook', array($response["response"]["paymentId"], $order_id))) {

@@ -62,10 +62,18 @@
     transition: border-color 0.3s ease, box-shadow 0.3s ease !important;
 }
 
+.lkn-credit-debit-card-field {
+    margin-top: 12px !important;
+}
+
+.lkn-select-type select {
+    width: 100%;
+}
+
 .lkn-credit-card-type-select {
     width: 48% !important;
     height: 50px;
-    margin-top: 16px;
+    margin-top: 12px;
     margin-bottom: 0px !important;
 }
 

@@ -163,8 +163,18 @@ function lknProcessDebitCard () {
     const billingPostcode = document.getElementById('billing-postcode') ? document.getElementById('billing-postcode').value : ''
     const billingState = document.getElementById('billing-state') ? document.getElementById('billing-state').value : ''
     const email = document.getElementById('email') ? document.getElementById('email').value : ''
-    const billingCpf = document.getElementById('billing_cpf') ? document.getElementById('billing_cpf').value : ''
-    const billingCnpj = document.getElementById('billing_cnpj') ? document.getElementById('billing_cnpj').value : ''
+    
+    // Busca CPF/CNPJ em ordem de prioridade: campo personalizado > billing_cpf > billing_cnpj
+    const billingDocument = (function() {
+      const customField = document.getElementById('lknCieloApiPixBillingCpf')
+      const billingCpf = document.getElementById('billing_cpf')  
+      const billingCnpj = document.getElementById('billing_cnpj')
+      
+      if (customField && customField.value) return customField.value
+      if (billingCpf && billingCpf.value) return billingCpf.value
+      if (billingCnpj && billingCnpj.value) return billingCnpj.value
+      return ''
+    })()
 
     let expDate = document.getElementById('lkn_dc_expdate').value
 
@@ -179,7 +189,7 @@ function lknProcessDebitCard () {
     document.getElementById('lkn_bpmpi_expyear').value = expDate[1].replace(/\D/g, '')
 
     if (document.getElementById('lkn_bpmpi_useraccount_guest').value === 'true') {
-      document.getElementById('lkn_bpmpi_billto_customerid').value = billingCpf || billingCnpj
+      document.getElementById('lkn_bpmpi_billto_customerid').value = billingDocument
       document.getElementById('lkn_bpmpi_billto_phonenumber').value = phoneNumber
       document.getElementById('lkn_bpmpi_billto_email').value = email
       document.getElementById('lkn_bpmpi_billto_street1').value = billingAddress1
