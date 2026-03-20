@@ -1927,7 +1927,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
 
         ?>
         <div class="lkn-partial-capture-container">
-            <label><?php _e('Amount to capture:', 'lkn-wc-gateway-cielo'); ?></label>
+            <label><?php esc_html_e('Amount to capture:', 'lkn-wc-gateway-cielo'); ?></label>
             <input type="number" id="lkn-capture-amount" class="lkn-capture-amount-input" step="0.01" min="0.01" max="<?php echo esc_attr($orderTotal); ?>" value="<?php echo esc_attr($orderTotal); ?>" />
             <span id="lkn-capture-help-icon" class="lkn-capture-help-icon" title="">
                 ?
@@ -1936,7 +1936,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                     data-order-id="<?php echo esc_attr($order_id); ?>" 
                     data-transaction-id="<?php echo esc_attr($transactionId); ?>"
                     data-order-total="<?php echo esc_attr($orderTotal); ?>">
-                <?php _e('Capture', 'lkn-wc-gateway-cielo'); ?>
+                <?php esc_html_e('Capture', 'lkn-wc-gateway-cielo'); ?>
             </button>
         </div>
         <?php
