@@ -476,8 +476,6 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
             'MerchantKey' => $merchantSecret,
         );
 
-        error_log($walletKey);
-
         $body = array(
             'MerchantOrderId' => $merchantOrderId,
             'Payment' => array(
@@ -498,8 +496,6 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
         $args['timeout'] = 120;
 
         $response = wp_remote_post($url . '1/sales', $args);
-
-        error_log(json_encode($response));
 
         if (is_wp_error($response)) {
             if ('yes' === $this->get_option('debug')) {

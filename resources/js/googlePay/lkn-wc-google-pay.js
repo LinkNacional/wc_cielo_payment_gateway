@@ -145,7 +145,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Usar evento updated_checkout do WooCommerce com jQuery
   jQuery(document.body).on('updated_checkout', function() {
-    console.log('WooCommerce checkout updated!');
     googlePayInitialized = false;
     initializeGooglePay();
   });
