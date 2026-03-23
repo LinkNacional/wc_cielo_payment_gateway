@@ -337,7 +337,7 @@ final class LknWcCieloPix extends WC_Payment_Gateway
 
         $customConfigs = apply_filters('lkn_wc_cielo_get_custom_configs', array(), $this->id);
 
-        if (! empty($customConfigs)) {
+        if (! empty($customConfigs) && is_array($customConfigs)) {
             $this->form_fields = array_merge($this->form_fields, $customConfigs);
         }
     }

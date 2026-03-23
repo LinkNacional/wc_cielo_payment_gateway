@@ -31,6 +31,6 @@
     "scripts": {
         "test": "phpunit",
         "test:unit": "phpunit --testsuite unit",
-        "test:coverage": "phpunit --coverage-html coverage"
+        "test:coverage": "XDEBUG_MODE=coverage phpunit --coverage-html coverage --coverage-text"
     }
 }

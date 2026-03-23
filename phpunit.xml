@@ -29,6 +29,9 @@
         <testsuite name="hooks">
             <directory>tests/Unit/Hooks</directory>
         </testsuite>
+        <testsuite name="googlepay">
+            <directory>tests/Unit/GooglePay</directory>
+        </testsuite>
     </testsuites>
     <coverage processUncoveredFiles="true">
         <include>

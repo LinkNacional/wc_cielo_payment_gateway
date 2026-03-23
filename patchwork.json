@@ -1,5 +1,8 @@
 {
   "redefinable-internals": [
-    "class_exists"
+    "class_exists",
+    "number_format",
+    "preg_replace",
+    "strlen"
   ]
 }
