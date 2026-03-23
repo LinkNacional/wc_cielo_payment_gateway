@@ -469,12 +469,14 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
 
         $amountFormated = number_format($amount, 2, '', '');
         $url = ($this->get_option('env') == 'production') ? 'https://api.cieloecommerce.cielo.com.br/' : 'https://apisandbox.cieloecommerce.cielo.com.br/';
-
+        
         $args['headers'] = array(
             'Content-Type' => 'application/json',
             'MerchantId' => $merchantId,
             'MerchantKey' => $merchantSecret,
         );
+
+        error_log($walletKey);
 
         $body = array(
             'MerchantOrderId' => $merchantOrderId,
@@ -497,6 +499,8 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
 
         $response = wp_remote_post($url . '1/sales', $args);
 
+        error_log(json_encode($response));
+
         if (is_wp_error($response)) {
             if ('yes' === $this->get_option('debug')) {
                 $this->log->log('error', var_export($response->get_error_messages(), true), array('source' => 'woocommerce-cielo-google-pay'));
@@ -507,6 +511,11 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
             throw new Exception(esc_attr($message));
         }
         $responseDecoded = json_decode($response['body']);
+
+        // Verificar erro 212 (Google Pay não configurado na Cielo)
+        if (is_array($responseDecoded) && isset($responseDecoded[0]->Code) && $responseDecoded[0]->Code == 212) {
+            throw new Exception(esc_attr(__('Google Pay is not configured in Cielo.', 'lkn-wc-gateway-cielo')));
+        }
 
         if ($this->get_option('debug') === 'yes') {
             $lknWcCieloHelper = new LknWcCieloHelper();
