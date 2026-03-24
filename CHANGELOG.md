@@ -8,15 +8,15 @@
 * Ajuste na validação do cartão que inicia com 0.
 
 # 1.29.1 - 14/03/2026 (Security Release)
-* 🔒 **SECURITY:** Fixed critical vulnerability in REST API endpoints - Added nonce verification to prevent unauthorized access
-* 🔒 **SECURITY:** Fixed refund filter bypass vulnerability - Added permission checks to prevent unauthorized refunds
-* 🔒 **SECURITY:** Added audit logging for sensitive operations (clearOrderLogs, refunds)
-* 🔒 **SECURITY:** Implemented double-layer permission verification in refund processes
-* ⚠️ **BREAKING:** REST endpoints now require valid nonce (X-WP-Nonce header or _wpnonce parameter)
-* ⚠️ **BREAKING:** clearOrderLogs endpoint now requires manage_woocommerce capability
-* ✅ **COMPATIBILITY:** All changes are backward compatible with existing integrations
-* ✅ **COMPATIBILITY:** Filters (lkn_wc_cielo_*_refund) continue working for users with proper permissions
-* 📝 See SECURITY_FIXES.md for detailed information about security improvements
+* 🔒 **SEGURANÇA:** Corrigida vulnerabilidade crítica nos endpoints da API REST - Adicionada verificação de nonce para prevenir acesso não autorizado
+* 🔒 **SEGURANÇA:** Corrigida vulnerabilidade de bypass no filtro de reembolso - Adicionadas verificações de permissão para prevenir reembolsos não autorizados
+* 🔒 **SEGURANÇA:** Adicionado log de auditoria para operações sensíveis (clearOrderLogs, reembolsos)
+* 🔒 **SEGURANÇA:** Implementada verificação de permissão de dupla camada nos processos de reembolso
+* ⚠️ **BREAKING:** Endpoints REST agora requerem nonce válido (header X-WP-Nonce ou parâmetro _wpnonce)
+* ⚠️ **BREAKING:** Endpoint clearOrderLogs agora requer capacidade manage_woocommerce
+* ✅ **COMPATIBILIDADE:** Todas as alterações são retrocompatíveis com integrações existentes
+* ✅ **COMPATIBILIDADE:** Filtros (lkn_wc_cielo_*_refund) continuam funcionando para usuários com permissões adequadas
+* 📝 Veja SECURITY_FIXES.md para informações detalhadas sobre melhorias de segurança
 
 # 1.29.0 - 04/03/2026
 * Novo layout para o shortcode.
