@@ -107,7 +107,7 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
                 'version_pro' => is_plugin_active('lkn-cielo-api-pro/lkn-cielo-api-pro.php') ? LKN_CIELO_API_PRO_VERSION : 'N/A'
             ));
             wp_enqueue_style('lkn-admin-layout', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-admin-layout.css', array(), $this->version, 'all');
-            wp_enqueue_script('lknWCGatewayCieloGooglePayClearButtonScript', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-clear-logs-button.js', array('jquery', 'wp-api'), $this->version, false);
+            wp_enqueue_script('lknWCGatewayCieloGooglePayClearButtonScript', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-clear-logs-button.js', array('jquery'), $this->version, false);
             wp_localize_script('lknWCGatewayCieloGooglePayClearButtonScript', 'lknWcCieloTranslations', array(
                 'clearLogs' => __('Clear Logs', 'lkn-wc-gateway-cielo'),
                 'sendConfigs' => __('Wordpress Support', 'lkn-wc-gateway-cielo'),
@@ -116,6 +116,8 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
                 'sandbox' => __('Use this for testing purposes in the Cielo sandbox environment.', 'lkn-wc-gateway-cielo'),
                 'enable' => __('Enable', 'lkn-wc-gateway-cielo'),
                 'disable' => __('Disable', 'lkn-wc-gateway-cielo'),
+                'nonce' => wp_create_nonce('lkn_cielo_clear_logs_nonce'),
+                'ajaxUrl' => admin_url('admin-ajax.php')
             ));
             wp_enqueue_script('lknWCGatewayCieloGooglePaySettingsFixLayoutScript', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-wc-gateway-admin-fix-layout.js', array('jquery'), $this->version, false);
 
@@ -469,7 +471,7 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
 
         $amountFormated = number_format($amount, 2, '', '');
         $url = ($this->get_option('env') == 'production') ? 'https://api.cieloecommerce.cielo.com.br/' : 'https://apisandbox.cieloecommerce.cielo.com.br/';
-
+        
         $args['headers'] = array(
             'Content-Type' => 'application/json',
             'MerchantId' => $merchantId,
@@ -507,6 +509,11 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
             throw new Exception(esc_attr($message));
         }
         $responseDecoded = json_decode($response['body']);
+
+        // Verificar erro 212 (Google Pay não configurado na Cielo)
+        if (is_array($responseDecoded) && isset($responseDecoded[0]->Code) && $responseDecoded[0]->Code == 212) {
+            throw new Exception(esc_attr(__('Google Pay is not configured in Cielo.', 'lkn-wc-gateway-cielo')));
+        }
 
         if ($this->get_option('debug') === 'yes') {
             $lknWcCieloHelper = new LknWcCieloHelper();
@@ -594,6 +601,14 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
      */
     public function process_refund($order_id, $amount = null, $reason = '')
     {
+        // Verify user has permission to process refunds
+        if (!current_user_can('manage_woocommerce')) {
+            if ('yes' === $this->get_option('debug')) {
+                $this->log->log('error', 'Refund attempt without proper permissions for order: ' . $order_id, array('source' => 'woocommerce-cielo-google-pay-security'));
+            }
+            return new WP_Error('permission_denied', __('You do not have permission to process refunds.', 'lkn-wc-gateway-cielo'));
+        }
+
         // Do your refund here. Refund $amount for the order with ID $order_id
         $url = ($this->get_option('env') == 'production') ? 'https://api.cieloecommerce.cielo.com.br/' : 'https://apisandbox.cieloecommerce.cielo.com.br/';
         $merchantId = sanitize_text_field($this->get_option('merchant_id'));
@@ -602,7 +617,24 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
         $order = wc_get_order($order_id);
         $transactionId = $order->get_transaction_id();
 
+        // Allow filtering of refund parameters, but verify permission after filter
         $response = apply_filters('lkn_wc_cielo_google_pay_refund', $url, $merchantId, $merchantSecret, $order_id, $amount);
+
+        // If filter was hooked and returned a value, verify user still has permission
+        if (has_filter('lkn_wc_cielo_google_pay_refund')) {
+            if (!current_user_can('manage_woocommerce')) {
+                if ('yes' === $debug) {
+                    $this->log->log('error', 'Refund filter used without proper permissions for order: ' . $order_id, array('source' => 'woocommerce-cielo-google-pay-security'));
+                }
+                $order->add_order_note(__('Order refund blocked: insufficient permissions', 'lkn-wc-gateway-cielo'));
+                return false;
+            }
+            
+            // Log filter usage for audit trail
+            if ('yes' === $debug) {
+                $this->log->log('info', 'Refund filter was used for order: ' . $order_id, array('source' => 'woocommerce-cielo-google-pay-security'));
+            }
+        }
 
         if (is_wp_error($response)) {
             if ('yes' === $debug) {
@@ -636,7 +668,7 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
      * @param string $message
      * @param string $type
      */
-    private function add_notice_once($message, $type): void
+    public function add_notice_once($message, $type): void
     {
         if (! wc_has_notice($message, $type)) {
             wc_add_notice($message, $type);

@@ -101,7 +101,8 @@ function setupErrorDetection() {
           url,
           type: 'GET',
           headers: {
-            Accept: 'application/json'
+            Accept: 'application/json',
+            'X-WP-Nonce': wpApiSettings.nonce
           },
           success: function (response) {
             const options = document.querySelectorAll('#lkn_cc_type option')

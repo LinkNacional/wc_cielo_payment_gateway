@@ -486,7 +486,12 @@ const lknCCContentCielo = props => {
       unsubscribe()
     }
   }, [creditObject, emitResponse.responseTypes.ERROR, emitResponse.responseTypes.SUCCESS, onPaymentSetup])
-  return /* #__PURE__ */React.createElement(React.Fragment, null, lknCCShowCard !== 'no' && /* #__PURE__ */React.createElement(Cards, {
+  return /* #__PURE__ */React.createElement(React.Fragment, null, lknCCShowCard !== 'no' && /* #__PURE__ */React.createElement("div", {
+    className: "lkn-cielo-animated-card-container",
+    style: {
+      flex: "1 1 100%"
+    }
+  }, /* #__PURE__ */React.createElement(Cards, {
     number: creditObject.lkn_ccno,
     name: creditObject.lkn_cc_cardholder_name,
     expiry: creditObject.lkn_cc_expdate.replace(/\s+/g, ''),
@@ -501,7 +506,7 @@ const lknCCContentCielo = props => {
       valid: 'VÁLIDO ATÉ'
     },
     focused: focus
-  }), /* #__PURE__ */React.createElement(wcComponents.TextInput, {
+  })), /* #__PURE__ */React.createElement(wcComponents.TextInput, {
     id: 'lkn_cc_cardholder_name',
     label: lknCCTranslationsCielo.cardHolder,
     value: creditObject.lkn_cc_cardholder_name,

@@ -14,25 +14,19 @@ final class LknWCGatewayCieloEndpoint
         register_rest_route('lknWCGatewayCielo', '/checkCard', array(
             'methods' => 'GET',
             'callback' => array($this, 'orderCapture'),
-            'permission_callback' => '__return_true',
-        ));
-
-        register_rest_route('lknWCGatewayCielo', '/clearOrderLogs', array(
-            'methods' => 'DELETE',
-            'callback' => array($this, 'clearOrderLogs'),
-            'permission_callback' => '__return_true',
+            'permission_callback' => array($this, 'check_card_permission'),
         ));
 
         register_rest_route('lknWCGatewayCielo', '/getAcessToken', array(
             'methods' => 'GET',
             'callback' => array($this, 'getAcessToken'),
-            'permission_callback' => '__return_true',
+            'permission_callback' => array($this, 'check_token_permission'),
         ));
 
         register_rest_route('lknWCGatewayCielo', '/getCardBrand', array(
             'methods' => 'GET',
             'callback' => array($this, 'getOfflineBinCard'),
-            'permission_callback' => '__return_true',
+            'permission_callback' => array($this, 'check_card_brand_permission'),
             'args' => array(
                 'number' => array(
                     'required' => true,
@@ -42,6 +36,86 @@ final class LknWCGatewayCieloEndpoint
                 ),
             ),
         ));
+    }
+
+    /**
+     * Check permission for checkCard endpoint
+     * Requires valid nonce for frontend checkout usage
+     *
+     * @param WP_REST_Request $request
+     * @return bool|WP_Error
+     */
+    public function check_card_permission($request)
+    {
+        $nonce = $request->get_header('X-WP-Nonce');
+        
+        if (empty($nonce)) {
+            $nonce = $request->get_param('_wpnonce');
+        }
+
+        if (empty($nonce) || !wp_verify_nonce($nonce, 'wp_rest')) {
+            return new WP_Error(
+                'rest_forbidden',
+                __('Invalid security token.', 'lkn-wc-gateway-cielo'),
+                array('status' => 403)
+            );
+        }
+
+        return true;
+    }
+
+
+
+    /**
+     * Check permission for getAcessToken endpoint
+     * Requires valid nonce for frontend checkout usage
+     *
+     * @param WP_REST_Request $request
+     * @return bool|WP_Error
+     */
+    public function check_token_permission($request)
+    {
+        $nonce = $request->get_header('X-WP-Nonce');
+        
+        if (empty($nonce)) {
+            $nonce = $request->get_param('_wpnonce');
+        }
+
+        if (empty($nonce) || !wp_verify_nonce($nonce, 'wp_rest')) {
+            return new WP_Error(
+                'rest_forbidden',
+                __('Invalid security token.', 'lkn-wc-gateway-cielo'),
+                array('status' => 403)
+            );
+        }
+
+        return true;
+    }
+
+    /**
+     * Check permission for getCardBrand endpoint
+     * Requires valid nonce for frontend checkout usage
+     *
+     * @param WP_REST_Request $request
+     * @return bool|WP_Error
+     */
+    public function check_card_brand_permission($request)
+    {
+        $nonce = $request->get_header('X-WP-Nonce');
+        
+        if (empty($nonce)) {
+            $nonce = $request->get_param('_wpnonce');
+        }
+
+        if (empty($nonce) || !wp_verify_nonce($nonce, 'wp_rest')) {
+            return new WP_Error(
+                'rest_forbidden',
+                __('Invalid security token.', 'lkn-wc-gateway-cielo'),
+                array('status' => 403)
+            );
+        }
+
+        return true;
     }
 
     public function orderCapture($request)
@@ -97,8 +171,30 @@ final class LknWCGatewayCieloEndpoint
         return new WP_REST_Response($data, 200);
     }
 
-    public function clearOrderLogs($request)
+    public function ajax_clear_order_logs()
     {
+        // Verificar se é requisição POST e se nonce existe
+        if (!isset($_POST['nonce'])) {
+            wp_send_json_error(array(
+                'message' => __('Missing security token.', 'lkn-wc-gateway-cielo')
+            ));
+        }
+
+        // Verificar nonce para segurança
+        $nonce = sanitize_text_field(wp_unslash($_POST['nonce']));
+        if (!wp_verify_nonce($nonce, 'lkn_cielo_clear_logs_nonce')) {
+            wp_send_json_error(array(
+                'message' => __('Security check failed.', 'lkn-wc-gateway-cielo')
+            ));
+        }
+
+        // Verificar permissões do usuário
+        if (!current_user_can('manage_woocommerce')) {
+            wp_send_json_error(array(
+                'message' => __('You do not have permission to clear order logs.', 'lkn-wc-gateway-cielo')
+            ));
+        }
+
         $args = array(
             'limit' => -1, // Sem limite, pega todas as ordens
             'meta_key' => 'lknWcCieloOrderLogs', // Meta key específica
@@ -106,13 +202,27 @@ final class LknWCGatewayCieloEndpoint
         );
 
         $orders = wc_get_orders($args);
+        $count = 0;
 
         foreach ($orders as $order) {
             $order->delete_meta_data('lknWcCieloOrderLogs');
             $order->save();
+            $count++;
         }
 
-        return new WP_REST_Response($orders, 200);
+        // Log the action for audit trail
+        if (class_exists('WC_Logger')) {
+            $log = new WC_Logger();
+            $log->info(
+                sprintf('Order logs cleared by user %d. Total orders affected: %d', get_current_user_id(), $count),
+                array('source' => 'woocommerce-cielo-security')
+            );
+        }
+
+        wp_send_json_success(array(
+            'message' => sprintf(__('%d order logs cleared successfully.', 'lkn-wc-gateway-cielo'), $count),
+            'count' => $count
+        ));
     }
 
     public function getAcessToken()

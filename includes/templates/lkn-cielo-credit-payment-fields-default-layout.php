@@ -28,9 +28,11 @@ if (!defined('ABSPATH')) {
 
     <div class="cielo-credit-fields-wrapper">
         <?php if ('yes' === $show_card_animation) { ?>
-        <div
-            id="cielo-credit-card-animation"
-            class="card-wrapper card-animation"></div>
+        <div class="lkn-cielo-animated-card-container">
+            <div
+                id="cielo-credit-card-animation"
+                class="card-wrapper card-animation"></div>
+        </div>
         <?php } ?>
         <div class="wc-payment-cielo-form-fields">
 

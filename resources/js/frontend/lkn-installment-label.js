@@ -65,8 +65,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Buscar o select dentro da div
             const select = cieloDiv.querySelector('select');
+            
             if (select) {
                 const selectedOption = select.options[select.selectedIndex];
+                
                 if (selectedOption) {
                     const optionText = selectedOption.textContent || selectedOption.innerText;
                     const selectedValue = selectedOption.value;
@@ -374,7 +376,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function observeInstallmentSelects() {
         const cieloSelects = document.querySelectorAll('.lkn_cielo_credit_select select, .lkn_cielo_debit_select select');
 
-        cieloSelects.forEach(function (select) {
+        cieloSelects.forEach(function (select, index) {
             // Verificar se já tem observer
             if (select.dataset.observerAdded) {
                 return;
@@ -389,6 +391,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // Função para verificar e atualizar se necessário
             function checkAndUpdate() {
                 checkCount++;
+                
                 const installmentInfo = getInstallmentInfo();
                 
                 // Se installmentInfo é null (débito), parar observação
@@ -525,6 +528,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const observer = new MutationObserver(function (mutations) {
         let shouldCheckPayments = false;
         let shouldCheckTotals = false;
+        let shouldCheckInstallments = false;
 
         for (let mutation of mutations) {
             if (mutation.type === 'childList') {
@@ -542,7 +546,38 @@ document.addEventListener('DOMContentLoaded', function () {
                             (node.querySelector && node.querySelector('.wc-block-components-totals-item'))) {
                             shouldCheckTotals = true;
                         }
+
+                        // Verificar se novos selects de parcelamento Cielo foram adicionados/modificados
+                        if ((node.classList && (node.classList.contains('lkn_cielo_credit_select') || node.classList.contains('lkn_cielo_debit_select'))) ||
+                            (node.querySelector && (node.querySelector('.lkn_cielo_credit_select') || node.querySelector('.lkn_cielo_debit_select'))) ||
+                            (node.querySelector && node.querySelector('select[id*="wc-block-components-sort-select"]'))) {
+                            shouldCheckInstallments = true;
+                        }
+
+                        // Verificar se é um select específico de parcelamento
+                        if (node.tagName === 'SELECT' && (node.classList.contains('wc-block-sort-select__select') || node.id.includes('sort-select'))) {
+                            shouldCheckInstallments = true;
+                        }
                     }
+                }
+            }
+            
+            // Verificar mudanças de atributos em selects existentes
+            if (mutation.type === 'attributes' && mutation.target.tagName === 'SELECT') {
+                const target = mutation.target;
+                if (target.classList.contains('wc-block-sort-select__select') || target.id.includes('sort-select') ||
+                    target.closest('.lkn_cielo_credit_select') || target.closest('.lkn_cielo_debit_select')) {
+                    shouldCheckInstallments = true;
+                }
+            }
+            
+            // Verificar mudanças de caracterData em options
+            if (mutation.type === 'characterData' && mutation.target.parentNode && mutation.target.parentNode.tagName === 'OPTION') {
+                const selectParent = mutation.target.parentNode.parentNode;
+                if (selectParent && selectParent.tagName === 'SELECT' && 
+                    (selectParent.classList.contains('wc-block-sort-select__select') || selectParent.id.includes('sort-select') ||
+                     selectParent.closest('.lkn_cielo_credit_select') || selectParent.closest('.lkn_cielo_debit_select'))) {
+                    shouldCheckInstallments = true;
                 }
             }
         }
@@ -557,6 +592,19 @@ document.addEventListener('DOMContentLoaded', function () {
             setTimeout(() => {
                 checkPaymentMethod();
             }, 300);
+        }
+        
+        // Verificar parcelamentos quando detectados
+        if (shouldCheckInstallments) {
+            setTimeout(() => {
+                if (isCieloMethodSelected()) {
+                    updateLoadingSkeletons();
+                    // Reinicializar observers se necessário
+                    setTimeout(() => {
+                        observeInstallmentSelects();
+                    }, 100);
+                }
+            }, 200);
         }
     });
 
