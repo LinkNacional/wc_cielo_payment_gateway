@@ -1,8 +1,22 @@
+# 1.30.1 - 24/03/2026
+* Ajuste nas rotas Api_rest e Ajax.
+
 # 1.30.0 - 16/03/2026
 * Ajustes nas notas dos pedidos.
 * Ajuste no reembolso do cartão de crédito e débito.
 * Novo sistema de captura parcial.
 * Ajuste na validação do cartão que inicia com 0.
+
+# 1.29.1 - 14/03/2026 (Security Release)
+* 🔒 **SEGURANÇA:** Corrigida vulnerabilidade crítica nos endpoints da API REST - Adicionada verificação de nonce para prevenir acesso não autorizado
+* 🔒 **SEGURANÇA:** Corrigida vulnerabilidade de bypass no filtro de reembolso - Adicionadas verificações de permissão para prevenir reembolsos não autorizados
+* 🔒 **SEGURANÇA:** Adicionado log de auditoria para operações sensíveis (clearOrderLogs, reembolsos)
+* 🔒 **SEGURANÇA:** Implementada verificação de permissão de dupla camada nos processos de reembolso
+* ⚠️ **BREAKING:** Endpoints REST agora requerem nonce válido (header X-WP-Nonce ou parâmetro _wpnonce)
+* ⚠️ **BREAKING:** Endpoint clearOrderLogs agora requer capacidade manage_woocommerce
+* ✅ **COMPATIBILIDADE:** Todas as alterações são retrocompatíveis com integrações existentes
+* ✅ **COMPATIBILIDADE:** Filtros (lkn_wc_cielo_*_refund) continuam funcionando para usuários com permissões adequadas
+* 📝 Veja SECURITY_FIXES.md para informações detalhadas sobre melhorias de segurança
 
 # 1.29.0 - 04/03/2026
 * Novo layout para o shortcode.

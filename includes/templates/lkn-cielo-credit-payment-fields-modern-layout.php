@@ -34,7 +34,9 @@ if (!defined('ABSPATH')) {
 
     <div class="cielo-credit-fields-wrapper modern-layout">
         <?php if ('yes' === $show_card_animation) { ?>
-        <div id="cielo-credit-card-animation" class="card-wrapper card-animation modern-card"></div>
+        <div class="lkn-cielo-animated-card-container">
+            <div id="cielo-credit-card-animation" class="card-wrapper card-animation modern-card"></div>
+        </div>
         <?php } ?>
 
         <!-- Card Brand Icons -->

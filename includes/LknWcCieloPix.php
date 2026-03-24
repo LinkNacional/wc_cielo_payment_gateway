@@ -127,6 +127,8 @@ final class LknWcCieloPix extends WC_Payment_Gateway
                 'sandbox' => __('Use this for testing purposes in the Cielo sandbox environment.', 'lkn-wc-gateway-cielo'),
                 'enable' => __('Enable', 'lkn-wc-gateway-cielo'),
                 'disable' => __('Disable', 'lkn-wc-gateway-cielo'),
+                'nonce' => wp_create_nonce('lkn_cielo_clear_logs_nonce'),
+                'ajaxUrl' => admin_url('admin-ajax.php')
             ));
         }
     }
@@ -337,7 +339,7 @@ final class LknWcCieloPix extends WC_Payment_Gateway
 
         $customConfigs = apply_filters('lkn_wc_cielo_get_custom_configs', array(), $this->id);
 
-        if (! empty($customConfigs)) {
+        if (! empty($customConfigs) && is_array($customConfigs)) {
             $this->form_fields = array_merge($this->form_fields, $customConfigs);
         }
     }
@@ -567,7 +569,7 @@ final class LknWcCieloPix extends WC_Payment_Gateway
      * @param string $message
      * @param string $type
      */
-    private function add_notice_once($message, $type): void
+    public function add_notice_once($message, $type): void
     {
         if (! wc_has_notice($message, $type)) {
             wc_add_notice($message, $type);

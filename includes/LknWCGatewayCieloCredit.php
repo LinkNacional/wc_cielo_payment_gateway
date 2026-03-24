@@ -148,7 +148,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
                 'version_pro' => is_plugin_active('lkn-cielo-api-pro/lkn-cielo-api-pro.php') ? LKN_CIELO_API_PRO_VERSION : 'N/A'
             ));
             wp_enqueue_style('lkn-admin-layout', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-admin-layout.css', array(), $this->version, 'all');
-            wp_enqueue_script('lknWCGatewayCieloCreditClearButtonScript', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-clear-logs-button.js', array('jquery', 'wp-api'), $this->version, false);
+            wp_enqueue_script('lknWCGatewayCieloCreditClearButtonScript', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-clear-logs-button.js', array('jquery'), $this->version, false);
             wp_localize_script('lknWCGatewayCieloCreditClearButtonScript', 'lknWcCieloTranslations', array(
                 'clearLogs' => __('Limpar Logs', 'lkn-wc-gateway-cielo'),
                 'sendConfigs' => __('Wordpress Support', 'lkn-wc-gateway-cielo'),
@@ -157,6 +157,8 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
                 'sandbox' => __('Use this for testing purposes in the Cielo sandbox environment.', 'lkn-wc-gateway-cielo'),
                 'enable' => __('Enable', 'lkn-wc-gateway-cielo'),
                 'disable' => __('Disable', 'lkn-wc-gateway-cielo'),
+                'nonce' => wp_create_nonce('lkn_cielo_clear_logs_nonce'),
+                'ajaxUrl' => admin_url('admin-ajax.php')
             ));
         }
     }
@@ -896,6 +898,9 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
             // Censurar o número do cartão de crédito
             $orderLogsArray['body']['Payment']['CreditCard']['CardNumber'] = substr($orderLogsArray['body']['Payment']['CreditCard']['CardNumber'], 0, 6) . '******' . substr($orderLogsArray['body']['Payment']['CreditCard']['CardNumber'], -4);
 
+            // Remover CVV/SecurityCode dos logs por motivos de segurança
+            unset($orderLogsArray['body']['Payment']['CreditCard']['SecurityCode']);
+
             // Remover a parte de "Links"
             unset($orderLogsArray['response']['Payment']['Links']);
 
@@ -1167,6 +1172,14 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
      */
     public function process_refund($order_id, $amount = null, $reason = '')
     {
+        // Verify user has permission to process refunds
+        if (!current_user_can('manage_woocommerce')) {
+            if ('yes' === $this->get_option('debug')) {
+                $this->log->log('error', 'Refund attempt without proper permissions for order: ' . $order_id, array('source' => 'woocommerce-cielo-credit-security'));
+            }
+            return new WP_Error('permission_denied', __('You do not have permission to process refunds.', 'lkn-wc-gateway-cielo'));
+        }
+
         // Do your refund here. Refund $amount for the order with ID $order_id
         $url = ($this->get_option('env') == 'production') ? 'https://api.cieloecommerce.cielo.com.br/' : 'https://apisandbox.cieloecommerce.cielo.com.br/';
         $urlQuery = ($this->get_option('env') == 'production') ? 'https://apiquery.cieloecommerce.cielo.com.br/' : 'https://apiquerysandbox.cieloecommerce.cielo.com.br/';
@@ -1212,7 +1225,24 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
             }
         }
 
+        // Allow filtering of refund parameters, but verify permission after filter
         $response = apply_filters('lkn_wc_cielo_credit_refund', $url, $merchantId, $merchantSecret, $order_id, $amount);
+
+        // If filter was hooked and returned a value, verify user still has permission
+        if (has_filter('lkn_wc_cielo_credit_refund')) {
+            if (!current_user_can('manage_woocommerce')) {
+                if ('yes' === $debug) {
+                    $this->log->log('error', 'Refund filter used without proper permissions for order: ' . $order_id, array('source' => 'woocommerce-cielo-credit-security'));
+                }
+                $order->add_order_note(__('Order refund blocked: insufficient permissions', 'lkn-wc-gateway-cielo'));
+                return false;
+            }
+            
+            // Log filter usage for audit trail
+            if ('yes' === $debug) {
+                $this->log->log('info', 'Refund filter was used for order: ' . $order_id, array('source' => 'woocommerce-cielo-credit-security'));
+            }
+        }
 
         if (is_wp_error($response)) {
             if ('yes' === $debug) {
@@ -1269,9 +1299,13 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
             return false;
         }
         
-        $isValid = ! preg_match('/[^0-9\s]/', $ccnum);
+        // Check for invalid characters (anything other than digits)
+        $hasInvalidChars = preg_match('/[^0-9]/', $cleanCardNum);
+        
+        // Check minimum length (using clean card number without spaces)
+        $isValidLength = strlen($cleanCardNum) >= 12;
 
-        if (true !== $isValid || strlen($ccnum) < 12) {
+        if ($hasInvalidChars || !$isValidLength) {
             if ($renderNotice) {
                 $this->add_notice_once(__('Credit Card number is invalid!', 'lkn-wc-gateway-cielo'), 'error');
             }
@@ -1312,10 +1346,50 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
 
             return false;
         }
+        
         $expDateSplit = explode('/', $expDate);
+        
+        // Check if we have exactly 2 parts (month and year)
+        if (count($expDateSplit) !== 2) {
+            if ($renderNotice) {
+                $this->add_notice_once(__('Expiration date is invalid!', 'lkn-wc-gateway-cielo'), 'error');
+            }
+
+            return false;
+        }
+        
+        $month = trim($expDateSplit[0]);
+        $year = trim($expDateSplit[1]);
+        
+        // Check if year is 2 digits only
+        if (strlen($year) !== 2) {
+            if ($renderNotice) {
+                $this->add_notice_once(__('Expiration date is invalid!', 'lkn-wc-gateway-cielo'), 'error');
+            }
+
+            return false;
+        }
+        
+        // Check if month is valid (1-2 digits, 01-12)
+        if (!ctype_digit($month) || !ctype_digit($year)) {
+            if ($renderNotice) {
+                $this->add_notice_once(__('Expiration date is invalid!', 'lkn-wc-gateway-cielo'), 'error');
+            }
+
+            return false;
+        }
+        
+        $monthInt = intval($month);
+        if ($monthInt < 1 || $monthInt > 12) {
+            if ($renderNotice) {
+                $this->add_notice_once(__('Expiration date is invalid!', 'lkn-wc-gateway-cielo'), 'error');
+            }
+
+            return false;
+        }
 
         try {
-            $expDate = new DateTime('20' . trim($expDateSplit[1]) . '-' . trim($expDateSplit[0]) . '-01');
+            $expDate = new DateTime('20' . $year . '-' . sprintf('%02d', $monthInt) . '-01');
             $today = new DateTime();
 
             if ($today > $expDate) {
@@ -1372,7 +1446,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
      * @param string $message
      * @param string $type
      */
-    private function add_notice_once($message, $type): void
+    public function add_notice_once($message, $type): void
     {
         if (! wc_has_notice($message, $type)) {
             wc_add_notice($message, $type);

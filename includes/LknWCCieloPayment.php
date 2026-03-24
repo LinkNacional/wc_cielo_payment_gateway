@@ -182,6 +182,9 @@ final class LknWCCieloPayment
         // Admin settings card for specific sections
         $this->loader->add_action('admin_enqueue_scripts', $this, 'setup_admin_settings_card');
         
+        // AJAX hooks for admin functionality
+        $this->loader->add_action('wp_ajax_lkn_cielo_clear_order_logs', $this->lknWcGatewayCieloEndpoint, 'ajax_clear_order_logs');
+        
         // Partial capture hooks centralized
         $this->loader->add_action('woocommerce_order_item_add_action_buttons', $this, 'add_partial_capture_button');
         $this->loader->add_action('wp_ajax_lkn_cielo_partial_capture', $this, 'handle_partial_capture_ajax');
@@ -215,6 +218,8 @@ final class LknWCCieloPayment
 
         $this->loader->add_action('wp_ajax_lkn_get_recent_cielo_orders', $this, 'ajax_get_recent_cielo_orders');
         $this->loader->add_action('wp_ajax_nopriv_lkn_get_recent_cielo_orders', $this, 'ajax_get_recent_cielo_orders');
+
+        $this->loader->add_action('wp_ajax_lkn_dismiss_fraud_notice', $this, 'ajax_dismiss_fraud_notice');
 
         $this->loader->add_action('woocommerce_review_order_after_order_total', $this, 'display_payment_installment_info');
     }
@@ -726,7 +731,18 @@ final class LknWCCieloPayment
      */
     public function lkn_admin_notice(): void
     {
-        if (!file_exists(WP_PLUGIN_DIR . '/fraud-detection-for-woocommerce/fraud-detection-for-woocommerce.php') && (!is_plugin_active('integration-rede-for-woocommerce/integration-rede-for-woocommerce.php') && !is_plugin_active('woo-rede/integration-rede-for-woocommerce.php'))) {
+        // Verificar se usuario já dispensou a notificação
+        $notice_dismissed = get_option('lkn_fraud_notice_dismissed', 'no');
+        
+        if ($notice_dismissed === 'no' && !file_exists(WP_PLUGIN_DIR . '/fraud-detection-for-woocommerce/fraud-detection-for-woocommerce.php') && (!is_plugin_active('integration-rede-for-woocommerce/integration-rede-for-woocommerce.php') && !is_plugin_active('woo-rede/integration-rede-for-woocommerce.php'))) {
+            // Enfileirar script para dismiss da notificação
+            wp_enqueue_script('lkn-cielo-dismiss-notice', LKN_WC_GATEWAY_CIELO_DIR_URL . 'resources/js/admin/lkn-dismiss-fraud-notice.js', array('jquery'), LKN_WC_CIELO_VERSION, true);
+            wp_localize_script('lkn-cielo-dismiss-notice', 'lknCieloDismissNotice', array(
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('lkn_dismiss_fraud_notice_nonce'),
+                'action' => 'lkn_dismiss_fraud_notice'
+            ));
+            
             require LKN_WC_GATEWAY_CIELO_DIR . 'includes/views/notices/LknWcCieloDownloadNotice.php';
         }
     }
@@ -1280,6 +1296,33 @@ final class LknWCCieloPayment
         
         if ($gateway && method_exists($gateway, 'add_partial_capture_button')) {
             $gateway->add_partial_capture_button($order_id);
+        }
+    }
+
+    /**
+     * AJAX handler to dismiss fraud detection notice
+     */
+    public function ajax_dismiss_fraud_notice()
+    {
+        // Verificar nonce de segurança
+        if (!isset($_POST['nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'])), 'lkn_dismiss_fraud_notice_nonce')) {
+            wp_send_json_error(array('message' => __('Security check failed', 'lkn-wc-gateway-cielo')));
+            return;
+        }
+
+        // Verificar permissões de usuário
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array('message' => __('Insufficient permissions', 'lkn-wc-gateway-cielo')));
+            return;
+        }
+
+        // Atualizar opção para dispensar a notificação
+        $updated = update_option('lkn_cielo_fraud_notice_dismissed', 'yes');
+
+        if ($updated) {
+            wp_send_json_success(array('message' => __('Notice dismissed successfully', 'lkn-wc-gateway-cielo')));
+        } else {
+            wp_send_json_error(array('message' => __('Failed to dismiss notice', 'lkn-wc-gateway-cielo')));
         }
     }
 
