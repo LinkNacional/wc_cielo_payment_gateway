@@ -1,3 +1,6 @@
+# 1.30.1 - 24/03/2026
+* Ajuste nas rotas Api_rest e Ajax.
+
 # 1.30.0 - 16/03/2026
 * Ajustes nas notas dos pedidos.
 * Ajuste no reembolso do cartão de crédito e débito.
