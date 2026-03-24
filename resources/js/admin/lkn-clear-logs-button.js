@@ -40,19 +40,45 @@ document.addEventListener('DOMContentLoaded', function () {
 
       if (confirm(lknWcCieloTranslations.alertText)) {
         jQuery.ajax({
-          type: 'DELETE',
-          url: wpApiSettings.root + 'lknWCGatewayCielo/clearOrderLogs',
-          contentType: 'application/json',
-          success: function (status) {
-            lknWcCieloValidateButton.disabled = false
-            location.reload()
+          type: 'POST',
+          url: lknWcCieloTranslations.ajaxUrl,
+          data: {
+            action: 'lkn_cielo_clear_order_logs',
+            nonce: lknWcCieloTranslations.nonce
           },
-          error: function (error) {
-            console.error(error)
+          success: function (response) {
+            if (response.success) {
+              // Feedback visual de sucesso
+              lknWcCieloValidateButton.value = '✓ ' + (response.data.message || 'Logs limpos com sucesso!')
+              lknWcCieloValidateButton.disabled = false
+              lknWcCieloValidateButton.className = lknWcCieloValidateButton.className.replace(' is-busy', '')
+              lknWcCieloValidateButton.style.backgroundColor = '#46b450'
+              lknWcCieloValidateButton.style.color = 'white'
+              
+              // Restaurar botão após 3 segundos
+              setTimeout(function() {
+                lknWcCieloValidateButton.value = lknWcCieloTranslations.clearLogs
+                lknWcCieloValidateButton.style.backgroundColor = ''
+                lknWcCieloValidateButton.style.color = ''
+              }, 3000)
+            } else {
+              console.error('Error:', response.data)
+              alert('Erro: ' + (response.data.message || 'Falha ao limpar logs'))
+              lknWcCieloValidateButton.disabled = false
+              lknWcCieloValidateButton.className = lknWcCieloValidateButton.className.replace(' is-busy', '')
+            }
+          },
+          error: function (xhr, status, error) {
+            console.error('AJAX Error:', error)
+            alert('Erro na requisição: ' + error)
             lknWcCieloValidateButton.disabled = false
             lknWcCieloValidateButton.className = lknWcCieloValidateButton.className.replace(' is-busy', '')
           }
         })
+      } else {
+        // User cancelled, re-enable button
+        lknWcCieloValidateButton.disabled = false
+        lknWcCieloValidateButton.className = lknWcCieloValidateButton.className.replace(' is-busy', '')
       }
     })
   }

@@ -233,7 +233,7 @@ final class LknWcCieloRequest
 
             // Decodificar resposta para extrair informações do pagamento
             $responseDecoded = json_decode($response, true);
-            
+
             if ($order->get_status() === self::WC_STATUS_PENDING) {
                 $newStatus = $instance->update_status($response);
                 

@@ -701,7 +701,12 @@ const lknDCContentCielo = props => {
       window.fetch = originalFetch
     }
   }, [])
-  return /* #__PURE__ */React.createElement(React.Fragment, null, lknDCshowCard !== 'no' && /* #__PURE__ */React.createElement(Cards, {
+  return /* #__PURE__ */React.createElement(React.Fragment, null, lknDCshowCard !== 'no' && /* #__PURE__ */React.createElement("div", {
+    className: "lkn-cielo-animated-card-container",
+    style: {
+      flex: "1 1 100%"
+    }
+  }, /* #__PURE__ */React.createElement(Cards, {
     number: debitObject.lkn_dcno,
     name: debitObject.lkn_dc_cardholder_name,
     expiry: debitObject.lkn_dc_expdate.replace(/\s+/g, ''),
@@ -716,7 +721,7 @@ const lknDCContentCielo = props => {
       valid: 'VÁLIDO ATÉ'
     },
     focused: focus
-  }), /* #__PURE__ */React.createElement(wcComponents.TextInput, {
+  })), /* #__PURE__ */React.createElement(wcComponents.TextInput, {
     id: 'lkn_dc_cardholder_name',
     label: lknDCTranslationsDebitCielo.cardHolder,
     value: debitObject.lkn_dc_cardholder_name,

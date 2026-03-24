@@ -17,12 +17,6 @@ final class LknWCGatewayCieloEndpoint
             'permission_callback' => array($this, 'check_card_permission'),
         ));
 
-        register_rest_route('lknWCGatewayCielo', '/clearOrderLogs', array(
-            'methods' => 'DELETE',
-            'callback' => array($this, 'clearOrderLogs'),
-            'permission_callback' => array($this, 'check_admin_permission'),
-        ));
-
         register_rest_route('lknWCGatewayCielo', '/getAcessToken', array(
             'methods' => 'GET',
             'callback' => array($this, 'getAcessToken'),
@@ -70,25 +64,7 @@ final class LknWCGatewayCieloEndpoint
         return true;
     }
 
-    /**
-     * Check permission for clearOrderLogs endpoint
-     * Requires manage_woocommerce capability
-     *
-     * @param WP_REST_Request $request
-     * @return bool|WP_Error
-     */
-    public function check_admin_permission($request)
-    {
-        if (!current_user_can('manage_woocommerce')) {
-            return new WP_Error(
-                'rest_forbidden',
-                __('You do not have permission to access this resource.', 'lkn-wc-gateway-cielo'),
-                array('status' => 403)
-            );
-        }
 
-        return true;
-    }
 
     /**
      * Check permission for getAcessToken endpoint
@@ -195,15 +171,28 @@ final class LknWCGatewayCieloEndpoint
         return new WP_REST_Response($data, 200);
     }
 
-    public function clearOrderLogs($request)
+    public function ajax_clear_order_logs()
     {
-        // Double-check permission even though it's in permission_callback
+        // Verificar se é requisição POST e se nonce existe
+        if (!isset($_POST['nonce'])) {
+            wp_send_json_error(array(
+                'message' => __('Missing security token.', 'lkn-wc-gateway-cielo')
+            ));
+        }
+
+        // Verificar nonce para segurança
+        $nonce = sanitize_text_field(wp_unslash($_POST['nonce']));
+        if (!wp_verify_nonce($nonce, 'lkn_cielo_clear_logs_nonce')) {
+            wp_send_json_error(array(
+                'message' => __('Security check failed.', 'lkn-wc-gateway-cielo')
+            ));
+        }
+
+        // Verificar permissões do usuário
         if (!current_user_can('manage_woocommerce')) {
-            return new WP_Error(
-                'rest_forbidden',
-                __('You do not have permission to clear order logs.', 'lkn-wc-gateway-cielo'),
-                array('status' => 403)
-            );
+            wp_send_json_error(array(
+                'message' => __('You do not have permission to clear order logs.', 'lkn-wc-gateway-cielo')
+            ));
         }
 
         $args = array(
@@ -230,14 +219,10 @@ final class LknWCGatewayCieloEndpoint
             );
         }
 
-        return new WP_REST_Response(
-            array(
-                'success' => true,
-                'message' => sprintf(__('%d order logs cleared successfully.', 'lkn-wc-gateway-cielo'), $count),
-                'count' => $count
-            ),
-            200
-        );
+        wp_send_json_success(array(
+            'message' => sprintf(__('%d order logs cleared successfully.', 'lkn-wc-gateway-cielo'), $count),
+            'count' => $count
+        ));
     }
 
     public function getAcessToken()

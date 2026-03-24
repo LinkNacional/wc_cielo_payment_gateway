@@ -182,6 +182,9 @@ final class LknWCCieloPayment
         // Admin settings card for specific sections
         $this->loader->add_action('admin_enqueue_scripts', $this, 'setup_admin_settings_card');
         
+        // AJAX hooks for admin functionality
+        $this->loader->add_action('wp_ajax_lkn_cielo_clear_order_logs', $this->lknWcGatewayCieloEndpoint, 'ajax_clear_order_logs');
+        
         // Partial capture hooks centralized
         $this->loader->add_action('woocommerce_order_item_add_action_buttons', $this, 'add_partial_capture_button');
         $this->loader->add_action('wp_ajax_lkn_cielo_partial_capture', $this, 'handle_partial_capture_ajax');
