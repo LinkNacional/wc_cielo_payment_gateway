@@ -1,3 +1,6 @@
+# 1.30.2 - 25/03/2026
+* Ajuste no carregamento do script.
+
 # 1.30.1 - 24/03/2026
 * Ajuste nas rotas Api_rest e Ajax.
 

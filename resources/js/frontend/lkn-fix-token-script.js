@@ -10,6 +10,9 @@
                         url: wpApiSettings.root + 'lknWCGatewayCielo/getAcessToken',
                         contentType: 'application/json',
                         method: 'GET',
+                        headers: {
+                            'X-WP-Nonce': wpApiSettings.nonce
+                        },
                         success: function(response) {
                             expiresInput.value = response.expires_in;
                             tokenInput.value = response.access_token;
