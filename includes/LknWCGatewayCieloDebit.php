@@ -88,14 +88,6 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         $this->log = new WC_Logger();
         $gateway_enabled = get_option('woocommerce_' . $this->id . '_settings');
 
-        $post = get_post();
-        if ($post && !has_block('woocommerce/checkout') && is_checkout() && isset($gateway_enabled['enabled']) && 'yes' === $gateway_enabled['enabled']) {
-            $this->accessToken = $this->generate_debit_auth_token();
-            wp_enqueue_script('lkn-fix-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-dc-script-fix.js', array('wp-i18n', 'jquery'), $this->version, false);
-            $accessToken = isset($this->accessToken['access_token']) ? $this->accessToken['access_token'] : '';
-            wp_localize_script('lkn-fix-script', 'lknWcCieloPaymentGatewayToken', array('access_token' => $accessToken));
-        }
-
         // Actions.
         add_filter('woocommerce_new_order_note_data', array($this, 'add_gateway_name_to_notes'), 10, 2);
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
@@ -731,6 +723,12 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
      */
     public function payment_fields(): void
     {
+        // Generate access token and enqueue fix script for shortcode checkout
+        $this->accessToken = $this->generate_debit_auth_token();
+        wp_enqueue_script('lkn-fix-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-dc-script-fix.js', array('wp-i18n', 'jquery'), $this->version, false);
+        $accessToken = isset($this->accessToken['access_token']) ? $this->accessToken['access_token'] : '';
+        wp_localize_script('lkn-fix-script', 'lknWcCieloPaymentGatewayToken', array('access_token' => $accessToken));
+        
         // Enqueue base styles
         wp_enqueue_style('lknWCGatewayCieloFixIconsStyle', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-fix-icons-styles.css', array(), $this->version, 'all');
         wp_enqueue_style('lkn-dc-style', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-dc-style.css', array(), $this->version, 'all');

@@ -397,20 +397,6 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   function lknWcGatewayCieloLoadScript() {
-    // Verificar se o token já está disponível antes de carregar o script 3DS
-    const tokenField = document.querySelector('.bpmpi_accesstoken');
-    
-    if (!tokenField) {
-      setTimeout(lknWcGatewayCieloLoadScript, 1000);
-      return;
-    }
-    
-    // Se token está vazio ou inválido, aguardar
-    if (!tokenField.value || tokenField.value === '' || tokenField.value.length < 50) {
-      setTimeout(lknWcGatewayCieloLoadScript, 500);
-      return;
-    }
-    
     const scriptUrlBpmpi = lknDCDirScript3DSCieloShortCode.url
     const existingScriptBpmpi = document.querySelector(`script[src="${scriptUrlBpmpi}"]`)
 

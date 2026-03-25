@@ -149,7 +149,8 @@ const lknDCContentCielo = (props) => {
             fetch(url, {
               method: 'GET',
               headers: {
-                'Accept': 'application/json'
+                'Accept': 'application/json',
+                'X-WP-Nonce': wpApiSettings.nonce
               }
             })
               .then(response => {
