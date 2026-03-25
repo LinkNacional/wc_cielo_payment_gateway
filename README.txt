@@ -112,6 +112,10 @@ CIELO API PIX, credit card, debit payment for WooCommerceCIELO API PIX, credit c
 
 == Changelog ==
 
+= 1.30.2 =
+** 25/03/2026 **
+* Script loading fix.
+
 = 1.30.1 =
 ** 24/03/2026 **
 * Adjustments to REST API routes and Ajax.
