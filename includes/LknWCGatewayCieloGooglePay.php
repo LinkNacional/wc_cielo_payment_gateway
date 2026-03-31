@@ -369,6 +369,11 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
      */
     public function payment_fields(): void
     {
+        if (!is_checkout()) {
+            return;
+        }
+
+        // Carregar scripts apenas quando necessário
         wp_enqueue_style('lknWCGatewayCieloGooglePayStyle', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-wc-google-pay.css', array(), $this->version, 'all');
         wp_enqueue_script('lknWCGatewayCieloGooglePayScript', 'https://pay.google.com/gp/p/js/pay.js', array('jquery'), $this->version, false);
         wp_enqueue_script('lknWCGatewayCieloGooglePayCheckoutScript', plugin_dir_url(__FILE__) . '../resources/js/googlePay/lkn-wc-google-pay.js', array('jquery', 'wp-api'), $this->version, false);

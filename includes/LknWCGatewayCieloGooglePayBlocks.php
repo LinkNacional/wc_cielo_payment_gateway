@@ -24,21 +24,24 @@ final class LknWCGatewayCieloGooglePayBlocks extends AbstractPaymentMethodType
 
     public function get_payment_method_script_handles()
     {
-        wp_enqueue_script('lknWCGatewayCieloGooglePayScript', 'https://pay.google.com/gp/p/js/pay.js', array('jquery'), LKN_WC_CIELO_VERSION, false);
-        wp_register_script(
-            'lkn_cielo_google_pay-blocks-integration',
-            plugin_dir_url(__FILE__) . '../resources/js/googlePay/lknCieloGooglePay.js',
-            array(
-                'wc-blocks-registry',
-                'wc-settings',
-                'wp-element',
-                'wp-html-entities',
-                'wp-i18n',
-                'wp-api'
-            ),
-            '1.0.0',
-            true
-        );
+        if (is_checkout()) {
+            error_log('entrei aquiiii no blocks');
+            wp_enqueue_script('lknWCGatewayCieloGooglePayScript', 'https://pay.google.com/gp/p/js/pay.js', array('jquery'), LKN_WC_CIELO_VERSION, false);
+            wp_register_script(
+                'lkn_cielo_google_pay-blocks-integration',
+                plugin_dir_url(__FILE__) . '../resources/js/googlePay/lknCieloGooglePay.js',
+                array(
+                    'wc-blocks-registry',
+                    'wc-settings',
+                    'wp-element',
+                    'wp-html-entities',
+                    'wp-i18n',
+                    'wp-api'
+                ),
+                '1.0.0',
+                true
+            );
+        }
 
         return array('lkn_cielo_google_pay-blocks-integration');
     }
