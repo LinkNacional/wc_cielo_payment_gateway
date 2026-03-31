@@ -25,7 +25,6 @@ final class LknWCGatewayCieloGooglePayBlocks extends AbstractPaymentMethodType
     public function get_payment_method_script_handles()
     {
         if (is_checkout()) {
-            error_log('entrei aquiiii no blocks');
             wp_enqueue_script('lknWCGatewayCieloGooglePayScript', 'https://pay.google.com/gp/p/js/pay.js', array('jquery'), LKN_WC_CIELO_VERSION, false);
             wp_register_script(
                 'lkn_cielo_google_pay-blocks-integration',
