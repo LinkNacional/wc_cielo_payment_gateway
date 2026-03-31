@@ -1,3 +1,6 @@
+# 1.30.3 - 31/03/2026
+* Ajuste no carregamento do script do Google Pay.
+
 # 1.30.2 - 25/03/2026
 * Ajuste no carregamento do script.
 
