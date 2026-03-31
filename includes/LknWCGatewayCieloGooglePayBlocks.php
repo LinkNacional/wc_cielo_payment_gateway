@@ -40,9 +40,11 @@ final class LknWCGatewayCieloGooglePayBlocks extends AbstractPaymentMethodType
                 '1.0.0',
                 true
             );
+
+            return array('lkn_cielo_google_pay-blocks-integration');
         }
 
-        return array('lkn_cielo_google_pay-blocks-integration');
+        return array();
     }
 
     public function get_payment_method_data()
