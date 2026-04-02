@@ -112,6 +112,10 @@ CIELO API PIX, credit card, debit payment for WooCommerceCIELO API PIX, credit c
 
 == Changelog ==
 
+= 1.30.4 =
+** 02/04/2026 **
+* Fix installments field ID.
+
 = 1.30.3 =
 ** 31/03/2026 **
 * Fixed Google Pay script loading.
