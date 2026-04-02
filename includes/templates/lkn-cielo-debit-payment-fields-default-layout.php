@@ -397,7 +397,8 @@ if (! defined('ABSPATH')) {
 
         <div
             id="lkn-cc-dc-installment-row"
-            class="form-row form-row-wide">
+            class="form-row form-row-wide"
+            style="display: none;">
             <label
                 for="lkn_cc_dc_installments"><?php esc_html_e('Installments', 'lkn-wc-gateway-cielo'); ?>
                 <span class="required">*</span>
