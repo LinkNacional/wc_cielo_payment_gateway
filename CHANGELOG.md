@@ -1,3 +1,6 @@
+# 1.30.4 - 02/04/2026
+* Ajuste no ID do campo das parcelas.
+
 # 1.30.3 - 31/03/2026
 * Ajuste no carregamento do script do Google Pay.
 

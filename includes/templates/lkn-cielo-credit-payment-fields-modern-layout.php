@@ -210,7 +210,7 @@ if (!defined('ABSPATH')) {
                 value="<?php echo esc_attr($discounts_total); ?>">
 
             <!-- Installments Selection -->
-            <div class="modern-field">
+            <div id="lkn-cc-installment-row" class="modern-field" style="display: none;">
                 <label for="lkn_cc_installments" class="field-label">
                     <?php esc_html_e('Installments', 'lkn-wc-gateway-cielo'); ?>
                     <span class="required">*</span>

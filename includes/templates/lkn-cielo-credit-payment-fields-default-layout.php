@@ -145,7 +145,7 @@ if (!defined('ABSPATH')) {
                 type="hidden"
                 value="<?php echo esc_attr($discounts_total); ?>">
 
-            <div class="form-row form-row-wide">
+            <div id="lkn-cc-installment-row" class="form-row form-row-wide" style="display: none;">
                 <label
                     for="lkn_cc_installments"><?php esc_html_e('Installments', 'lkn-wc-gateway-cielo'); ?>
                     <span class="required">*</span>
