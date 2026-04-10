@@ -934,7 +934,7 @@ final class LknWCCieloPayment
             'pro_version' => 'https://www.linknacional.com.br/wordpress/woocommerce/cielo/?utm=plugin-cielo-free-transaction',
             'site_domain' => home_url(),
             'version_free' => LKN_WC_CIELO_VERSION,
-            'version_pro' => is_plugin_active('lkn-cielo-api-pro/lkn-cielo-api-pro.php') ? LKN_CIELO_API_PRO_VERSION : 'N/A'
+            'version_pro' => (is_plugin_active('lkn-cielo-api-pro/lkn-cielo-api-pro.php') && defined('LKN_CIELO_API_PRO_VERSION')) ? LKN_CIELO_API_PRO_VERSION : 'N/A'
         ));
 
         // Registra e enfileira o CSS da versão React
