@@ -154,7 +154,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                 'site_domain' => home_url(),
                 'gateway_id' => $this->id,
                 'version_free' => LKN_WC_CIELO_VERSION,
-                'version_pro' => is_plugin_active('lkn-cielo-api-pro/lkn-cielo-api-pro.php') ? LKN_CIELO_API_PRO_VERSION : 'N/A'
+                'version_pro' => (is_plugin_active('lkn-cielo-api-pro/lkn-cielo-api-pro.php') && defined('LKN_CIELO_API_PRO_VERSION')) ? LKN_CIELO_API_PRO_VERSION : 'N/A'
             ));
             wp_enqueue_style('lkn-admin-layout', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-admin-layout.css', array(), $this->version, 'all');
             wp_enqueue_script('lknWCGatewayCieloDebitClearButtonScript', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-clear-logs-button.js', array('jquery'), $this->version, false);
@@ -1498,6 +1498,9 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         }
 
         if (isset($responseDecoded->Payment) && (1 == $responseDecoded->Payment->Status || 2 == $responseDecoded->Payment->Status)) {
+            //Atualiza order para processando
+            $order->update_status('processing');
+            // Executar ações de mudança de status
             do_action("lkn_wc_cielo_change_order_status", $order, $this, $actualCapture);
 
             // Remove cart
