@@ -302,18 +302,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
                 'custom_attributes' => array(
                     'data-title-description' => __('Enhance user experience by showing a dynamic card preview while filling out card details.', 'lkn-wc-gateway-cielo')
                 )
-            ),
-            'save_card_token' => array(
-                'title'       => __('Salvar Token do Cartão', 'lkn-wc-gateway-cielo'),
-                'type'        => 'checkbox',
-                'label'       => __('Permitir salvar token do cartão do cliente', 'lkn-wc-gateway-cielo'),
-                'description' => __('Quando habilitado, o token do cartão será salvo para facilitar futuras compras e pagamentos recorrentes.', 'lkn-wc-gateway-cielo'),
-                'default'     => 'no',
-                'desc_tip'    => __('Enable this to save customer card tokens for future purchases and recurring payments.', 'lkn-wc-gateway-cielo'),
-                'custom_attributes' => array(
-                    'data-title-description' => __('Allows saving card tokens to improve customer experience in future transactions and enable automatic payments.', 'lkn-wc-gateway-cielo')
-                )
-            ),
+            )
         );
         // Developer/Debug section
         $this->form_fields += array(
