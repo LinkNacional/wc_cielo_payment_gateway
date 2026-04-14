@@ -104,7 +104,7 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
                 'site_domain' => home_url(),
                 'gateway_id' => $this->id,
                 'version_free' => LKN_WC_CIELO_VERSION,
-                'version_pro' => is_plugin_active('lkn-cielo-api-pro/lkn-cielo-api-pro.php') ? LKN_CIELO_API_PRO_VERSION : 'N/A'
+                'version_pro' => (is_plugin_active('lkn-cielo-api-pro/lkn-cielo-api-pro.php') && defined('LKN_CIELO_API_PRO_VERSION')) ? LKN_CIELO_API_PRO_VERSION : 'N/A'
             ));
             wp_enqueue_style('lkn-admin-layout', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-admin-layout.css', array(), $this->version, 'all');
             wp_enqueue_script('lknWCGatewayCieloGooglePayClearButtonScript', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-clear-logs-button.js', array('jquery'), $this->version, false);
@@ -544,6 +544,8 @@ final class LknWCGatewayCieloGooglePay extends WC_Payment_Gateway
             $order->add_meta_data('paymentId', $responseDecoded->Payment->PaymentId, true);
             $order->update_meta_data('lkn_nsu', $responseDecoded->Payment->ProofOfSale);
 
+            //Atualiza order para processando
+            $order->update_status('processing');
             // Executar ações de mudança de status
             do_action("lkn_wc_cielo_change_order_status", $order, $this, true);
 

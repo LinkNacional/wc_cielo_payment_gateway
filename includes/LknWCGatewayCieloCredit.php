@@ -7,6 +7,7 @@ use DateTime;
 use Exception;
 use WC_Logger;
 use WC_Subscriptions_Order;
+use LknWc\WcInvoicePayment\Includes\WcPaymentInvoiceSubscription;
 use WC_Payment_Gateway;
 use WC_Subscription;
 
@@ -145,7 +146,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
                 'site_domain' => home_url(),
                 'gateway_id' => $this->id,
                 'version_free' => LKN_WC_CIELO_VERSION,
-                'version_pro' => is_plugin_active('lkn-cielo-api-pro/lkn-cielo-api-pro.php') ? LKN_CIELO_API_PRO_VERSION : 'N/A'
+                'version_pro' => (is_plugin_active('lkn-cielo-api-pro/lkn-cielo-api-pro.php') && defined('LKN_CIELO_API_PRO_VERSION')) ? LKN_CIELO_API_PRO_VERSION : 'N/A'
             ));
             wp_enqueue_style('lkn-admin-layout', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-admin-layout.css', array(), $this->version, 'all');
             wp_enqueue_script('lknWCGatewayCieloCreditClearButtonScript', plugin_dir_url(__FILE__) . '../resources/js/admin/lkn-clear-logs-button.js', array('jquery'), $this->version, false);
@@ -301,7 +302,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
                 'custom_attributes' => array(
                     'data-title-description' => __('Enhance user experience by showing a dynamic card preview while filling out card details.', 'lkn-wc-gateway-cielo')
                 )
-            ),
+            )
         );
         // Developer/Debug section
         $this->form_fields += array(
@@ -692,7 +693,6 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         $merchantOrderId = $order_id . '-' . time();
         $amount = $order->get_total();
         $capture = ($this->get_option('capture', 'yes') == 'yes') ? true : false;
-        $saveCard = ($this->get_option('save_card_token', 'yes') == 'yes') ? true : false;
         $description = sanitize_text_field($this->get_option('invoiceDesc'));
         $description = preg_replace('/[^a-zA-Z\s]+/', '', $description);
         $description = preg_replace('/\s+/', ' ', $description);
@@ -808,10 +808,12 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         }
 
         // Adicione esta linha para processar o pagamento recorrente se o pedido contiver uma assinatura
-        if (class_exists('WC_Subscriptions_Order') && WC_Subscriptions_Order::order_contains_subscription($order_id)) {
+        $saveCard = ($this->get_option('save_card_token', 'no') == 'yes') ? true : false;
+
+        if ($saveCard && class_exists('WC_Subscriptions_Order') && WC_Subscriptions_Order::order_contains_subscription($order_id)) {
             $order = apply_filters('lkn_wc_cielo_process_recurring_payment', $order);
-            $saveCard = true;
         }
+        
         $amount = $order->get_total();
 
         // Convert the amount to equivalent in BRL
@@ -909,6 +911,8 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         }
 
         if (isset($responseDecoded->Payment) && (1 == $responseDecoded->Payment->Status || 2 == $responseDecoded->Payment->Status)) {
+            //Atualiza order para processando
+            $order->update_status('processing');
             // Executar ações de mudança de status
             do_action("lkn_wc_cielo_change_order_status", $order, $this, $capture);
 
@@ -942,9 +946,8 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
             );
 
             // Gerenciar salvamento de cartão (se aplicável)
-            if ($saveCard || (class_exists('WC_Subscriptions_Order') && WC_Subscriptions_Order::order_contains_subscription($order_id))) {
+            if ($saveCard) {
                 $user_id = $order->get_user_id();
-
                 if (! isset($responseDecoded->Payment->CreditCard->CardToken)) {
                     $order->add_order_note('[' . $this->id . '] O token para cobranças automáticas não foi gerado, então as cobranças automáticas não poderão ser efetuadas.');
                 }

@@ -1,3 +1,6 @@
+# 1.31.0 - 10/04/2026
+* Adição de compatibilidade para pagamentos recorrentes com o plugin de faturas.
+
 # 1.30.4 - 02/04/2026
 * Ajuste no ID do campo das parcelas.
 
