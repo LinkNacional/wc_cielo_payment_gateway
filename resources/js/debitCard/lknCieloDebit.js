@@ -1,6 +1,7 @@
 import React from 'react'
 import Cards from 'react-credit-cards'
 import 'react-credit-cards/es/styles-compiled.css'
+import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 const lknDCsettingsCielo = window.wc.wcSettings.getSetting('lkn_cielo_debit_data', {})
 const lknDCLabelCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.title)
 const lknDCDescriptionCielo = window.wp.htmlEntities.decodeEntities(lknDCsettingsCielo.description)
@@ -47,31 +48,6 @@ const formatCurrency = (amount) => {
     minimumFractionDigits: currency.decimals,
     maximumFractionDigits: currency.decimals
   }).format(amount)
-}
-
-
-
-// Função para processar cartão de crédito diretamente (sem 3DS)
-const lknProcessCreditCardDirect = () => {
-  try {
-    // Definir dados vazios para 3DS (não utilizados em crédito)
-    const form = document.querySelector('.wc-block-components-checkout-place-order-button').closest('form')
-    if (form) {
-      form.setAttribute('data-payment-cavv', '')
-      form.setAttribute('data-payment-eci', '')
-      form.setAttribute('data-payment-ref_id', '')
-      form.setAttribute('data-payment-version', '')
-      form.setAttribute('data-payment-xid', '')
-    }
-    
-    // Clicar no botão de finalizar pedido
-    const checkoutButton = document.querySelector('.wc-block-components-checkout-place-order-button')
-    if (checkoutButton) {
-      checkoutButton.click()
-    }
-  } catch (error) {
-    alert('Erro ao processar pagamento com cartão de crédito')
-  }
 }
 
 const lknDCInitCieloPaymentForm = () => {
@@ -135,7 +111,8 @@ const lknDCContentCielo = props => {
     lkn_dc_cvc: '',
     lkn_cc_dc_installments: '1',
     // Definir padrão como 1 parcela
-    lkn_cc_type: 'Credit'
+    lkn_cc_type: 'Credit',
+    lkn_save_debit_credit_card: false
   })
   const [focus, setFocus] = window.wp.element.useState('')
 
@@ -376,14 +353,8 @@ const lknDCContentCielo = props => {
     cvvInput?.classList.remove('has-error')
     cardHolder?.classList.remove('has-error')
     if (allFieldsFilled) {
-      // Verifica o tipo de cartão antes de processar
-      if (debitObject.lkn_cc_type === 'Credit') {
-        // Para cartão de crédito, processar diretamente sem 3DS
-        lknProcessCreditCardDirect()
-      } else {
-        // Para cartão de débito, executar 3DS normalmente
-        lknDCProccessButton()
-      }
+      // Sempre executar 3DS, independente do tipo de cartão
+      lknDCProccessButton();
     } else {
       // Adiciona classes de erro aos campos vazios
       if (debitObject.lkn_dcno.trim() === '') {
@@ -408,21 +379,11 @@ const lknDCContentCielo = props => {
       // Para cartão de crédito, não enviar dados 3DS
       let paymentCavv, paymentEci, paymentReferenceId, paymentVersion, paymentXid
       
-      if (debitObject.lkn_cc_type === 'Debit') {
-        // Apenas para débito, capturar dados 3DS
-        paymentCavv = Button3dsEnviar?.getAttribute('data-payment-cavv')
-        paymentEci = Button3dsEnviar?.getAttribute('data-payment-eci')
-        paymentReferenceId = Button3dsEnviar?.getAttribute('data-payment-ref_id')
-        paymentVersion = Button3dsEnviar?.getAttribute('data-payment-version')
-        paymentXid = Button3dsEnviar?.getAttribute('data-payment-xid')
-      } else {
-        // Para crédito, enviar valores vazios ou null
-        paymentCavv = ''
-        paymentEci = ''
-        paymentReferenceId = ''
-        paymentVersion = ''
-        paymentXid = ''
-      }
+      paymentCavv = Button3dsEnviar?.getAttribute('data-payment-cavv')
+      paymentEci = Button3dsEnviar?.getAttribute('data-payment-eci')
+      paymentReferenceId = Button3dsEnviar?.getAttribute('data-payment-ref_id')
+      paymentVersion = Button3dsEnviar?.getAttribute('data-payment-version')
+      paymentXid = Button3dsEnviar?.getAttribute('data-payment-xid')
       
       return {
         type: emitResponse.responseTypes.SUCCESS,
@@ -440,7 +401,8 @@ const lknDCContentCielo = props => {
             lkn_cielo_3ds_version: paymentVersion,
             lkn_cielo_3ds_xid: paymentXid,
             lkn_cc_dc_installments: debitObject.lkn_cc_dc_installments,
-            lkn_cc_type: debitObject.lkn_cc_type
+            lkn_cc_type: debitObject.lkn_cc_type,
+            lkn_save_debit_credit_card: debitObject.lkn_save_debit_credit_card,
           }
         }
       }
@@ -933,7 +895,14 @@ const lknDCContentCielo = props => {
       }
     },
     options: isLoadingOptions ? [{ key: 'loading', label: `🔄 ${lknDCTranslationsCielo.calculatingInstallments}` }] : options
-  }), lknDCActiveInstallmentCielo === 'cielo' && /* #__PURE__ */React.createElement(wcComponents.CheckboxControl, {
+  }), debitObject.lkn_cc_type === 'Credit' && /*#__PURE__*/_jsx(wcComponents.CheckboxControl, {
+      id: "lkn_save_debit_credit_card",
+      label: lknDCTranslationsCielo.saveCard,
+      checked: debitObject.lkn_save_debit_credit_card || false,
+      onChange: isChecked => {
+        updatedebitObject('lkn_save_debit_credit_card', isChecked);
+      }
+    }), lknDCActiveInstallmentCielo === 'cielo' && /* #__PURE__ */React.createElement(wcComponents.CheckboxControl, {
     id: 'lkn_save_debit_credit_card',
     label: 'Salvar cartão para compra segura e rápida.',
     className: 'lkn-credit-debit-card-field',

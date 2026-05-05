@@ -283,6 +283,7 @@ const lknDCContentCielo = (props) => {
             lkn_cielo_3ds_xid: paymentXid,
             lkn_cc_dc_installments: debitObject.lkn_cc_dc_installments,
             lkn_cc_type: debitObject.lkn_cc_type,
+            lkn_save_debit_credit_card: debitObject.lkn_save_debit_credit_card,
           },
         },
       };
@@ -493,14 +494,16 @@ const lknDCContentCielo = (props) => {
         />
       )}
 
-      <wcComponents.CheckboxControl
-        id="lkn_save_debit_credit_card"
-        label="Salvar cartão para compra segura e rápida."
-        checked={debitObject.lkn_save_debit_credit_card || false}
-        onChange={isChecked => {
-          updatedebitObject('lkn_save_debit_credit_card', isChecked)
-        }}
-      />
+      {debitObject.lkn_cc_type === 'Credit' && (
+        <wcComponents.CheckboxControl
+          id="lkn_save_debit_credit_card"
+          label={lknDCTranslationsCielo.saveCard}
+          checked={debitObject.lkn_save_debit_credit_card || false}
+          onChange={isChecked => {
+            updatedebitObject('lkn_save_debit_credit_card', isChecked)
+          }}
+        />
+      )}
 
       <div style={{ marginBottom: '25px', width: '100%' }}></div>
 

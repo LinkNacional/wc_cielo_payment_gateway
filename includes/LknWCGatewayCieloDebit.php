@@ -1033,7 +1033,8 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         $cardName = apply_filters('lkn_wc_cielo_get_cardholder_name', $cardName, $this, $order);
         $cardType = isset($_POST['lkn_cc_type']) ? sanitize_text_field(wp_unslash($_POST['lkn_cc_type'])) : '';
         $installments = (int) (isset($_POST['lkn_cc_dc_installments']) ? sanitize_text_field(wp_unslash($_POST['lkn_cc_dc_installments'])) : 1);
-
+        $saveCard = isset($_POST['lkn_save_debit_credit_card']) && $_POST['lkn_save_debit_credit_card'] === '1' ? true : false;
+                    
         // Authentication parameters
         $xid = isset($_POST['lkn_cielo_3ds_xid']) ? sanitize_text_field(wp_unslash($_POST['lkn_cielo_3ds_xid'])) : '';
         $cavv = isset($_POST['lkn_cielo_3ds_cavv']) ? sanitize_text_field(wp_unslash($_POST['lkn_cielo_3ds_cavv'])) : '';
@@ -1183,11 +1184,11 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
 
             throw new Exception(esc_attr($message));
         }
-        // Só exigir 3DS para cartão de débito
-        if (empty($eci) && $this->get_option('allow_card_ineligible', 'no') == 'no' && $cardType === 'Debit') {
+        // Exigir 3DS para todos os tipos de cartão
+        if (empty($eci) && $this->get_option('allow_card_ineligible', 'no') == 'no') {
             $message = __('Invalid Cielo 3DS 2.2 authentication.', 'lkn-wc-gateway-cielo');
 
-            // Salvar metadados da transação com dados customizados para erro de autenticação 3DS
+            // Salvar metadados da transação com dados customizados para erro de a  utenticação 3DS
             $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
                 401,
                 'BP171',
@@ -1241,49 +1242,8 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         // Para cartão de débito, a captura é SEMPRE automática na Cielo, independente da configuração
         $actualCapture = ($cardType === 'Debit') ? true : $capture;
 
-        // Cartão de crédito sempre processa sem 3DS obrigatório
-        if ('Credit' == $cardType) {
-            $args['headers'] = array(
-                'Content-Type' => 'application/json',
-                'MerchantId' => $merchantId,
-                'MerchantKey' => $merchantSecret,
-                'RequestId' => uniqid(),
-            );
-            
-            $body = array(
-                'MerchantOrderId' => $merchantOrderId,
-                'Payment' => array(
-                    'Type' => $cardType . "Card",
-                    'Amount' => (int) $amountFormated,
-                    'Installments' => $installments,
-                    'Capture' => (bool) $actualCapture,
-                    'SoftDescriptor' => $description,
-                    $cardType . "Card" => array(
-                        'CardNumber' => $cardNum,
-                        'ExpirationDate' => $cardExp,
-                        'SecurityCode' => $cardCvv,
-                        'Brand' => $provider,
-                    ),
-                ),
-            );
-
-            $body = apply_filters('lkn_wc_cielo_process_body', $body, $_POST, $order_id);
-            $args['body'] = wp_json_encode($body);
-            $args['timeout'] = 120;
-
-            $response = wp_remote_post($url . '1/sales', $args);
-
-            // Salvar metadados da transação
-            $responseDecoded = !is_wp_error($response) ? json_decode($response['body']) : null;
-            LknWcCieloHelper::saveTransactionMetadata($order, $responseDecoded, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $actualCapture, $response, $cardType, 'lkn_dc_cvc', $this, $xid, $cavv, $eci, $version, $refId);
-            
-            // Salvar o pedido para garantir que os metadados sejam persistidos
-            $order->save();
-
-            $order->add_order_note('[' . $this->id . '] ' . __('Credit card payment processed', 'lkn-wc-gateway-cielo'));
-        } 
         // Cartão de débito - verificar se permite cartão inelegível ou se tem validação 3DS
-        elseif ('Debit' == $cardType && $this->get_option('allow_card_ineligible', 'no') == 'yes' && (empty($refId) || 'null' == $refId)) {
+        if ($this->get_option('allow_card_ineligible', 'no') == 'yes' && (empty($refId) || 'null' == $refId)) {
             $args['headers'] = array(
                 'Content-Type' => 'application/json',
                 'MerchantId' => $merchantId,
@@ -1324,7 +1284,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
             $order->add_order_note('[' . $this->id . '] ' . __('Debit card payment processed without 3DS validation', 'lkn-wc-gateway-cielo'));
         } else {
             $order->add_order_note('[' . $this->id . '] ' . __('Debit card payment processed with 3DS validation', 'lkn-wc-gateway-cielo'));
-
+                
             // Verify if authentication is data-only
             // @see {https://developercielo.github.io/manual/3ds}
             if (4 == $eci && empty($cavv)) {
@@ -1352,6 +1312,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                             'Holder' => $cardName,
                             'ExpirationDate' => $cardExp,
                             'SecurityCode' => $cardCvv,
+                            'SaveCard' => $saveCard,
                             'Brand' => $provider,
                         ),
                         'ExternalAuthentication' => array(
@@ -1375,7 +1336,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                 // Salvar o pedido para garantir que os metadados sejam persistidos
                 $order->save();
             } else {
-                if (empty($cavv) && $this->get_option('allow_card_ineligible', 'no') == 'no' && $cardType === 'Debit') {
+                if (empty($cavv) && $this->get_option('allow_card_ineligible', 'no') == 'no') {
                     $message = __('Invalid Cielo 3DS 2.2 authentication.', 'lkn-wc-gateway-cielo');
 
                     // Salvar metadados da transação com dados customizados para erro de autenticação 3DS
@@ -1389,7 +1350,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
 
                     throw new Exception(esc_attr($message));
                 }
-                if (empty($xid) && $this->get_option('allow_card_ineligible', 'no') == 'no' && $cardType === 'Debit') {
+                if (empty($xid) && $this->get_option('allow_card_ineligible', 'no') == 'no') {
                     $message = __('Invalid Cielo 3DS 2.2 authentication.', 'lkn-wc-gateway-cielo');
 
                     // Salvar metadados da transação com dados customizados para erro de autenticação 3DS
@@ -1428,6 +1389,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                             'Holder' => $cardName,
                             'ExpirationDate' => $cardExp,
                             'SecurityCode' => $cardCvv,
+                            'SaveCard' => $saveCard,
                             'Brand' => $provider,
                         ),
                         'ExternalAuthentication' => array(
@@ -1454,6 +1416,41 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                 $order->save();
             }
         }
+
+        // Gerenciar salvamento de cartão (se aplicável)
+        if ($saveCard) {
+            $user_id = $order->get_user_id();
+            if (! isset($responseDecoded->Payment->CreditCard->CardToken)) {
+                $order->add_order_note('[' . $this->id . '] O token para cobranças automáticas não foi gerado, então as cobranças automáticas não poderão ser efetuadas.');
+            }
+
+            // Dados do cartão de pagamento
+            $cardPayment = array(
+                'cardToken' => $responseDecoded->Payment->CreditCard->CardToken,
+                'brand' => $provider,
+            );
+
+            if (0 != $user_id) {
+                $cardsArray = get_user_meta($user_id, 'card_array', true);
+                $cardsArray = is_array($cardsArray) ? $cardsArray : array();
+                $lastFourDigits = $responseDecoded->Payment->CreditCard->CardNumber;
+                $expirationDate = $responseDecoded->Payment->CreditCard->ExpirationDate;
+
+                // Adiciona o novo cartão à lista
+                $cardsArray[] = array(
+                    'cardToken' => $cardPayment['cardToken'],
+                    'brand' => $provider,
+                    'cardDigits' => $lastFourDigits,
+                    'expirationDate' => $expirationDate,
+                );
+
+                // Atualiza os metadados do usuário
+                update_user_meta($user_id, 'card_array', $cardsArray);
+                update_user_meta($user_id, 'default_card', array_key_last($cardsArray));
+            }
+        }
+
+
         /*  throw new Exception(json_encode($args)); */
         if (is_wp_error($response)) {
             if ('yes' === $debug) {

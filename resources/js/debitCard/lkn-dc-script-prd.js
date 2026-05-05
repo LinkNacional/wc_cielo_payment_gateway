@@ -92,45 +92,8 @@ function bpmpi_config () {
 }
 
 function lknDCProccessButton () {
-  // Verificar o tipo de cartão selecionado antes de processar
-  const cardTypeSelect = document.querySelector('.lkn-credit-debit-card-type-select select')
-  let cardType = 'Credit' // valor padrão
-
-  if (cardTypeSelect && cardTypeSelect.value) {
-    cardType = cardTypeSelect.value
-  }
-  
-  if (cardType === 'Credit') {
-    // Para cartão de crédito, pular 3DS e processar diretamente
-    lknProcessCreditCard()
-  } else {
-    // Para cartão de débito, executar 3DS normalmente
-    lknProcessDebitCard()
-  }
-}
-
-// Função para processar cartão de crédito (sem 3DS)
-function lknProcessCreditCard () {
-  try {
-    // Simular dados de autenticação para crédito (sem 3DS real)
-    const form = document.querySelector('.wc-block-components-checkout-place-order-button').closest('form')
-    
-    // Definir dados vazios para 3DS (não utilizados em crédito)
-    form.setAttribute('data-payment-cavv', '')
-    form.setAttribute('data-payment-eci', '')
-    form.setAttribute('data-payment-ref_id', '')
-    form.setAttribute('data-payment-version', '')
-    form.setAttribute('data-payment-xid', '')
-    
-    // Clicar no botão de finalizar pedido
-    const checkoutButton = document.querySelector('.wc-block-components-checkout-place-order-button')
-    if (checkoutButton) {
-      checkoutButton.click()
-    }
-  } catch (error) {
-    console.log(error)
-    alert(wp.i18n.__('Error processing credit card payment', 'lkn-wc-gateway-cielo'))
-  }
+  // Sempre executar 3DS, independente do tipo de cartão
+  lknProcessDebitCard()
 }
 
 // Função para processar cartão de débito (com 3DS)

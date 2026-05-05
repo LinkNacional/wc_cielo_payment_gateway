@@ -1,5 +1,8 @@
 document.addEventListener('DOMContentLoaded', function () {
   let debounceTimeout = null
+  
+  // Define cardBrands globally to avoid reference errors
+  const cardBrands = ['visa', 'mastercard', 'elo', 'amex', 'other_card']
 
   const observer = new MutationObserver(function () {
     const targetElement = document.getElementById('radio-control-wc-payment-method-options-lkn_cielo_credit')
@@ -13,7 +16,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
           // Só criar os ícones de marca do cartão se a configuração permitir
           if (lknCieloCreditCardIcons.show_card_brand_icons === 'yes') {
-            const cardBrands = ['visa', 'mastercard', 'elo', 'amex', 'other_card']
             cardBrands.forEach(brand => {
               const icon = document.createElement('img')
               icon.setAttribute('src', lknCieloCreditCardIcons[brand])
