@@ -1,3 +1,6 @@
+# 1.32.0 - 05/05/2026
+* Adição checkbox para salvar token em 3ds.
+
 # 1.31.0 - 10/04/2026
 * Adição de compatibilidade para pagamentos recorrentes com o plugin de faturas.
 

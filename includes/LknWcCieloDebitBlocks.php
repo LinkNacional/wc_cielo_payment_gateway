@@ -251,6 +251,7 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
                 'creditCard' => __('Credit card', 'lkn-wc-gateway-cielo'),
                 'debitCard' => __('Debit card', 'lkn-wc-gateway-cielo'),
                 'cardType' => __('Card type', 'lkn-wc-gateway-cielo'),
+                'saveCard' => __('Save card for safe and fast purchase.', 'lkn-wc-gateway-cielo'),
                 // translators: %1$d is the number of installments, %2$s is the installment amount
                 'installmentText' => __('%1$dx of %2$s', 'lkn-wc-gateway-cielo'),
                 'cashPayment' => __('(cash payment)', 'lkn-wc-gateway-cielo'),

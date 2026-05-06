@@ -673,6 +673,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         // Card parameters
         $cardNum = preg_replace('/\s/', '', isset($_POST['lkn_ccno']) ? sanitize_text_field(wp_unslash($_POST['lkn_ccno'])) : '');
         $cardExpRaw = isset($_POST['lkn_cc_expdate']) ? sanitize_text_field(wp_unslash($_POST['lkn_cc_expdate'])) : '';
+        $save_token = isset($_POST['save_token']) ? sanitize_text_field(wp_unslash($_POST['save_token'])) : '';
         $cardExpSplit = explode('/', preg_replace('/\s/', '', $cardExpRaw));
         if (count($cardExpSplit) === 2 && strlen($cardExpSplit[0]) === 2 && strlen($cardExpSplit[1]) === 2) {
             $cardExp = $cardExpSplit[0] . '/20' . $cardExpSplit[1];
@@ -808,7 +809,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         }
 
         // Adicione esta linha para processar o pagamento recorrente se o pedido contiver uma assinatura
-        $saveCard = ($this->get_option('save_card_token', 'no') == 'yes') ? true : false;
+        $saveCard = ($this->get_option('save_card_token', 'disabled ') == 'required' || $save_token == "1") ? true : false;
 
         if ($saveCard && class_exists('WC_Subscriptions_Order') && WC_Subscriptions_Order::order_contains_subscription($order_id)) {
             $order = apply_filters('lkn_wc_cielo_process_recurring_payment', $order);
