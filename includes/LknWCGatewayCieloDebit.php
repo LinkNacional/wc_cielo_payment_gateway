@@ -1418,7 +1418,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         }
 
         // Gerenciar salvamento de cartão (se aplicável)
-        if ($saveCard) {
+        if ($saveCard &&  isset($responseDecoded->Payment->CreditCard->CardToken)) {
             $user_id = $order->get_user_id();
             if (! isset($responseDecoded->Payment->CreditCard->CardToken)) {
                 $order->add_order_note('[' . $this->id . '] O token para cobranças automáticas não foi gerado, então as cobranças automáticas não poderão ser efetuadas.');

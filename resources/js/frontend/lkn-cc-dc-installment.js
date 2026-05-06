@@ -101,6 +101,7 @@
   function lknWCCieloShowInstallments() {
     const installmentShow = $('#lkn_cielo_3ds_installment_show')
     const installmentRow = $('#lkn-cc-dc-installment-row')
+    const saveCardRow = $('#lkn-save-debit-credit-card-row')
     const typeCard = $('#lkn_cc_type')
 
     if (installmentShow && installmentRow && typeCard.length) {
@@ -112,8 +113,17 @@
           installmentRow.hide()
           installmentShow.val('no')
         }
+        // Esconder checkbox de salvar cartão para débito
+        if (saveCardRow.length) {
+          saveCardRow.hide()
+        }
+      } else if (cardType === 'Credit') {
+        // Para crédito, mostrar checkbox de salvar cartão
+        if (saveCardRow.length) {
+          saveCardRow.show()
+        }
       }
-      // Para cartão de crédito, não fazer nada aqui
+      // Para cartão de crédito, não fazer nada aqui com as parcelas
       // A visibilidade será controlada pela validação de opções em lknWCCieloLoadInstallments()
     }
   }
@@ -252,6 +262,7 @@
 
       // Controlar visibilidade baseado no tipo de cartão e opções válidas
       const installmentRow = document.getElementById('lkn-cc-dc-installment-row')
+      const saveCardRow = document.getElementById('lkn-save-debit-credit-card-row')
       const installmentShow = $('#lkn_cielo_3ds_installment_show')
       const typeCard = $('#lkn_cc_type')
       
@@ -259,7 +270,7 @@
         const cardType = typeCard.val()
         
         if (cardType === 'Credit') {
-          // Para crédito, só mostrar se há múltiplas opções válidas
+          // Para crédito, só mostrar parcelas se há múltiplas opções válidas
           if (validOptions > 1) {
             installmentRow.style.display = ''
             if (installmentShow) {
@@ -271,11 +282,21 @@
               installmentShow.val('no')
             }
           }
+          
+          // Para crédito, sempre mostrar checkbox de salvar cartão
+          if (saveCardRow) {
+            saveCardRow.style.display = ''
+          }
         } else {
-          // Para débito ou outros, sempre esconder
+          // Para débito ou outros, sempre esconder parcelas e checkbox
           installmentRow.style.display = 'none'  
           if (installmentShow) {
             installmentShow.val('no')
+          }
+          
+          // Esconder checkbox de salvar cartão para débito
+          if (saveCardRow) {
+            saveCardRow.style.display = 'none'
           }
         }
       }

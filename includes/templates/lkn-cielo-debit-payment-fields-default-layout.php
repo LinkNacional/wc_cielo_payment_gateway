@@ -414,6 +414,22 @@ if (! defined('ABSPATH')) {
         </div>
     <?php } ?>
 
+    <!-- Save Card Checkbox - Only visible when Credit card is selected -->
+    <div
+        id="lkn-save-debit-credit-card-row"
+        class="form-row form-row-wide"
+        style="display: none;">
+        <label class="lkn-save-card-label">
+            <input
+                id="lkn_save_debit_credit_card"
+                name="lkn_save_debit_credit_card"
+                type="checkbox"
+                value="1"
+                class="lkn-save-card-checkbox">
+            <span style="text-transform: none;"><?php esc_html_e('Save card for safe and fast purchase', 'lkn-wc-gateway-cielo'); ?></span>
+        </label>
+    </div>
+
     <div class="clear"></div>
 
     <?php do_action('woocommerce_credit_card_form_end', $gateway_id); ?>

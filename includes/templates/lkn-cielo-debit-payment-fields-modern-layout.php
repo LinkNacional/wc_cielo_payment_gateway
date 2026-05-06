@@ -270,6 +270,19 @@ if (!defined('ABSPATH')) {
         <?php
         } ?>
 
+        <!-- Save Card Checkbox - Only visible when Credit card is selected -->
+        <div id="lkn-save-debit-credit-card-row" class="modern-field" style="display: none;">
+            <label class="field-label lkn-save-card-label">
+                <input
+                    id="lkn_save_debit_credit_card"
+                    name="lkn_save_debit_credit_card"
+                    type="checkbox"
+                    value="1"
+                    class="lkn-save-card-checkbox field-checkbox">
+                <span style="text-transform: none;"><?php esc_html_e('Save card for safe and fast purchase', 'lkn-wc-gateway-cielo'); ?></span>
+            </label>
+        </div>
+
         <!-- Submit Button -->
         <div class="payment-submit-section">
             <button type="button" id="cielo-debit-submit-btn" class="cielo-submit-button debit-submit">
