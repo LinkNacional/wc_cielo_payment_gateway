@@ -1,3 +1,6 @@
+# 1.32.1 - 07/05/2026
+* Ajuste na redefinição da parcela do cartão de crédito."
+
 # 1.32.0 - 05/05/2026
 * Adição checkbox para salvar token em 3ds.
 

@@ -44,7 +44,6 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
         $installmentArgs = apply_filters('lkn_wc_cielo_js_3ds_args', array('installment_min' => '5'));
 
         if (WC()->session) {
-            WC()->session->set('lkn_cielo_debit_installment', '1');
             WC()->session->set('lkn_cielo_debit_card_type', 'Credit');
         }
 
