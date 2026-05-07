@@ -474,10 +474,6 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
 
         $installmentArgs['currency'] = $currency;
 
-        if (WC()->session) {
-            WC()->session->set('lkn_cielo_credit_installment', '1');
-        }
-
         // Recuperar parcela atual da sessão
         $current_installment = WC()->session ? WC()->session->get('lkn_cielo_credit_installment', '1') : '1';
 
