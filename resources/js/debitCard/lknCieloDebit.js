@@ -85,6 +85,103 @@ const lknDCInitCieloPaymentForm = () => {
   }
 }
 const lknDCContentCielo = props => {
+  // 1. Estados para cartões salvos
+  const lknCieloDebitConfig = window.lknCieloDebitConfig || {};
+  const { card_array = [], default_card = null } = lknCieloDebitConfig;
+  const [selectedCardIndex, setSelectedCardIndex] = window.wp.element.useState(default_card ? parseInt(default_card) : 0);
+  const [showAddCardForm, setShowAddCardForm] = window.wp.element.useState(!default_card);
+
+  // 2. Renderizar cartões salvos (visual bonito)
+  const cardBrandIcons = {
+    Visa: window.lknCieloDebitCardIcons?.visa || '',
+    Master: window.lknCieloDebitCardIcons?.mastercard || '',
+    Amex: window.lknCieloDebitCardIcons?.amex || '',
+    Elo: window.lknCieloDebitCardIcons?.elo || '',
+    // Adicione outras bandeiras se necessário
+    default: window.lknCieloDebitCardIcons?.other_card || ''
+  };
+
+  const renderSavedCards = () => (
+    card_array.length > 0 ? (
+      <div className="lkn-cielo-saved-cards-list lkn-cielo-saved-cards-flex" style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        marginBottom: "30px",
+        gap: '10px',
+        width: '100%',
+        justifyContent: 'center',
+      }}>
+        {card_array.map((card, idx) => {
+          const isSelected = selectedCardIndex === idx;
+          const brandIcon = cardBrandIcons[card.brand] || cardBrandIcons.default;
+          return (
+            <button
+              type="button"
+              key={idx}
+              className={`lkn-cielo-saved-card-btn${isSelected ? ' selected' : ''}`}
+              onClick={() => {
+                setSelectedCardIndex(idx);
+                setShowAddCardForm(false);
+                updatedebitObject('lkn_dcno', card.cardDigits);
+                updatedebitObject('lkn_dc_cardholder_name', card.description || '');
+                updatedebitObject('lkn_dc_expdate', card.expirationDate);
+                updatedebitObject('lkn_cc_type', card.brand);
+              }}
+              style={{
+                color:  "#2563eb",
+                fontWeight: 500,
+                fontSize: 16,
+                cursor: 'pointer',
+                padding: '10px 18px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                width: 225,
+                border: 'none',
+                transition: 'all 0.2s',
+                outline: isSelected ? '2px solid #2563eb' : 'none',
+
+              }}
+            >
+              {brandIcon && <img src={brandIcon} alt={card.brand} style={{ height: 40, marginRight: 8 }} />}
+              <span style={{ fontWeight: 600 }}>{card.brand}</span>
+              <span style={{ marginLeft: 6 }}>{card.cardDigits.replace(/.*(\d{4})$/, '•••• $1')}</span>
+            </button>
+          );
+        })}
+        <button
+          type="button"
+          className={`lkn-cielo-saved-card-btn lkn-cielo-add-card-btn${showAddCardForm ? ' selected' : ''}`}
+          onClick={() => {
+            setShowAddCardForm(true);
+            setSelectedCardIndex(null);
+            updatedebitObject('lkn_dcno', '');
+            updatedebitObject('lkn_dc_cardholder_name', '');
+            updatedebitObject('lkn_dc_expdate', '');
+            updatedebitObject('lkn_cc_type', 'Credit');
+          }}
+          style={{
+            fontWeight: 500,
+            color: '#2563eb',
+            fontSize: 16,
+            cursor: 'pointer',
+            padding: '10px 18px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            border: 'none',
+            width: 225,
+            display: 'flex',
+            justifyContent: 'center',
+            outline: showAddCardForm ? '2px solid #2563eb' : 'none',
+          }}
+        >
+          <span style={{ fontSize: 22, marginRight: 8 }}>＋</span> Adicionar Cartão
+        </button>
+      </div>
+    ) : null
+  );
+
   const wcComponents = window.wc.blocksComponents
   const {
     eventRegistration,
@@ -338,7 +435,21 @@ const lknDCContentCielo = props => {
   
 
   const handleButtonClick = () => {
-    // Verifica se todos os campos do debitObject estão preenchidos
+    // Se está usando cartão salvo (não está mostrando o formulário de adicionar)
+    if (!showAddCardForm && selectedCardIndex !== null && selectedCardIndex !== undefined) {
+      // Envia direto sem validação
+      const Button3ds = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0]
+      const event = new MouseEvent('click', {
+        bubbles: true,
+        cancelable: true,
+        view: window
+      })
+      Button3ds.dispatchEvent(event)
+      
+      return;
+    }
+
+    // Validação normal para formulário de novo cartão
     const allFieldsFilled = Object.keys(debitObject).filter(key => key !== 'lkn_dc_cardholder_name' && key !== 'lkn_save_debit_credit_card').every(key => debitObject[key].trim() !== '')
 
     // Seleciona os lknDCElements dos campos de entrada
@@ -353,10 +464,8 @@ const lknDCContentCielo = props => {
     cvvInput?.classList.remove('has-error')
     cardHolder?.classList.remove('has-error')
     if (allFieldsFilled) {
-      // Sempre executar 3DS, independente do tipo de cartão
       lknDCProccessButton();
     } else {
-      // Adiciona classes de erro aos campos vazios
       if (debitObject.lkn_dcno.trim() === '') {
         const parentDiv = cardNumberInput?.parentElement
         parentDiv?.classList.add('has-error')
@@ -375,34 +484,34 @@ const lknDCContentCielo = props => {
     lknDCInitCieloPaymentForm()
     const unsubscribe = onPaymentSetup(async () => {
       const Button3dsEnviar = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0].closest('form')
-      
+
       // Para cartão de crédito, não enviar dados 3DS
       let paymentCavv, paymentEci, paymentReferenceId, paymentVersion, paymentXid
-      
+
       paymentCavv = Button3dsEnviar?.getAttribute('data-payment-cavv')
       paymentEci = Button3dsEnviar?.getAttribute('data-payment-eci')
       paymentReferenceId = Button3dsEnviar?.getAttribute('data-payment-ref_id')
       paymentVersion = Button3dsEnviar?.getAttribute('data-payment-version')
       paymentXid = Button3dsEnviar?.getAttribute('data-payment-xid')
-      
+
       return {
         type: emitResponse.responseTypes.SUCCESS,
         meta: {
           paymentMethodData: {
-            // TODO Corrigir campos faltando
             lkn_dcno: debitObject.lkn_dcno,
             lkn_dc_cardholder_name: debitObject.lkn_dc_cardholder_name,
             lkn_dc_expdate: debitObject.lkn_dc_expdate,
             lkn_dc_cvc: debitObject.lkn_dc_cvc,
             nonce_lkn_cielo_debit: lknDCNonceCieloDebit,
-            lkn_cielo_3ds_cavv: paymentCavv,
-            lkn_cielo_3ds_eci: paymentEci,
-            lkn_cielo_3ds_ref_id: paymentReferenceId,
-            lkn_cielo_3ds_version: paymentVersion,
-            lkn_cielo_3ds_xid: paymentXid,
-            lkn_cc_dc_installments: debitObject.lkn_cc_dc_installments,
-            lkn_cc_type: debitObject.lkn_cc_type,
-            lkn_save_debit_credit_card: debitObject.lkn_save_debit_credit_card,
+            lkn_cielo_3ds_cavv: paymentCavv ?? "",
+            lkn_cielo_3ds_eci: paymentEci ?? "",
+            lkn_cielo_3ds_ref_id: paymentReferenceId ?? "",
+            lkn_cielo_3ds_version: paymentVersion ?? "",
+            lkn_cielo_3ds_xid: paymentXid ?? "",
+            lkn_cc_dc_installments: debitObject.lkn_cc_dc_installments ?? "",
+            lkn_cc_type: debitObject.lkn_cc_type ?? "",
+            lkn_save_debit_credit_card: debitObject.lkn_save_debit_credit_card ?? false,
+            lkn_selected_saved_card_index: !showAddCardForm && selectedCardIndex !== null && selectedCardIndex !== undefined ? String(selectedCardIndex) : ""
           }
         }
       }
@@ -412,7 +521,7 @@ const lknDCContentCielo = props => {
     return () => {
       unsubscribe()
     }
-  }, [debitObject, emitResponse.responseTypes.ERROR, emitResponse.responseTypes.SUCCESS, onPaymentSetup])
+  }, [debitObject, emitResponse.responseTypes.ERROR, emitResponse.responseTypes.SUCCESS, onPaymentSetup, showAddCardForm, selectedCardIndex])
   // Função para recalcular as opções de parcelas com os dados atuais do carrinho
   const recalculateInstallments = async (useRetries = false) => {
     // Ativa o loading e limpa as opções atuais
@@ -663,27 +772,34 @@ const lknDCContentCielo = props => {
       window.fetch = originalFetch
     }
   }, [])
-  return /* #__PURE__ */React.createElement(React.Fragment, null, lknDCshowCard !== 'no' && /* #__PURE__ */React.createElement("div", {
-    className: "lkn-cielo-animated-card-container",
-    style: {
-      flex: "1 1 100%"
-    }
-  }, /* #__PURE__ */React.createElement(Cards, {
-    number: debitObject.lkn_dcno,
-    name: debitObject.lkn_dc_cardholder_name,
-    expiry: debitObject.lkn_dc_expdate.replace(/\s+/g, ''),
-    cvc: debitObject.lkn_dc_cvc,
-    placeholders: {
-      name: 'NOME',
-      expiry: 'MM/ANO',
-      cvc: 'CVC',
-      number: '•••• •••• •••• ••••'
+  return /* #__PURE__ */React.createElement(React.Fragment, null,
+    renderSavedCards(),
+    React.createElement('div', {
+      style: { display: showAddCardForm ? "contents" : 'none', width: '100%' }
     },
-    locale: {
-      valid: 'VÁLIDO ATÉ'
-    },
-    focused: focus
-  })), /* #__PURE__ */React.createElement(wcComponents.TextInput, {
+      lknDCshowCard !== 'no' && React.createElement("div", {
+        className: "lkn-cielo-animated-card-container",
+        style: {
+          flex: "1 1 100%"
+        }
+      }, React.createElement(Cards, {
+        number: debitObject.lkn_dcno,
+        name: debitObject.lkn_dc_cardholder_name,
+        expiry: debitObject.lkn_dc_expdate.replace(/\s+/g, ''),
+        cvc: debitObject.lkn_dc_cvc,
+        placeholders: {
+          name: 'NOME',
+          expiry: 'MM/ANO',
+          cvc: 'CVC',
+          number: '•••• •••• •••• ••••'
+        },
+        locale: {
+          valid: 'VÁLIDO ATÉ'
+        },
+        focused: focus
+      })),
+      /* ...restante do formulário... */
+      React.createElement(wcComponents.TextInput, {
     id: 'lkn_dc_cardholder_name',
     label: lknDCTranslationsDebitCielo.cardHolder,
     value: debitObject.lkn_dc_cardholder_name,
@@ -692,7 +808,7 @@ const lknDCContentCielo = props => {
     onChange: value => {
       updatedebitObject('lkn_dc_cardholder_name', value)
     },
-    required: true,
+    required: showAddCardForm,
     onFocus: () => setFocus('name')
   }), /* #__PURE__ */React.createElement(wcComponents.TextInput, {
     id: 'lkn_dcno',
@@ -703,7 +819,7 @@ const lknDCContentCielo = props => {
     onChange: value => {
       updatedebitObject('lkn_dcno', formatDebitCardNumber(value))
     },
-    required: true,
+    required: showAddCardForm,
     onFocus: () => setFocus('number')
   }), lknCieloDebitConfig.isProPluginValid && /* #__PURE__ */React.createElement(wcComponents.SortSelect, {
     id: 'lkn_cc_type',
@@ -766,7 +882,7 @@ const lknDCContentCielo = props => {
     onChange: value => {
       updatedebitObject('lkn_dc_expdate', value)
     },
-    required: true,
+    required: showAddCardForm,
     onFocus: () => setFocus('expiry')
   }), /* #__PURE__ */React.createElement(wcComponents.TextInput, {
     id: 'lkn_dc_cvc',
@@ -777,7 +893,7 @@ const lknDCContentCielo = props => {
     onChange: value => {
       updatedebitObject('lkn_dc_cvc', value)
     },
-    required: true,
+    required: showAddCardForm,
     onFocus: () => setFocus('cvc')
   }), !lknCieloDebitConfig.isProPluginValid && /* #__PURE__ */React.createElement('div', {
     style: {
@@ -895,7 +1011,7 @@ const lknDCContentCielo = props => {
       }
     },
     options: isLoadingOptions ? [{ key: 'loading', label: `🔄 ${lknDCTranslationsCielo.calculatingInstallments}` }] : options
-  }), debitObject.lkn_cc_type === 'Credit' && /*#__PURE__*/_jsx(wcComponents.CheckboxControl, {
+  }), (debitObject.lkn_cc_type === 'Credit' && lknDCsettingsCielo.showSaveCardToken == 'optional') && /*#__PURE__*/_jsx(wcComponents.CheckboxControl, {
       id: "lkn_save_debit_credit_card",
       label: lknDCTranslationsCielo.saveCard,
       checked: debitObject.lkn_save_debit_credit_card || false,
@@ -910,7 +1026,9 @@ const lknDCContentCielo = props => {
     onChange: (isChecked) => {
       updatedebitObject('lkn_save_debit_credit_card', isChecked)
     }
-  }), /* #__PURE__ */React.createElement('div', {
+  })
+    
+), /* #__PURE__ */React.createElement('div', {
     style: {
       marginBottom: '25px',
       width: '100%'

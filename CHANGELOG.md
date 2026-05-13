@@ -1,3 +1,6 @@
+# 1.33.0 - 13/05/2026
+* Adição de pagamentos com cartões tokenizados.
+
 # 1.32.1 - 07/05/2026
 * Ajuste na redefinição da parcela do cartão de crédito.
 
