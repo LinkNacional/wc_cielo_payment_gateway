@@ -496,6 +496,23 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                 ),
             );
 
+            $this->form_fields['save_card_token'] = array(
+                'title'       => __('Save Card Option', 'lkn-wc-gateway-cielo-pro'),
+                'type'        => 'select',
+                'description' => __('Allows you to configure if the customer card will be saved automatically, optionally, or disabled.', 'lkn-wc-gateway-cielo-pro'),
+                'desc_tip'    => __('Choose if the customer can opt to save the card, if it will be required, or if the feature will be disabled.', 'lkn-wc-gateway-cielo-pro'),
+                'options'     => array(
+                    'optional'    => __('Optional (customer can choose to save the card at checkout)', 'lkn-wc-gateway-cielo-pro'),
+                    'required'    => __('Required (always save the card automatically, no option for the customer)', 'lkn-wc-gateway-cielo-pro'),
+                    'disabled'    => __('Disabled (do not save the card, default)', 'lkn-wc-gateway-cielo-pro'),
+                ),
+                'default'     => 'disabled',
+                'custom_attributes' => array(
+                    'data-title-description' => __('Allows you to define if the card will be saved automatically, optionally, or disabled.', 'lkn-wc-gateway-cielo-pro'),
+                    'readonly' => 'readonly',
+                ),
+            );
+
             $this->form_fields['fake_and_more_field'] = array(
                 'title'       => __('And much more...', 'lkn-wc-gateway-cielo'),
                 'type'        => 'text',
@@ -507,6 +524,8 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                     'data-title-description' => __('This is just a sample field to highlight more PRO features.', 'lkn-wc-gateway-cielo'),
                 ),
             );
+
+            
         }
 
         $customConfigs = apply_filters('lkn_wc_cielo_get_custom_configs', array(), $this->id);
@@ -972,13 +991,14 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
     {
         $validateCompatMode = $this->get_option('input_validation_compatibility', 'no');
         $nonce = isset($_POST['nonce_lkn_cielo_debit']) ? sanitize_text_field(wp_unslash($_POST['nonce_lkn_cielo_debit'])) : '';
+        $saveCardIndex = isset($_POST['lkn_selected_saved_card_index']) ? sanitize_text_field(wp_unslash($_POST['lkn_selected_saved_card_index'])) : '';
 
         if (! wp_verify_nonce($nonce, 'nonce_lkn_cielo_debit')) {
             $this->log->log('error', 'Nonce verification failed. Nonce: ' . var_export($nonce, true), array('source' => 'woocommerce-cielo-debit'));
             $this->add_notice_once(__('Nonce verification failed, try reloading the page', 'lkn-wc-gateway-cielo'), 'error');
             return false;
         }
-        if ('no' === $validateCompatMode) {
+        if ('no' === $validateCompatMode && $saveCardIndex == '') {
             $dcnum = isset($_POST['lkn_dcno']) ? sanitize_text_field(wp_unslash($_POST['lkn_dcno'])) : '';
             $expDate = isset($_POST['lkn_dc_expdate']) ? sanitize_text_field(wp_unslash($_POST['lkn_dc_expdate'])) : '';
             $cvv = isset($_POST['lkn_dc_cvc']) ? sanitize_text_field(wp_unslash($_POST['lkn_dc_cvc'])) : '';
@@ -1006,397 +1026,266 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
      */
     public function process_payment($order_id)
     {
-        $nonceInactive = $this->get_option('nonce_compatibility', 'no');
-        $nonce = isset($_POST['nonce_lkn_cielo_debit']) ? sanitize_text_field(wp_unslash($_POST['nonce_lkn_cielo_debit'])) : '';
-
-        if (! wp_verify_nonce($nonce, 'nonce_lkn_cielo_debit') && 'no' === $nonceInactive) {
-            $this->log->log('error', 'Nonce verification failed. Nonce: ' . var_export($nonce, true), array('source' => 'woocommerce-cielo-debit'));
-            $this->add_notice_once(__('Nonce verification failed, try reloading the page', 'lkn-wc-gateway-cielo'), 'error');
-            throw new Exception(esc_attr(__('Nonce verification failed, try reloading the page', 'lkn-wc-gateway-cielo')));
-        }
-
+        $saveCardIndex = isset($_POST['lkn_selected_saved_card_index']) ? sanitize_text_field(wp_unslash($_POST['lkn_selected_saved_card_index'])) : '';
         $order = wc_get_order($order_id);
 
-        // Card parameters
-        $cardNum = preg_replace('/\s/', '', isset($_POST['lkn_dcno']) ? sanitize_text_field(wp_unslash($_POST['lkn_dcno'])) : '');
-        $cardExpSplit = explode('/', preg_replace('/\s/', '', isset($_POST['lkn_dc_expdate']) ? sanitize_text_field(wp_unslash($_POST['lkn_dc_expdate'])) : ''));
-        if (count($cardExpSplit) === 2 && strlen($cardExpSplit[0]) === 2 && strlen($cardExpSplit[1]) === 2) {
-            $cardExp = $cardExpSplit[0] . '/20' . $cardExpSplit[1];
-            $cardExpShort = $cardExpSplit[0] . '/' . $cardExpSplit[1];
-        } else {
-            $cardExp = '';
-            $cardExpShort = '';
-        }
-        $cardCvv = isset($_POST['lkn_dc_cvc']) ? sanitize_text_field(wp_unslash($_POST['lkn_dc_cvc'])) : '';
-        $cardName = isset($_POST['lkn_dc_cardholder_name']) ? sanitize_text_field(wp_unslash($_POST['lkn_dc_cardholder_name'])) : '';
-        $cardName = apply_filters('lkn_wc_cielo_get_cardholder_name', $cardName, $this, $order);
-        $cardType = isset($_POST['lkn_cc_type']) ? sanitize_text_field(wp_unslash($_POST['lkn_cc_type'])) : '';
-        $installments = (int) (isset($_POST['lkn_cc_dc_installments']) ? sanitize_text_field(wp_unslash($_POST['lkn_cc_dc_installments'])) : 1);
-        $saveCard = isset($_POST['lkn_save_debit_credit_card']) && $_POST['lkn_save_debit_credit_card'] === '1' ? true : false;
-                    
-        // Authentication parameters
-        $xid = isset($_POST['lkn_cielo_3ds_xid']) ? sanitize_text_field(wp_unslash($_POST['lkn_cielo_3ds_xid'])) : '';
-        $cavv = isset($_POST['lkn_cielo_3ds_cavv']) ? sanitize_text_field(wp_unslash($_POST['lkn_cielo_3ds_cavv'])) : '';
-        $eci = isset($_POST['lkn_cielo_3ds_eci']) ? sanitize_text_field(wp_unslash($_POST['lkn_cielo_3ds_eci'])) : '';
-        $version = isset($_POST['lkn_cielo_3ds_version']) ? sanitize_text_field(wp_unslash($_POST['lkn_cielo_3ds_version'])) : '';
-        $refId = isset($_POST['lkn_cielo_3ds_ref_id']) ? sanitize_text_field(wp_unslash($_POST['lkn_cielo_3ds_ref_id'])) : '';
+        if($saveCardIndex == ''){
+            $nonceInactive = $this->get_option('nonce_compatibility', 'no');
+            $nonce = isset($_POST['nonce_lkn_cielo_debit']) ? sanitize_text_field(wp_unslash($_POST['nonce_lkn_cielo_debit'])) : '';
 
-        // POST parameters
-        $url = ($this->get_option('env') == 'production') ? 'https://api.cieloecommerce.cielo.com.br/' : 'https://apisandbox.cieloecommerce.cielo.com.br/';
-        $merchantId = sanitize_text_field($this->get_option('merchant_id'));
-        $merchantSecret = sanitize_text_field($this->get_option('merchant_key'));
-        $merchantOrderId = $order_id . '-' . time();
-        $amount = $order->get_total();
-        $capture = ($this->get_option('capture', 'yes') == 'yes') ? true : false;
-        $description = sanitize_text_field($this->get_option('invoiceDesc'));
-        $description = preg_replace('/[^a-zA-Z\s]+/', '', $description);
-        $description = preg_replace('/\s+/', ' ', $description);
-        
-        // Salvar metadado indicando se foi captura automática ou manual
-        // Para cartão de débito, a captura é SEMPRE automática na Cielo, independente da configuração
-        if ($cardType === 'Debit') {
-            $order->update_meta_data('_lkn_cielo_capture_type', 'automatic');
-        } else {
-            $order->update_meta_data('_lkn_cielo_capture_type', $capture ? 'automatic' : 'manual');
-        }
-        $provider = LknWcCieloHelper::getCardProvider($cardNum, $this->id);
-        $debug = $this->get_option('debug');
-        $currency = $order->get_currency();
-        $activeInstallment = $this->get_option('installment_payment');
-
-        if (empty($provider)) {
-            $message = __("Bin query is not enabled for this merchant.", 'lkn-wc-gateway-cielo');
-
-            if ('yes' === $debug) {
-                $this->log->log('error', var_export($message, true), array('source' => 'woocommerce-cielo-debit'));
+            if (! wp_verify_nonce($nonce, 'nonce_lkn_cielo_debit') && 'no' === $nonceInactive) {
+                $this->log->log('error', 'Nonce verification failed. Nonce: ' . var_export($nonce, true), array('source' => 'woocommerce-cielo-debit'));
+                $this->add_notice_once(__('Nonce verification failed, try reloading the page', 'lkn-wc-gateway-cielo'), 'error');
+                throw new Exception(esc_attr(__('Nonce verification failed, try reloading the page', 'lkn-wc-gateway-cielo')));
             }
 
-            // Salvar metadados da transação com dados customizados para erro de validação
-            $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
-                400,
-                '57',
-                'Expired card'
-            );
-            LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, null, $cardType, 'lkn_dc_cvc', $this, $xid, $cavv, $eci, $version, $refId);
-            $order->save();
 
-            throw new Exception(esc_attr($message));
-        }
-
-        if ($this->validate_card_holder_name($cardName, false) === false) {
-            $message = __('Card Holder Name is required!', 'lkn-wc-gateway-cielo');
-
-            // Salvar metadados da transação com dados customizados para erro de validação
-            $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
-                400,
-                '126',
-                'Credit Card Holder is required'
-            );
-            LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, null, $cardType, 'lkn_dc_cvc', $this, $xid, $cavv, $eci, $version, $refId);
-            $order->save();
-
-            throw new Exception(esc_attr($message));
-        }
-        // Check if card starts with 0 (specific validation with metadata saving)
-        $cleanCardNum = preg_replace('/\s/', '', $cardNum);
-        if (isset($cleanCardNum[0]) && $cleanCardNum[0] === '0') {
-            $message = __('Cards starting with 0 are not accepted', 'lkn-wc-gateway-cielo');
-
-            // Salvar metadados da transação com dados customizados para erro de validação
-            $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
-                400,
-                '126',
-                'Card number starting with 0 is not valid'
-            );
-            LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, null, $cardType, 'lkn_dc_cvc', $this, $xid, $cavv, $eci, $version, $refId);
-            $order->save();
-
-            throw new Exception(esc_attr($message));
-        }
-        if ($this->validate_card_number($cardNum, false) === false) {
-            $message = __('Debit Card number is invalid!', 'lkn-wc-gateway-cielo');
-
-            // Salvar metadados da transação com dados customizados para erro de validação
-            $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
-                400,
-                '126',
-                'Credit Card number is required'
-            );
-            LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, null, $cardType, 'lkn_dc_cvc', $this, $xid, $cavv, $eci, $version, $refId);
-            $order->save();
-
-            throw new Exception(esc_attr($message));
-        }
-        if ($this->validate_exp_date($cardExpShort, false) === false) {
-            $message = __('Expiration date is invalid!', 'lkn-wc-gateway-cielo');
-
-            // Salvar metadados da transação com dados customizados para erro de validação
-            $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
-                400,
-                '126',
-                'Credit Card Expiration Date is required'
-            );
-            LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, null, $cardType, 'lkn_dc_cvc', $this, $xid, $cavv, $eci, $version, $refId);
-            $order->save();
-
-            throw new Exception(esc_attr($message));
-        }
-        if ($this->validate_cvv($cardCvv, false) === false) {
-            $message = __('CVV is invalid!', 'lkn-wc-gateway-cielo');
-
-            // Salvar metadados da transação com dados customizados para erro de validação
-            $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
-                400,
-                '146',
-                'SecurityCode length exceeded'
-            );
-            LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, null, $cardType, 'lkn_dc_cvc', $this, $xid, $cavv, $eci, $version, $refId);
-            $order->save();
-
-            throw new Exception(esc_attr($message));
-        }
-        if (empty($merchantId)) {
-            $message = __('Invalid Cielo API 3.0 credentials.', 'lkn-wc-gateway-cielo');
-
-            // Salvar metadados da transação com dados customizados para erro de validação
-            $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
-                401,
-                '126',
-                'MerchantId is required'
-            );
-            LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, null, $cardType, 'lkn_dc_cvc', $this, $xid, $cavv, $eci, $version, $refId);
-            $order->save();
-
-            throw new Exception(esc_attr($message));
-        }
-        if (empty($merchantSecret)) {
-            $message = __('Invalid Cielo API 3.0 credentials.', 'lkn-wc-gateway-cielo');
-
-            // Salvar metadados da transação com dados customizados para erro de validação
-            $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
-                401,
-                '126',
-                'MerchantKey is required'
-            );
-            LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, null, $cardType, 'lkn_dc_cvc', $this, $xid, $cavv, $eci, $version, $refId);
-            $order->save();
-
-            throw new Exception(esc_attr($message));
-        }
-        // Exigir 3DS para todos os tipos de cartão
-        if (empty($eci) && $this->get_option('allow_card_ineligible', 'no') == 'no') {
-            $message = __('Invalid Cielo 3DS 2.2 authentication.', 'lkn-wc-gateway-cielo');
-
-            // Salvar metadados da transação com dados customizados para erro de a  utenticação 3DS
-            $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
-                401,
-                'BP171',
-                'Rejected due to fraud risk (Velocity)'
-            );
-            LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, null, $cardType, 'lkn_dc_cvc', $this, $xid, $cavv, $eci, $version, $refId);
-            $order->save();
-
-            throw new Exception(esc_attr($message));
-        }
-
-        if ('BRL' !== $currency) {
-            $amount = apply_filters('lkn_wc_cielo_convert_amount', $amount, $currency, $this);
-
-            $order->add_meta_data('amount_converted', $amount, true);
-        }
-
-        // If installments option is active verify $_POST attribute
-        if ('yes' === $activeInstallment && 'Credit' == $cardType) {
-            $installments = (int) isset($_POST['lkn_cc_dc_installments']) ? sanitize_text_field(wp_unslash($_POST['lkn_cc_dc_installments'])) : 1;
-
-            if ($installments > 12) {
-                if (
-                    'Elo' !== $provider
-                    && 'Visa' !== $provider
-                    && 'Master' !== $provider
-                    && 'Amex' !== $provider
-                    && 'Hipercard' !== $provider
-                ) {
-                    $message = __('Order payment failed. Installment quantity invalid.', 'lkn-wc-gateway-cielo');
-
-                    // Salvar metadados da transação com dados customizados para erro de validação
-                    $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
-                        400,
-                        'BP335',
-                        'Cancelled due to transactional error in Payment Split'
-                    );
-                    LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, null, $cardType, 'lkn_dc_cvc', $this, $xid, $cavv, $eci, $version, $refId);
-                    $order->save();
-
-                    throw new Exception(esc_attr($message));
-                }
-            }
-
-            $order->add_order_note('[' . $this->id . '] ' . __('Installments quantity', 'lkn-wc-gateway-cielo') . ' ' . $installments);
-            $order->add_meta_data('installments', $installments, true);
-        }
-
-        $amountFormated = number_format($amount, 2, '', '');
-
-        // Para cartão de débito, a captura é SEMPRE automática na Cielo, independente da configuração
-        $actualCapture = ($cardType === 'Debit') ? true : $capture;
-
-        // Cartão de débito - verificar se permite cartão inelegível ou se tem validação 3DS
-        if ($this->get_option('allow_card_ineligible', 'no') == 'yes' && (empty($refId) || 'null' == $refId)) {
-            $args['headers'] = array(
-                'Content-Type' => 'application/json',
-                'MerchantId' => $merchantId,
-                'MerchantKey' => $merchantSecret,
-                'RequestId' => uniqid(),
-            );
-            
-            $body = array(
-                'MerchantOrderId' => $merchantOrderId,
-                'Payment' => array(
-                    'Type' => $cardType . "Card",
-                    'Amount' => (int) $amountFormated,
-                    'Installments' => $installments,
-                    'Capture' => (bool) $actualCapture,
-                    'SoftDescriptor' => $description,
-                    $cardType . "Card" => array(
-                        'CardNumber' => $cardNum,
-                        'ExpirationDate' => $cardExp,
-                        'SecurityCode' => $cardCvv,
-                        'Brand' => $provider,
-                    ),
-                ),
-            );
-
-            $body = apply_filters('lkn_wc_cielo_process_body', $body, $_POST, $order_id);
-            $args['body'] = wp_json_encode($body);
-            $args['timeout'] = 120;
-
-            $response = wp_remote_post($url . '1/sales', $args);
-
-            // Salvar metadados da transação
-            $responseDecoded = !is_wp_error($response) ? json_decode($response['body']) : null;
-            LknWcCieloHelper::saveTransactionMetadata($order, $responseDecoded, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $actualCapture, $response, $cardType, 'lkn_dc_cvc', $this, $xid, $cavv, $eci, $version, $refId);
-            
-            // Salvar o pedido para garantir que os metadados sejam persistidos
-            $order->save();
-
-            $order->add_order_note('[' . $this->id . '] ' . __('Debit card payment processed without 3DS validation', 'lkn-wc-gateway-cielo'));
-        } else {
-            $order->add_order_note('[' . $this->id . '] ' . __('Debit card payment processed with 3DS validation', 'lkn-wc-gateway-cielo'));
-                
-            // Verify if authentication is data-only
-            // @see {https://developercielo.github.io/manual/3ds}
-            if (4 == $eci && empty($cavv)) {
-                $args['headers'] = array(
-                    'Content-Type' => 'application/json',
-                    'MerchantId' => $merchantId,
-                    'MerchantKey' => $merchantSecret,
-                    'RequestId' => uniqid(),
-                );
-
-                $body = array(
-                    'MerchantOrderId' => $merchantOrderId,
-                    'Customer' => array(
-                        'Name' => $cardName,
-                    ),
-                    'Payment' => array(
-                        'Type' => $cardType . "Card",
-                        'Amount' => (int) $amountFormated,
-                        'Installments' => $installments,
-                        'Authenticate' => true,
-                        'Capture' => (bool) $actualCapture,
-                        'SoftDescriptor' => $description,
-                        $cardType . "Card" => array(
-                            'CardNumber' => $cardNum,
-                            'Holder' => $cardName,
-                            'ExpirationDate' => $cardExp,
-                            'SecurityCode' => $cardCvv,
-                            'SaveCard' => $saveCard,
-                            'Brand' => $provider,
-                        ),
-                        'ExternalAuthentication' => array(
-                            'Eci' => $eci,
-                            'ReferenceId' => $refId,
-                            'dataonly' => true,
-                        ),
-                    ),
-                );
-
-                $body = apply_filters('lkn_wc_cielo_process_body', $body, $_POST, $order_id);
-                $args['body'] = wp_json_encode($body);
-                $args['timeout'] = 120;
-
-                $response = wp_remote_post($url . '1/sales', $args);
-
-                // Salvar metadados da transação
-                $responseDecoded = !is_wp_error($response) ? json_decode($response['body']) : null;
-                LknWcCieloHelper::saveTransactionMetadata($order, $responseDecoded, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $actualCapture, $response, $cardType, 'lkn_dc_cvc', $this, $xid, $cavv, $eci, $version, $refId);
-                
-                // Salvar o pedido para garantir que os metadados sejam persistidos
-                $order->save();
+            // Card parameters
+            $cardNum = preg_replace('/\s/', '', isset($_POST['lkn_dcno']) ? sanitize_text_field(wp_unslash($_POST['lkn_dcno'])) : '');
+            $cardExpSplit = explode('/', preg_replace('/\s/', '', isset($_POST['lkn_dc_expdate']) ? sanitize_text_field(wp_unslash($_POST['lkn_dc_expdate'])) : ''));
+            if (count($cardExpSplit) === 2 && strlen($cardExpSplit[0]) === 2 && strlen($cardExpSplit[1]) === 2) {
+                $cardExp = $cardExpSplit[0] . '/20' . $cardExpSplit[1];
+                $cardExpShort = $cardExpSplit[0] . '/' . $cardExpSplit[1];
             } else {
-                if (empty($cavv) && $this->get_option('allow_card_ineligible', 'no') == 'no') {
-                    $message = __('Invalid Cielo 3DS 2.2 authentication.', 'lkn-wc-gateway-cielo');
+                $cardExp = '';
+                $cardExpShort = '';
+            }
+            $cardCvv = isset($_POST['lkn_dc_cvc']) ? sanitize_text_field(wp_unslash($_POST['lkn_dc_cvc'])) : '';
+            $cardName = isset($_POST['lkn_dc_cardholder_name']) ? sanitize_text_field(wp_unslash($_POST['lkn_dc_cardholder_name'])) : '';
+            $cardName = apply_filters('lkn_wc_cielo_get_cardholder_name', $cardName, $this, $order);
+            $cardType = isset($_POST['lkn_cc_type']) ? sanitize_text_field(wp_unslash($_POST['lkn_cc_type'])) : '';
+            $installments = (int) (isset($_POST['lkn_cc_dc_installments']) ? sanitize_text_field(wp_unslash($_POST['lkn_cc_dc_installments'])) : 1);
+            $saveCard = isset($_POST['lkn_save_debit_credit_card']) && ($_POST['lkn_save_debit_credit_card'] === '1' || $this->get_option('save_card_token') == 'required' ) ? true : false;
+                        
+            // Authentication parameters
+            $xid = isset($_POST['lkn_cielo_3ds_xid']) ? sanitize_text_field(wp_unslash($_POST['lkn_cielo_3ds_xid'])) : '';
+            $cavv = isset($_POST['lkn_cielo_3ds_cavv']) ? sanitize_text_field(wp_unslash($_POST['lkn_cielo_3ds_cavv'])) : '';
+            $eci = isset($_POST['lkn_cielo_3ds_eci']) ? sanitize_text_field(wp_unslash($_POST['lkn_cielo_3ds_eci'])) : '';
+            $version = isset($_POST['lkn_cielo_3ds_version']) ? sanitize_text_field(wp_unslash($_POST['lkn_cielo_3ds_version'])) : '';
+            $refId = isset($_POST['lkn_cielo_3ds_ref_id']) ? sanitize_text_field(wp_unslash($_POST['lkn_cielo_3ds_ref_id'])) : '';
 
-                    // Salvar metadados da transação com dados customizados para erro de autenticação 3DS
-                    $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
-                        401,
-                        'BP172',
-                        'Transaction aborted during card validation'
-                    );
-                    LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, null, $cardType, 'lkn_dc_cvc', $this, $xid, $cavv, $eci, $version, $refId);
-                    $order->save();
+            // POST parameters
+            $url = ($this->get_option('env') == 'production') ? 'https://api.cieloecommerce.cielo.com.br/' : 'https://apisandbox.cieloecommerce.cielo.com.br/';
+            $merchantId = sanitize_text_field($this->get_option('merchant_id'));
+            $merchantSecret = sanitize_text_field($this->get_option('merchant_key'));
+            $merchantOrderId = $order_id . '-' . time();
+            $amount = $order->get_total();
+            $capture = ($this->get_option('capture', 'yes') == 'yes') ? true : false;
+            $description = sanitize_text_field($this->get_option('invoiceDesc'));
+            $description = preg_replace('/[^a-zA-Z\s]+/', '', $description);
+            $description = preg_replace('/\s+/', ' ', $description);
+            
+            // Salvar metadado indicando se foi captura automática ou manual
+            // Para cartão de débito, a captura é SEMPRE automática na Cielo, independente da configuração
+            if ($cardType === 'Debit') {
+                $order->update_meta_data('_lkn_cielo_capture_type', 'automatic');
+            } else {
+                $order->update_meta_data('_lkn_cielo_capture_type', $capture ? 'automatic' : 'manual');
+            }
+            $provider = LknWcCieloHelper::getCardProvider($cardNum, $this->id);
+            $debug = $this->get_option('debug');
+            $currency = $order->get_currency();
+            $activeInstallment = $this->get_option('installment_payment');
 
-                    throw new Exception(esc_attr($message));
+            if (empty($provider)) {
+                $message = __("Bin query is not enabled for this merchant.", 'lkn-wc-gateway-cielo');
+
+                if ('yes' === $debug) {
+                    $this->log->log('error', var_export($message, true), array('source' => 'woocommerce-cielo-debit'));
                 }
-                if (empty($xid) && $this->get_option('allow_card_ineligible', 'no') == 'no') {
-                    $message = __('Invalid Cielo 3DS 2.2 authentication.', 'lkn-wc-gateway-cielo');
 
-                    // Salvar metadados da transação com dados customizados para erro de autenticação 3DS
-                    $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
-                        401,
-                        'BP900',
-                        'Operation failure'
-                    );
-                    LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, null, $cardType, 'lkn_dc_cvc', $this, $xid, $cavv, $eci, $version, $refId);
-                    $order->save();
+                // Salvar metadados da transação com dados customizados para erro de validação
+                $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
+                    400,
+                    '57',
+                    'Expired card'
+                );
+                LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, null, $cardType, 'lkn_dc_cvc', $this, $xid, $cavv, $eci, $version, $refId);
+                $order->save();
 
-                    throw new Exception(esc_attr($message));
+                throw new Exception(esc_attr($message));
+            }
+
+            if ($this->validate_card_holder_name($cardName, false) === false) {
+                $message = __('Card Holder Name is required!', 'lkn-wc-gateway-cielo');
+
+                // Salvar metadados da transação com dados customizados para erro de validação
+                $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
+                    400,
+                    '126',
+                    'Credit Card Holder is required'
+                );
+                LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, null, $cardType, 'lkn_dc_cvc', $this, $xid, $cavv, $eci, $version, $refId);
+                $order->save();
+
+                throw new Exception(esc_attr($message));
+            }
+            // Check if card starts with 0 (specific validation with metadata saving)
+            $cleanCardNum = preg_replace('/\s/', '', $cardNum);
+            if (isset($cleanCardNum[0]) && $cleanCardNum[0] === '0') {
+                $message = __('Cards starting with 0 are not accepted', 'lkn-wc-gateway-cielo');
+
+                // Salvar metadados da transação com dados customizados para erro de validação
+                $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
+                    400,
+                    '126',
+                    'Card number starting with 0 is not valid'
+                );
+                LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, null, $cardType, 'lkn_dc_cvc', $this, $xid, $cavv, $eci, $version, $refId);
+                $order->save();
+
+                throw new Exception(esc_attr($message));
+            }
+            if ($this->validate_card_number($cardNum, false) === false) {
+                $message = __('Debit Card number is invalid!', 'lkn-wc-gateway-cielo');
+
+                // Salvar metadados da transação com dados customizados para erro de validação
+                $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
+                    400,
+                    '126',
+                    'Credit Card number is required'
+                );
+                LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, null, $cardType, 'lkn_dc_cvc', $this, $xid, $cavv, $eci, $version, $refId);
+                $order->save();
+
+                throw new Exception(esc_attr($message));
+            }
+            if ($this->validate_exp_date($cardExpShort, false) === false) {
+                $message = __('Expiration date is invalid!', 'lkn-wc-gateway-cielo');
+
+                // Salvar metadados da transação com dados customizados para erro de validação
+                $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
+                    400,
+                    '126',
+                    'Credit Card Expiration Date is required'
+                );
+                LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, null, $cardType, 'lkn_dc_cvc', $this, $xid, $cavv, $eci, $version, $refId);
+                $order->save();
+
+                throw new Exception(esc_attr($message));
+            }
+            if ($this->validate_cvv($cardCvv, false) === false) {
+                $message = __('CVV is invalid!', 'lkn-wc-gateway-cielo');
+
+                // Salvar metadados da transação com dados customizados para erro de validação
+                $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
+                    400,
+                    '146',
+                    'SecurityCode length exceeded'
+                );
+                LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, null, $cardType, 'lkn_dc_cvc', $this, $xid, $cavv, $eci, $version, $refId);
+                $order->save();
+
+                throw new Exception(esc_attr($message));
+            }
+            if (empty($merchantId)) {
+                $message = __('Invalid Cielo API 3.0 credentials.', 'lkn-wc-gateway-cielo');
+
+                // Salvar metadados da transação com dados customizados para erro de validação
+                $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
+                    401,
+                    '126',
+                    'MerchantId is required'
+                );
+                LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, null, $cardType, 'lkn_dc_cvc', $this, $xid, $cavv, $eci, $version, $refId);
+                $order->save();
+
+                throw new Exception(esc_attr($message));
+            }
+            if (empty($merchantSecret)) {
+                $message = __('Invalid Cielo API 3.0 credentials.', 'lkn-wc-gateway-cielo');
+
+                // Salvar metadados da transação com dados customizados para erro de validação
+                $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
+                    401,
+                    '126',
+                    'MerchantKey is required'
+                );
+                LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, null, $cardType, 'lkn_dc_cvc', $this, $xid, $cavv, $eci, $version, $refId);
+                $order->save();
+
+                throw new Exception(esc_attr($message));
+            }
+            // Exigir 3DS para todos os tipos de cartão
+            if (empty($eci) && $this->get_option('allow_card_ineligible', 'no') == 'no') {
+                $message = __('Invalid Cielo 3DS 2.2 authentication.', 'lkn-wc-gateway-cielo');
+
+                // Salvar metadados da transação com dados customizados para erro de a  utenticação 3DS
+                $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
+                    401,
+                    'BP171',
+                    'Rejected due to fraud risk (Velocity)'
+                );
+                LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, null, $cardType, 'lkn_dc_cvc', $this, $xid, $cavv, $eci, $version, $refId);
+                $order->save();
+
+                throw new Exception(esc_attr($message));
+            }
+
+            if ('BRL' !== $currency) {
+                $amount = apply_filters('lkn_wc_cielo_convert_amount', $amount, $currency, $this);
+
+                $order->add_meta_data('amount_converted', $amount, true);
+            }
+
+            // If installments option is active verify $_POST attribute
+            if ('yes' === $activeInstallment && 'Credit' == $cardType) {
+                $installments = (int) isset($_POST['lkn_cc_dc_installments']) ? sanitize_text_field(wp_unslash($_POST['lkn_cc_dc_installments'])) : 1;
+
+                if ($installments > 12) {
+                    if (
+                        'Elo' !== $provider
+                        && 'Visa' !== $provider
+                        && 'Master' !== $provider
+                        && 'Amex' !== $provider
+                        && 'Hipercard' !== $provider
+                    ) {
+                        $message = __('Order payment failed. Installment quantity invalid.', 'lkn-wc-gateway-cielo');
+
+                        // Salvar metadados da transação com dados customizados para erro de validação
+                        $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
+                            400,
+                            'BP335',
+                            'Cancelled due to transactional error in Payment Split'
+                        );
+                        LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, null, $cardType, 'lkn_dc_cvc', $this, $xid, $cavv, $eci, $version, $refId);
+                        $order->save();
+
+                        throw new Exception(esc_attr($message));
+                    }
                 }
 
+                $order->add_order_note('[' . $this->id . '] ' . __('Installments quantity', 'lkn-wc-gateway-cielo') . ' ' . $installments);
+                $order->add_meta_data('installments', $installments, true);
+            }
+
+            $amountFormated = number_format($amount, 2, '', '');
+
+            // Para cartão de débito, a captura é SEMPRE automática na Cielo, independente da configuração
+            $actualCapture = ($cardType === 'Debit') ? true : $capture;
+
+            // Cartão de débito - verificar se permite cartão inelegível ou se tem validação 3DS
+            if ($this->get_option('allow_card_ineligible', 'no') == 'yes' && (empty($refId) || 'null' == $refId)) {
                 $args['headers'] = array(
                     'Content-Type' => 'application/json',
                     'MerchantId' => $merchantId,
                     'MerchantKey' => $merchantSecret,
                     'RequestId' => uniqid(),
                 );
-
+                
                 $body = array(
                     'MerchantOrderId' => $merchantOrderId,
-                    'Customer' => array(
-                        'Name' => $cardName,
-                    ),
                     'Payment' => array(
                         'Type' => $cardType . "Card",
                         'Amount' => (int) $amountFormated,
                         'Installments' => $installments,
-                        'Authenticate' => true,
                         'Capture' => (bool) $actualCapture,
                         'SoftDescriptor' => $description,
                         $cardType . "Card" => array(
                             'CardNumber' => $cardNum,
-                            'Holder' => $cardName,
                             'ExpirationDate' => $cardExp,
                             'SecurityCode' => $cardCvv,
-                            'SaveCard' => $saveCard,
                             'Brand' => $provider,
-                        ),
-                        'ExternalAuthentication' => array(
-                            'Cavv' => $cavv,
-                            'Xid' => $xid,
-                            'Eci' => $eci,
-                            'Version' => $version,
-                            'ReferenceId' => $refId,
                         ),
                     ),
                 );
@@ -1413,40 +1302,227 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                 
                 // Salvar o pedido para garantir que os metadados sejam persistidos
                 $order->save();
+
+                $order->add_order_note('[' . $this->id . '] ' . __('Debit card payment processed without 3DS validation', 'lkn-wc-gateway-cielo'));
+            } else {
+                $order->add_order_note('[' . $this->id . '] ' . __('Debit card payment processed with 3DS validation', 'lkn-wc-gateway-cielo'));
+                    
+                // Verify if authentication is data-only
+                // @see {https://developercielo.github.io/manual/3ds}
+                if (4 == $eci && empty($cavv)) {
+                    $args['headers'] = array(
+                        'Content-Type' => 'application/json',
+                        'MerchantId' => $merchantId,
+                        'MerchantKey' => $merchantSecret,
+                        'RequestId' => uniqid(),
+                    );
+
+                    $body = array(
+                        'MerchantOrderId' => $merchantOrderId,
+                        'Customer' => array(
+                            'Name' => $cardName,
+                        ),
+                        'Payment' => array(
+                            'Type' => $cardType . "Card",
+                            'Amount' => (int) $amountFormated,
+                            'Installments' => $installments,
+                            'Authenticate' => true,
+                            'Capture' => (bool) $actualCapture,
+                            'SoftDescriptor' => $description,
+                            $cardType . "Card" => array(
+                                'CardNumber' => $cardNum,
+                                'Holder' => $cardName,
+                                'ExpirationDate' => $cardExp,
+                                'SecurityCode' => $cardCvv,
+                                'SaveCard' => $saveCard,
+                                'Brand' => $provider,
+                            ),
+                            'ExternalAuthentication' => array(
+                                'Eci' => $eci,
+                                'ReferenceId' => $refId,
+                                'dataonly' => true,
+                            ),
+                        ),
+                    );
+
+                    $body = apply_filters('lkn_wc_cielo_process_body', $body, $_POST, $order_id);
+                    $args['body'] = wp_json_encode($body);
+                    $args['timeout'] = 120;
+
+                    $response = wp_remote_post($url . '1/sales', $args);
+
+                    // Salvar metadados da transação
+                    $responseDecoded = !is_wp_error($response) ? json_decode($response['body']) : null;
+                    LknWcCieloHelper::saveTransactionMetadata($order, $responseDecoded, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $actualCapture, $response, $cardType, 'lkn_dc_cvc', $this, $xid, $cavv, $eci, $version, $refId);
+                    
+                    // Salvar o pedido para garantir que os metadados sejam persistidos
+                    $order->save();
+                } else {
+                    if (empty($cavv) && $this->get_option('allow_card_ineligible', 'no') == 'no') {
+                        $message = __('Invalid Cielo 3DS 2.2 authentication.', 'lkn-wc-gateway-cielo');
+
+                        // Salvar metadados da transação com dados customizados para erro de autenticação 3DS
+                        $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
+                            401,
+                            'BP172',
+                            'Transaction aborted during card validation'
+                        );
+                        LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, null, $cardType, 'lkn_dc_cvc', $this, $xid, $cavv, $eci, $version, $refId);
+                        $order->save();
+
+                        throw new Exception(esc_attr($message));
+                    }
+                    if (empty($xid) && $this->get_option('allow_card_ineligible', 'no') == 'no') {
+                        $message = __('Invalid Cielo 3DS 2.2 authentication.', 'lkn-wc-gateway-cielo');
+
+                        // Salvar metadados da transação com dados customizados para erro de autenticação 3DS
+                        $customErrorResponse = LknWcCieloHelper::createCustomErrorResponse(
+                            401,
+                            'BP900',
+                            'Operation failure'
+                        );
+                        LknWcCieloHelper::saveTransactionMetadata($order, $customErrorResponse, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $capture, null, $cardType, 'lkn_dc_cvc', $this, $xid, $cavv, $eci, $version, $refId);
+                        $order->save();
+
+                        throw new Exception(esc_attr($message));
+                    }
+
+                    $args['headers'] = array(
+                        'Content-Type' => 'application/json',
+                        'MerchantId' => $merchantId,
+                        'MerchantKey' => $merchantSecret,
+                        'RequestId' => uniqid(),
+                    );
+
+                    $body = array(
+                        'MerchantOrderId' => $merchantOrderId,
+                        'Customer' => array(
+                            'Name' => $cardName,
+                        ),
+                        'Payment' => array(
+                            'Type' => $cardType . "Card",
+                            'Amount' => (int) $amountFormated,
+                            'Installments' => $installments,
+                            'Authenticate' => true,
+                            'Capture' => (bool) $actualCapture,
+                            'SoftDescriptor' => $description,
+                            $cardType . "Card" => array(
+                                'CardNumber' => $cardNum,
+                                'Holder' => $cardName,
+                                'ExpirationDate' => $cardExp,
+                                'SecurityCode' => $cardCvv,
+                                'SaveCard' => $saveCard,
+                                'Brand' => $provider,
+                            ),
+                            'ExternalAuthentication' => array(
+                                'Cavv' => $cavv,
+                                'Xid' => $xid,
+                                'Eci' => $eci,
+                                'Version' => $version,
+                                'ReferenceId' => $refId,
+                            ),
+                        ),
+                    );
+
+                    $body = apply_filters('lkn_wc_cielo_process_body', $body, $_POST, $order_id);
+                    $args['body'] = wp_json_encode($body);
+                    $args['timeout'] = 120;
+
+                    $response = wp_remote_post($url . '1/sales', $args);
+
+                    // Salvar metadados da transação
+                    $responseDecoded = !is_wp_error($response) ? json_decode($response['body']) : null;
+                    LknWcCieloHelper::saveTransactionMetadata($order, $responseDecoded, $cardNum, $cardExpShort, $cardName, $installments, $amount, $currency, $provider, $merchantId, $merchantSecret, $merchantOrderId, $order_id, $actualCapture, $response, $cardType, 'lkn_dc_cvc', $this, $xid, $cavv, $eci, $version, $refId);
+                    
+                    // Salvar o pedido para garantir que os metadados sejam persistidos
+                    $order->save();
+                }
             }
-        }
 
-        // Gerenciar salvamento de cartão (se aplicável)
-        if ($saveCard &&  isset($responseDecoded->Payment->CreditCard->CardToken)) {
-            $user_id = $order->get_user_id();
-            if (! isset($responseDecoded->Payment->CreditCard->CardToken)) {
-                $order->add_order_note('[' . $this->id . '] O token para cobranças automáticas não foi gerado, então as cobranças automáticas não poderão ser efetuadas.');
-            }
+            // Gerenciar salvamento de cartão (se aplicável)
+            if ($saveCard &&  isset($responseDecoded->Payment->CreditCard->CardToken)) {
+                $user_id = $order->get_user_id();
+                if (! isset($responseDecoded->Payment->CreditCard->CardToken)) {
+                    $order->add_order_note('[' . $this->id . '] O token para cobranças automáticas não foi gerado, então as cobranças automáticas não poderão ser efetuadas.');
+                }
 
-            // Dados do cartão de pagamento
-            $cardPayment = array(
-                'cardToken' => $responseDecoded->Payment->CreditCard->CardToken,
-                'brand' => $provider,
-            );
-
-            if (0 != $user_id) {
-                $cardsArray = get_user_meta($user_id, 'card_array', true);
-                $cardsArray = is_array($cardsArray) ? $cardsArray : array();
-                $lastFourDigits = $responseDecoded->Payment->CreditCard->CardNumber;
-                $expirationDate = $responseDecoded->Payment->CreditCard->ExpirationDate;
-
-                // Adiciona o novo cartão à lista
-                $cardsArray[] = array(
-                    'cardToken' => $cardPayment['cardToken'],
+                // Dados do cartão de pagamento
+                $cardPayment = array(
+                    'cardToken' => $responseDecoded->Payment->CreditCard->CardToken,
                     'brand' => $provider,
-                    'cardDigits' => $lastFourDigits,
-                    'expirationDate' => $expirationDate,
                 );
 
-                // Atualiza os metadados do usuário
-                update_user_meta($user_id, 'card_array', $cardsArray);
-                update_user_meta($user_id, 'default_card', array_key_last($cardsArray));
+                if (0 != $user_id) {
+                    $cardsArray = get_user_meta($user_id, 'card_array', true);
+                    $cardsArray = is_array($cardsArray) ? $cardsArray : array();
+                    $lastFourDigits = $responseDecoded->Payment->CreditCard->CardNumber;
+                    $expirationDate = $responseDecoded->Payment->CreditCard->ExpirationDate;
+
+                    // Adiciona o novo cartão à lista
+                    $cardsArray[] = array(
+                        'cardToken' => $cardPayment['cardToken'],
+                        'brand' => $provider,
+                        'cardDigits' => $lastFourDigits,
+                        'expirationDate' => $expirationDate,
+                        'securityCode' => $cardCvv,
+                    );
+
+                    // Atualiza os metadados do usuário
+                    update_user_meta($user_id, 'card_array', $cardsArray);
+                    update_user_meta($user_id, 'default_card', array_key_last($cardsArray));
+                }
             }
+        }else{
+            // Processar pagamento com cartão salvo
+            $saveCardIndex = (int) $saveCardIndex;
+            $user_id = get_current_user_id();
+            $cardsArray = get_user_meta($user_id, 'card_array', true);
+            
+            $selectedCard = isset($cardsArray[$saveCardIndex]) ? $cardsArray[$saveCardIndex] : null;
+
+            try {
+
+                if (!$selectedCard) {
+                    throw new Exception(esc_attr(__('Selected card not found.', 'lkn-wc-gateway-cielo')));
+                }
+    
+                $cardToken = $selectedCard['cardToken'];
+                $provider = $selectedCard['brand'];
+                $cardCvv = $selectedCard['securityCode'];
+
+    
+                // Gerar o corpo da requisição usando o token do cartão salvo
+                $args['headers'] = array(
+                    'Content-Type' => 'application/json',
+                    'MerchantId' => sanitize_text_field($this->get_option('merchant_id')),
+                    'MerchantKey' => sanitize_text_field($this->get_option('merchant_key')),
+                );
+    
+                $body = array(
+                    'MerchantOrderId' => sanitize_text_field($order_id . '-' . time()),
+                    'Payment' => array(
+                        'Type' => "CreditCard",
+                        'Amount' => (int) number_format($order->get_total(), 2, '', ''),
+                        'Installments' => 1,
+                        'Capture' => true,
+                        'CreditCard' => array(
+                            'CardToken' => $cardToken,
+                            'SecurityCode' => $cardCvv,
+                            'Brand' => $provider,
+                        ),
+                    ),
+                );
+    
+                $body = apply_filters('lkn_wc_cielo_process_body', $body, $_POST, $order_id);
+                $args['body'] = wp_json_encode($body);
+                $args['timeout'] = 120;
+    
+                $response = wp_remote_post(($this->get_option('env') == 'production') ? 'https://api.cieloecommerce.cielo.com.br/1/sales' : 'https://apisandbox.cieloecommerce.cielo.com.br/1/sales', $args);
+            } catch (\Throwable $th) {
+                throw new Exception(esc_attr($th->getMessage()));
+            }
+
+
         }
 
 

@@ -4,7 +4,7 @@ Donate link: https://www.linknacional.com.br/wordpress/woocommerce/cielo/
 Tags: pagamento, cielo, pix, woocommerce, creditcard
 Requires at least: 5.7
 Tested up to: 6.9
-Stable tag: 1.32.1
+Stable tag: 1.33.0
 Requires PHP: 8.0
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -29,6 +29,7 @@ Setting up the plugin is straightforward, allowing you to quickly enable the mai
 Beyond the capabilities of the free version, the [Cielo API PRO for WooCommerce](https://www.linknacional.com.br/wordpress/woocommerce/cielo/) offers an extensive array of advanced features to broaden your store’s payment options and refine your transaction management:
 
 * **Full and partial refunds** managed effortlessly from the WooCommerce dashboard;
+* **Card tokenization** support via Cielo, allowing logged-in customers to securely save their card details for one-click future purchases and automatic recurring payments.
 * Support for **international currency payments**, expanding your global reach;
 * **Recurring payments**, perfect for subscriptions, memberships, and installment plans;
 * Advanced **PIX integration** for instant payments with additional controls;
@@ -43,7 +44,7 @@ With the [CIELO PRO version](https://www.linknacional.com.br/wordpress/woocommer
 
 ** Recommended Plugins **
 * [Link Invoice Payment for WooCommerce](https://wordpress.org/plugins/invoice-payment-for-woocommerce/) - Integrate custom payment methods and offer invoice-based payments in your WooCommerce store.
-* [Shipping Calculator for Brazil](https://wordpress.org/plugins/woo-better-shipping-calculator-for-brazil/) - Provide accurate freight calculation for Brazilian addresses directly in your WooCommerce checkout.
+* [Shipping Calculator for Brazil](https://wordpress.org/plugins/woo-better-shipping-calculator-for-brazil/) - Provide accurate freight calculation and Brazilian Fields directly in your WooCommerce checkout.
 
 **Dependencies**
 
@@ -111,6 +112,10 @@ CIELO API PIX, credit card, debit payment for WooCommerceCIELO API PIX, credit c
 7. Debit card front page with payment fields.
 
 == Changelog ==
+= 1.33.0 =
+** 13/05/2026 **
+* Add tokenized card payments.
+
 = 1.32.1 =
 ** 07/05/2026 **
 * Adjustment to the credit card installment reset process.

@@ -97,6 +97,40 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
             true
         );
 
+        // Recupera informações de cartões salvos do usuário
+
+        $user_id = get_current_user_id();
+        $cardsArray = $user_id ? get_user_meta($user_id, 'card_array', true) : array();
+        $defaultCard = $user_id ? get_user_meta($user_id, 'default_card', true) : '';
+
+        // Remover o campo 'cardToken' de cada cartão antes de enviar ao frontend
+        if (is_array($cardsArray)) {
+            foreach ($cardsArray as $key => $card) {
+                // Remover cartões expirados
+                if (is_array($card) && isset($card['expirationDate'])) {
+                    $exp = $card['expirationDate'];
+                    // Formato esperado: MM/YYYY
+                    if (preg_match('/^(0[1-9]|1[0-2])\/(\d{4})$/', $exp, $matches)) {
+                        $expMonth = (int)$matches[1];
+                        $expYear = (int)$matches[2];
+                        $now = new \DateTime();
+                        $expDate = \DateTime::createFromFormat('Y-m', $expYear . '-' . str_pad($expMonth, 2, '0', STR_PAD_LEFT));
+                        $expDate->modify('last day of this month');
+                        if ($now > $expDate) {
+                            unset($cardsArray[$key]);
+                            continue;
+                        }
+                    }
+                }
+                // Remover o campo 'cardToken'
+                if (is_array($card) && isset($card['cardToken'])) {
+                    unset($cardsArray[$key]['cardToken']);
+                }
+            }
+            // Reindexar o array para evitar buracos nas chaves
+            $cardsArray = array_values($cardsArray);
+        }
+
         wp_localize_script('lkn_cielo_debit-blocks-integration', 'lknCieloDebitConfig', array(
             'isProPluginValid' => $is_pro_plugin_valid,
             'ajax_url' => admin_url('admin-ajax.php'),
@@ -108,7 +142,9 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
                 'decimal_separator' => wc_get_price_decimal_separator(),
                 'thousand_separator' => wc_get_price_thousand_separator(),
                 'position' => get_option('woocommerce_currency_pos', 'left')
-            )
+            ),
+            'card_array' => $cardsArray,
+            'default_card' => $defaultCard
         ));
 
         // Adicionar os mesmos localize scripts da versão clássica
@@ -229,6 +265,7 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
             'user_guest' => ! is_user_logged_in(),
             'authentication_method' => is_user_logged_in() ? '02' : '01',
             'showCard' => $this->gateway->get_option('show_card_animation'),
+            'showSaveCardToken' => $this->gateway->get_option('save_card_token'),
             'client' => array(
                 'name' => $user->display_name,
                 'email' => $user->user_email,
