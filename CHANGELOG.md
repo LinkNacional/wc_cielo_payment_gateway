@@ -1,3 +1,6 @@
+# 1.33.1 - 27/05/2026
+* Novos ícones.
+
 # 1.33.0 - 13/05/2026
 * Adição de pagamentos com cartões tokenizados.
 
