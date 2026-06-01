@@ -156,7 +156,7 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
         }
 
         if ($is_pro_plugin_valid) {
-            wp_enqueue_script('lkn-wc-gateway-debit-checkout-layout', plugin_dir_url(__FILE__) . '../resources/js/debitCard/lkn-wc-gateway-checkout-layout.js', array(), LKN_WC_CIELO_VERSION, false);
+            wp_enqueue_script('lkn-wc-gateway-debit-checkout-layout', plugin_dir_url(__FILE__) . '../resources/js/debitCard/lkn-wc-gateway-checkout-layout.js', array('wp-api'), LKN_WC_CIELO_VERSION, false);
             
             // Verificar se os ícones de marca do cartão devem ser exibidos
             $show_card_brand_icons = isset($this->settings['show_card_brand_icons']) ? $this->settings['show_card_brand_icons'] : 'yes'; 
