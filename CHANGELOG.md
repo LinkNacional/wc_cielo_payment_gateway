@@ -1,3 +1,6 @@
+# 1.33.2 - 01/06/2026
+* Ajuste: Verificação de nonce ao realizar o pedido.
+
 # 1.33.1 - 27/05/2026
 * Novos ícones.
 
