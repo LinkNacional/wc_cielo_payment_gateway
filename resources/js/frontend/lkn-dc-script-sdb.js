@@ -96,13 +96,13 @@ function setupErrorDetection() {
         if(!cardBin) {
           return
         }
-        const url = wpApiSettings.root + 'lknWCGatewayCielo/checkCard?cardbin=' + cardBin
+        const url = lknCieloRestSettings.root + 'lknWCGatewayCielo/checkCard?cardbin=' + cardBin
         $.ajax({
           url,
           type: 'GET',
           headers: {
             Accept: 'application/json',
-            'X-WP-Nonce': wpApiSettings.nonce
+            'X-WP-Nonce': lknCieloRestSettings.nonce
           },
           success: function (response) {
             const options = document.querySelectorAll('#lkn_cc_type option')

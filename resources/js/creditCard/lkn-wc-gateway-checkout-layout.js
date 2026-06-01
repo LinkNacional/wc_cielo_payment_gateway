@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
   let debounceTimeout = null
-  const wpNonce = typeof wpApiSettings !== 'undefined' ? wpApiSettings.nonce : ''
 
   // Define cardBrands globally to avoid reference errors
   const cardBrands = ['visa', 'mastercard', 'elo', 'amex', 'other_card']
@@ -102,7 +101,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                     method: 'GET',
                                     headers: {
                                         'Accept': 'application/json',
-                                        'X-WP-Nonce': wpNonce
+                                        'X-WP-Nonce': lknCieloRestSettings.nonce
                                     }
                                 })
                                   .then(response => response.json())
