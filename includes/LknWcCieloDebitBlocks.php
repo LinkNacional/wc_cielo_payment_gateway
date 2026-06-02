@@ -24,16 +24,15 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
 
     public function get_payment_method_script_handles()
     {
-        $custom_layout = isset($this->settings['checkout_layout']) ? $this->settings['checkout_layout'] : 'default';
         $pro_plugin_active = function_exists('is_plugin_active') && is_plugin_active('lkn-cielo-api-pro/lkn-cielo-api-pro.php');
         $pro_license_active = get_option('lkn_cielo_pro_license_boolean', false);
         $pro_plugin_version_valid = defined('LKN_CIELO_API_PRO_VERSION') && version_compare(LKN_CIELO_API_PRO_VERSION, '1.20.2', '>=');
 
-        if ($custom_layout === 'default' && $pro_plugin_active && $pro_license_active) {
-            $custom_layout = "yes";
-        }
+        $is_pro_plugin_valid = $pro_plugin_active && $pro_license_active && $pro_plugin_version_valid;
 
-        $is_pro_plugin_valid = $pro_plugin_active && $pro_license_active && $custom_layout === 'yes' && $pro_plugin_version_valid;
+        // Gate exclusivo para carregar os scripts de UI do layout moderno
+        $checkout_layout = isset($this->settings['checkout_layout']) ? $this->settings['checkout_layout'] : 'no';
+        $use_modern_layout = $is_pro_plugin_valid && $checkout_layout === 'yes';
 
         // Enqueue base styles
         wp_enqueue_style('lkn-dc-style', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-dc-style.css', array(), LKN_WC_CIELO_VERSION, 'all');
@@ -165,7 +164,7 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
             wp_set_script_translations('lkn_cielo_debit-blocks-integration');
         }
 
-        if ($is_pro_plugin_valid) {
+        if ($use_modern_layout) {
             wp_enqueue_script('lkn-wc-gateway-debit-checkout-layout', plugin_dir_url(__FILE__) . '../resources/js/debitCard/lkn-wc-gateway-checkout-layout.js', array(), LKN_WC_CIELO_VERSION, false);
             wp_localize_script('lkn-wc-gateway-debit-checkout-layout', 'lknCieloRestSettings', array(
                 'rest_url' => esc_url_raw(rest_url()),
