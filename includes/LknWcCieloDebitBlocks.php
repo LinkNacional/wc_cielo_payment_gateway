@@ -24,16 +24,15 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
 
     public function get_payment_method_script_handles()
     {
-        $custom_layout = isset($this->settings['checkout_layout']) ? $this->settings['checkout_layout'] : 'default';
         $pro_plugin_active = function_exists('is_plugin_active') && is_plugin_active('lkn-cielo-api-pro/lkn-cielo-api-pro.php');
         $pro_license_active = get_option('lkn_cielo_pro_license_boolean', false);
         $pro_plugin_version_valid = defined('LKN_CIELO_API_PRO_VERSION') && version_compare(LKN_CIELO_API_PRO_VERSION, '1.20.2', '>=');
 
-        if ($custom_layout === 'default' && $pro_plugin_active && $pro_license_active) {
-            $custom_layout = "yes";
-        }
+        $is_pro_plugin_valid = $pro_plugin_active && $pro_license_active && $pro_plugin_version_valid;
 
-        $is_pro_plugin_valid = $pro_plugin_active && $pro_license_active && $custom_layout === 'yes' && $pro_plugin_version_valid;
+        // Gate exclusivo para carregar os scripts de UI do layout moderno
+        $checkout_layout = isset($this->settings['checkout_layout']) ? $this->settings['checkout_layout'] : 'no';
+        $use_modern_layout = $is_pro_plugin_valid && $checkout_layout === 'yes';
 
         // Enqueue base styles
         wp_enqueue_style('lkn-dc-style', plugin_dir_url(__FILE__) . '../resources/css/frontend/lkn-dc-style.css', array(), LKN_WC_CIELO_VERSION, 'all');
@@ -52,21 +51,29 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
 
         // Enqueue environment-specific scripts
         if ('production' === $env) {
-            wp_enqueue_script('lkn-dc-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-dc-script-prd.js', array('wp-i18n', 'jquery', 'wp-api'), LKN_WC_CIELO_VERSION, false);
+            wp_enqueue_script('lkn-dc-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-dc-script-prd.js', array('wp-i18n', 'jquery'), LKN_WC_CIELO_VERSION, false);
             wp_set_script_translations('lkn-dc-script', 'lkn-wc-gateway-cielo', LKN_WC_CIELO_TRANSLATION_PATH);
         } else {
-            wp_enqueue_script('lkn-dc-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-dc-script-sdb.js', array('wp-i18n', 'jquery', 'wp-api'), LKN_WC_CIELO_VERSION, false);
+            wp_enqueue_script('lkn-dc-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-dc-script-sdb.js', array('wp-i18n', 'jquery'), LKN_WC_CIELO_VERSION, false);
             wp_set_script_translations('lkn-dc-script', 'lkn-wc-gateway-cielo', LKN_WC_CIELO_TRANSLATION_PATH);
         }
         
         // Setup 3DS and other scripts
         wp_localize_script('lkn-dc-script', 'lknDCDirScript3DSCieloShortCode', array('url' => LKN_WC_GATEWAY_CIELO_URL . 'resources/js/debitCard/BP.Mpi.3ds20.min.js'));
         wp_localize_script('lkn-dc-script', 'lknDCScriptAllowCardIneligible', array('allow' => $this->gateway->get_option('allow_card_ineligible', 'no')));
+        wp_localize_script('lkn-dc-script', 'lknCieloRestSettings', array(
+            'root'  => esc_url_raw(rest_url()),
+            'nonce' => wp_create_nonce('wp_rest'),
+        ));
         
         // Enqueue mask and token scripts
         wp_enqueue_script('lkn-mask-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/formatter.js', array('jquery'), LKN_WC_CIELO_VERSION, false);
         wp_enqueue_script('lkn-mask-script-load', plugin_dir_url(__FILE__) . '../resources/js/frontend/define-mask.js', array('lkn-mask-script', 'jquery'), LKN_WC_CIELO_VERSION, false);
-        wp_enqueue_script('lkn-fix-token-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-fix-token-script.js', array('jquery', 'wp-api'), LKN_WC_CIELO_VERSION, false);
+        wp_enqueue_script('lkn-fix-token-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-fix-token-script.js', array('jquery'), LKN_WC_CIELO_VERSION, false);
+        wp_localize_script('lkn-fix-token-script', 'lknCieloRestSettings', array(
+            'root'  => esc_url_raw(rest_url()),
+            'nonce' => wp_create_nonce('wp_rest'),
+        ));
 
         // Setup installment script
         wp_enqueue_script('lkn-cc-dc-installment-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-cc-dc-installment.js', array('jquery'), LKN_WC_CIELO_VERSION, false);
@@ -135,6 +142,8 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
             'isProPluginValid' => $is_pro_plugin_valid,
             'ajax_url' => admin_url('admin-ajax.php'),
             'fees_nonce' => wp_create_nonce('lkn_payment_fees_nonce'),
+            'rest_url' => esc_url_raw(rest_url()),
+            'nonce'    => wp_create_nonce('wp_rest'),
             'currency' => array(
                 'code' => get_woocommerce_currency(),
                 'symbol' => get_woocommerce_currency_symbol(),
@@ -155,9 +164,13 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
             wp_set_script_translations('lkn_cielo_debit-blocks-integration');
         }
 
-        if ($is_pro_plugin_valid) {
+        if ($use_modern_layout) {
             wp_enqueue_script('lkn-wc-gateway-debit-checkout-layout', plugin_dir_url(__FILE__) . '../resources/js/debitCard/lkn-wc-gateway-checkout-layout.js', array(), LKN_WC_CIELO_VERSION, false);
-            
+            wp_localize_script('lkn-wc-gateway-debit-checkout-layout', 'lknCieloRestSettings', array(
+                'rest_url' => esc_url_raw(rest_url()),
+                'nonce'    => wp_create_nonce('wp_rest'),
+            ));
+
             // Verificar se os ícones de marca do cartão devem ser exibidos
             $show_card_brand_icons = isset($this->settings['show_card_brand_icons']) ? $this->settings['show_card_brand_icons'] : 'yes'; 
 

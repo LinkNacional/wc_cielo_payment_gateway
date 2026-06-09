@@ -156,7 +156,7 @@
 
         const checkValue = (typeof lknWCCieloCredit !== 'undefined' && lknWCCieloCredit.licenseResult) ?
           subtotalShipping : (subtotalShipping - discountsTotal + feesTotal + taxesTotal)
-        if ((checkValue / (i + 1)) < lknInstallmentMin) {
+        if ((checkValue / i) < lknInstallmentMin) {
           addOption = false
         }
 

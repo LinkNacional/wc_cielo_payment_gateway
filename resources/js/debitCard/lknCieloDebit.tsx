@@ -141,7 +141,7 @@ const lknDCContentCielo = (props) => {
       case 'lkn_dcno':
         if (value.length > 7) {
           var cardBin = value.replace(' ', '').substring(0, 6);
-          var url = wpApiSettings.root + 'lknWCGatewayCielo/checkCard?cardbin=' + cardBin;
+          var url = window.lknCieloDebitConfig.rest_url + 'lknWCGatewayCielo/checkCard?cardbin=' + cardBin;
 
           if (cardBin !== cardBinState) {
             setCardBinState(cardBin);  // Mova o setCardBinState para antes da requisição
@@ -150,7 +150,7 @@ const lknDCContentCielo = (props) => {
               method: 'GET',
               headers: {
                 'Accept': 'application/json',
-                'X-WP-Nonce': wpApiSettings.nonce
+                'X-WP-Nonce': window.lknCieloDebitConfig.nonce
               }
             })
               .then(response => {
