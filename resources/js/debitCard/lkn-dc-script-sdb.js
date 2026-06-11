@@ -97,50 +97,68 @@ function lknDCProccessButton () {
   lknProcessDebitCard()
 }
 
+// Helper: retorna o primeiro valor não vazio de uma lista de IDs (fallback billing → shipping → custom)
+function getDomValueWithFallback (ids) {
+  for (var i = 0; i < ids.length; i++) {
+    var el = document.getElementById(ids[i])
+    if (el && el.value && el.value.trim() !== '') {
+      return el.value.trim()
+    }
+  }
+  return ''
+}
+
+// Helper: seta valor em elemento se existir
+function setIfExists (id, value) {
+  var el = document.getElementById(id)
+  if (el) el.value = value
+}
+
 // Função para processar cartão de débito (com 3DS)
 function lknProcessDebitCard () {
   try {
-    const cardNumber = document.getElementById('lkn_dcno').value.replace(/\D/g, '')
-    const cardHolder = document.getElementById('lkn_dc_cardholder_name')
+    var cardNumber = document.getElementById('lkn_dcno').value.replace(/\D/g, '')
+    var cardHolder = document.getElementById('lkn_dc_cardholder_name')
 
-    if (cardHolder) {
-      document.getElementById('lkn_bpmpi_billto_contactname').value = cardHolder.value
+    // Nome do portador: cardholder > billing_first_name + billing_last_name > DOM block
+    if (cardHolder && cardHolder.value.trim() !== '') {
+      setIfExists('lkn_bpmpi_billto_contactname', cardHolder.value)
     } else {
-      const firstNameElement = document.getElementById('billing_first_name')
-      const lastNameElement = document.getElementById('billing_last_name')
-
-      if(firstNameElement && lastNameElement) {
-        firstName = firstNameElement.value
-        lastName = lastNameElement.value
-        document.getElementById('lkn_bpmpi_billto_contactname').value = firstName + ' ' + lastName
-      }else{
-        nameElement = document.querySelector('.wc-block-components-address-card__address-section')
-        document.getElementById('lkn_bpmpi_billto_contactname').value = nameElement.valeu
+      var firstName = getDomValueWithFallback(['billing_first_name', 'shipping_first_name'])
+      var lastName = getDomValueWithFallback(['billing_last_name', 'shipping_last_name'])
+      if (firstName || lastName) {
+        setIfExists('lkn_bpmpi_billto_contactname', (firstName + ' ' + lastName).trim())
+      } else {
+        var nameBlock = document.querySelector('.wc-block-components-address-card__address-section')
+        if (nameBlock && nameBlock.textContent) {
+          setIfExists('lkn_bpmpi_billto_contactname', nameBlock.textContent.trim())
+        }
       }
     }
 
-    const phoneNumber = document.getElementById('billing-phone') ? document.getElementById('billing-phone').value : ''
-    const billingCountry = document.getElementById('billing-country') ? document.getElementById('billing-country').value : ''
-    const billingAddress1 = document.getElementById('billing-address_1') ? document.getElementById('billing-address_1').value : ''
-    const billingAddress2 = document.getElementById('billing-address_2') ? document.getElementById('billing-address_2').value : ''
-    const billingCity = document.getElementById('billing-city') ? document.getElementById('billing-city').value : ''
-    const billingPostcode = document.getElementById('billing-postcode') ? document.getElementById('billing-postcode').value : ''
-    const billingState = document.getElementById('billing-state') ? document.getElementById('billing-state').value : ''
-    const email = document.getElementById('email') ? document.getElementById('email').value : ''
-    
-    // Busca CPF/CNPJ em ordem de prioridade: campo personalizado > billing_cpf > billing_cnpj
-    const billingDocument = (function() {
-      const customField = document.getElementById('lknCieloApiPixBillingCpf')
-      const billingCpf = document.getElementById('billing_cpf')  
-      const billingCnpj = document.getElementById('billing_cnpj')
-      
-      if (customField && customField.value) return customField.value
-      if (billingCpf && billingCpf.value) return billingCpf.value
-      if (billingCnpj && billingCnpj.value) return billingCnpj.value
-      return ''
-    })()
+    // Dados do portador com fallback billing → shipping → custom
+    // Phone: billing-phone → shipping-phone → custom-phone
+    setIfExists('lkn_bpmpi_billto_phonenumber', getDomValueWithFallback(['billing-phone', 'shipping-phone', 'custom-phone']))
+    setIfExists('lkn_bpmpi_billto_street1', getDomValueWithFallback(['billing-address_1', 'shipping-address_1']))
+    setIfExists('lkn_bpmpi_billto_street2', getDomValueWithFallback(['billing-address_2', 'shipping-address_2']))
+    setIfExists('lkn_bpmpi_billto_city', getDomValueWithFallback(['billing-city', 'shipping-city']))
+    setIfExists('lkn_bpmpi_billto_state', getDomValueWithFallback(['billing-state', 'shipping-state']))
+    setIfExists('lkn_bpmpi_billto_zipcode', getDomValueWithFallback(['billing-postcode', 'shipping-postcode']))
+    setIfExists('lkn_bpmpi_billto_country', getDomValueWithFallback(['billing-country', 'shipping-country']))
+    setIfExists('lkn_bpmpi_billto_email', getDomValueWithFallback(['billing-email', 'shipping-email', 'email']))
 
-    let expDate = document.getElementById('lkn_dc_expdate').value
+    // CPF/CNPJ: campo personalizado > billing_cpf > billing_cnpj
+    setIfExists('lkn_bpmpi_billto_customerid', getDomValueWithFallback(['lknCieloApiPixBillingCpf', 'billing_cpf', 'billing_cnpj']))
+
+    // Browser info para conformidade ELO 3DS
+    setIfExists('lkn_bpmpi_device_useragent', navigator.userAgent || '')
+    setIfExists('lkn_bpmpi_device_screenwidth', (screen.width || window.innerWidth || 0).toString())
+    setIfExists('lkn_bpmpi_device_screenheight', (screen.height || window.innerHeight || 0).toString())
+    setIfExists('lkn_bpmpi_device_colordepth', (screen.colorDepth || 24).toString())
+    setIfExists('lkn_bpmpi_device_timezone', (new Date().getTimezoneOffset()).toString())
+    setIfExists('lkn_bpmpi_device_javaenabled', (typeof navigator.javaEnabled === 'function' && navigator.javaEnabled()) ? 'true' : 'false')
+
+    var expDate = document.getElementById('lkn_dc_expdate').value
 
     expDate = expDate.split('/')
 
@@ -148,21 +166,9 @@ function lknProcessDebitCard () {
       expDate[1] = '20' + expDate[1]
     }
 
-    document.getElementById('lkn_bpmpi_cardnumber').value = cardNumber
-    document.getElementById('lkn_bpmpi_expmonth').value = expDate[0].replace(/\D/g, '')
-    document.getElementById('lkn_bpmpi_expyear').value = expDate[1].replace(/\D/g, '')
-
-    if (document.getElementById('lkn_bpmpi_useraccount_guest').value === 'true') {
-      document.getElementById('lkn_bpmpi_billto_customerid').value = billingDocument
-      document.getElementById('lkn_bpmpi_billto_phonenumber').value = phoneNumber
-      document.getElementById('lkn_bpmpi_billto_email').value = email
-      document.getElementById('lkn_bpmpi_billto_street1').value = billingAddress1
-      document.getElementById('lkn_bpmpi_billto_street2').value = billingAddress2
-      document.getElementById('lkn_bpmpi_billto_city').value = billingCity
-      document.getElementById('lkn_bpmpi_billto_state').value = billingState
-      document.getElementById('lkn_bpmpi_billto_zipcode').value = billingPostcode
-      document.getElementById('lkn_bpmpi_billto_country').value = billingCountry
-    }
+    setIfExists('lkn_bpmpi_cardnumber', cardNumber)
+    setIfExists('lkn_bpmpi_expmonth', expDate[0].replace(/\D/g, ''))
+    setIfExists('lkn_bpmpi_expyear', expDate[1].replace(/\D/g, ''))
 
     bpmpi_authenticate()
   } catch (error) {

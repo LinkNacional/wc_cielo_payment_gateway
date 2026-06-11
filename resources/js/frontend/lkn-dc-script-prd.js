@@ -340,6 +340,58 @@ function lknDCProccessButton () {
     document.getElementById('lkn_bpmpi_expmonth').value = expDate[0].replace(/\D/g, '')
     document.getElementById('lkn_bpmpi_expyear').value = expDate[1].replace(/\D/g, '')
 
+    // Preencher campos browser info para conformidade ELO 3DS
+    var userAgentEl = document.getElementById('lkn_bpmpi_device_useragent')
+    if (userAgentEl) {
+      userAgentEl.value = navigator.userAgent || ''
+    }
+    var screenWidthEl = document.getElementById('lkn_bpmpi_device_screenwidth')
+    if (screenWidthEl) {
+      screenWidthEl.value = (screen.width || window.innerWidth || 0).toString()
+    }
+    var screenHeightEl = document.getElementById('lkn_bpmpi_device_screenheight')
+    if (screenHeightEl) {
+      screenHeightEl.value = (screen.height || window.innerHeight || 0).toString()
+    }
+    var colorDepthEl = document.getElementById('lkn_bpmpi_device_colordepth')
+    if (colorDepthEl) {
+      colorDepthEl.value = (screen.colorDepth || 24).toString()
+    }
+    var timezoneEl = document.getElementById('lkn_bpmpi_device_timezone')
+    if (timezoneEl) {
+      timezoneEl.value = (new Date().getTimezoneOffset()).toString()
+    }
+    var javaEnabledEl = document.getElementById('lkn_bpmpi_device_javaenabled')
+    if (javaEnabledEl) {
+      javaEnabledEl.value = (typeof navigator.javaEnabled === 'function' && navigator.javaEnabled()) ? 'true' : 'false'
+    }
+
+    // Preencher campos billto com fallback DOM: billing → shipping → custom
+    // Phone com 3 camadas: billing-phone → shipping-phone → custom-phone
+    function getDomValueWithFallback(ids) {
+      for (var i = 0; i < ids.length; i++) {
+        var el = document.getElementById(ids[i])
+        if (el && el.value && el.value.trim() !== '') {
+          return el.value.trim()
+        }
+      }
+      return ''
+    }
+    function setIfExists(id, value) {
+      var el = document.getElementById(id)
+      if (el) el.value = value
+    }
+    setIfExists('lkn_bpmpi_billto_phonenumber', getDomValueWithFallback(['billing-phone', 'shipping-phone', 'custom-phone']))
+    setIfExists('lkn_bpmpi_billto_street1', getDomValueWithFallback(['billing-address_1', 'shipping-address_1']))
+    setIfExists('lkn_bpmpi_billto_street2', getDomValueWithFallback(['billing-address_2', 'shipping-address_2']))
+    setIfExists('lkn_bpmpi_billto_city', getDomValueWithFallback(['billing-city', 'shipping-city']))
+    setIfExists('lkn_bpmpi_billto_state', getDomValueWithFallback(['billing-state', 'shipping-state']))
+    setIfExists('lkn_bpmpi_billto_zipcode', getDomValueWithFallback(['billing-postcode', 'shipping-postcode']))
+    setIfExists('lkn_bpmpi_billto_country', getDomValueWithFallback(['billing-country', 'shipping-country']))
+    setIfExists('lkn_bpmpi_billto_email', getDomValueWithFallback(['billing-email', 'shipping-email']))
+    setIfExists('lkn_bpmpi_billto_contactname', getDomValueWithFallback(['billing-first_name']))
+    // Se o email do DOM não foi encontrado, manter o valor já existente no campo hidden
+
     bpmpi_authenticate()
   } catch (error) {
     resetLkn3DSStatus();

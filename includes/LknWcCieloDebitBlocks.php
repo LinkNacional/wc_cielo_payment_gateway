@@ -282,13 +282,14 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
             'client' => array(
                 'name' => $user->display_name,
                 'email' => $user->user_email,
-                'billing_phone' => get_user_meta($user->ID, 'billing_phone', true),
-                'billing_address_1' => get_user_meta($user->ID, 'billing_address_1', true),
-                'billing_address_2' => get_user_meta($user->ID, 'billing_address_2', true),
-                'billing_city' => get_user_meta($user->ID, 'billing_city', true),
-                'billing_state' => get_user_meta($user->ID, 'billing_state', true),
-                'billing_postcode' => get_user_meta($user->ID, 'billing_postcode', true),
-                'billing_country' => get_user_meta($user->ID, 'billing_country', true),
+                // Fallback: billing → shipping → custom → vazio, para garantir dados ELO obrigatórios
+                'billing_phone' => $this->get_user_meta_fallback($user->ID, 'billing_phone', 'shipping_phone', 'custom-phone'),
+                'billing_address_1' => $this->get_user_meta_fallback($user->ID, 'billing_address_1', 'shipping_address_1'),
+                'billing_address_2' => $this->get_user_meta_fallback($user->ID, 'billing_address_2', 'shipping_address_2'),
+                'billing_city' => $this->get_user_meta_fallback($user->ID, 'billing_city', 'shipping_city'),
+                'billing_state' => $this->get_user_meta_fallback($user->ID, 'billing_state', 'shipping_state'),
+                'billing_postcode' => $this->get_user_meta_fallback($user->ID, 'billing_postcode', 'shipping_postcode'),
+                'billing_country' => $this->get_user_meta_fallback($user->ID, 'billing_country', 'shipping_country'),
                 'billing_document' => $billingDocument
             ),
             'translations' => array(
@@ -311,5 +312,27 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
                 'calculatingInstallments' => __('Calculating installments...', 'lkn-wc-gateway-cielo'),
             )
         );
+    }
+
+    /**
+     * Helper method: retorna o valor do primeiro meta key que existir e não for vazio.
+     * Suporta fallback em múltiplas chaves (ex: billing_phone → shipping_phone → phone).
+     *
+     * @param int   $user_id
+     * @param string ...$keys  Lista ordenada de meta keys para tentar
+     * @return string
+     */
+    private function get_user_meta_fallback($user_id, ...$keys)
+    {
+        foreach ($keys as $key) {
+            if (empty($key)) {
+                continue;
+            }
+            $value = get_user_meta($user_id, $key, true);
+            if (! empty($value) && false !== $value) {
+                return $value;
+            }
+        }
+        return '';
     }
 }

@@ -929,13 +929,38 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
 
         $name = $user->display_name;
         $email = $user->user_email;
+        // Fallback: billing → shipping → custom → vazio, para garantir dados ELO obrigatórios
         $billing_phone = get_user_meta($user->ID, 'billing_phone', true);
+        if (empty($billing_phone)) {
+            $billing_phone = get_user_meta($user->ID, 'shipping_phone', true);
+        }
+        if (empty($billing_phone)) {
+            $billing_phone = get_user_meta($user->ID, 'phone', true);
+        }
         $billing_address_1 = get_user_meta($user->ID, 'billing_address_1', true);
+        if (empty($billing_address_1)) {
+            $billing_address_1 = get_user_meta($user->ID, 'shipping_address_1', true);
+        }
         $billing_address_2 = get_user_meta($user->ID, 'billing_address_2', true);
+        if (empty($billing_address_2)) {
+            $billing_address_2 = get_user_meta($user->ID, 'shipping_address_2', true);
+        }
         $billing_city = get_user_meta($user->ID, 'billing_city', true);
+        if (empty($billing_city)) {
+            $billing_city = get_user_meta($user->ID, 'shipping_city', true);
+        }
         $billing_state = get_user_meta($user->ID, 'billing_state', true);
+        if (empty($billing_state)) {
+            $billing_state = get_user_meta($user->ID, 'shipping_state', true);
+        }
         $billing_postcode = get_user_meta($user->ID, 'billing_postcode', true);
+        if (empty($billing_postcode)) {
+            $billing_postcode = get_user_meta($user->ID, 'shipping_postcode', true);
+        }
         $billing_country = get_user_meta($user->ID, 'billing_country', true);
+        if (empty($billing_country)) {
+            $billing_country = get_user_meta($user->ID, 'shipping_country', true);
+        }
         $billing_document = $billingDocument;
 
         ?>

@@ -249,6 +249,37 @@ if (! defined('ABSPATH')) {
         name="lkn_card_brand_establishment_code"
         className="bpmpi_brand_establishment_code"
         value="<?php echo esc_attr($bec); ?>" />
+    <!-- Browser info fields for 3DS ELO compliance -->
+    <input
+        type="hidden"
+        id="lkn_bpmpi_device_useragent"
+        name="lkn_card_device_useragent"
+        className="bpmpi_device_useragent" />
+    <input
+        type="hidden"
+        id="lkn_bpmpi_device_screenwidth"
+        name="lkn_card_device_screenwidth"
+        className="bpmpi_device_screenwidth" />
+    <input
+        type="hidden"
+        id="lkn_bpmpi_device_screenheight"
+        name="lkn_card_device_screenheight"
+        className="bpmpi_device_screenheight" />
+    <input
+        type="hidden"
+        id="lkn_bpmpi_device_colordepth"
+        name="lkn_card_device_colordepth"
+        className="bpmpi_device_colordepth" />
+    <input
+        type="hidden"
+        id="lkn_bpmpi_device_timezone"
+        name="lkn_card_device_timezone"
+        className="bpmpi_device_timezone" />
+    <input
+        type="hidden"
+        id="lkn_bpmpi_device_javaenabled"
+        name="lkn_card_device_javaenabled"
+        className="bpmpi_device_javaenabled" />
     <input
         type="hidden"
         id="lkn_cavv"
