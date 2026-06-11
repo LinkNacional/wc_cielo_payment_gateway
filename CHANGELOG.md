@@ -1,3 +1,6 @@
+# 1.33.3 - 11/06/2026
+* Ajuste: preenchimento dos campos necessários para o 3DS.
+
 # 1.33.2 - 01/06/2026
 * Ajuste: Verificação de nonce ao realizar o pedido.
 
