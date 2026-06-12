@@ -619,10 +619,11 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
      */
     public function validate_fields()
     {
+        $nonceInactive = $this->get_option('nonce_compatibility', 'no');
         $validateCompatMode = $this->get_option('input_validation_compatibility', 'no');
         $nonce = isset($_POST['nonce_lkn_cielo_credit']) ? sanitize_text_field(wp_unslash($_POST['nonce_lkn_cielo_credit'])) : '';
 
-        if (! wp_verify_nonce($nonce, 'nonce_lkn_cielo_credit') && 'no' === $validateCompatMode) {
+        if (! wp_verify_nonce($nonce, 'nonce_lkn_cielo_credit') && 'no' === $nonceInactive) {
             $this->log->log('error', 'Nonce verification failed. Nonce: ' . var_export($nonce, true), array('source' => 'woocommerce-cielo-credit'));
             $this->add_notice_once(__('Nonce verification failed, try reloading the page', 'lkn-wc-gateway-cielo'), 'error');
             return false;

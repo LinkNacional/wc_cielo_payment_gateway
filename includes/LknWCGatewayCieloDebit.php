@@ -1022,11 +1022,12 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
      */
     public function validate_fields()
     {
+        $nonceInactive = $this->get_option('nonce_compatibility', 'no');
         $validateCompatMode = $this->get_option('input_validation_compatibility', 'no');
         $nonce = isset($_POST['nonce_lkn_cielo_debit']) ? sanitize_text_field(wp_unslash($_POST['nonce_lkn_cielo_debit'])) : '';
         $saveCardIndex = isset($_POST['lkn_selected_saved_card_index']) ? sanitize_text_field(wp_unslash($_POST['lkn_selected_saved_card_index'])) : '';
 
-        if (! wp_verify_nonce($nonce, 'nonce_lkn_cielo_debit')) {
+        if (! wp_verify_nonce($nonce, 'nonce_lkn_cielo_debit') && 'no' === $nonceInactive) {
             $this->log->log('error', 'Nonce verification failed. Nonce: ' . var_export($nonce, true), array('source' => 'woocommerce-cielo-debit'));
             $this->add_notice_once(__('Nonce verification failed, try reloading the page', 'lkn-wc-gateway-cielo'), 'error');
             return false;
