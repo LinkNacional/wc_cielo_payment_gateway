@@ -1087,6 +1087,14 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
             $cardCvv = isset($_POST['lkn_dc_cvc']) ? sanitize_text_field(wp_unslash($_POST['lkn_dc_cvc'])) : '';
             $cardName = isset($_POST['lkn_dc_cardholder_name']) ? sanitize_text_field(wp_unslash($_POST['lkn_dc_cardholder_name'])) : '';
             $cardName = apply_filters('lkn_wc_cielo_get_cardholder_name', $cardName, $this, $order);
+
+            // Fallback: se o nome do titular do cartão estiver vazio, usa o nome de cobrança do pedido
+            if (empty(trim($cardName))) {
+                $firstName = $order->get_billing_first_name();
+                $lastName = $order->get_billing_last_name();
+                $cardName = trim($firstName . ' ' . $lastName);
+            }
+
             $cardType = isset($_POST['lkn_cc_type']) ? sanitize_text_field(wp_unslash($_POST['lkn_cc_type'])) : '';
             $installments = (int) (isset($_POST['lkn_cc_dc_installments']) ? sanitize_text_field(wp_unslash($_POST['lkn_cc_dc_installments'])) : 1);
             $saveCard = isset($_POST['lkn_save_debit_credit_card']) && ($_POST['lkn_save_debit_credit_card'] === '1' || $this->get_option('save_card_token') == 'required' ) ? true : false;
@@ -1320,6 +1328,9 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                 
                 $body = array(
                     'MerchantOrderId' => $merchantOrderId,
+                    'Customer' => array(
+                        'Name' => $cardName,
+                    ),
                     'Payment' => array(
                         'Type' => $cardType . "Card",
                         'Amount' => (int) $amountFormated,
@@ -1328,6 +1339,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                         'SoftDescriptor' => $description,
                         $cardType . "Card" => array(
                             'CardNumber' => $cardNum,
+                            'Holder' => $cardName,
                             'ExpirationDate' => $cardExp,
                             'SecurityCode' => $cardCvv,
                             'Brand' => $provider,
@@ -1545,6 +1557,9 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
     
                 $body = array(
                     'MerchantOrderId' => sanitize_text_field($order_id . '-' . time()),
+                    'Customer' => array(
+                        'Name' => $cardName,
+                    ),
                     'Payment' => array(
                         'Type' => "CreditCard",
                         'Amount' => (int) number_format($order->get_total(), 2, '', ''),

@@ -682,6 +682,14 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
         $cardCvv = isset($_POST['lkn_cc_cvc']) ? sanitize_text_field(wp_unslash($_POST['lkn_cc_cvc'])) : '';
         $cardName = isset($_POST['lkn_cc_cardholder_name']) ? sanitize_text_field(wp_unslash($_POST['lkn_cc_cardholder_name'])) : '';
         $cardName = apply_filters('lkn_wc_cielo_get_cardholder_name', $cardName, $this, $order);
+
+        // Fallback: se o nome do titular do cartão estiver vazio, usa o nome de cobrança do pedido
+        if (empty(trim($cardName))) {
+            $firstName = $order->get_billing_first_name();
+            $lastName = $order->get_billing_last_name();
+            $cardName = trim($firstName . ' ' . $lastName);
+        }
+
         $installments = (int) isset($_POST['lkn_cc_installments']) ? sanitize_text_field(wp_unslash($_POST['lkn_cc_installments'])) : 1;
 
         // POST parameters
@@ -832,6 +840,9 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
 
         $body = array(
             'MerchantOrderId' => $merchantOrderId,
+            'Customer' => array(
+                'Name' => $cardName,
+            ),
             'Payment' => array(
                 'Type' => 'CreditCard',
                 'Amount' => (int) $amountFormated,
@@ -840,6 +851,7 @@ final class LknWCGatewayCieloCredit extends WC_Payment_Gateway
                 'SoftDescriptor' => $description,
                 'CreditCard' => array(
                     'CardNumber' => $cardNum,
+                    'Holder' => $cardName,
                     'ExpirationDate' => $cardExp,
                     'SecurityCode' => $cardCvv,
                     'SaveCard' => $saveCard,
