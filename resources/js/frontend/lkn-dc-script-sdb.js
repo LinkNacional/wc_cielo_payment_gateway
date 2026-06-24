@@ -199,11 +199,11 @@ function setupErrorDetection() {
 })(jQuery)
 
 function submitForm(e) {
-  const cavv = e.Cavv
-  const xid = e.Xid
-  const eci = e.Eci
-  const version = e.Version
-  const referenceId = e.ReferenceId
+  const cavv = e.Cavv || ''
+  const xid = e.Xid || ''
+  const eci = e.Eci || ''
+  const version = e.Version || ''
+  const referenceId = e.ReferenceId || ''
   const Form3dsButton = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0]?.closest('form')
 
   // Marcar que 3DS foi completado
@@ -263,25 +263,29 @@ function bpmpi_config() {
 
       const lknDebitCCForm = document.getElementById('wc-lkn_cielo_debit-cc-form')
       if (lknDebitCCForm) {
-        alert(wp.i18n.__('Authentication failed check the card information and try again', 'lkn-wc-gateway-cielo'))
+        if (lknDCScriptAllowCardIneligible.allow == 'yes') {
+          submitForm(e)
+        } else {
+          alert(wp.i18n.__('Authentication failed check the card information and try again', 'lkn-wc-gateway-cielo'))
+        }
       }
     },
     onUnenrolled: function (e) {
       // Card is not eligible for authentication (unauthenticable)
       console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage)
-      //aqui
+      // ECI 04/07 = Data Only = NÃO autenticada. Requer allow_card_ineligible.
       if (lknDCScriptAllowCardIneligible.allow == 'yes') {
         submitForm(e)
       } else {
         alert(wp.i18n.__('Card Ineligible for Authentication', 'lkn-wc-gateway-cielo'))
       }
     },
-    onDisabled: function () {
+    onDisabled: function (e) {
       // Store don't require bearer authentication (class "bpmpi_auth" false -> disabled authentication).
-      console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage)
+      console.log('code ' + (e ? e.ReturnCode : 'N/A') + ' ' + ' message ' + (e ? e.ReturnMessage : 'N/A'))
       //aqui
       if (lknDCScriptAllowCardIneligible.allow == 'yes') {
-        submitForm(e)
+        submitForm(e || {})
       } else {
         alert(wp.i18n.__('Authentication disabled by the store', 'lkn-wc-gateway-cielo'))
       }
