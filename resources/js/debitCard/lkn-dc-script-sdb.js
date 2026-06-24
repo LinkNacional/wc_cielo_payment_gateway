@@ -8,21 +8,21 @@ function bpmpi_config () {
     },
     onSuccess: function (e) {
       // Card is eligible for authentication, and the bearer successfully authenticated
-      const cavv = e.Cavv
-      const xid = e.Xid
-      const eci = e.Eci
-      const version = e.Version
-      const referenceId = e.ReferenceId
+      const cavv = e.Cavv || ''
+      const xid = e.Xid || ''
+      const eci = e.Eci || ''
+      const version = e.Version || ''
+      const referenceId = e.ReferenceId || ''
 
-      const Form3dsButton = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0].closest('form')
-
-      Form3dsButton.setAttribute('data-payment-cavv', cavv)
-      Form3dsButton.setAttribute('data-payment-eci', eci)
-      Form3dsButton.setAttribute('data-payment-ref_id', referenceId)
-      Form3dsButton.setAttribute('data-payment-version', version)
-      Form3dsButton.setAttribute('data-payment-xid', xid)
+      const Form3dsButton = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0]?.closest('form')
 
       if (Form3dsButton) {
+        Form3dsButton.setAttribute('data-payment-cavv', cavv)
+        Form3dsButton.setAttribute('data-payment-eci', eci)
+        Form3dsButton.setAttribute('data-payment-ref_id', referenceId)
+        Form3dsButton.setAttribute('data-payment-version', version)
+        Form3dsButton.setAttribute('data-payment-xid', xid)
+
         const Button3ds = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0]
         const event = new MouseEvent('click', {
           bubbles: true,
@@ -38,41 +38,73 @@ function bpmpi_config () {
       // Card is not eligible for authentication, but the bearer failed payment
       console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage + ' raw: ' + JSON.stringify(e))
 
-      alert(wp.i18n.__('Authentication failed check the card information and try again', 'lkn-wc-gateway-cielo'))
+      const allowCardIneligible = window.lknDCScriptAllowCardIneligible && window.lknDCScriptAllowCardIneligible.allow === 'yes'
+      if (allowCardIneligible) {
+        const Form3dsButton = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0]?.closest('form')
+        if (Form3dsButton) {
+          Form3dsButton.setAttribute('data-payment-cavv', e.Cavv || '')
+          Form3dsButton.setAttribute('data-payment-eci', e.Eci || '')
+          Form3dsButton.setAttribute('data-payment-ref_id', e.ReferenceId || '')
+          Form3dsButton.setAttribute('data-payment-version', e.Version || '')
+          Form3dsButton.setAttribute('data-payment-xid', e.Xid || '')
+          const Button3ds = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0]
+          const event = new MouseEvent('click', { bubbles: true, cancelable: true, view: window })
+          Button3ds.dispatchEvent(event)
+        }
+      } else {
+        alert(wp.i18n.__('Authentication failed check the card information and try again', 'lkn-wc-gateway-cielo'))
+      }
     },
     onUnenrolled: function (e) {
       console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage + ' raw: ' + JSON.stringify(e))
 
-      // Verificar se a opção allow_card_ineligible está habilitada
-      const allowCardIneligible = window.lknDCScriptAllowCardIneligible.allow === 'yes'
+      // ECI 04/07 = Data Only = NÃO autenticada (risco do lojista). Requer allow_card_ineligible.
+      const allowCardIneligible = window.lknDCScriptAllowCardIneligible && window.lknDCScriptAllowCardIneligible.allow === 'yes'
       
       if (allowCardIneligible) {
+        const Form3dsButton = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0]?.closest('form')
         
-        // Continuar processamento sem 3DS - simular dados vazios
-        const Form3dsButton = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0].closest('form')
-        
-        Form3dsButton.setAttribute('data-payment-cavv', '')
-        Form3dsButton.setAttribute('data-payment-eci', '')
-        Form3dsButton.setAttribute('data-payment-ref_id', e.ReferenceId || '')
-        Form3dsButton.setAttribute('data-payment-version', e.Version || '')
-        Form3dsButton.setAttribute('data-payment-xid', '')
-        
-        // Clicar no botão de finalizar pedido
-        const Button3ds = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0]
-        const event = new MouseEvent('click', {
-          bubbles: true,
-          cancelable: true,
-          view: window
-        })
-        Button3ds.dispatchEvent(event)
+        if (Form3dsButton) {
+          Form3dsButton.setAttribute('data-payment-cavv', e.Cavv || '')
+          Form3dsButton.setAttribute('data-payment-eci', e.Eci || '')
+          Form3dsButton.setAttribute('data-payment-ref_id', e.ReferenceId || '')
+          Form3dsButton.setAttribute('data-payment-version', e.Version || '')
+          Form3dsButton.setAttribute('data-payment-xid', e.Xid || '')
+          
+          const Button3ds = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0]
+          const event = new MouseEvent('click', {
+            bubbles: true,
+            cancelable: true,
+            view: window
+          })
+          Button3ds.dispatchEvent(event)
+        }
       } else {
         // Card is not eligible for authentication (unauthenticable)
         alert(wp.i18n.__('Card Ineligible for Authentication', 'lkn-wc-gateway-cielo'))
       }
     },
-    onDisabled: function () {
+    onDisabled: function (e) {
       // Store don't require bearer authentication (class "bpmpi_auth" false -> disabled authentication).
-      alert(wp.i18n.__('Authentication disabled by the store', 'lkn-wc-gateway-cielo'))
+      console.log('code ' + (e ? e.ReturnCode : 'N/A') + ' ' + ' message ' + (e ? e.ReturnMessage : 'N/A') + ' raw: ' + JSON.stringify(e || {}))
+
+      const allowCardIneligible = window.lknDCScriptAllowCardIneligible && window.lknDCScriptAllowCardIneligible.allow === 'yes'
+      if (allowCardIneligible) {
+        // Continuar sem 3DS
+        const Form3dsButton = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0]?.closest('form')
+        if (Form3dsButton) {
+          Form3dsButton.setAttribute('data-payment-cavv', '')
+          Form3dsButton.setAttribute('data-payment-eci', '')
+          Form3dsButton.setAttribute('data-payment-ref_id', '')
+          Form3dsButton.setAttribute('data-payment-version', '')
+          Form3dsButton.setAttribute('data-payment-xid', '')
+          const Button3ds = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0]
+          const event = new MouseEvent('click', { bubbles: true, cancelable: true, view: window })
+          Button3ds.dispatchEvent(event)
+        }
+      } else {
+        alert(wp.i18n.__('Authentication disabled by the store', 'lkn-wc-gateway-cielo'))
+      }
     },
     onError: function (e) {
       console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage + ' raw: ' + JSON.stringify(e))
@@ -83,8 +115,23 @@ function bpmpi_config () {
     onUnsupportedBrand: function (e) {
       console.log('code ' + e.ReturnCode + ' ' + ' message ' + e.ReturnMessage + ' raw: ' + JSON.stringify(e))
 
-      // Provider not supported for authentication
-      alert(wp.i18n.__('Provider not supported by Cielo 3DS authentication', 'lkn-wc-gateway-cielo'))
+      const allowCardIneligible = window.lknDCScriptAllowCardIneligible && window.lknDCScriptAllowCardIneligible.allow === 'yes'
+      if (allowCardIneligible) {
+        // Continuar sem 3DS
+        const Form3dsButton = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0]?.closest('form')
+        if (Form3dsButton) {
+          Form3dsButton.setAttribute('data-payment-cavv', '')
+          Form3dsButton.setAttribute('data-payment-eci', '')
+          Form3dsButton.setAttribute('data-payment-ref_id', '')
+          Form3dsButton.setAttribute('data-payment-version', '')
+          Form3dsButton.setAttribute('data-payment-xid', '')
+          const Button3ds = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0]
+          const event = new MouseEvent('click', { bubbles: true, cancelable: true, view: window })
+          Button3ds.dispatchEvent(event)
+        }
+      } else {
+        alert(wp.i18n.__('Provider not supported by Cielo 3DS authentication', 'lkn-wc-gateway-cielo'))
+      }
     },
 
     Environment: 'SDB', // SDB or PRD

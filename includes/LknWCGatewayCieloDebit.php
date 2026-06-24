@@ -1098,6 +1098,13 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
             $version = isset($_POST['lkn_cielo_3ds_version']) ? sanitize_text_field(wp_unslash($_POST['lkn_cielo_3ds_version'])) : '';
             $refId = isset($_POST['lkn_cielo_3ds_ref_id']) ? sanitize_text_field(wp_unslash($_POST['lkn_cielo_3ds_ref_id'])) : '';
 
+            // Normalize JS setAttribute pass-through values ('null', 'undefined', 'true') to empty strings
+            foreach (array('xid', 'cavv', 'eci', 'version', 'refId') as $field) {
+                if (in_array($$field, array('null', 'undefined', 'true'), true)) {
+                    $$field = '';
+                }
+            }
+
             // POST parameters
             $url = ($this->get_option('env') == 'production') ? 'https://api.cieloecommerce.cielo.com.br/' : 'https://apisandbox.cieloecommerce.cielo.com.br/';
             $merchantId = sanitize_text_field($this->get_option('merchant_id'));
@@ -1299,7 +1306,11 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
             $actualCapture = ($cardType === 'Debit') ? true : $capture;
 
             // Cartão de débito - verificar se permite cartão inelegível ou se tem validação 3DS
-            if ($this->get_option('allow_card_ineligible', 'no') == 'yes' && (empty($refId) || 'null' == $refId)) {
+            // Bypass 3DS when allowed AND: no 3DS was attempted, OR auth failed (cavv empty, not data-only ECI 04)
+            $bypass3ds = $this->get_option('allow_card_ineligible', 'no') == 'yes' && 
+                (empty($refId) || 'null' == $refId || (empty($cavv) && 4 != $eci));
+            
+            if ($bypass3ds) {
                 $args['headers'] = array(
                     'Content-Type' => 'application/json',
                     'MerchantId' => $merchantId,

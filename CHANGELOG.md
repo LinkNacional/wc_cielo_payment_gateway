@@ -1,3 +1,6 @@
+# 1.33.5 - 24/06/2026
+* Ajuste: Validação do 3DS.
+  
 # 1.33.4 - 12/06/2026
 * Ajuste: verificação do nonce.
 
