@@ -1385,7 +1385,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                             'ExternalAuthentication' => array(
                                 'Eci' => $eci,
                                 'ReferenceId' => $refId,
-                                'dataonly' => true,
+                                'dataonly' => false,
                             ),
                         ),
                     );
