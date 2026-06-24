@@ -134,6 +134,13 @@ if (!defined('ABSPATH')) {
         <input type="hidden" size="45" id="lkn_bpmpi_device_ipaddress" name="lkn_card_device_ipaddress" className="bpmpi_device_ipaddress" value="<?php echo esc_attr($client_ip); ?>" />
         <input type="hidden" size="7" id="lkn_bpmpi_device_channel" name="lkn_card_device_channel" className="bpmpi_device_channel" value="Browser" />
         <input type="hidden" size="10" id="lkn_bpmpi_brand_establishment_code" name="lkn_card_brand_establishment_code" className="bpmpi_brand_establishment_code" value="<?php echo esc_attr($bec); ?>" />
+        <!-- Browser info fields for 3DS ELO compliance -->
+        <input type="hidden" id="lkn_bpmpi_device_useragent" name="lkn_card_device_useragent" className="bpmpi_device_useragent" />
+        <input type="hidden" id="lkn_bpmpi_device_screenwidth" name="lkn_card_device_screenwidth" className="bpmpi_device_screenwidth" />
+        <input type="hidden" id="lkn_bpmpi_device_screenheight" name="lkn_card_device_screenheight" className="bpmpi_device_screenheight" />
+        <input type="hidden" id="lkn_bpmpi_device_colordepth" name="lkn_card_device_colordepth" className="bpmpi_device_colordepth" />
+        <input type="hidden" id="lkn_bpmpi_device_timezone" name="lkn_card_device_timezone" className="bpmpi_device_timezone" />
+        <input type="hidden" id="lkn_bpmpi_device_javaenabled" name="lkn_card_device_javaenabled" className="bpmpi_device_javaenabled" />
         <input type="hidden" id="lkn_cavv" name="lkn_cielo_3ds_cavv" value="true" />
         <input type="hidden" id="lkn_eci" name="lkn_cielo_3ds_eci" value="true" />
         <input type="hidden" id="lkn_ref_id" name="lkn_cielo_3ds_ref_id" value="true" />

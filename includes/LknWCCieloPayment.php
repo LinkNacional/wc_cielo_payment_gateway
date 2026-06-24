@@ -733,8 +733,8 @@ final class LknWCCieloPayment
     {
         // Verificar se usuario já dispensou a notificação
         $notice_dismissed = get_option('lkn_fraud_notice_dismissed', 'no');
-        
-        if ($notice_dismissed === 'no' && !file_exists(WP_PLUGIN_DIR . '/fraud-detection-for-woocommerce/fraud-detection-for-woocommerce.php') && (!is_plugin_active('integration-rede-for-woocommerce/integration-rede-for-woocommerce.php') && !is_plugin_active('woo-rede/integration-rede-for-woocommerce.php'))) {
+
+        if ($notice_dismissed === 'no' && (!file_exists(WP_PLUGIN_DIR . '/fraud-scam-detection-woocommerce/fraud-scam-detection-woocommerce.php') && !file_exists(WP_PLUGIN_DIR . '/fraud-and-scam-detection-for-woocommerce/fraud-scam-detection-woocommerce.php')) && (!is_plugin_active('integration-rede-for-woocommerce/integration-rede-for-woocommerce.php') && !is_plugin_active('woo-rede/integration-rede-for-woocommerce.php'))) {
             // Enfileirar script para dismiss da notificação
             wp_enqueue_script('lkn-cielo-dismiss-notice', LKN_WC_GATEWAY_CIELO_DIR_URL . 'resources/js/admin/lkn-dismiss-fraud-notice.js', array('jquery'), LKN_WC_CIELO_VERSION, true);
             wp_localize_script('lkn-cielo-dismiss-notice', 'lknCieloDismissNotice', array(
@@ -1317,7 +1317,8 @@ final class LknWCCieloPayment
         }
 
         // Atualizar opção para dispensar a notificação
-        $updated = update_option('lkn_cielo_fraud_notice_dismissed', 'yes');
+        update_option('lkn_cielo_fraud_notice_dismissed', 'yes');
+        $updated = get_option('lkn_cielo_fraud_notice_dismissed') === 'yes';
 
         if ($updated) {
             wp_send_json_success(array('message' => __('Notice dismissed successfully', 'lkn-wc-gateway-cielo')));

@@ -929,13 +929,38 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
 
         $name = $user->display_name;
         $email = $user->user_email;
+        // Fallback: billing → shipping → custom → vazio, para garantir dados ELO obrigatórios
         $billing_phone = get_user_meta($user->ID, 'billing_phone', true);
+        if (empty($billing_phone)) {
+            $billing_phone = get_user_meta($user->ID, 'shipping_phone', true);
+        }
+        if (empty($billing_phone)) {
+            $billing_phone = get_user_meta($user->ID, 'phone', true);
+        }
         $billing_address_1 = get_user_meta($user->ID, 'billing_address_1', true);
+        if (empty($billing_address_1)) {
+            $billing_address_1 = get_user_meta($user->ID, 'shipping_address_1', true);
+        }
         $billing_address_2 = get_user_meta($user->ID, 'billing_address_2', true);
+        if (empty($billing_address_2)) {
+            $billing_address_2 = get_user_meta($user->ID, 'shipping_address_2', true);
+        }
         $billing_city = get_user_meta($user->ID, 'billing_city', true);
+        if (empty($billing_city)) {
+            $billing_city = get_user_meta($user->ID, 'shipping_city', true);
+        }
         $billing_state = get_user_meta($user->ID, 'billing_state', true);
+        if (empty($billing_state)) {
+            $billing_state = get_user_meta($user->ID, 'shipping_state', true);
+        }
         $billing_postcode = get_user_meta($user->ID, 'billing_postcode', true);
+        if (empty($billing_postcode)) {
+            $billing_postcode = get_user_meta($user->ID, 'shipping_postcode', true);
+        }
         $billing_country = get_user_meta($user->ID, 'billing_country', true);
+        if (empty($billing_country)) {
+            $billing_country = get_user_meta($user->ID, 'shipping_country', true);
+        }
         $billing_document = $billingDocument;
 
         ?>
@@ -997,11 +1022,12 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
      */
     public function validate_fields()
     {
+        $nonceInactive = $this->get_option('nonce_compatibility', 'no');
         $validateCompatMode = $this->get_option('input_validation_compatibility', 'no');
         $nonce = isset($_POST['nonce_lkn_cielo_debit']) ? sanitize_text_field(wp_unslash($_POST['nonce_lkn_cielo_debit'])) : '';
         $saveCardIndex = isset($_POST['lkn_selected_saved_card_index']) ? sanitize_text_field(wp_unslash($_POST['lkn_selected_saved_card_index'])) : '';
 
-        if (! wp_verify_nonce($nonce, 'nonce_lkn_cielo_debit')) {
+        if (! wp_verify_nonce($nonce, 'nonce_lkn_cielo_debit') && 'no' === $nonceInactive) {
             $this->log->log('error', 'Nonce verification failed. Nonce: ' . var_export($nonce, true), array('source' => 'woocommerce-cielo-debit'));
             $this->add_notice_once(__('Nonce verification failed, try reloading the page', 'lkn-wc-gateway-cielo'), 'error');
             return false;
