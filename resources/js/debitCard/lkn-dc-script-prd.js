@@ -195,7 +195,7 @@ function lknProcessDebitCard () {
     setIfExists('lkn_bpmpi_billto_email', getDomValueWithFallback(['billing-email', 'shipping-email', 'email']))
 
     // CPF/CNPJ: campo personalizado > billing_cpf > billing_cnpj
-    setIfExists('lkn_bpmpi_billto_customerid', getDomValueWithFallback(['lknCieloApiPixBillingCpf', 'billing_cpf', 'billing_cnpj']))
+    setIfExists('lkn_bpmpi_billto_customerid', getDomValueWithFallback(['lknCieloApiPixBillingCpf', 'billing_cpf', 'billing_cnpj', 'billing_document']))
 
     // Browser info para conformidade ELO 3DS
     setIfExists('lkn_bpmpi_device_useragent', navigator.userAgent || '')
