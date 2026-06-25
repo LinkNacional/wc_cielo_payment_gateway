@@ -3,7 +3,7 @@ Contributors: linknacional
 Donate link: https://www.linknacional.com.br/wordpress/woocommerce/cielo/
 Tags: pagamento, cielo, pix, woocommerce, creditcard
 Requires at least: 5.7
-Tested up to: 6.9
+Tested up to: 7.0
 Stable tag: 1.33.5
 Requires PHP: 8.0
 License: GPLv3 or later
