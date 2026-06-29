@@ -99,6 +99,25 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
     }
 
     /**
+     * Hide gateway for free orders (cart total = 0).
+     * Prevents 3DS authentication from being triggered unnecessarily.
+     *
+     * @return bool
+     */
+    public function is_available()
+    {
+        if (! parent::is_available()) {
+            return false;
+        }
+
+        if (WC()->cart && WC()->cart->total <= 0) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * Admin options - usa o sistema universal
      */
     public function admin_options()

@@ -165,6 +165,14 @@ function setIfExists (id, value) {
 function lknProcessDebitCard () {
   try {
     var cardNumber = document.getElementById('lkn_dcno').value.replace(/\D/g, '')
+
+    // Se não há campo de cartão visível, não precisa de 3DS — submete direto
+    if (!document.getElementById('lkn_dcno') || !cardNumber || !document.getElementById('lkn_dcno').offsetParent) {
+      var btn = document.querySelectorAll('.wc-block-components-checkout-place-order-button')[0]
+      if (btn) btn.click()
+      return;
+    }
+
     var cardHolder = document.getElementById('lkn_dc_cardholder_name')
 
     // Nome do portador: cardholder > billing_first_name + billing_last_name > DOM block

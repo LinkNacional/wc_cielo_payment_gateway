@@ -339,6 +339,20 @@ function lknDCProccessButton() {
       return;
     }
 
+    // Se o gateway está selecionado mas não há campo de cartão visível,
+    // o pedido não precisa de 3DS (ex: produto gratuito, total R$0).
+    // Submete o formulário normalmente.
+    var lknDcnoEl = document.getElementById('lkn_dcno')
+    if (!lknDcnoEl || !lknDcnoEl.value.trim() || !lknDcnoEl.offsetParent) {
+      var btnSubmitFree = document.getElementById('place_order')
+      if (btnSubmitFree) {
+        btnSubmitFree.removeEventListener('click', lknDCProccessButton, true)
+        btnSubmitFree.setAttribute('type', 'submit')
+        btnSubmitFree.click()
+      }
+      return;
+    }
+
     const cardNumber = document.getElementById('lkn_dcno').value.replace(/\D/g, '')
     let expDate = document.getElementById('lkn_dc_expdate').value
 
