@@ -62,7 +62,7 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
         wp_localize_script('lkn-dc-script', 'lknDCDirScript3DSCieloShortCode', array('url' => LKN_WC_GATEWAY_CIELO_URL . 'resources/js/debitCard/BP.Mpi.3ds20.min.js'));
         wp_localize_script('lkn-dc-script', 'lknDCScriptAllowCardIneligible', array('allow' => $this->gateway->get_option('allow_card_ineligible', 'no')));
         wp_localize_script('lkn-dc-script', 'lknCieloRestSettings', array(
-            'root'  => esc_url_raw(rest_url()),
+            'rest_url'  => esc_url_raw(rest_url()),
             'nonce' => wp_create_nonce('wp_rest'),
         ));
         
@@ -71,7 +71,7 @@ final class LknWcCieloDebitBlocks extends AbstractPaymentMethodType
         wp_enqueue_script('lkn-mask-script-load', plugin_dir_url(__FILE__) . '../resources/js/frontend/define-mask.js', array('lkn-mask-script', 'jquery'), LKN_WC_CIELO_VERSION, false);
         wp_enqueue_script('lkn-fix-token-script', plugin_dir_url(__FILE__) . '../resources/js/frontend/lkn-fix-token-script.js', array('jquery'), LKN_WC_CIELO_VERSION, false);
         wp_localize_script('lkn-fix-token-script', 'lknCieloRestSettings', array(
-            'root'  => esc_url_raw(rest_url()),
+            'rest_url'  => esc_url_raw(rest_url()),
             'nonce' => wp_create_nonce('wp_rest'),
         ));
 

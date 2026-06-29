@@ -96,13 +96,24 @@ function setupErrorDetection() {
         if(!cardBin) {
           return
         }
-        const url = lknCieloRestSettings.root + 'lknWCGatewayCielo/checkCard?cardbin=' + cardBin
+        // Fallback: suporta tanto rest_url (padrão) quanto root (legado)
+        var restRoot = (typeof lknCieloRestSettings !== 'undefined' && (lknCieloRestSettings.rest_url || lknCieloRestSettings.root)) 
+          ? (lknCieloRestSettings.rest_url || lknCieloRestSettings.root)
+          : (typeof wpApiSettings !== 'undefined' && wpApiSettings.root ? wpApiSettings.root : null)
+        if (!restRoot) {
+          console.warn('lknCieloRestSettings and wpApiSettings not available, skipping BIN check')
+          return
+        }
+        var nonce = (typeof lknCieloRestSettings !== 'undefined' && lknCieloRestSettings.nonce)
+          ? lknCieloRestSettings.nonce
+          : (typeof wpApiSettings !== 'undefined' && wpApiSettings.nonce ? wpApiSettings.nonce : '')
+        const url = restRoot + 'lknWCGatewayCielo/checkCard?cardbin=' + cardBin
         $.ajax({
           url,
           type: 'GET',
           headers: {
             Accept: 'application/json',
-            'X-WP-Nonce': lknCieloRestSettings.nonce
+            'X-WP-Nonce': nonce
           },
           success: function (response) {
             const options = document.querySelectorAll('#lkn_cc_type option')
