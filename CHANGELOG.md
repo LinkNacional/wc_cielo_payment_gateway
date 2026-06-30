@@ -1,3 +1,6 @@
+# 1.33.6 - 25/06/2026
+* Ajuste: versão de teste na documentação.
+
 # 1.33.5 - 24/06/2026
 * Ajuste: Validação do 3DS.
   
