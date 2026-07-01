@@ -10,11 +10,7 @@
     "autoload-dev": {
         "psr-4": {
             "Lkn\\WCCieloPaymentGateway\\Tests\\": "tests/"
-        },
-        "classmap": [
-            "wp-content/plugins/woocommerce/includes/",
-            "wp-content/plugins/woocommerce/src/"
-        ]
+        }
     },
     "authors": [
         {
@@ -30,8 +26,7 @@
         "mockery/mockery": "^1.5",
         "wp-phpunit/wp-phpunit": "^7.0",
         "yoast/phpunit-polyfills": "^4.0",
-        "roots/wordpress": "^7.0",
-        "wpackagist-plugin/woocommerce": "*"
+        "roots/wordpress": "^7.0"
     },
     "require": {
         "helgesverre/toon": "^3.1"
