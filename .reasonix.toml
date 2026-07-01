@@ -4,7 +4,7 @@
 
 [workflow]
 # Ordem imutável das fases
-phases = ["read_spec", "red", "green", "audit", "refactor"]
+phases = ["read_spec", "red", "green", "audit", "plugin-check", "refactor"]
 # Bloqueia avanço sem evidência da fase atual
 require_evidence = true
 # Máximo de arquivos por fase GREEN antes de novo AUDIT
@@ -86,6 +86,23 @@ forbidden = [
 ]
 evidence = "Lista de verificação dos 7 itens above. Output do `composer test` completo."
 gate = "Todos os 7 checks passam. Testes suite completa passam."
+
+# ---------------------------------------------------------------------------
+# FASE 4.5: PLUGIN-CHECK — Validação via WordPress Plugin Check (PCP)
+# ---------------------------------------------------------------------------
+[workflow.phases."plugin-check"]
+description = "Rodar WordPress Plugin Check em modo estrito — zero erros, zero warnings"
+required = [
+    "Executar `rtk ./.reasonix/skills/plugin-check.sh`",
+    "Se exit code = 1, corrigir TODOS os erros e warnings reportados",
+    "Re-executar até exit code = 0 (zero errors, zero warnings)",
+]
+forbidden = [
+    "Nunca avançar para REFACTOR com plugin-check sujo",
+    "Nunca suprimir warnings com comentários de ignore sem justificativa documentada",
+]
+evidence = "Output do script com exit 0"
+gate = "Plugin Check passa limpo — zero errors, zero warnings (exit 0)"
 
 # ---------------------------------------------------------------------------
 # FASE 5: REFACTOR — Melhorar sem quebrar
