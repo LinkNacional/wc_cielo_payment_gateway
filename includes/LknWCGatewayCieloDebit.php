@@ -91,6 +91,7 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         // Actions.
         add_filter('woocommerce_new_order_note_data', array($this, 'add_gateway_name_to_notes'), 10, 2);
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
+        add_action('woocommerce_scheduled_subscription_payment_' . $this->id, array($this, 'process_subscription_payment'), 10, 3);
 
         // Action hook to load admin JavaScript
         if (function_exists('get_plugins')) {
@@ -115,6 +116,19 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
         }
 
         return true;
+    }
+
+    /**
+     * Process subscription payment.
+     *
+     * @param  float     $amount
+     * @param  WC_Order  $order
+     * @param  bool      $isRetry
+     * @return void
+     */
+    public function process_subscription_payment($amount, $order, $isRetry = false): void
+    {
+        do_action('lkn_wc_cielo_debit_scheduled_subscription_payment', $amount, $order, $isRetry);
     }
 
     /**
@@ -1117,6 +1131,16 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
             $cardType = isset($_POST['lkn_cc_type']) ? sanitize_text_field(wp_unslash($_POST['lkn_cc_type'])) : '';
             $installments = (int) (isset($_POST['lkn_cc_dc_installments']) ? sanitize_text_field(wp_unslash($_POST['lkn_cc_dc_installments'])) : 1);
             $saveCard = isset($_POST['lkn_save_debit_credit_card']) && ($_POST['lkn_save_debit_credit_card'] === '1' || $this->get_option('save_card_token') == 'required' ) ? true : false;
+
+            // Assinaturas (WooCommerce Subscriptions): apenas Cartão de Crédito é permitido.
+            // Cartão de Débito exige autenticação do portador a cada cobrança — inviável para renovações automáticas.
+            if (function_exists('wcs_order_contains_subscription') && wcs_order_contains_subscription($order_id)) {
+                if ($cardType === 'Debit') {
+                    throw new Exception(esc_attr(__('Debit cards are not accepted for subscription payments. Please use a credit card.', 'lkn-wc-gateway-cielo')));
+                }
+                $saveCard = true;
+                $order = apply_filters('lkn_wc_cielo_debit_process_recurring_payment', $order);
+            }
                         
             // Authentication parameters
             $xid = isset($_POST['lkn_cielo_3ds_xid']) ? sanitize_text_field(wp_unslash($_POST['lkn_cielo_3ds_xid'])) : '';
@@ -1361,6 +1385,10 @@ final class LknWCGatewayCieloDebit extends WC_Payment_Gateway
                             'Holder' => $cardName,
                             'ExpirationDate' => $cardExp,
                             'SecurityCode' => $cardCvv,
+                            'SaveCard' => $saveCard,
+                            'CardOnFile' => array(
+                                'Usage' => 'First'
+                            ),
                             'Brand' => $provider,
                         ),
                     ),

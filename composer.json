@@ -10,7 +10,11 @@
     "autoload-dev": {
         "psr-4": {
             "Lkn\\WCCieloPaymentGateway\\Tests\\": "tests/"
-        }
+        },
+        "classmap": [
+            "wp-content/plugins/woocommerce/includes/",
+            "wp-content/plugins/woocommerce/src/"
+        ]
     },
     "authors": [
         {
@@ -23,7 +27,11 @@
         "phan/phan": "5.4.1",
         "phpunit/phpunit": "^9.5",
         "brain/monkey": "^2.6",
-        "mockery/mockery": "^1.5"
+        "mockery/mockery": "^1.5",
+        "wp-phpunit/wp-phpunit": "^7.0",
+        "yoast/phpunit-polyfills": "^4.0",
+        "roots/wordpress": "^7.0",
+        "wpackagist-plugin/woocommerce": "*"
     },
     "require": {
         "helgesverre/toon": "^3.1"
@@ -32,5 +40,17 @@
         "test": "phpunit",
         "test:unit": "phpunit --testsuite unit",
         "test:coverage": "XDEBUG_MODE=coverage phpunit --coverage-html coverage --coverage-text"
+    },
+    "config": {
+        "allow-plugins": {
+            "roots/wordpress-core-installer": true,
+            "composer/installers": true
+        }
+    },
+    "repositories": {
+        "wpackagist": {
+            "type": "composer",
+            "url": "https://wpackagist.org"
+        }
     }
 }
